@@ -1,0 +1,112 @@
+#pragma once
+#include <string>
+#include <vector>
+
+#define USER_FROM_ID 250 
+
+#define FORM_BUTTON_WIDTH	24
+#define FORM_BUTTON_HEIGHT	24
+
+#define QIMAGE_LIST_ITEM_WIDTH 224
+#define QIMAGE_LIST_ITEM_HEIGHT 126
+
+namespace Config {
+
+//PANEL的ID
+typedef enum {
+	HOME_PANEL = WM_USER + 1,
+	DATABASE_PANEL,
+	ANALYSIS_PANEL,
+	VIEW_PANEL,
+	SETTING_PANEL,
+	// 不列入菜单项的PANEL
+	ANALYSIS_LIST_PANEL,
+	TAKEN_IMAGE_PANEL,
+	SAMPLE_SETTINGS_PANEL
+} PanelId;
+
+
+//框架用的工具栏上的按钮ID
+typedef enum {
+	UNSED_BUTTON_ID = 0,
+	HOME_BUTTON_ID = WM_USER + 10,
+	DATABASE_BUTTON_ID,
+	ANALYSIS_BUTTON_ID,
+	VIEW_BUTTON_ID,
+	SETTING_BUTTON_ID,
+} FrmButtonId ;
+
+// button id
+typedef enum {
+	// YES/NO
+	CUSTOMER_FORM_YES_BUTTON_ID = WM_USER + 40,
+	CUSTOMER_FORM_NO_BUTTON_ID,
+	QIMAGE_PREV_PAGE_BUTTON_ID,
+	QIMAGE_NEXT_PAGE_BUTTON_ID,
+
+	// TREE VIEW
+	DATABASE_CREATE_BUTTON_ID,
+	DATABASE_OPEN_BUTTON_ID,
+	DATABASE_REFRESH_BUTTON_ID,
+	DATABASE_DELETE_BUTTON_ID,
+
+	// RIGHT VIEW TOOLBAR
+	DATABASE_EXEC_SQL_BUTTON_ID,
+	DATABASE_EXEC_ALL_BUTTON_ID,
+
+	//LIST VIEW TOOLBAR
+	LISTVIEW_EXPORT_BUTTON_ID,
+	LISTVIEW_COPY_BUTTON_ID,
+	LISTVIEW_FILTER_BUTTON_ID,
+	LISTVIEW_REFRESH_BUTTON_ID,
+} ButtonId;
+
+// TabView id
+typedef enum {
+	DATABASE_WORK_TAB_VIEW_ID = WM_USER + 100,
+} TabViewId;
+
+typedef enum {
+	// TREE VIEW
+	TREEVIEW_SELECTED_DB_COMBOBOX_ID = WM_USER + 110,
+	//LIST VIEW TOOLBAR
+	LISTVIEW_READ_WRITE_COMBOBOX_ID,
+} ComboBoxId;
+
+
+typedef enum {
+	DATABASE_TREEVIEW_ID = WM_USER + 120,
+} TreeViewId;
+
+
+typedef enum {
+	DATABASE_QUERY_EDITOR_ID = WM_USER + 130,
+	// LIST VIEW 
+	LISTVIEW_OFFSET_EDIT_ID,
+	LISTVIEW_LIMIT_EDIT_ID,
+} EditorId;
+
+typedef enum {
+	DATABASE_QUERY_LISTVIEW_ID = WM_USER + 140,
+} ListViewId;
+
+typedef enum {
+	//LIST VIEW TOOLBAR
+	LISTVIEW_FORMVIEW_CHECKBOX_ID = WM_USER + 150,
+	LISTVIEW_LIMIT_CHECKBOX_ID,
+} CheckBoxId;
+
+// PostMessage messageId
+typedef enum {
+	MSG_TIMER_MOVE_ID = WM_USER + 200, // QPopAnimate 触发的移动定时器
+	MSG_TIMER_DELAY_ID, // QPopAnimate 触发的悬停定时器
+	MSG_QIMAGE_CLICK_ID, // 点击QStaticImage,如果命中右下角小图标，则调用上一个消息ID， 否则，给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
+	MSG_QIMAGE_CONERICON_CLICK_ID, // 点击QStaticImage图片右下角小图标（拍照等），给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
+	MSG_QIMAGELIST_CLICK_ID, // 单击QImageList图片列表，给父窗口发送消息，wParam为被选中项下标nSelItem，lParam带上被选中项的窗口句柄
+}MessageId;
+
+typedef enum {
+	QIMAGE_LIST_ID_START = WM_USER + 1024,
+	QIMAGE_LIST_ID_END = WM_USER + 1099,
+} ImageIdRank;
+};

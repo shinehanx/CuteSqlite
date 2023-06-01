@@ -1,0 +1,388 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{82C19158-3B9D-4146-B24D-1899E2EF9D67}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfAtl>Static</UseOfAtl>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfAtl>Static</UseOfAtl>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\wtl\Include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)lib\wtl\Include;$(SolutionDir)\lib\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\sqlite3;$(SolutionDir)lib\scintilla;$(SolutionDir)lib\lexilla;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)lib\wtl\Include;$(SolutionDir)lib\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\sqlite3;$(SolutionDir)lib\scintilla;$(SolutionDir)lib\lexilla;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MinimalRebuild>true</MinimalRebuild>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <HeaderFileName>CuteSqlite.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CuteSqlite_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CuteSqlite_p.c</ProxyFileName>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)/CuteSqlite.tlb</TypeLibraryName>
+      <DllDataFileName>
+      </DllDataFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <HeaderFileName>CuteSqlite.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CuteSqlite_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CuteSqlite_p.c</ProxyFileName>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)/CuteSqlite.tlb</TypeLibraryName>
+      <DllDataFileName>
+      </DllDataFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Command>mkdir "$(OutDir)res" /Y
+
+xcopy res "$(OutDir)res" /Y /s
+
+
+xcopy ..\lib\libcurl\libcurl.dll "$(OutDir)" /Y
+
+xcopy ..\lib\sqlite3\sqlite3.dll "$(OutDir)" /Y
+
+xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <HeaderFileName>CuteSqlite.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CuteSqlite_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CuteSqlite_p.c</ProxyFileName>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)/CuteSqlite.tlb</TypeLibraryName>
+      <DllDataFileName>
+      </DllDataFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <HeaderFileName>CuteSqlite.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CuteSqlite_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CuteSqlite_p.c</ProxyFileName>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)/CuteSqlite.tlb</TypeLibraryName>
+      <DllDataFileName>
+      </DllDataFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Command>mkdir "$(OutDir)res" /Y
+
+xcopy res "$(OutDir)res" /Y /s
+
+
+xcopy ..\lib\libcurl\libcurl.dll "$(OutDir)" /Y
+
+xcopy ..\lib\sqlite3\sqlite3.dll "$(OutDir)" /Y
+
+xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AboutDlg.cpp" />
+    <ClCompile Include="common\AppContext.cpp" />
+    <ClCompile Include="common\MsgDispatcher.cpp" />
+    <ClCompile Include="core\common\exception\QRuntimeException.cpp" />
+    <ClCompile Include="core\common\Lang.cpp" />
+    <ClCompile Include="core\common\repository\QSqlColumn.cpp" />
+    <ClCompile Include="core\common\repository\QSqlDatabase.cpp" />
+    <ClCompile Include="core\common\repository\QSqlException.cpp" />
+    <ClCompile Include="core\common\repository\QSqlStatement.cpp" />
+    <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
+    <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
+    <ClCompile Include="core\repository\user\DatabaseUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\FieldUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\IndexUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\SqlExecutorUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\TableUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\TriggerUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\ViewUserRepository.cpp" />
+    <ClCompile Include="core\service\db\DatabaseService.cpp" />
+    <ClCompile Include="core\service\db\SqlService.cpp" />
+    <ClCompile Include="core\service\system\SettingService.cpp" />
+    <ClCompile Include="CuteSqlite.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="HomeView.cpp" />
+    <ClCompile Include="ui\common\button\ImageTextButton.cpp" />
+    <ClCompile Include="ui\common\button\QDropButton.cpp" />
+    <ClCompile Include="ui\common\button\QImageButton.cpp" />
+    <ClCompile Include="ui\common\checkbox\QCheckBox.cpp" />
+    <ClCompile Include="ui\common\edit\QHelpEdit.cpp" />
+    <ClCompile Include="ui\common\edit\QSqlEdit.cpp" />
+    <ClCompile Include="ui\common\image\QImage.cpp" />
+    <ClCompile Include="ui\common\image\QImageList.cpp" />
+    <ClCompile Include="ui\common\image\QStaticImage.cpp" />
+    <ClCompile Include="ui\common\message\QMessageBox.cpp" />
+    <ClCompile Include="ui\common\message\QPopAnimate.cpp" />
+    <ClCompile Include="ui\common\page\QHelpPage.cpp" />
+    <ClCompile Include="ui\common\page\QPage.cpp" />
+    <ClCompile Include="ui\common\tabview\QTabView.cpp" />
+    <ClCompile Include="ui\database\DatabasePanel.cpp" />
+    <ClCompile Include="ui\database\leftview\adapter\LeftTreeViewAdapter.cpp" />
+    <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
+    <ClCompile Include="ui\database\rightview\page\QueryPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\adapter\ResultListPageAdapter.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\ResultInfoPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\ResultListPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\ResultTableDataPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\ResultTabView.cpp" />
+    <ClCompile Include="ui\database\rightview\RightWorkView.cpp" />
+    <ClCompile Include="ui\database\supplier\DatabaseSupplier.cpp" />
+    <ClCompile Include="ui\home\HomePanel.cpp" />
+    <ClCompile Include="ui\home\LeftPanel.cpp" />
+    <ClCompile Include="utils\ColorUtil.cpp" />
+    <ClCompile Include="utils\FontUtil.cpp" />
+    <ClCompile Include="utils\GdiUtil.cpp" />
+    <ClCompile Include="utils\Log.cpp" />
+    <ClCompile Include="utils\ResourceUtil.cpp" />
+    <ClCompile Include="utils\SqlUtil.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AboutDlg.h" />
+    <ClInclude Include="common\AppContext.h" />
+    <ClInclude Include="common\Config.h" />
+    <ClInclude Include="common\MsgDispatcher.h" />
+    <ClInclude Include="core\common\exception\QRuntimeException.h" />
+    <ClInclude Include="core\common\Lang.h" />
+    <ClInclude Include="core\common\repository\BaseRepository.h" />
+    <ClInclude Include="core\common\repository\BaseUserRepository.h" />
+    <ClInclude Include="core\common\repository\QSqlAssert.h" />
+    <ClInclude Include="core\common\repository\QSqlColumn.h" />
+    <ClInclude Include="core\common\repository\QSqlDatabase.h" />
+    <ClInclude Include="core\common\repository\QSqlException.h" />
+    <ClInclude Include="core\common\repository\QSqlStatement.h" />
+    <ClInclude Include="core\common\repository\QSqlUtil.h" />
+    <ClInclude Include="core\common\service\BaseService.h" />
+    <ClInclude Include="core\entity\Entity.h" />
+    <ClInclude Include="core\repository\db\UserDbRepository.h" />
+    <ClInclude Include="core\repository\system\SysInitRepository.h" />
+    <ClInclude Include="core\repository\user\DatabaseUserRepository.h" />
+    <ClInclude Include="core\repository\user\FieldUserRepository.h" />
+    <ClInclude Include="core\repository\user\IndexUserRepository.h" />
+    <ClInclude Include="core\repository\user\SqlExecutorUserRepository.h" />
+    <ClInclude Include="core\repository\user\TableUserRepository.h" />
+    <ClInclude Include="core\repository\user\TriggerUserRepository.h" />
+    <ClInclude Include="core\repository\user\ViewUserRepository.h" />
+    <ClInclude Include="core\service\db\DatabaseService.h" />
+    <ClInclude Include="core\service\db\SqlService.h" />
+    <ClInclude Include="core\service\system\SettingService.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="HomeView.h" />
+    <ClInclude Include="ui\common\adapter\QAdapter.h" />
+    <ClInclude Include="ui\common\button\ImageTextButton.h" />
+    <ClInclude Include="ui\common\button\QDropButton.h" />
+    <ClInclude Include="ui\common\button\QImageButton.h" />
+    <ClInclude Include="ui\common\checkbox\QCheckBox.h" />
+    <ClInclude Include="ui\common\edit\QHelpEdit.h" />
+    <ClInclude Include="ui\common\edit\QSqlEdit.h" />
+    <ClInclude Include="ui\common\image\QImage.h" />
+    <ClInclude Include="ui\common\image\QImageList.h" />
+    <ClInclude Include="ui\common\image\QStaticImage.h" />
+    <ClInclude Include="ui\common\message\QMessageBox.h" />
+    <ClInclude Include="ui\common\message\QPopAnimate.h" />
+    <ClInclude Include="ui\common\page\QHelpPage.h" />
+    <ClInclude Include="ui\common\page\QPage.h" />
+    <ClInclude Include="ui\common\QWinCreater.h" />
+    <ClInclude Include="ui\common\tabview\QTabView.h" />
+    <ClInclude Include="ui\database\DatabasePanel.h" />
+    <ClInclude Include="ui\database\leftview\adapter\LeftTreeViewAdapter.h" />
+    <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
+    <ClInclude Include="ui\database\rightview\page\QueryPage.h" />
+    <ClInclude Include="ui\database\rightview\page\result\adapter\ResultListPageAdapter.h" />
+    <ClInclude Include="ui\database\rightview\page\result\ResultInfoPage.h" />
+    <ClInclude Include="ui\database\rightview\page\result\ResultListPage.h" />
+    <ClInclude Include="ui\database\rightview\page\result\ResultTableDataPage.h" />
+    <ClInclude Include="ui\database\rightview\page\result\ResultTabView.h" />
+    <ClInclude Include="ui\database\supplier\DatabaseSupplier.h" />
+    <ClInclude Include="ui\database\rightview\RightWorkView.h" />
+    <ClInclude Include="ui\home\HomePanel.h" />
+    <ClInclude Include="ui\home\LeftPanel.h" />
+    <ClInclude Include="utils\ColorUtil.h" />
+    <ClInclude Include="utils\DateUtil.h" />
+    <ClInclude Include="utils\FileUtil.h" />
+    <ClInclude Include="utils\FontUtil.h" />
+    <ClInclude Include="utils\GdiPlusUtil.h" />
+    <ClInclude Include="utils\GdiUtil.h" />
+    <ClInclude Include="utils\Log.h" />
+    <ClInclude Include="utils\ProfileUtil.h" />
+    <ClInclude Include="utils\ResourceUtil.h" />
+    <ClInclude Include="utils\SqlUtil.h" />
+    <ClInclude Include="utils\StringUtil.h" />
+    <ClInclude Include="utils\ThreadUtil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CuteSqlite.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
+    <None Include="res\CuteSqlite.ico" />
+    <None Include="res\toolbar.bmp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
