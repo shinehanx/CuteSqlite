@@ -10,7 +10,7 @@
 #include <GdiPlus.h>
 #include "common/Config.h"
 #include "common/AppContext.h"
-#include "ui/common/button/ImageTextButton.h"
+#include "ui/common/button/QImageTextButton.h"
 #include "ui/common/button/QImageButton.h"
 
 class LeftPanel :public CWindowImpl<LeftPanel>
@@ -34,13 +34,13 @@ public:
 private:
 
 	//左边的按钮ID和按钮的对象指针对应关系
-	std::map<Config::FrmButtonId, ImageTextButton *> buttonMap;
+	std::map<Config::FrmButtonId, QImageTextButton *> buttonMap;
 
-	ImageTextButton homeButton;
-	ImageTextButton databaseButton;
-	ImageTextButton analysisButton;
-	ImageTextButton viewButton;
-	ImageTextButton settingButton;
+	QImageTextButton homeButton;
+	QImageTextButton databaseButton;
+	QImageTextButton analysisButton;
+	QImageTextButton viewButton;
+	QImageTextButton settingButton;
 	
 	// 选中的BUTTONID
 	Config::FrmButtonId selButtonId = Config::HOME_BUTTON_ID;

@@ -58,28 +58,29 @@ void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
 	QWinCreater::createOrShowButton(m_hWnd, exportButton,  Config::LISTVIEW_EXPORT_BUTTON_ID, L"", rect, clientRect);
 
 	rect.OffsetRect(16 + 10, 0);
+	rect.InflateRect(0, 0, 8, 0); 
 	normalImagePath = imgDir + L"database\\list\\button\\copy-button-normal.png";
 	pressedImagePath = imgDir + L"database\\list\\button\\copy-button-pressed.png";
 	copyButton.SetIconPath(normalImagePath, pressedImagePath);
 	copyButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	copyButton.SetToolTip(S(L"copy"));
-	QWinCreater::createOrShowDropButton(m_hWnd, copyButton, Config::LISTVIEW_COPY_BUTTON_ID, L"", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, copyButton, Config::LISTVIEW_COPY_BUTTON_ID, L"", rect, clientRect);
 
-	rect.OffsetRect(16 + 10, 0);
-	rect.InflateRect(0, 2, 100, -2); 
+	rect.OffsetRect(24 + 10, 0);
+	rect.InflateRect(0, 2, 80, -2); 
 	QWinCreater::createOrShowComboBox(m_hWnd, readWriteComboBox, Config::LISTVIEW_READ_WRITE_COMBOBOX_ID, rect, clientRect);
 	readWriteComboBox.SetFont(FT(L"combobox-size"));
 
 	rect.OffsetRect(120 + 20, 0);
-	rect.InflateRect(0, 0, 0, 4);
+	rect.InflateRect(0, 0, 20, 4);
 	formViewCheckBox.setBkgColor(buttonColor);
 	formViewCheckBox.setFontSize(Lang::fontSize(L"checkbox-size")); 
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
 		
 	rect.MoveToX(topbarRect.right - 300);
 	rect.InflateRect(0, -2, -100, -2);
-	normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png";
-	pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
+	normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
+	pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png"; 
 	filterButton.SetIconPath(normalImagePath, pressedImagePath);
 	filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);

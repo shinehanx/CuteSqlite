@@ -42,9 +42,6 @@
     <ClCompile Include="common\MsgDispatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\common\button\ImageTextButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui\common\button\QImageButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -189,6 +186,9 @@
     <ClCompile Include="ui\common\button\QDropButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\common\button\QImageTextButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -222,9 +222,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\common\button\QImageButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\common\button\ImageTextButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\ResourceUtil.h">
@@ -408,6 +405,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\common\button\QDropButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\common\button\QImageTextButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

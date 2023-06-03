@@ -130,20 +130,20 @@ void QImageButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 		GdiPlusUtil::DrawTextCenter(graphics, rect, text.c_str(), font, &gdi_color_text);
 	}
 
-	//画图片
+	// 画图片
 	if (iconPath.size()) {
 		Gdiplus::Image iconImage(iconPath.c_str(), false);
 		Gdiplus::SizeF textSize(0.0, 0.0);
-		UINT splitSize = 0; //文字和图片间距
+		UINT splitSize = 0; // 文字和图片间距
 		if (text.size()) {
 			textSize = GdiPlusUtil::GetTextBounds(font, text);
-			splitSize = 5; //文字和图片间距为5
+			splitSize = 5; // 文字和图片间距为5
 		}
 		UINT imageWidth = iconImage.GetWidth();
 		UINT imageHeight = iconImage.GetHeight();
 
 		if (static_cast<UINT>(client_rect.Width) < imageWidth 
-			&& static_cast<UINT>(client_rect.Height) < imageHeight) { //图片超大，图片压扁显示
+			&& static_cast<UINT>(client_rect.Height) < imageHeight) { // 图片超大，图片压扁显示
 			graphics.DrawImage(&iconImage, client_rect, 0, 0, imageWidth, imageHeight, Gdiplus::UnitPixel);
 		} else {
 			int ix = 0;
@@ -172,7 +172,6 @@ void QImageButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 
 	SetMsgHandled(FALSE);
-
 }
 
 /**
@@ -283,12 +282,12 @@ void QImageButton::DrawRect(Gdiplus::Graphics& graphics, Gdiplus::Rect rect, DWO
 	Gdiplus::GraphicsPath m_pPath;
 	m_pPath.AddRectangle(rect);
 	m_pPath.CloseFigure();
-	Gdiplus::Color color_bg(GetRValue(color_backgroud), GetGValue(color_backgroud),
+	Gdiplus::Color bgkColor(GetRValue(color_backgroud), GetGValue(color_backgroud),
 		GetBValue(color_backgroud));
-	Gdiplus::SolidBrush brush_bg(color_bg);
-	graphics.FillPath(&brush_bg,&m_pPath);
+	Gdiplus::SolidBrush bkgBrush(bgkColor);
+	graphics.FillPath(&bkgBrush,&m_pPath);
 
-	Gdiplus::Pen *pen = NULL;
+	Gdiplus::Pen *pen = nullptr;
 	Gdiplus::Color gcolor(GetRValue(color),GetGValue(color), GetBValue(color));
 	if(color_border == -1){
 		pen = new Gdiplus::Pen(gcolor, 1);
@@ -298,18 +297,24 @@ void QImageButton::DrawRect(Gdiplus::Graphics& graphics, Gdiplus::Rect rect, DWO
 		pen = new Gdiplus::Pen(gdi_color_border, 1);
 	}
 
-	Gdiplus::SolidBrush brush_color(gcolor);
+	Gdiplus::SolidBrush colorBrush(gcolor);
 	Gdiplus::GraphicsPath path_border;
 	
 	path_border.AddRectangle(rect);
 	path_border.CloseFigure();
 	
-	graphics.FillPath(&brush_color, &path_border);
+	graphics.FillPath(&colorBrush, &path_border);
 
 	if(color_border != -1)
 		graphics.DrawPath(pen, &path_border);
 
-	DeleteObject(pen);
+	
+	if (pen) {
+		::DeleteObject(pen);
+		delete pen;
+	}
+
+	::DeleteObject(&gcolor);
 }
 
 /**

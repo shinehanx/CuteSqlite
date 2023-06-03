@@ -22,9 +22,9 @@
 #include <atlwin.h>
 #include <atlctrls.h>
 #include <atltypes.h>
-#include "ui/common/button/QImageButton.h"
 #include "utils/GdiPlusUtil.h"
 #include "utils/FontUtil.h"
+#include "ui/common/button/QDropButton.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/image/QImageList.h"
 #include "ui/common/checkbox/QCheckBox.h"
@@ -33,6 +33,19 @@ class QWinCreater
 {
 public:
 	static void createOrShowButton(HWND hwnd, QImageButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = BS_OWNERDRAW)
+	{
+		if (::IsWindow(hwnd) && !win.IsWindow()) {
+			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS ; // 
+			if (exStyle) dwStyle = dwStyle | exStyle;
+			win.Create(hwnd, rect, text.c_str(), dwStyle , 0, id);
+			return ;
+		} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
+			win.MoveWindow(&rect);
+			win.ShowWindow(SW_SHOW);		
+		}
+	}
+
+	static void createOrShowDropButton(HWND hwnd, QDropButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = BS_OWNERDRAW)
 	{
 		if (::IsWindow(hwnd) && !win.IsWindow()) {
 			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS ; // 

@@ -20,6 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{82C19158-3B9D-4146-B24D-1899E2EF9D67}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -265,7 +266,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="HomeView.cpp" />
-    <ClCompile Include="ui\common\button\ImageTextButton.cpp" />
+    <ClCompile Include="ui\common\button\QImageTextButton.cpp" />
     <ClCompile Include="ui\common\button\QDropButton.cpp" />
     <ClCompile Include="ui\common\button\QImageButton.cpp" />
     <ClCompile Include="ui\common\checkbox\QCheckBox.cpp" />
@@ -333,7 +334,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="HomeView.h" />
     <ClInclude Include="ui\common\adapter\QAdapter.h" />
-    <ClInclude Include="ui\common\button\ImageTextButton.h" />
+    <ClInclude Include="ui\common\button\QImageTextButton.h" />
     <ClInclude Include="ui\common\button\QDropButton.h" />
     <ClInclude Include="ui\common\button\QImageButton.h" />
     <ClInclude Include="ui\common\checkbox\QCheckBox.h" />
