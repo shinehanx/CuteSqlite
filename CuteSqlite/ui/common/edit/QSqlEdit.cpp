@@ -273,6 +273,12 @@ std::wstring QSqlEdit::getText()
 	return text;
 }
 
+void QSqlEdit::replaceSelText(std::wstring & text)
+{
+	char * utf8Str = StringUtil::unicodeToUtf8(text);
+	long charWidth = static_cast<long>(SendMessage(SCI_REPLACESEL, NULL, (LPARAM)utf8Str));
+}
+
 long QSqlEdit::lineFromPosition(long pos)
 {
 	LRESULT ret = SendMessage(SCI_LINEFROMPOSITION, static_cast<WPARAM>(pos), 0);

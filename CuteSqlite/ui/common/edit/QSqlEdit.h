@@ -50,6 +50,9 @@ public:
 
 	std::wstring getSelText();
 	std::wstring getText();
+
+	// replace selected text to editor
+	void replaceSelText(std::wstring & text);
 	
 protected:
 

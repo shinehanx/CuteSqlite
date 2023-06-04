@@ -26,5 +26,9 @@ public:
 	// select sql regex pattern
 	static std::wregex selectPat;
 
+	// field regex pattern
+	static std::wregex fieldPat;
+
 	static bool isSelectSql(std::wstring & sql);
+	static std::wstring getFieldName(std::wstring & str);
 };

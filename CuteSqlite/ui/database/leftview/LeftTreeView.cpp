@@ -20,6 +20,7 @@
 #include "stdafx.h"
 #include "LeftTreeView.h"
 #include "utils/Log.h"
+#include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "ui/common/message/QPopAnimate.h"
@@ -349,6 +350,26 @@ LRESULT LeftTreeView::OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHa
 		selectComboBox(userDbId);
 	}
 
+	
+	return 0;
+}
+
+LRESULT LeftTreeView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
+{
+	Q_INFO(L"LeftTreeView::OnDbClickTreeViewItem");
+	auto ptr = (LPNMTREEVIEW)lParam;
+	HTREEITEM hSelTreeItem = ptr->itemNew.hItem;
+	if (!hSelTreeItem) {
+		return 0;
+	}
+
+	CTreeItem treeItem = treeViewAdapter->getSeletedItem();
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+
+	if (nImage == 0 || nImage == 2 || nImage == 3 || nImage == 4 || nImage == 5 || nImage == 6) {
+		AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_DBCLICK_ID, WPARAM(treeViewAdapter), (LPARAM)hSelTreeItem);
+	}
 	
 	return 0;
 }

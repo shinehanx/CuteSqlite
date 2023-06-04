@@ -314,7 +314,8 @@ void LeftTreeViewAdapter::loadFieldsForTreeView(HTREEITEM hFieldsFolderItem, uin
 		for (UserField item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
-			dataView->InsertItem(field.c_str(), 3, 3, hFieldsFolderItem, TVI_LAST);
+			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hFieldsFolderItem, TVI_LAST);
+			treeItem.SetData((DWORD_PTR)item.cid);
 		}
 	}
 	catch (QRuntimeException &ex) {

@@ -56,6 +56,7 @@ void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
 	exportButton.SetIconPath(normalImagePath, pressedImagePath);
 	exportButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, exportButton,  Config::LISTVIEW_EXPORT_BUTTON_ID, L"", rect, clientRect);
+	exportButton.SetToolTip(S(L"export-result-as"));
 
 	rect.OffsetRect(16 + 10, 0);
 	rect.InflateRect(0, 0, 8, 0); 
@@ -65,6 +66,7 @@ void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
 	copyButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	copyButton.SetToolTip(S(L"copy"));
 	QWinCreater::createOrShowButton(m_hWnd, copyButton, Config::LISTVIEW_COPY_BUTTON_ID, L"", rect, clientRect);
+	copyButton.SetToolTip(S(L"copy-result-data"));
 
 	rect.OffsetRect(24 + 10, 0);
 	rect.InflateRect(0, 2, 80, -2); 

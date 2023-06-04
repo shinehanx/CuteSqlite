@@ -1,5 +1,4 @@
-﻿  ResultListPage.cpp
-f:\project\wtlproject\cutesqlite\lib\include\spdlog\fmt\bundled\format-inl.h(1207): warning C4307: “*”: 整型常量溢出
+﻿  SqlUtil.cpp
   CuteSqlite.vcxproj -> F:\project\wtlproject\CuteSqlite\x64\Debug\CuteSqlite.exe
   子目录或文件 F:\project\wtlproject\CuteSqlite\x64\Debug\res 已经存在。
   处理: F:\project\wtlproject\CuteSqlite\x64\Debug\res 时出错。

@@ -59,6 +59,7 @@ typedef std::vector<UserIndex> UserIndexList;
 
 // table fields
 typedef struct _UserFields {
+	uint32_t cid = 0;
 	std::wstring name;
 	std::wstring type;
 	int notnull = 0;

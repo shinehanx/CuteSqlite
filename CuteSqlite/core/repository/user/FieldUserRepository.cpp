@@ -46,6 +46,8 @@ UserFieldList FieldUserRepository::getListByTblName(uint64_t userDbId, std::wstr
 UserField FieldUserRepository::toUserField(QSqlStatement &query)
 {
 	UserField item;
+	item.cid = query.getColumn(L"cid").isNull() ? 0
+		: query.getColumn(L"cid").getUInt();
 	item.name = query.getColumn(L"name").isNull() ? L""
 		: query.getColumn(L"name").getText();
 	item.type = query.getColumn(L"type").isNull() ? L"" 

@@ -53,6 +53,11 @@ void QHelpEdit::focus()
 	editor.SetFocus();
 }
 
+void QHelpEdit::replaceSelText(std::wstring & text)
+{
+	editor.replaceSelText(text);
+}
+
 void QHelpEdit::createOrShowUI()
 {
 	QHelpPage::createOrShowUI();

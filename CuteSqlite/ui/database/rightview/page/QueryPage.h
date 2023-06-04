@@ -33,6 +33,7 @@ public:
 	BEGIN_MSG_MAP_EX(QueryPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
+		MESSAGE_HANDLER(Config::MSG_TREEVIEW_DBCLICK_ID, OnDbClickTreeview)
 		CHAIN_MSG_MAP(QPage)
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -60,4 +61,7 @@ private:
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
+
+	// 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
+	LRESULT OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

@@ -20,10 +20,13 @@
 #include "stdafx.h"
 #include "QueryPage.h"
 #include <string>
+#include <atlctrls.h>
 #include "utils/SqlUtil.h"
 #include "utils/Log.h"
+#include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "ui/database/leftview/adapter/LeftTreeViewAdapter.h"
 
 BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 {
@@ -134,16 +137,61 @@ void QueryPage::createOrShowResultTabView(ResultTabView & win, CRect & clientRec
 int QueryPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
-
+	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
 	return ret;
 }
 
 int QueryPage::OnDestroy()
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
+
 	bool ret = QPage::OnDestroy();
 	if (sqlEditor.IsWindow()) sqlEditor.DestroyWindow();
 	if (resultTabView.IsWindow()) resultTabView.DestroyWindow();
 	if (splitter.IsWindow()) splitter.DestroyWindow();
 
 	return ret;
+}
+
+/**
+ * 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据.
+ * 
+ * @param uMsg
+ * @param wParam pointer of CTreeViewCtrlEx *
+ * @param lParam pointer of HTREEITEM
+ * @param bHandled
+ * @return 
+ */
+LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	LeftTreeViewAdapter * treeViewAdapter = (LeftTreeViewAdapter *)wParam;
+	HTREEITEM hSelTreeItem = (HTREEITEM)lParam;
+	if (!hSelTreeItem) {
+		return 0;
+	}
+
+	CTreeItem treeItem = treeViewAdapter->getSeletedItem();
+	wchar_t cch[512] = { 0 };
+	bool ret = treeItem.GetText(cch, 512);
+	if (!ret) {
+		return 0;
+	}
+
+	int nImage = -1, nSeletedImage = -1;
+	ret = treeItem.GetImage(nImage, nSeletedImage);
+	if (!ret || nImage == -1) {
+		return 0;
+	}
+
+	std::wstring selItemText(cch);
+	if (nImage == 3) {
+		std::wstring fieldName = SqlUtil::getFieldName(selItemText);
+		sqlEditor.replaceSelText(fieldName);
+	} else {
+		sqlEditor.replaceSelText(selItemText);
+	}
+	
+
+
+	return 0;
 }

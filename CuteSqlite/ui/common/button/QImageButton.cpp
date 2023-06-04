@@ -125,9 +125,9 @@ void QImageButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			static_cast<Gdiplus::REAL>(client_rect.Y), 
 			static_cast<Gdiplus::REAL>(client_rect.Width), 
 			static_cast<Gdiplus::REAL>(client_rect.Height));
-		Gdiplus::Color gdi_color_text;
-		gdi_color_text.SetFromCOLORREF(color_text);
-		GdiPlusUtil::DrawTextCenter(graphics, rect, text.c_str(), font, &gdi_color_text);
+		Gdiplus::Color gdiTextColor;
+		gdiTextColor.SetFromCOLORREF(color_text);
+		GdiPlusUtil::DrawTextCenter(graphics, rect, text.c_str(), font, &gdiTextColor);
 	}
 
 	// ª≠Õº∆¨
@@ -157,7 +157,6 @@ void QImageButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			int iy = (client_rect.Height - imageHeight) /2;
 			GdiPlusUtil::DrawImage(graphics, &iconImage, ix, iy);
 		}
-		
 	}
 	// ª≠’⁄’÷
 	if (capture_path.size()) {
@@ -298,23 +297,20 @@ void QImageButton::DrawRect(Gdiplus::Graphics& graphics, Gdiplus::Rect rect, DWO
 	}
 
 	Gdiplus::SolidBrush colorBrush(gcolor);
-	Gdiplus::GraphicsPath path_border;
+	Gdiplus::GraphicsPath borderPath;
 	
-	path_border.AddRectangle(rect);
-	path_border.CloseFigure();
+	borderPath.AddRectangle(rect);
+	borderPath.CloseFigure();
 	
-	graphics.FillPath(&colorBrush, &path_border);
+	graphics.FillPath(&colorBrush, &borderPath);
 
 	if(color_border != -1)
-		graphics.DrawPath(pen, &path_border);
+		graphics.DrawPath(pen, &borderPath);
 
 	
 	if (pen) {
-		::DeleteObject(pen);
 		delete pen;
 	}
-
-	::DeleteObject(&gcolor);
 }
 
 /**

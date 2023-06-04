@@ -46,6 +46,7 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshDbButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_DELETE_BUTTON_ID, BN_CLICKED, OnClickDeleteDbButton)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_SELCHANGED, OnChangeTreeViewItem)
+		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -97,4 +98,6 @@ private:
 	LRESULT OnClickDeleteDbButton(UINT uNotifyCode, int nID, HWND hwnd);
 	// change selected treeview item .
 	LRESULT OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+	// double click reeview item .
+	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
 };

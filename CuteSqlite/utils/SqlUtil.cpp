@@ -22,6 +22,8 @@
 
 std::wregex SqlUtil::selectPat(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?");
 
+std::wregex SqlUtil::fieldPat(L"(.*)\\s+\\[(.*)\\]+");
+
 bool SqlUtil::isSelectSql(std::wstring & sql)
 {
 	if (sql.empty()) {
@@ -32,4 +34,23 @@ bool SqlUtil::isSelectSql(std::wstring & sql)
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Fetch the field name from str such as "name [hello world]".
+ * 
+ * @param str
+ * @return 
+ */
+std::wstring SqlUtil::getFieldName(std::wstring & str)
+{
+	if (str.empty()) {
+		return L"";
+	}
+
+	std::wsmatch results;
+	if (std::regex_search(str, results,  SqlUtil::fieldPat)) {
+		return results[1];
+	}
+	return L"";
 }

@@ -47,6 +47,7 @@ public:
 	std::wstring getSelText();
 	std::wstring getText();
 	void focus();
+	void replaceSelText(std::wstring & text);
 protected:
 	QSqlEdit editor;
 	std::wstring content;
