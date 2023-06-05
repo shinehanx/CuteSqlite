@@ -81,7 +81,7 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 
 void ResultListPageAdapter::loadHeader(QSqlStatement & query)
 {
-	dataView->InsertColumn(0, L"", LVCFMT_CENTER, 22, -1, 0);
+	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
 	int n = query.getColumnCount();
 	for (int i = 0; i < n - 1; i++) {
 		std::wstring columnName = query.getColumnName(i);
