@@ -1,19 +1,25 @@
 **Project Introduction:**
+
 CuteSqlite is a lightweight graphical management client for SQLite, a simple and efficient in-memory database. It is implemented using WTL/C++14 and supports Windows operating systems.
 
 **Project Objectives:**
+
 The goal of this project is to develop a lightweight, high-performance, and feature-rich SQLite client.
 
 **Development Environment:**
+
 1. Windows 10 or later with the Windows 10 SDK
 2. Visual Studio 2017 (v14.1) or later with C++ 11 support
 3. Windows Template Library (WTL) version 10.0.10320 Release (2020-11-15)
 4. Uses third-party projects: curl, rapidjson, Scintilla, spdlog, and sqlite3
 
-**Open Source License: Apache 2.0**
+**Open Source License: **
+
+[Apache2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 **Project URL:**
-GitHub: https://github.com/shinehanx/CuteSqlite
+
+GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shinehanx/CuteSqlite.git)
 
 **[中文介绍]**
 
