@@ -49,6 +49,9 @@ protected:
 	std::wstring sql;
 	int rowCount = 0;
 	COLORREF buttonColor = RGB(238, 238, 238);
+	CImageList imageList;
+	HBITMAP checkNoBitmap = nullptr;
+	HBITMAP checkYesBitmap = nullptr;
 
 	// toolbar button
 	QImageButton exportButton;
@@ -71,6 +74,8 @@ protected:
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();
+
+	void createImageList();
 	void createOrShowToolBarElements(CRect & clientRect);
 	void createOrShowListView(CListViewCtrl & win, CRect & clientRect);
 

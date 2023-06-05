@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "SqlUtil.h"
 
-std::wregex SqlUtil::selectPat(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?");
+std::wregex SqlUtil::selectPat(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::regex::icase);
 
 std::wregex SqlUtil::fieldPat(L"(.*)\\s+\\[(.*)\\]+");
 

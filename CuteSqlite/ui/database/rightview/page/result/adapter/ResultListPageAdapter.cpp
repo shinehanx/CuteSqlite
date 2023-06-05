@@ -32,7 +32,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
 		//supplier.
 	}
-	
+	return 0;
 }
 
 /**
@@ -51,13 +51,20 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	if (!count || count <= iItem)
 		return 0;
 
+	// set check image in the first column
+	if (pLvdi->item.iSubItem == 0 && pLvdi->item.mask & LVIF_TEXT) {
+		pLvdi->item.mask = LVIF_IMAGE;
+		pLvdi->item.iImage = 0;
+		return 0;
+	}
+
 	auto iter = datas.begin();
-	for (int i = 0; i < iItem; i++) {
+	for (int i = 1; i < iItem + 1; i++) {
 		iter++;
 	}
 	RowItem & rowItem = *iter;
-	if (pLvdi->item.mask & LVIF_TEXT) {
-		std::wstring val = rowItem.at(pLvdi->item.iSubItem);
+	if (pLvdi->item.iSubItem > 0 && (pLvdi->item.mask & LVIF_TEXT)) {
+		std::wstring val = rowItem.at(pLvdi->item.iSubItem - 1);
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());		
 	}
 
@@ -66,10 +73,11 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 
 void ResultListPageAdapter::loadHeader(QSqlStatement & query)
 {
+	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 20);
 	int n = query.getColumnCount();
 	for (int i = 0; i < n; i++) {
 		std::wstring columnName = query.getColumnName(i);
-		dataView->InsertColumn(i, columnName.c_str(), LVCFMT_LEFT, 100);
+		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
 		columns.push_back(columnName);
 	}
 }
@@ -79,14 +87,12 @@ int ResultListPageAdapter::loadData(QSqlStatement & query)
 	CRect rectList;
 	dataView->GetClientRect(rectList);
 
-	
 	int cols = dataView->GetHeader().GetItemCount();
 	while (query.executeStep()) {
 		RowItem rowItem;
-		int rows = static_cast<int>(dataView->GetItemCount());
-		for (int i = 0; i < cols; i++) {
-			std::wstring colomnVal = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
-			rowItem.push_back(colomnVal);
+		for (int i = 0; i < cols - 1; i++) {
+			std::wstring columnVal = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
+			rowItem.push_back(columnVal);
 		}
 		datas.push_back(rowItem);
 	}
