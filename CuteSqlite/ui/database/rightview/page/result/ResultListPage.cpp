@@ -129,8 +129,10 @@ void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRec
 		win.Create(m_hWnd, rect,NULL, 
 			WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA , // | LVS_OWNERDATA
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER);
+		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.SetImageList(imageList, LVSIL_SMALL);
+		CHeaderCtrl header = win.GetHeader();
+		header.SetImageList(imageList);
 		adapter = new ResultListPageAdapter(m_hWnd, &win);
 	}
 	else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
@@ -195,8 +197,10 @@ int ResultListPage::OnDestroy()
 	return ret;
 }
 
-LRESULT ResultListPage::OnNMClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
+	auto ptr = (LPNMITEMACTIVATE)pnmh;
+	
 	return 0;
 }
 
@@ -210,6 +214,7 @@ LRESULT ResultListPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 
 LRESULT ResultListPage::OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
+	auto pCachehint = (NMLVCACHEHINT *)pnmh;
 	return 0;
 }
 
@@ -225,6 +230,13 @@ LRESULT ResultListPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHand
 	if (!count || count <= iItem)
 		return -1;
 
+	return 0;
+}
+
+LRESULT ResultListPage::OnChangeListViewState(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	auto ptr = (LPNMLVODSTATECHANGE)pnmh;
+	
 	return 0;
 }
 

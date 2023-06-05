@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ResultListPageAdapter.h"
 #include <Strsafe.h>
+#include <CommCtrl.h>
 #include "core/common/repository/QSqlException.h"
 #include "ui/common/message/QPopAnimate.h"
 
@@ -52,9 +53,15 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 		return 0;
 
 	// set check image in the first column
+	
 	if (pLvdi->item.iSubItem == 0 && pLvdi->item.mask & LVIF_TEXT) {
 		pLvdi->item.mask = LVIF_IMAGE;
-		pLvdi->item.iImage = 0;
+		if (getIsChecked(pLvdi->item.iItem)) {
+			pLvdi->item.iImage = 1;
+		} else {
+			pLvdi->item.iImage = 0;
+		}
+		
 		return 0;
 	}
 
@@ -64,18 +71,19 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	}
 	RowItem & rowItem = *iter;
 	if (pLvdi->item.iSubItem > 0 && (pLvdi->item.mask & LVIF_TEXT)) {
-		std::wstring val = rowItem.at(pLvdi->item.iSubItem - 1);
+		std::wstring val = rowItem.at(pLvdi->item.iSubItem - 1);	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());		
 	}
 
 	return 0;
 }
 
+
 void ResultListPageAdapter::loadHeader(QSqlStatement & query)
 {
-	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 20);
+	dataView->InsertColumn(0, L"", LVCFMT_CENTER, 22, -1, 0);
 	int n = query.getColumnCount();
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < n - 1; i++) {
 		std::wstring columnName = query.getColumnName(i);
 		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
 		columns.push_back(columnName);
@@ -101,4 +109,27 @@ int ResultListPageAdapter::loadData(QSqlStatement & query)
 	dataView->SetItemCount(nRow);
 	
 	return nRow;
+}
+
+/**
+ * if the row of index=iItem is selected.
+ * 
+ * @param iItem the row index
+ * @return 
+ */
+bool ResultListPageAdapter::getIsChecked(int iItem)
+{
+	if (dataView->GetSelectedCount() == 0) {
+		return false;
+	}
+	int nSelItem = dataView->GetNextItem(-1, LVNI_ALL | LVNI_SELECTED); //向下搜索选中的项 -1表示先找出第一个
+	
+	while (nSelItem != -1) {
+		if (nSelItem == iItem) {
+			return true;
+		}
+		nSelItem = dataView->GetNextItem(nSelItem, LVNI_ALL | LVNI_SELECTED); // 继续往下搜索选中项
+	}
+
+	return false;
 }

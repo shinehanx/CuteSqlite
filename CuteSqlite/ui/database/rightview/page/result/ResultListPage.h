@@ -34,10 +34,11 @@ public:
 	BEGIN_MSG_MAP_EX(ResultListPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_CLICK,  OnNMClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_CLICK,  OnClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
-		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODCACHEHINT, OnFindListViewData)
+		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODFINDITEM , OnFindListViewData)
+		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODSTATECHANGED , OnChangeListViewState)
 
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
@@ -83,8 +84,9 @@ protected:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
-	LRESULT OnNMClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnChangeListViewState(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 };

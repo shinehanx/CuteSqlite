@@ -48,4 +48,6 @@ private:
 	Columns columns;
 	void loadHeader(QSqlStatement & query);
 	int loadData(QSqlStatement & query);
+
+	bool getIsChecked(int iItem);
 };
