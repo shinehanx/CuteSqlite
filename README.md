@@ -1,6 +1,6 @@
 **Project Introduction:**
 
-CuteSqlite is a lightweight graphical management client for SQLite, a simple and efficient in-memory database. It is implemented using WTL/C++14 and supports Windows operating systems.
+CuteSqlite is a lightweight graphical management client for SQLite, a simple and efficient in-memory database. It is implemented using C++/WTL and supports Windows operating systems.
 
 **Project Objectives:**
 
@@ -25,7 +25,7 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 **一、项目简介**
 
-开源项目CuteSqlite，是轻量级数据库Sqlite的图形化管理客户端，使用WTL/C++14实现，支持Windows操作系统。
+开源项目CuteSqlite，是轻量级数据库Sqlite的图形化管理客户端，使用C++/WTL实现，支持Windows操作系统。
 
 **二、项目目标**
 
