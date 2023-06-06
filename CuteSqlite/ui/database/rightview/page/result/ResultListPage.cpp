@@ -233,10 +233,24 @@ LRESULT ResultListPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHand
 	return 0;
 }
 
-LRESULT ResultListPage::OnChangeListViewState(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+/**
+ * Click the header.
+ * Refrence:https://learn.microsoft.com/zh-cn/windows/win32/controls/hdn-itemclick
+ * 
+ * @param idCtrl
+ * @param pnmh
+ * @param bHandled
+ * @return 
+ */
+LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
-	auto ptr = (LPNMLVODSTATECHANGE)pnmh;
-	
+	LPNMLISTVIEW headerPtr = (LPNMLISTVIEW)pnmh; 
+
+	// Refrence url:https://learn.microsoft.com/zh-cn/windows/win32/controls/lvn-columnclick
+	if (headerPtr->iSubItem  != 0) {
+		return 0;
+	}
+	adapter->changeAllCheckedRowItems();
 	return 0;
 }
 

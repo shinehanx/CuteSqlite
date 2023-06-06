@@ -78,7 +78,6 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	return 0;
 }
 
-
 void ResultListPageAdapter::loadHeader(QSqlStatement & query)
 {
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
@@ -132,4 +131,22 @@ bool ResultListPageAdapter::getIsChecked(int iItem)
 	}
 
 	return false;
+}
+
+void ResultListPageAdapter::changeAllCheckedRowItems()
+{
+	CHeaderCtrl headerCtrl = dataView->GetHeader();
+
+	HDITEM headerItem;
+	headerItem.mask = HDI_IMAGE;
+	headerCtrl.GetItem(0, &headerItem);
+	if (headerItem.iImage == 1) {
+		headerItem.iImage = 0;
+		dataView->SelectAllItems(false);
+	} else {
+		headerItem.iImage = 1;
+		dataView->SelectAllItems(true);
+	}
+	headerItem.fmt = HDF_LEFT;
+	headerCtrl.SetItem(0, &headerItem);
 }
