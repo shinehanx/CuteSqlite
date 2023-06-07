@@ -27,6 +27,7 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 
+
 class ResultListPage : public QPage {
 public:
 	DECLARE_WND_CLASS(NULL)
@@ -39,6 +40,7 @@ public:
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_COLUMNCLICK, OnClickListViewHeader)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportButton)
 
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
@@ -89,4 +91,6 @@ protected:
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+
+	void OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd);
 };

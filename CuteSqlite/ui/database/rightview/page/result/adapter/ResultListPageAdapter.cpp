@@ -133,7 +133,7 @@ bool ResultListPageAdapter::getIsChecked(int iItem)
 	return false;
 }
 
-void ResultListPageAdapter::changeAllCheckedRowItems()
+void ResultListPageAdapter::changeSelectAllItems()
 {
 	CHeaderCtrl headerCtrl = dataView->GetHeader();
 

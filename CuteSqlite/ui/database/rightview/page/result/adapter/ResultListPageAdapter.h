@@ -42,7 +42,7 @@ public:
 	// virtual list data load
 	LRESULT fillListViewItemData(NMLVDISPINFO * pLvdi);
 
-	void changeAllCheckedRowItems();
+	void changeSelectAllItems();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 

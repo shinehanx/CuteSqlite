@@ -23,6 +23,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/QWinCreater.h"
+#include "ui/database/rightview/page/result/dialog/ExportResultDialog.h"
 
 void ResultListPage::setup(std::wstring & sql)
 {
@@ -250,7 +251,16 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
 	if (headerPtr->iSubItem  != 0) {
 		return 0;
 	}
-	adapter->changeAllCheckedRowItems();
+	adapter->changeSelectAllItems();
 	return 0;
+}
+
+void ResultListPage::OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	ExportResultDialog exportResultDialog(m_hWnd, adapter);
+
+	if (exportResultDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+	
+	}
 }
 
