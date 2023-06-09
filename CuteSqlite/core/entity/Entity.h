@@ -1,10 +1,21 @@
 /*****************************************************************//**
+ * Copyright 2023 Xuehan Qin 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+
+ * limitations under the License.
+
  * @file   Entity.h
- * @brief  数据库使用的结构体
- * @detail    $DETAIL
+ * @brief  The entities struct of the system database tables or ui used
  * 
- * @author 覃学涵
- * @date   2023-03-17
+ * @author Xuehan Qin
+ * @date   2023-06-10
  *********************************************************************/
 #ifndef _ENTIRY_H_
 #define _ENTIRY_H_
@@ -67,5 +78,27 @@ typedef struct _UserFields {
 	int pk = 0;
 } UserField;
 typedef std::vector<UserField> UserFieldList;
+
+//Export to CSV params
+typedef struct _ExportCsvParams {
+	std::wstring csvFieldTerminatedBy;
+	std::wstring csvFieldEnclosedBy;
+	std::wstring csvFieldEscapedBy;
+	std::wstring csvLineTerminatedBy;
+	bool hasColumnOnTop = false;
+} ExportCsvParams;
+
+//Export to Excel XML params
+typedef struct _ExportExcelParams {
+	int excelComlumnMaxSize = 0;
+	int excelDecimalPlaces = 0;
+} ExportExcelParams;
+
+//Export to sql params
+typedef struct _ExportSqlParams {
+	std::wstring sqlSetting;
+} ExportSqlParams;
+
+typedef std::vector<std::wstring> ExportSelectedFields;
 #endif
 

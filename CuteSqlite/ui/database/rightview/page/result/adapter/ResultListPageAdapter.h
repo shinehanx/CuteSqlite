@@ -43,6 +43,8 @@ public:
 	LRESULT fillListViewItemData(NMLVDISPINFO * pLvdi);
 
 	void changeSelectAllItems();
+
+	Columns getColumns();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 

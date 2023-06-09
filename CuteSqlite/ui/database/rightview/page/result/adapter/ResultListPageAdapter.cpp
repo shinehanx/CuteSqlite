@@ -150,3 +150,8 @@ void ResultListPageAdapter::changeSelectAllItems()
 	headerItem.fmt = HDF_LEFT;
 	headerCtrl.SetItem(0, &headerItem);
 }
+
+Columns ResultListPageAdapter::getColumns()
+{
+	return columns;
+}
