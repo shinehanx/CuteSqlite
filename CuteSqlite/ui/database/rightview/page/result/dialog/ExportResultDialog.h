@@ -22,6 +22,7 @@
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/common/image/QStaticImage.h"
 #include "core/service/system/SettingService.h"
+#include "core/service/export/ExportResultService.h"
 
 class ExportResultDialog : public QDialog<ExportResultDialog>
 {
@@ -30,7 +31,7 @@ public:
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
-		COMMAND_RANGE_CODE_HANDLER_EX(Config::EXPORT_TO_CSV_RADIO_ID, Config::EXPORT_TO_SQL_RADIO_ID, BN_CLICKED, OnClickRadios)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::EXPORT_TO_CSV_RADIO_ID, Config::EXPORT_TO_SQL_RADIO_ID, BN_CLICKED, OnClickExportFmtRadios)
 		COMMAND_HANDLER_EX(Config::EXPORT_SELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickSelectAllFieldsButton)
 		COMMAND_HANDLER_EX(Config::EXPORT_DESELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickDeselectAllFieldsButton)
 		CHAIN_MSG_MAP(QDialog<ExportResultDialog>)
@@ -42,6 +43,7 @@ private:
 	HWND parentHwnd = nullptr;
 	ResultListPageAdapter * adapter = nullptr;
 	SettingService * settingService = SettingService::getInstance();
+	ExportResultService * exportResultService = ExportResultService::getInstance();
 
 	COLORREF lineColor = RGB(127, 127, 127);
 	CPen linePen = nullptr;
@@ -131,15 +133,20 @@ private:
 	void loadSelectFieldsListBox();
 	void loadExportPathEdit();
 
-	//Click yes button, then get params to export
-	bool getExportCsvParams(ExportCsvParams & ExportCsvParam);
+	HWND getSelExportFmtHwnd();
+	HWND getSelSqlRadioHwnd();
+	//Click yes button, then get params to export	
+	bool getExportCsvParams(ExportCsvParams & params);
+	bool getExportExcelParams(ExportExcelParams & params);
+	bool getExportSqlParams(ExportSqlParams & params);
+	bool getExportSelectedColumns(ExportSelectedColumns & params);
 	bool getExportPath(std::wstring & exportPath);
 
 	virtual LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual void paintItem(CDC &dc, CRect &paintRect);
-	void OnClickRadios(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeselectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
 

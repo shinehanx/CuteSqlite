@@ -256,6 +256,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\repository\user\ViewUserRepository.cpp" />
     <ClCompile Include="core\service\db\DatabaseService.cpp" />
     <ClCompile Include="core\service\db\SqlService.cpp" />
+    <ClCompile Include="core\service\export\ExportResultService.cpp" />
     <ClCompile Include="core\service\system\SettingService.cpp" />
     <ClCompile Include="CuteSqlite.cpp" />
     <ClCompile Include="MainFrm.cpp" />
@@ -329,6 +330,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\repository\user\ViewUserRepository.h" />
     <ClInclude Include="core\service\db\DatabaseService.h" />
     <ClInclude Include="core\service\db\SqlService.h" />
+    <ClInclude Include="core\service\export\ExportResultService.h" />
     <ClInclude Include="core\service\system\SettingService.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="resource.h" />

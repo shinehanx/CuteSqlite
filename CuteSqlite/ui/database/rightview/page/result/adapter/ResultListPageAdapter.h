@@ -26,11 +26,6 @@
 #include "core/service/db/SqlService.h"
 #include "core/common/repository/QSqlStatement.h"
 
-typedef std::vector<std::wstring> RowItem, Columns;
-// data items list
-typedef std::list<RowItem> DataList;
-
-
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
 {
 public:
@@ -45,6 +40,7 @@ public:
 	void changeSelectAllItems();
 
 	Columns getColumns();
+	DataList getDatas();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 

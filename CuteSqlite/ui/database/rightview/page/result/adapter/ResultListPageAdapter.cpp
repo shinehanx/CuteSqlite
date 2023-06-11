@@ -155,3 +155,8 @@ Columns ResultListPageAdapter::getColumns()
 {
 	return columns;
 }
+
+DataList ResultListPageAdapter::getDatas()
+{
+	return datas;
+}

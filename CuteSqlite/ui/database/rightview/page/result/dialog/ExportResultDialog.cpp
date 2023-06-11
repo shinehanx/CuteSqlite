@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "ExportResultDialog.h"
+#include <string>
 #include "utils/FontUtil.h"
 #include "ui/common/message/QPopAnimate.h"
 
@@ -184,9 +185,7 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	int x3 = 25, y3 = 88 + 15 + 100 + 5 + 40 + 20 + 30 , w3 = 200 - 10, h3 = 20;
 	CRect rect3 = { x3, y3, x3 + w3, y3 + h3 };
 	createOrShowFormCheckBox(csvColumnNameCheckBox, Config::EXPORT_CSV_COLUMN_NAME_CHECKBOX_ID, S(L"add-column-name"), rect3, clientRect);
-	csvColumnNameCheckBox.EnableWindow(isEndabled);
-	
-	
+	csvColumnNameCheckBox.EnableWindow(isEndabled);	
 }
 
 
@@ -301,29 +300,36 @@ void ExportResultDialog::loadExportFmtElems()
 
 void ExportResultDialog::loadCsvSettingsElems()
 {
+	bool isEnabled = getSelExportFmtHwnd() == csvRadio.m_hWnd;
+
 	if (csvFieldTerminatedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_terminaated_by");
 		csvFieldTerminatedByEdit.SetWindowText(val.c_str()); 
+		csvFieldTerminatedByEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (csvFieldEnclosedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_enclosed_by");
 		csvFieldEnclosedByEdit.SetWindowText(val.c_str()); 
+		csvFieldEnclosedByEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (csvFieldEscapedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_escaped_by");
 		csvFieldEscapedByEdit.SetWindowText(val.c_str()); 
+		csvFieldEscapedByEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (csvLineTerminatedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_line_terminaated_by");
 		csvLineTerminatedByEdit.SetWindowText(val.c_str()); 
+		csvLineTerminatedByEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (csvCharsetEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_charset");
 		csvCharsetEdit.SetWindowText(val.c_str()); 
+		csvCharsetEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (csvColumnNameCheckBox.IsWindow()) {
@@ -333,26 +339,32 @@ void ExportResultDialog::loadCsvSettingsElems()
 		}else {
 			csvColumnNameCheckBox.SetCheck(0);
 		}
+		csvColumnNameCheckBox.EnableWindow(isEnabled);
 	}
 }
 
 
 void ExportResultDialog::loadExcelSettingsElems()
 {
+	bool isEnabled = getSelExportFmtHwnd() == excelXmlRadio.m_hWnd;
 	if (excelComlumnMaxSizeEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"excel_colmumn_max_size");
 		excelComlumnMaxSizeEdit.SetWindowText(val.c_str());
+		excelComlumnMaxSizeEdit.SetReadOnly(!isEnabled);
 	}
 
 	if (excelDecimalPlacesEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"excel_decimal_places");
 		excelDecimalPlacesEdit.SetWindowText(val.c_str());
+		excelDecimalPlacesEdit.SetReadOnly(!isEnabled);
 	}
 }
 
 
 void ExportResultDialog::loadSqlSettingsElems()
 {
+	bool isEnabled = getSelExportFmtHwnd() == sqlRadio.m_hWnd;
+
 	std::wstring sqlExport = settingService->getSysInit(L"sql_export");
 	for (auto ptr : sqlRadioPtrs) {
 		if (ptr->m_hWnd == structureOnlyRadio.m_hWnd && sqlExport == L"structure-only") {
@@ -364,6 +376,7 @@ void ExportResultDialog::loadSqlSettingsElems()
 		} else {
 			ptr->SetCheck(0);
 		}
+		ptr->EnableWindow(isEnabled);
 	}
 }
 
@@ -392,12 +405,42 @@ void ExportResultDialog::loadExportPathEdit()
 }
 
 /**
+ * Get the window hadler(HWND) of selected export format radio.
+ * 
+ * @return selected radio hwnd
+ */
+HWND ExportResultDialog::getSelExportFmtHwnd()
+{
+	HWND selHwnd = nullptr;
+	std::for_each(radioPtrs.begin(), radioPtrs.end(), [&selHwnd](CButton * ptr) {
+		int checked = ptr->GetCheck();
+		if (ptr->GetCheck()) {
+			selHwnd = ptr->m_hWnd;
+		}
+	});
+	return selHwnd;
+}
+
+
+HWND ExportResultDialog::getSelSqlRadioHwnd()
+{
+	HWND selHwnd = nullptr;
+	std::for_each(sqlRadioPtrs.begin(), sqlRadioPtrs.end(), [&selHwnd](CButton * ptr) {
+		int checked = ptr->GetCheck();
+		if (ptr->GetCheck()) {
+			selHwnd = ptr->m_hWnd;
+		}
+	});
+	return selHwnd;
+}
+
+/**
  * Get export to csv params.
  * 
- * @param exportCsvParam [in, out] the return params
+ * @param exportCsvParam [out] the return params
  * @return 
  */
-bool ExportResultDialog::getExportCsvParams(ExportCsvParams & exportCsvParam)
+bool ExportResultDialog::getExportCsvParams(ExportCsvParams & params)
 {
 	CString str;
 	csvFieldTerminatedByEdit.GetWindowText(str);
@@ -406,7 +449,7 @@ bool ExportResultDialog::getExportCsvParams(ExportCsvParams & exportCsvParam)
 		csvFieldTerminatedByEdit.SetFocus();
 		return false;
 	}
-	exportCsvParam.csvFieldTerminatedBy = str.GetString();
+	params.csvFieldTerminatedBy = str.GetString();
 
 	csvFieldEnclosedByEdit.GetWindowText(str);
 	if (str.IsEmpty()) {
@@ -414,7 +457,7 @@ bool ExportResultDialog::getExportCsvParams(ExportCsvParams & exportCsvParam)
 		csvFieldEnclosedByEdit.SetFocus();
 		return false;
 	}
-	exportCsvParam.csvFieldEnclosedBy = str.GetString();
+	params.csvFieldEnclosedBy = str.GetString();
 
 	csvFieldEscapedByEdit.GetWindowText(str);
 	if (str.IsEmpty()) {
@@ -422,7 +465,7 @@ bool ExportResultDialog::getExportCsvParams(ExportCsvParams & exportCsvParam)
 		csvFieldEscapedByEdit.SetFocus();
 		return false;
 	}
-	exportCsvParam.csvFieldEscapedBy = str.GetString();
+	params.csvFieldEscapedBy = str.GetString();
 
 	csvLineTerminatedByEdit.GetWindowText(str);
 	if (str.IsEmpty()) {
@@ -430,13 +473,99 @@ bool ExportResultDialog::getExportCsvParams(ExportCsvParams & exportCsvParam)
 		csvLineTerminatedByEdit.SetFocus();
 		return false;
 	}
-	exportCsvParam.csvLineTerminatedBy = str.GetString();
+	std::wstring lineTerminated(str.GetString());
+	lineTerminated = StringUtil::replace(lineTerminated, L"\\r\\n", L"\r\n");
+	lineTerminated = StringUtil::replace(lineTerminated, L"\\r", L"\r");
+	lineTerminated = StringUtil::replace(lineTerminated, L"\\n", L"\n");
+	params.csvLineTerminatedBy = lineTerminated;
 
-	exportCsvParam.hasColumnOnTop = csvColumnNameCheckBox.GetCheck() ? true : false;
+	params.hasColumnOnTop = csvColumnNameCheckBox.GetCheck() ? true : false;
+
 	return true;
 }
 
+/**
+ * Get export to Excel XML params.
+ * 
+ * @param params [out] the return params
+ * @return 
+ */
+bool ExportResultDialog::getExportExcelParams(ExportExcelParams & params)
+{
+	CString str;
+	excelComlumnMaxSizeEdit.GetWindowText(str);
+	if (str.IsEmpty()) {
+		QPopAnimate::error(m_hWnd, S(L"excel-column-max-size-error"));
+		excelComlumnMaxSizeEdit.SetFocus();
+		return false;
+	}
+	params.excelComlumnMaxSize = std::stoi(str.GetString());
 
+	excelDecimalPlacesEdit.GetWindowText(str);
+	if (str.IsEmpty()) {
+		QPopAnimate::error(m_hWnd, S(L"excel-decinmal-places-error"));
+		excelDecimalPlacesEdit.SetFocus();
+		return false;
+	}
+	params.excelDecimalPlaces = std::stoi(str.GetString());
+
+	return true;
+}
+
+/**
+ * Get export to SQL params.
+ * 
+ * @param params [out] the return params
+ * @return 
+ */
+bool ExportResultDialog::getExportSqlParams(ExportSqlParams & params)
+{
+	HWND selHwnd = getSelSqlRadioHwnd();
+	if (selHwnd == structureOnlyRadio.m_hWnd) {
+		params.sqlSetting = L"structure-only";
+	} else if (selHwnd == dataOnlyRadio.m_hWnd) {
+		params.sqlSetting = L"data-only";
+	} else if (selHwnd == structurAndDataRadio.m_hWnd){
+		params.sqlSetting = L"structure-and-data";
+	} else {
+		QPopAnimate::error(m_hWnd, S(L"export-sql-error"));
+		structureOnlyRadio.SetFocus();
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Get export to SQL params.
+ * 
+ * @param params [out] the return params
+ * @return 
+ */
+bool ExportResultDialog::getExportSelectedColumns(ExportSelectedColumns & params)
+{
+	params.clear();
+	if (selectFieldsListBox.GetCount() == 0 || selectFieldsListBox.GetSelCount() == 0) {
+		QPopAnimate::error(m_hWnd, S(L"selected-fields-error"));
+		selectFieldsListBox.SetFocus();
+		return false;
+	}
+	int selIndexes[1024];
+	int n = selectFieldsListBox.GetSelItems(1024, selIndexes);
+	
+	for (int i = 0; i < n; i++) {
+		int selIndex = selIndexes[i];
+		std::wstring fieldName = adapter->getColumns().at(selIndex);
+		params.push_back(fieldName);
+	}
+	return true;
+}
+
+/**
+ * Get export to SQL params.
+ * 
+ * @param params [out] the return params
+ * @return 
+ */
 bool ExportResultDialog::getExportPath(std::wstring & exportPath)
 {
 	CString str;
@@ -447,7 +576,9 @@ bool ExportResultDialog::getExportPath(std::wstring & exportPath)
 		return false;
 	}
 	exportPath = str.GetString();
+	return true;
 }
+
 
 LRESULT ExportResultDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -507,6 +638,23 @@ LRESULT ExportResultDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	if (csvCharsetEdit.IsWindow()) csvCharsetEdit.DestroyWindow();
 
 	if (csvColumnNameCheckBox.IsWindow()) csvColumnNameCheckBox.DestroyWindow();
+
+	if (excelComlumnMaxSizeLabel.IsWindow()) excelComlumnMaxSizeLabel.DestroyWindow();
+	if (excelComlumnMaxSizeEdit.IsWindow()) excelComlumnMaxSizeEdit.DestroyWindow();
+	if (excelDecimalPlacesLabel.IsWindow()) excelDecimalPlacesLabel.DestroyWindow();
+	if (excelDecimalPlacesEdit.IsWindow()) excelDecimalPlacesEdit.DestroyWindow();
+
+	if (structureOnlyRadio.IsWindow()) structureOnlyRadio.DestroyWindow();
+	if (dataOnlyRadio.IsWindow()) dataOnlyRadio.DestroyWindow();
+	if (structurAndDataRadio.IsWindow()) structurAndDataRadio.DestroyWindow();
+	sqlRadioPtrs.clear();
+
+	if (selectFieldsListBox.IsWindow()) selectFieldsListBox.DestroyWindow();
+	if (selectAllButton.IsWindow()) selectAllButton.DestroyWindow();
+	if (deselectAllButton.IsWindow()) deselectAllButton.DestroyWindow();
+	if (exportPathLabel.IsWindow()) exportPathLabel.DestroyWindow();
+	if (exportPathEdit.IsWindow()) exportPathEdit.DestroyWindow();
+	if (openFileButton.IsWindow()) openFileButton.DestroyWindow();
 	return 0;
 }
 
@@ -539,18 +687,25 @@ void ExportResultDialog::paintItem(CDC &dc, CRect &paintRect)
 	dc.SelectPen(oldPen);
 }
 
-void ExportResultDialog::OnClickRadios(UINT uNotifyCode, int nID, HWND hwnd)
+void ExportResultDialog::OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	std::for_each(radioPtrs.begin(), radioPtrs.end(), [&hwnd](CButton * ptr) {
+	HWND selHwnd = nullptr;
+	std::for_each(radioPtrs.begin(), radioPtrs.end(), [&hwnd, &selHwnd](CButton * ptr) {
 		int checked = ptr->GetCheck();
 		if (ptr->m_hWnd == hwnd) {
 			if (!checked) {
 				ptr->SetCheck(!checked);
 			}
+			selHwnd = hwnd;
 		}else {
 			ptr->SetCheck(0);
 		}
 	});
+
+	// reload the elements to enabled/disabled 
+	loadCsvSettingsElems();
+	loadExcelSettingsElems();
+	loadSqlSettingsElems();
 }
 
 void ExportResultDialog::OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -573,13 +728,35 @@ void ExportResultDialog::OnClickDeselectAllFieldsButton(UINT uNotifyCode, int nI
 
 void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	ExportCsvParams csvParam;
-	if (!getExportCsvParams(csvParam)) {
+	ExportSelectedColumns selectedColumns;
+	if (!getExportSelectedColumns(selectedColumns) || selectedColumns.empty()) {
 		return ;
 	}
 
 	std::wstring exportPath;
 	if (!getExportPath(exportPath)) {
+		return ;
+	}
+
+	
+	HWND selHwnd = getSelExportFmtHwnd();
+	DataList datas = adapter->getDatas();
+	Columns columns = adapter->getColumns();
+	if (selHwnd == csvRadio.m_hWnd) {
+		ExportCsvParams csvParams;
+		if (!getExportCsvParams(csvParams)) {
+			return ;
+		}
+		exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
+	}
+
+	ExportExcelParams excelParams;
+	if (selHwnd == excelXmlRadio.m_hWnd && !getExportExcelParams(excelParams)) {
+		return ;
+	}
+
+	ExportSqlParams sqlParams;
+	if (selHwnd == excelXmlRadio.m_hWnd && !getExportSqlParams(sqlParams)) {
 		return ;
 	}
 

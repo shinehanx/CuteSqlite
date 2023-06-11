@@ -192,6 +192,9 @@
     <ClCompile Include="ui\database\rightview\page\result\dialog\ExportResultDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\service\export\ExportResultService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -417,6 +420,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\common\dialog\QDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\export\ExportResultService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

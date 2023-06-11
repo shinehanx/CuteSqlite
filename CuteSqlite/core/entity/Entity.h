@@ -99,6 +99,11 @@ typedef struct _ExportSqlParams {
 	std::wstring sqlSetting;
 } ExportSqlParams;
 
-typedef std::vector<std::wstring> ExportSelectedFields;
+typedef std::vector<std::wstring> ExportSelectedColumns;
+
+// the data structure for show in listview or export
+typedef std::vector<std::wstring> RowItem, Columns;
+// data items list
+typedef std::list<RowItem> DataList;
 #endif
 
