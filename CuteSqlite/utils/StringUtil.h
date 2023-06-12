@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <sstream>
 #include <atltypes.h>
+#include <cwctype>
+#include <algorithm>
 
 /// <summary>
 /// 字符串转换工具类，
@@ -17,11 +19,12 @@ class StringUtil
 {
 public:
 
-	/// <summary>
-	/// convert Unicodes to UTF8.
-	/// </summary>
-	/// <param name="widestring">The widestring.</param>
-	/// <returns>unicode string</returns>
+	/**
+	 * convert Unicodes to UTF8..
+	 * 
+	 * @param widestring unicode string 
+	 * @return 
+	 */
 	static char * unicodeToUtf8(const std::wstring& widestring)
 	{
 		if (widestring.empty()) {
@@ -45,11 +48,12 @@ public:
 	}
 
 	
-	/// <summary>
-	/// UTF8s to unicode.
-	/// </summary>
-	/// <param name="utf8str">The utf8 string</param>
-	/// <returns></returns>
+	/**
+	 * UTF8s to unicode..
+	 * 
+	 * @param utf8str
+	 * @return 
+	 */
 	static wchar_t * utf8ToUnicode(const char * utf8str)
 	{
 		int len = static_cast<int>(strlen(utf8str));
@@ -313,6 +317,67 @@ public:
 		static const wchar_t whitespace[] = L" \n\t\v\r\f";
 		inout_str.erase(0, inout_str.find_first_not_of(whitespace));
 		inout_str.erase(inout_str.find_last_not_of(whitespace) + 1U);
+	}
+
+	static std::wstring escape(std::wstring &source) 
+	{
+		if (source.empty()) {
+			return source;
+		}
+
+		// replace the escapre sequance
+		std::wstring result = replace(source, L"\\", L"\\\\");
+		result = replace(result, L"\"", L"\\\""); 
+		result = replace(result, L"\r", L"\\r");
+		result = replace(result, L"\n", L"\\n");
+		return result;
+	}
+
+	static std::wstring escapeXml(std::wstring & source) 
+	{
+		if (source.empty()) {
+			return source;
+		}
+
+		std::wostringstream wis;
+		// replace the escapre sequance
+		if (source.find_first_of(L'<') != -1 
+			|| source.find_first_of(L'>') != -1
+			|| source.find_first_of(L'\r') != -1
+			|| source.find_first_of(L'\n') != -1
+			|| source.find_first_of(L'[') != -1
+			|| source.find_first_of(L']') != -1) {
+			wis << L"<![CDATA[" << source << L"]]>";
+			return wis.str();
+		}
+		return source;		
+	}
+
+	static std::wstring escapeSql(std::wstring &source) 
+	{
+		if (source.empty()) {
+			return source;
+		}
+
+		// replace the escapre sequance
+		std::wstring result = replace(source, L"\'", L"\'\'");
+		return result;
+	}
+
+	static std::wstring toupper(std::wstring s)
+	{
+		std::transform(s.begin(), s.end(), s.begin(), [](wchar_t c){ 
+			return std::towupper(c); 
+		});
+		return s;
+	}
+
+	static std::wstring tolower(std::wstring s)
+	{
+		std::transform(s.begin(), s.end(), s.begin(), [](wchar_t c){ 
+			return std::towlower(c); 
+		});
+		return s;
 	}
 };
 

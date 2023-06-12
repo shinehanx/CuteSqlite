@@ -20,15 +20,23 @@
 #pragma once
 #include <regex>
 #include <string>
+#include <vector>
 
 class SqlUtil {
 public:
 	// select sql regex pattern
 	static std::wregex selectPat;
 
+	// table statement of select sql regex pattern
+	static std::wregex selectTablesPat;
+
 	// field regex pattern
-	static std::wregex fieldPat;
+	static std::wregex columnPat;
+
+	static std::vector<std::wstring> tableTags;
 
 	static bool isSelectSql(std::wstring & sql);
-	static std::wstring getFieldName(std::wstring & str);
+	static std::wstring getColumnName(std::wstring & str);
+	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
+	static std::vector<std::wstring> parseTablesFromTableStatement(std::wstring & tblStmt);
 };

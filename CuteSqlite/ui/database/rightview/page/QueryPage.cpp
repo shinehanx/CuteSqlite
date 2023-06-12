@@ -185,7 +185,7 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 
 	std::wstring selItemText(cch);
 	if (nImage == 3) {
-		std::wstring fieldName = SqlUtil::getFieldName(selItemText);
+		std::wstring fieldName = SqlUtil::getColumnName(selItemText);
 		sqlEditor.replaceSelText(fieldName);
 	} else {
 		sqlEditor.replaceSelText(selItemText);

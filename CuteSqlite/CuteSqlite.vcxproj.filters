@@ -129,9 +129,6 @@
     <ClCompile Include="core\repository\user\IndexUserRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="core\repository\user\FieldUserRepository.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui\database\rightview\RightWorkView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -193,6 +190,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core\service\export\ExportResultService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\repository\user\ColumnUserRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -356,9 +356,6 @@
     <ClInclude Include="core\repository\user\IndexUserRepository.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="core\repository\user\FieldUserRepository.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ui\database\rightview\RightWorkView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -423,6 +420,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\service\export\ExportResultService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\repository\user\ColumnUserRepository.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

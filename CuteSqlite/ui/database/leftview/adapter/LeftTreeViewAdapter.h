@@ -61,7 +61,7 @@ private:
 	void loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb);
 	void loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserDb & userDb);
 	void loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, UserDb & userDb);
-	void loadFieldsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable);
+	void loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable);
 	void loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable);
 };
 

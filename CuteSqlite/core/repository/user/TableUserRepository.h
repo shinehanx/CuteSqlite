@@ -28,6 +28,7 @@ public:
 	~TableUserRepository() {}
 
 	UserTableList getListByUserDbId(uint64_t userDbId);
+	UserTable getTable(uint64_t userDbId, std::wstring & tblName);
 private:
 	UserTable toUserTable(QSqlStatement &query);
 };

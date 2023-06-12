@@ -257,7 +257,7 @@ void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, Use
 			HTREEITEM hFieldsFolderItem = dataView->InsertItem(S(L"fields").c_str(), 1, 1, hTblItem, TVI_LAST);
 			HTREEITEM hIndexesFolderItem = dataView->InsertItem(S(L"indexes").c_str(), 1, 1, hTblItem, TVI_LAST);
 
-			loadFieldsForTreeView(hFieldsFolderItem, userDb.id, item);
+			loadColumsForTreeView(hFieldsFolderItem, userDb.id, item);
 			loadIndexesForTreeView(hIndexesFolderItem, userDb.id, item);
 		}		
 	} catch (QRuntimeException &ex) {
@@ -307,11 +307,11 @@ void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem,
 	}
 }
 
-void LeftTreeViewAdapter::loadFieldsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable)
+void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
-		UserFieldList list = databaseService->getUserFields(userDbId, userTable.name);
-		for (UserField item : list) {
+		UserColumnList list = databaseService->getUserColumns(userDbId, userTable.name);
+		for (UserColumn item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
 			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hFieldsFolderItem, TVI_LAST);

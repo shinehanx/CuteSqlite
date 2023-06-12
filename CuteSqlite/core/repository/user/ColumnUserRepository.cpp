@@ -18,20 +18,20 @@
  * @date   2023-05-20
  *********************************************************************/
 #include "stdafx.h"
-#include "FieldUserRepository.h"
+#include "ColumnUserRepository.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-UserFieldList FieldUserRepository::getListByTblName(uint64_t userDbId, std::wstring &tblName)
+UserColumnList ColumnUserRepository::getListByTblName(uint64_t userDbId, std::wstring &tblName)
 {
-	UserFieldList result;
+	UserColumnList result;
 	std::wstring sql = L"PRAGMA table_info(";
 	sql.append(tblName).append(L")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
 		while (query.executeStep()) {
-			UserField item = toUserField(query);
+			UserColumn item = toUserField(query);
 			result.push_back(item);
 		}
 		return result;
@@ -43,9 +43,9 @@ UserFieldList FieldUserRepository::getListByTblName(uint64_t userDbId, std::wstr
 	}
 }
 
-UserField FieldUserRepository::toUserField(QSqlStatement &query)
+UserColumn ColumnUserRepository::toUserField(QSqlStatement &query)
 {
-	UserField item;
+	UserColumn item;
 	item.cid = query.getColumn(L"cid").isNull() ? 0
 		: query.getColumn(L"cid").getUInt();
 	item.name = query.getColumn(L"name").isNull() ? L""

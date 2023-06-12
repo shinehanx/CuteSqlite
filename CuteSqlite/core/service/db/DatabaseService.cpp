@@ -129,7 +129,24 @@ bool DatabaseService::activeUserDb(uint64_t userDbId)
 
 UserTableList DatabaseService::getUserTables(uint64_t userDbId)
 {
+	ATLASSERT(userDbId > 0);
 	return tableUserRepository->getListByUserDbId(userDbId);
+}
+
+UserTable DatabaseService::getUserTable(uint64_t userDbId, std::wstring & tblName)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	return tableUserRepository->getTable(userDbId, tblName);
+}
+
+UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId)
+{
+	UserTableStrings result;
+	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId);
+	for (auto userTable : userTableList) {
+		result.push_back(userTable.name);
+	}
+	return result;
 }
 
 UserViewList DatabaseService::getUserViews(uint64_t userDbId)
@@ -142,7 +159,7 @@ UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId)
 	return triggerUserRepository->getListByUserDbId(userDbId);
 }
 
-UserFieldList DatabaseService::getUserFields(uint64_t userDbId, std::wstring & tblName)
+UserColumnList DatabaseService::getUserColumns(uint64_t userDbId, std::wstring & tblName)
 {
 	return fieldUserRepository->getListByTblName(userDbId, tblName);
 }

@@ -76,8 +76,8 @@ typedef struct _UserFields {
 	int notnull = 0;
 	std::wstring dfltValue;
 	int pk = 0;
-} UserField;
-typedef std::vector<UserField> UserFieldList;
+} UserColumn;
+typedef std::vector<UserColumn> UserColumnList;
 
 //Export to CSV params
 typedef struct _ExportCsvParams {
@@ -102,7 +102,7 @@ typedef struct _ExportSqlParams {
 typedef std::vector<std::wstring> ExportSelectedColumns;
 
 // the data structure for show in listview or export
-typedef std::vector<std::wstring> RowItem, Columns;
+typedef std::vector<std::wstring> RowItem, Columns, UserTableStrings;
 // data items list
 typedef std::list<RowItem> DataList;
 #endif

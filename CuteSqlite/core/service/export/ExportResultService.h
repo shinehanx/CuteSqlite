@@ -29,14 +29,26 @@ public:
 	~ExportResultService() {};
 
 	// do export operation
-	void exportToCsv(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas, ExportCsvParams & csvParams);
-	void exportToJson(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
-	void exportToHtml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
-	void exportToXml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
-	void exportToExcelXml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas,ExportExcelParams & excelParams);
-	void exportToSql(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas,ExportSqlParams & sqlarams);
+	int exportToCsv(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas, ExportCsvParams & csvParams);
+	int exportToJson2(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
+	int exportToJson(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
+	int exportToHtml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
+	int exportToXml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas);
+	int exportToExcelXml(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas,ExportExcelParams & excelParams);
+	int exportToSql(std::wstring & exportPath, 
+		UserTable & tbl, 
+		Columns & columns, 
+		ExportSelectedColumns & selColumns, 
+		DataList & datas,
+		ExportSqlParams & sqlarams);
 
+	std::wstring & changeExportPathExt(std::wstring & exportPath, const wchar_t * ext);
+	
 private:
 	int getColumnIndex(Columns & columns, std::wstring & columnName);
 	std::wstring escapeLineTerminaled(std::wstring & lineTernimal);
+	std::wstring readQueryResultHtmlTemplate();
+	std::wstring readQueryResultXmlTemplate();
+	std::wstring readQueryResultSqlTemplate();
+	
 };

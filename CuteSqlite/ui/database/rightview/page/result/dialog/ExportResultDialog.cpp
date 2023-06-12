@@ -103,8 +103,7 @@ void ExportResultDialog::createOrShowRadios(CRect & clientRect)
 	createOrShowFormRadio(excelXmlRadio, Config::EXPORT_TO_EXCEL_XML_RADIO_ID, L"Excel XML", rect, clientRect);
 
 	rect.OffsetRect(w + 10, 0);
-	createOrShowFormRadio(sqlRadio, Config::EXPORT_TO_SQL_RADIO_ID, L"SQL", rect, clientRect);
-	
+	createOrShowFormRadio(sqlRadio, Config::EXPORT_TO_SQL_RADIO_ID, L"SQL", rect, clientRect);	
 }
 
 
@@ -151,9 +150,7 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	int x2 = x + w + 5, y2 = y,  w2 = 40, h2 = h;
 	CRect rect2(x2, y2, x2 + w2, y2 + h2);
 
-	bool isReadOnly = settingService->getSysInit(L"export_fmt") == L"CSV" ? false : true;
-	bool isEndabled = !isReadOnly;
-
+	bool isReadOnly = true;
 	createOrShowFormEdit(csvFieldTerminatedByEdit,Config::EXPORT_CSV_FIELD_TERMINAATED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	rect.OffsetRect(0, h + 5);
@@ -185,6 +182,20 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	int x3 = 25, y3 = 88 + 15 + 100 + 5 + 40 + 20 + 30 , w3 = 200 - 10, h3 = 20;
 	CRect rect3 = { x3, y3, x3 + w3, y3 + h3 };
 	createOrShowFormCheckBox(csvColumnNameCheckBox, Config::EXPORT_CSV_COLUMN_NAME_CHECKBOX_ID, S(L"add-column-name"), rect3, clientRect);
+
+	bool isEndabled = settingService->getSysInit(L"export_fmt") == L"CSV" ? true : false;
+	csvFieldTerminatedByLabel.EnableWindow(isEndabled);
+	csvFieldTerminatedByEdit.EnableWindow(isEndabled);
+	
+	csvFieldEnclosedByLabel.EnableWindow(isEndabled);
+	csvFieldEnclosedByEdit.EnableWindow(isEndabled);
+
+	csvFieldEscapedByLabel.EnableWindow(isEndabled);
+	csvFieldEscapedByEdit.EnableWindow(isEndabled);
+
+	csvLineTerminatedByLabel.EnableWindow(isEndabled);
+	csvLineTerminatedByEdit.EnableWindow(isEndabled);
+
 	csvColumnNameCheckBox.EnableWindow(isEndabled);	
 }
 
@@ -206,6 +217,12 @@ void ExportResultDialog::createOrShowExcelSettingsElems(CRect & clientRect)
 	createOrShowFormLabel(excelDecimalPlacesLabel, S(L"excel-decinmal-places").append(L":"), rect, clientRect, SS_RIGHT, elemFont);
 	rect2.OffsetRect(0, h + 5);
 	createOrShowFormEdit(excelDecimalPlacesEdit,Config::EXPORT_EXCEL_DECIMAL_PLACES_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+
+	excelComlumnMaxSizeLabel.EnableWindow(isEndabled);
+	excelComlumnMaxSizeEdit.EnableWindow(isEndabled);
+
+	excelDecimalPlacesLabel.EnableWindow(isEndabled);
+	excelDecimalPlacesEdit.EnableWindow(isEndabled);
 }
 
 
@@ -305,31 +322,41 @@ void ExportResultDialog::loadCsvSettingsElems()
 	if (csvFieldTerminatedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_terminaated_by");
 		csvFieldTerminatedByEdit.SetWindowText(val.c_str()); 
-		csvFieldTerminatedByEdit.SetReadOnly(!isEnabled);
+
+		csvFieldTerminatedByLabel.EnableWindow(isEnabled);
+		csvFieldTerminatedByEdit.EnableWindow(isEnabled);
 	}
 
 	if (csvFieldEnclosedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_enclosed_by");
 		csvFieldEnclosedByEdit.SetWindowText(val.c_str()); 
-		csvFieldEnclosedByEdit.SetReadOnly(!isEnabled);
+		
+		csvFieldEnclosedByLabel.EnableWindow(isEnabled);
+		csvFieldEnclosedByEdit.EnableWindow(isEnabled);
 	}
 
 	if (csvFieldEscapedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_field_escaped_by");
 		csvFieldEscapedByEdit.SetWindowText(val.c_str()); 
-		csvFieldEscapedByEdit.SetReadOnly(!isEnabled);
+
+		csvFieldEscapedByLabel.EnableWindow(isEnabled);
+		csvFieldEscapedByEdit.EnableWindow(isEnabled);
 	}
 
 	if (csvLineTerminatedByEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_line_terminaated_by");
 		csvLineTerminatedByEdit.SetWindowText(val.c_str()); 
-		csvLineTerminatedByEdit.SetReadOnly(!isEnabled);
+		
+		csvLineTerminatedByLabel.EnableWindow(isEnabled);
+		csvLineTerminatedByEdit.EnableWindow(isEnabled);
 	}
 
 	if (csvCharsetEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv_charset");
 		csvCharsetEdit.SetWindowText(val.c_str()); 
-		csvCharsetEdit.SetReadOnly(!isEnabled);
+		
+		csvCharsetLabel.EnableWindow(isEnabled);
+		csvCharsetEdit.EnableWindow(isEnabled);
 	}
 
 	if (csvColumnNameCheckBox.IsWindow()) {
@@ -351,12 +378,18 @@ void ExportResultDialog::loadExcelSettingsElems()
 		std::wstring val = settingService->getSysInit(L"excel_colmumn_max_size");
 		excelComlumnMaxSizeEdit.SetWindowText(val.c_str());
 		excelComlumnMaxSizeEdit.SetReadOnly(!isEnabled);
+
+		excelComlumnMaxSizeLabel.EnableWindow(isEnabled);
+		excelComlumnMaxSizeEdit.EnableWindow(isEnabled);
 	}
 
 	if (excelDecimalPlacesEdit.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"excel_decimal_places");
 		excelDecimalPlacesEdit.SetWindowText(val.c_str());
 		excelDecimalPlacesEdit.SetReadOnly(!isEnabled);
+
+		excelDecimalPlacesLabel.EnableWindow(isEnabled);
+		excelDecimalPlacesEdit.EnableWindow(isEnabled);
 	}
 }
 
@@ -384,7 +417,7 @@ void ExportResultDialog::loadSqlSettingsElems()
 void ExportResultDialog::loadSelectFieldsListBox()
 {
 	selectFieldsListBox.ResetContent();
-	auto columns = adapter->getColumns();
+	auto columns = adapter->getRuntimeColumns();
 	if (columns.empty()) {
 		return;
 	}
@@ -398,10 +431,31 @@ void ExportResultDialog::loadSelectFieldsListBox()
 
 void ExportResultDialog::loadExportPathEdit()
 {
-	if (exportPathEdit.IsWindow()) {
-		std::wstring exportPath = settingService->getSysInit(L"export_path"); 
-		exportPathEdit.SetWindowText(exportPath.c_str());
+	if (!exportPathEdit.IsWindow()) {
+		return ;
 	}
+
+	HWND hwnd = getSelExportFmtHwnd();
+	CString str;
+	exportPathEdit.GetWindowText(str);
+	std::wstring exportPath = str.GetString();
+	if (str.IsEmpty()) {
+		exportPath = settingService->getSysInit(L"export_path"); 		
+	} else if (hwnd == csvRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"csv");
+	} else if (hwnd == jsonRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"json");
+	} else if (hwnd == htmlRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"html");
+	} else if (hwnd == xmlRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"xml");
+	} else if (hwnd == excelXmlRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"xls"); 
+	} else if (hwnd == sqlRadio.m_hWnd) {
+		exportPath = exportResultService->changeExportPathExt(exportPath, L"sql");
+	}
+
+	exportPathEdit.SetWindowText(exportPath.c_str());
 }
 
 /**
@@ -554,7 +608,7 @@ bool ExportResultDialog::getExportSelectedColumns(ExportSelectedColumns & params
 	
 	for (int i = 0; i < n; i++) {
 		int selIndex = selIndexes[i];
-		std::wstring fieldName = adapter->getColumns().at(selIndex);
+		std::wstring fieldName = adapter->getRuntimeColumns().at(selIndex);
 		params.push_back(fieldName);
 	}
 	return true;
@@ -702,10 +756,11 @@ void ExportResultDialog::OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND 
 		}
 	});
 
-	// reload the elements to enabled/disabled 
+	// reload the elements value and set enabled/disabled 
 	loadCsvSettingsElems();
 	loadExcelSettingsElems();
 	loadSqlSettingsElems();
+	loadExportPathEdit();
 }
 
 void ExportResultDialog::OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -740,25 +795,43 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 	
 	HWND selHwnd = getSelExportFmtHwnd();
-	DataList datas = adapter->getDatas();
-	Columns columns = adapter->getColumns();
+	DataList datas = adapter->getRuntimeDatas();
+	Columns columns = adapter->getRuntimeColumns();
 	if (selHwnd == csvRadio.m_hWnd) {
 		ExportCsvParams csvParams;
 		if (!getExportCsvParams(csvParams)) {
 			return ;
 		}
 		exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
+	} else if (selHwnd == jsonRadio.m_hWnd) { 
+		exportResultService->exportToJson(exportPath, columns, selectedColumns, datas);
+	} else if (selHwnd == htmlRadio.m_hWnd) { 
+		exportResultService->exportToHtml(exportPath, columns, selectedColumns, datas);
+	} else if (selHwnd == xmlRadio.m_hWnd) { 
+		exportResultService->exportToXml(exportPath, columns, selectedColumns, datas);
+	} else if (selHwnd == excelXmlRadio.m_hWnd) {
+		ExportExcelParams excelParams;
+		if (!getExportExcelParams(excelParams)) {
+			return ;
+		}
+		exportResultService->exportToExcelXml(exportPath, columns, selectedColumns, datas, excelParams);
+	} else if (selHwnd == sqlRadio.m_hWnd) {
+		ExportSqlParams sqlParams;
+		if (!getExportSqlParams(sqlParams)) {
+			
+			return ;
+		}
+		UserTableStrings tbls = adapter->getRuntimeTables();
+		if (tbls.empty() || tbls.size() > 1) {
+			QPopAnimate::error(m_hWnd, S(L"sql-notsupport-multitable-query-error"));
+			sqlRadio.SetFocus();
+			return ;
+		}
+
+		UserTable userTable = adapter->getRuntimeUserTable(tbls.at(0));
+		exportResultService->exportToSql(exportPath, userTable, columns, selectedColumns, datas, sqlParams);
 	}
 
-	ExportExcelParams excelParams;
-	if (selHwnd == excelXmlRadio.m_hWnd && !getExportExcelParams(excelParams)) {
-		return ;
-	}
-
-	ExportSqlParams sqlParams;
-	if (selHwnd == excelXmlRadio.m_hWnd && !getExportSqlParams(sqlParams)) {
-		return ;
-	}
 
 	EndDialog(Config::QDIALOG_YES_BUTTON_ID);
 }

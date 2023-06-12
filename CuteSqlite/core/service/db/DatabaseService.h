@@ -24,7 +24,7 @@
 #include "core/repository/user/TableUserRepository.h"
 #include "core/repository/user/ViewUserRepository.h"
 #include "core/repository/user/TriggerUserRepository.h"
-#include "core/repository/user/FieldUserRepository.h"
+#include "core/repository/user/ColumnUserRepository.h"
 #include "core/repository/user/IndexUserRepository.h"
 
 class DatabaseService : public BaseService<DatabaseService, UserDbRepository>
@@ -44,6 +44,10 @@ public:
 
 	// user table operations
 	UserTableList getUserTables(uint64_t userDbId);
+	UserTable getUserTable(uint64_t userDbId, std::wstring & tblName);
+
+	// user table operations
+	UserTableStrings getUserTableStrings(uint64_t userDbId);
 
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId);
@@ -52,7 +56,7 @@ public:
 	UserTriggerList getUserTriggers(uint64_t userDbId);
 
 	// user indexes operations
-	UserFieldList getUserFields(uint64_t userDbId, std::wstring & tblName);
+	UserColumnList getUserColumns(uint64_t userDbId, std::wstring & tblName);
 
 	// user indexes operations
 	UserIndexList getUserIndexes(uint64_t userDbId, std::wstring & tblName);
@@ -62,6 +66,6 @@ private:
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	ViewUserRepository * viewUserRepository = ViewUserRepository::getInstance();
 	TriggerUserRepository * triggerUserRepository = TriggerUserRepository::getInstance();
-	FieldUserRepository * fieldUserRepository = FieldUserRepository::getInstance();
+	ColumnUserRepository * fieldUserRepository = ColumnUserRepository::getInstance();
 	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 };

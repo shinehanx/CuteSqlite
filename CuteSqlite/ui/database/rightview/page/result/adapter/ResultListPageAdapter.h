@@ -24,6 +24,7 @@
 #include <list>
 #include "ui/common/adapter/QAdapter.h"
 #include "core/service/db/SqlService.h"
+#include "core/service/db/DatabaseService.h"
 #include "core/common/repository/QSqlStatement.h"
 
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
@@ -39,15 +40,25 @@ public:
 
 	void changeSelectAllItems();
 
-	Columns getColumns();
-	DataList getDatas();
+	UserTableStrings getRuntimeTables();
+	Columns getRuntimeColumns();
+	DataList getRuntimeDatas();
+
+	UserColumnList getRuntimeUserColumns(std::wstring & tblName);
+	UserTable getRuntimeUserTable(std::wstring & tblName);
 private:
 	SqlService * sqlService = SqlService::getInstance();
+	DatabaseService * databaseService = DatabaseService::getInstance();
+	
+	// the runtime varibles
+	uint64_t runtimeUserDbId = 0;
+	UserTableStrings runtimeTables;
+	Columns runtimeColumns;
+	DataList runtimeDatas;
 
-	DataList datas;
-	Columns columns;
-	void loadHeader(QSqlStatement & query);
-	int loadData(QSqlStatement & query);
+	void loadRuntimeTables(uint64_t userDbId, std::wstring & sql);
+	void loadRuntimeHeader(QSqlStatement & query);
+	int loadRuntimeData(QSqlStatement & query);
 
 	bool getIsChecked(int iItem);
 };

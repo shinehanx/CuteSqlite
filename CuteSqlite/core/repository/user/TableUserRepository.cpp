@@ -42,9 +42,30 @@ UserTableList TableUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
+UserTable TableUserRepository::getTable(uint64_t userDbId, std::wstring & tblName)
+{
+	UserTable result;
+	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='table' and name=:name ORDER BY name ASC";
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":name", tblName);
+
+		if (query.executeStep()) {
+			result = toUserTable(query);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	}
+}
+
 UserTable TableUserRepository::toUserTable(QSqlStatement &query)
 {
 	UserTable item;
 	item.name = query.getColumn(L"name").getText();
+	item.sql = query.getColumn(L"sql").getText();
 	return item;
 }

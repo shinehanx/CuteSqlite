@@ -248,7 +248,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
     <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
     <ClCompile Include="core\repository\user\DatabaseUserRepository.cpp" />
-    <ClCompile Include="core\repository\user\FieldUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\ColumnUserRepository.cpp" />
     <ClCompile Include="core\repository\user\IndexUserRepository.cpp" />
     <ClCompile Include="core\repository\user\SqlExecutorUserRepository.cpp" />
     <ClCompile Include="core\repository\user\TableUserRepository.cpp" />
@@ -322,7 +322,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\repository\db\UserDbRepository.h" />
     <ClInclude Include="core\repository\system\SysInitRepository.h" />
     <ClInclude Include="core\repository\user\DatabaseUserRepository.h" />
-    <ClInclude Include="core\repository\user\FieldUserRepository.h" />
+    <ClInclude Include="core\repository\user\ColumnUserRepository.h" />
     <ClInclude Include="core\repository\user\IndexUserRepository.h" />
     <ClInclude Include="core\repository\user\SqlExecutorUserRepository.h" />
     <ClInclude Include="core\repository\user\TableUserRepository.h" />

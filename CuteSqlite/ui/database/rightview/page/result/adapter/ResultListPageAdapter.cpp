@@ -4,6 +4,7 @@
 #include <CommCtrl.h>
 #include "core/common/repository/QSqlException.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "utils/SqlUtil.h"
 
 ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView)
 {
@@ -19,15 +20,19 @@ ResultListPageAdapter::~ResultListPageAdapter()
 int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 {
 	dataView->DeleteAllItems();
-	datas.clear();
 
+	runtimeUserDbId = userDbId;
+	runtimeTables.clear();
+	runtimeDatas.clear();
+	
 	if (sql.empty()) {
 		return 0;
 	}
 	try {
 		QSqlStatement query = sqlService->executeSql(userDbId, sql);
-		loadHeader(query);
-		return loadData(query);
+		loadRuntimeTables(userDbId, sql); 
+		loadRuntimeHeader(query);
+		return loadRuntimeData(query);
 	} catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
@@ -48,7 +53,7 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	if (-1 == iItem)
 		return 0;
 
-	auto count = static_cast<int>(datas.size());
+	auto count = static_cast<int>(runtimeDatas.size());
 	if (!count || count <= iItem)
 		return 0;
 
@@ -65,7 +70,7 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 		return 0;
 	}
 
-	auto iter = datas.begin();
+	auto iter = runtimeDatas.begin();
 	for (int i = 1; i < iItem + 1; i++) {
 		iter++;
 	}
@@ -78,18 +83,35 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	return 0;
 }
 
-void ResultListPageAdapter::loadHeader(QSqlStatement & query)
+/**
+ * load the query table from sql in runtime.
+ * 
+ * @param userDbId the select db id
+ * @param sql
+ */
+void ResultListPageAdapter::loadRuntimeTables(uint64_t userDbId, std::wstring & sql)
+{
+	ATLASSERT(!sql.empty());
+	runtimeTables.clear();
+	if (!SqlUtil::isSelectSql(sql)) {
+		return ;
+	}
+	UserTableStrings allTables = databaseService->getUserTableStrings(userDbId);
+	runtimeTables = SqlUtil::getTablesFromSelectSql(sql, allTables);
+}
+
+void ResultListPageAdapter::loadRuntimeHeader(QSqlStatement & query)
 {
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
 	int n = query.getColumnCount();
 	for (int i = 0; i < n - 1; i++) {
 		std::wstring columnName = query.getColumnName(i);
 		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
-		columns.push_back(columnName);
+		runtimeColumns.push_back(columnName);
 	}
 }
 
-int ResultListPageAdapter::loadData(QSqlStatement & query)
+int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 {
 	CRect rectList;
 	dataView->GetClientRect(rectList);
@@ -101,9 +123,9 @@ int ResultListPageAdapter::loadData(QSqlStatement & query)
 			std::wstring columnVal = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
 			rowItem.push_back(columnVal);
 		}
-		datas.push_back(rowItem);
+		runtimeDatas.push_back(rowItem);
 	}
-	int nRow = static_cast<int>(datas.size());
+	int nRow = static_cast<int>(runtimeDatas.size());
 	// trigger CListViewCtrl message LVN_GETDISPINFO, will call functon this->onGetListViewData(NMLVDISPINFO * pLvdi)
 	dataView->SetItemCount(nRow);
 	
@@ -151,12 +173,29 @@ void ResultListPageAdapter::changeSelectAllItems()
 	headerCtrl.SetItem(0, &headerItem);
 }
 
-Columns ResultListPageAdapter::getColumns()
+UserTableStrings ResultListPageAdapter::getRuntimeTables()
 {
-	return columns;
+	return runtimeTables;
 }
 
-DataList ResultListPageAdapter::getDatas()
+Columns ResultListPageAdapter::getRuntimeColumns()
 {
-	return datas;
+	return runtimeColumns;
+}
+
+DataList ResultListPageAdapter::getRuntimeDatas()
+{
+	return runtimeDatas;
+}
+
+UserColumnList ResultListPageAdapter::getRuntimeUserColumns(std::wstring & tblName)
+{
+	ATLASSERT(runtimeUserDbId && !tblName.empty());
+	return databaseService->getUserColumns(runtimeUserDbId, tblName);
+}
+
+UserTable ResultListPageAdapter::getRuntimeUserTable(std::wstring & tblName)
+{
+	ATLASSERT(runtimeUserDbId && !tblName.empty());
+	return databaseService->getUserTable(runtimeUserDbId, tblName);
 }

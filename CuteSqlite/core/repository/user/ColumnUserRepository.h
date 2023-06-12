@@ -21,13 +21,13 @@
 #include "core/common/repository/BaseUserRepository.h"
 #include "core/entity/Entity.h"
 
-class FieldUserRepository : public BaseUserRepository<FieldUserRepository>
+class ColumnUserRepository : public BaseUserRepository<ColumnUserRepository>
 {
 public:
-	FieldUserRepository() {}
-	~FieldUserRepository() {}
+	ColumnUserRepository() {}
+	~ColumnUserRepository() {}
 
-	UserFieldList getListByTblName(uint64_t userDbId, std::wstring &tblName);
+	UserColumnList getListByTblName(uint64_t userDbId, std::wstring &tblName);
 private:
-	UserField toUserField(QSqlStatement &query);
+	UserColumn toUserField(QSqlStatement &query);
 };
