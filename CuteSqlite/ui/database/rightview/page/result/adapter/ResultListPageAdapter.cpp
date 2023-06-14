@@ -126,7 +126,7 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 		runtimeDatas.push_back(rowItem);
 	}
 	int nRow = static_cast<int>(runtimeDatas.size());
-	// trigger CListViewCtrl message LVN_GETDISPINFO, will call functon this->onGetListViewData(NMLVDISPINFO * pLvdi)
+	// trigger CListViewCtrl message LVN_GETDISPINFO to parent HWND, will call functon this->fillListViewItemData(NMLVDISPINFO * pLvdi)
 	dataView->SetItemCount(nRow);
 	
 	return nRow;

@@ -34,6 +34,7 @@ public:
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::EXPORT_TO_CSV_RADIO_ID, Config::EXPORT_TO_SQL_RADIO_ID, BN_CLICKED, OnClickExportFmtRadios)
 		COMMAND_HANDLER_EX(Config::EXPORT_SELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickSelectAllFieldsButton)
 		COMMAND_HANDLER_EX(Config::EXPORT_DESELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickDeselectAllFieldsButton)
+		COMMAND_HANDLER_EX(Config::EXPORT_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
 		CHAIN_MSG_MAP(QDialog<ExportResultDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -138,9 +139,15 @@ private:
 	//Click yes button, then get params to export	
 	bool getExportCsvParams(ExportCsvParams & params);
 	bool getExportExcelParams(ExportExcelParams & params);
-	bool getExportSqlParams(ExportSqlParams & params);
+	
+	bool getExportSqlParams(ExportSqlParams & params);	
 	bool getExportSelectedColumns(ExportSelectedColumns & params);
 	bool getExportPath(std::wstring & exportPath);
+	
+	void saveExportFmt(std::wstring &exportFmt);
+	void saveExportExcelParams(ExportExcelParams & params);
+	void saveExportSqlParams(ExportSqlParams & params);
+	void saveExportPath(std::wstring & exportPath);
 
 	virtual LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -149,6 +156,7 @@ private:
 	void OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeselectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd);

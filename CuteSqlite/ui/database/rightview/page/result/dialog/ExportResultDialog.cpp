@@ -22,6 +22,7 @@
 #include <string>
 #include "utils/FontUtil.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "ui/common/message/QMessageBox.h"
 
 ExportResultDialog::ExportResultDialog(HWND parentHwnd, ResultListPageAdapter * adapter)
 {
@@ -211,7 +212,7 @@ void ExportResultDialog::createOrShowExcelSettingsElems(CRect & clientRect)
 	createOrShowFormLabel(excelComlumnMaxSizeLabel, S(L"excel-column-max-size").append(L":"), rect, clientRect, SS_RIGHT, elemFont);
 	int x2 = x + w + 5, y2 = y,  w2 = 40, h2 = h;
 	CRect rect2(x2, y2, x2 + w2, y2 + h2);
-	createOrShowFormEdit(excelComlumnMaxSizeEdit,Config::EXPORT_EXCEL_COLMUMN_MAX_SIZE_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+	createOrShowFormEdit(excelComlumnMaxSizeEdit,Config::EXPORT_EXCEL_COLUMN_MAX_SIZE_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormLabel(excelDecimalPlacesLabel, S(L"excel-decinmal-places").append(L":"), rect, clientRect, SS_RIGHT, elemFont);
@@ -375,7 +376,7 @@ void ExportResultDialog::loadExcelSettingsElems()
 {
 	bool isEnabled = getSelExportFmtHwnd() == excelXmlRadio.m_hWnd;
 	if (excelComlumnMaxSizeEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"excel_colmumn_max_size");
+		std::wstring val = settingService->getSysInit(L"excel_column_max_size");
 		excelComlumnMaxSizeEdit.SetWindowText(val.c_str());
 		excelComlumnMaxSizeEdit.SetReadOnly(!isEnabled);
 
@@ -566,6 +567,29 @@ bool ExportResultDialog::getExportExcelParams(ExportExcelParams & params)
 	return true;
 }
 
+void ExportResultDialog::saveExportFmt(std::wstring &exportFmt)
+{
+	settingService->setSysInit(L"export_fmt", exportFmt);
+}
+
+void ExportResultDialog::saveExportExcelParams(ExportExcelParams & params)
+{
+	settingService->setSysInit(L"excel_column_max_size", std::to_wstring(params.excelComlumnMaxSize));
+	settingService->setSysInit(L"excel_decimal_places", std::to_wstring(params.excelDecimalPlaces));
+}
+
+
+void ExportResultDialog::saveExportSqlParams(ExportSqlParams & params)
+{
+	settingService->setSysInit(L"sql_export", params.sqlSetting);
+}
+
+
+void ExportResultDialog::saveExportPath(std::wstring & exportPath)
+{
+	settingService->setSysInit(L"export_path", exportPath);
+}
+
 /**
  * Get export to SQL params.
  * 
@@ -629,10 +653,18 @@ bool ExportResultDialog::getExportPath(std::wstring & exportPath)
 		exportPathEdit.SetFocus();
 		return false;
 	}
+
+	// the file exists 
 	exportPath = str.GetString();
+	if (_waccess(str.GetString(), 0) == 0) {
+		std::wstring msg = StringUtil::replace(S(L"export-file-exists-prompt"), L"{export-path}", exportPath);
+		if (QMessageBox::confirm(m_hWnd, msg) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			return false;
+		}
+	}
+
 	return true;
 }
-
 
 LRESULT ExportResultDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -781,6 +813,52 @@ void ExportResultDialog::OnClickDeselectAllFieldsButton(UINT uNotifyCode, int nI
 	selectFieldsListBox.SelItemRange(false, 0, selectFieldsListBox.GetCount() - 1);
 }
 
+
+void ExportResultDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND btnHwnd)
+{
+	CString str;
+	exportPathEdit.GetWindowText(str);
+	std::wstring exportPath = str;
+	std::wstring fileName, fileDir;
+	if (!str.IsEmpty()) {
+		fileName = FileUtil::getFileName(exportPath);
+		fileDir = FileUtil::getFileDir(exportPath);
+	}
+	wchar_t * szFilter = nullptr;
+	wchar_t * defExt = nullptr;
+	HWND selHwnd = getSelExportFmtHwnd();
+	if (selHwnd == csvRadio.m_hWnd) {
+		 szFilter = L"CSV File(*.csv)\0*.csv\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"csv";
+	} else if (selHwnd == jsonRadio.m_hWnd) {
+		 szFilter = L"JSON File(*.json)\0*.json\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"json";
+	} else if (selHwnd == htmlRadio.m_hWnd) {
+		 szFilter = L"HTML File(*.html)\0*.html\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"html";
+	} else if (selHwnd == xmlRadio.m_hWnd) {
+		 szFilter = L"XML File(*.xml)\0*.xml\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"xml";
+	} else if (selHwnd == excelXmlRadio.m_hWnd) {
+		 szFilter = L"Excel File(*.xls)\0*.xls\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"xls";
+	} else if (selHwnd == sqlRadio.m_hWnd) {
+		 szFilter = L"SQL File(*.sql)\0*.sql\0All Files(*.*)\0*.*\0\0";
+		 defExt = L"sql";
+	}
+
+	CFileDialog fileDlg(FALSE, defExt, fileName.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, m_hWnd);
+	//fileDlg.m_ofn.lpstrTitle = S(L"save-to-file").c_str();
+	fileDlg.m_ofn.lpstrInitialDir = fileDir.c_str();
+	//fileDlg.m_ofn.lpstrFilter = szFilter;
+	CString path;
+	if (IDOK == fileDlg.DoModal()) {
+		exportPath = fileDlg.m_szFileName;
+		exportPathEdit.SetWindowText(exportPath.c_str());
+	}
+
+}
+
 void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportSelectedColumns selectedColumns;
@@ -792,29 +870,37 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	if (!getExportPath(exportPath)) {
 		return ;
 	}
+	saveExportPath(exportPath);
 
-	
 	HWND selHwnd = getSelExportFmtHwnd();
 	DataList datas = adapter->getRuntimeDatas();
 	Columns columns = adapter->getRuntimeColumns();
+	int exportRows = 0;
+	std::wstring fmt;
 	if (selHwnd == csvRadio.m_hWnd) {
 		ExportCsvParams csvParams;
 		if (!getExportCsvParams(csvParams)) {
 			return ;
 		}
-		exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
+		exportRows = exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
+		fmt = L"CSV";
 	} else if (selHwnd == jsonRadio.m_hWnd) { 
-		exportResultService->exportToJson(exportPath, columns, selectedColumns, datas);
+		exportRows = exportResultService->exportToJson(exportPath, columns, selectedColumns, datas);
+		fmt = L"JSON";
 	} else if (selHwnd == htmlRadio.m_hWnd) { 
-		exportResultService->exportToHtml(exportPath, columns, selectedColumns, datas);
+		exportRows = exportResultService->exportToHtml(exportPath, columns, selectedColumns, datas);
+		fmt = L"HTML";
 	} else if (selHwnd == xmlRadio.m_hWnd) { 
-		exportResultService->exportToXml(exportPath, columns, selectedColumns, datas);
+		exportRows = exportResultService->exportToXml(exportPath, columns, selectedColumns, datas);
+		fmt = L"XML";
 	} else if (selHwnd == excelXmlRadio.m_hWnd) {
 		ExportExcelParams excelParams;
 		if (!getExportExcelParams(excelParams)) {
 			return ;
 		}
-		exportResultService->exportToExcelXml(exportPath, columns, selectedColumns, datas, excelParams);
+		exportRows = exportResultService->exportToExcelXml(exportPath, columns, selectedColumns, datas, excelParams);
+		saveExportExcelParams(excelParams);
+		fmt = L"EXCEL";
 	} else if (selHwnd == sqlRadio.m_hWnd) {
 		ExportSqlParams sqlParams;
 		if (!getExportSqlParams(sqlParams)) {
@@ -829,14 +915,16 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 		}
 
 		UserTable userTable = adapter->getRuntimeUserTable(tbls.at(0));
-		exportResultService->exportToSql(exportPath, userTable, columns, selectedColumns, datas, sqlParams);
+		exportRows = exportResultService->exportToSql(exportPath, userTable, columns, selectedColumns, datas, sqlParams);
+		saveExportSqlParams(sqlParams);
+		fmt = L"SQL";
 	}
 
-
-	EndDialog(Config::QDIALOG_YES_BUTTON_ID);
+	saveExportFmt(fmt);
+	EndDialog(exportRows);
 }
 
 void ExportResultDialog::OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	EndDialog(Config::QDIALOG_NO_BUTTON_ID);
+	EndDialog(0);
 }

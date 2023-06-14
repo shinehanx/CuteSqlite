@@ -36,6 +36,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_CLICK, OnClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChange)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
@@ -91,6 +92,7 @@ protected:
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnListViewItemChange(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	void OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd);
 };

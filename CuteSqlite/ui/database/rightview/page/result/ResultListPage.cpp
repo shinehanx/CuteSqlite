@@ -22,6 +22,7 @@
 #include "ResultListPage.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "ui/common/message/QMessageBox.h"
 #include "ui/common/QWinCreater.h"
 #include "ui/database/rightview/page/result/dialog/ExportResultDialog.h"
 
@@ -115,12 +116,7 @@ void ResultListPage::loadWindow()
 
 void ResultListPage::paintItem(CDC & dc, CRect & paintRect)
 {
-	/*
-	COLORREF color = RGB(255, 20, 60);
-	HBRUSH brush = ::CreateSolidBrush(color);
-	dc.FillRect(paintRect, brush);
-	::DeleteObject(brush);
-	*/
+	
 }
 
 void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRect)
@@ -255,12 +251,47 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
 	return 0;
 }
 
+/**
+ * select the grid subitem .
+ * 
+ * @param idCtrl
+ * @param pnmh
+ * @param bHandled
+ * @return 
+ */
+LRESULT ResultListPage::OnListViewItemChange(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	LPNMLISTVIEW pnmListView = (LPNMLISTVIEW)pnmh;
+
+	if(pnmListView->uChanged == LVIF_STATE) {
+		if(pnmListView->uNewState) {
+			int nIndex = pnmListView->iItem;
+			int nSubIndex = pnmListView->iSubItem;
+			LVITEM item;
+			item.iItem = nIndex;
+			item.iSubItem = nSubIndex;
+			listView.GetItem(&item);
+			// todo...
+		}
+
+    }
+	return 0;
+}
+
 void ResultListPage::OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportResultDialog exportResultDialog(m_hWnd, adapter);
 
-	if (exportResultDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
-	
+	int rows = exportResultDialog.DoModal(m_hWnd);
+	if (rows > 0) {
+		std::wstring msg = StringUtil::replace(S(L"export-success-text"), std::wstring(L"{rows}"), std::to_wstring(rows));
+		//QPopAnimate::success(m_hWnd, msg);
+		if (QMessageBox::confirm(m_hWnd, msg, S(L"open-the-file")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			std::wstring exportPath = SettingService::getInstance()->getSysInit(L"export_path");
+			std::wstring selelctFile = L"/select,"; // ×¢Òâselect,ÒªÓÐ¶ººÅ
+			selelctFile.append(exportPath.c_str());
+			::ShellExecuteW(NULL, L"open", L"Explorer.exe",selelctFile.c_str() , NULL, SW_SHOWDEFAULT);
+		}
 	}
 }
 
