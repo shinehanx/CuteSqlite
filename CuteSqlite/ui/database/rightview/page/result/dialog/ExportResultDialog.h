@@ -32,9 +32,11 @@ public:
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::EXPORT_TO_CSV_RADIO_ID, Config::EXPORT_TO_SQL_RADIO_ID, BN_CLICKED, OnClickExportFmtRadios)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::EXPORT_SQL_STRUCTURE_ONLY_RADIO_ID, Config::EXPORT_SQL_STRUCTURE_DATA_RADIO_ID, BN_CLICKED, OnClickExportSqlRadios)
 		COMMAND_HANDLER_EX(Config::EXPORT_SELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickSelectAllFieldsButton)
 		COMMAND_HANDLER_EX(Config::EXPORT_DESELECT_ALL_FIELDS_BUTTON_ID, BN_CLICKED, OnClickDeselectAllFieldsButton)
 		COMMAND_HANDLER_EX(Config::EXPORT_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
+		COMMAND_HANDLER_EX(Config::EXPORT_CSV_COLUMN_NAME_CHECKBOX_ID, BN_CLICKED, OnClickCsvColumnNameCheckBox)
 		CHAIN_MSG_MAP(QDialog<ExportResultDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -145,6 +147,7 @@ private:
 	bool getExportPath(std::wstring & exportPath);
 	
 	void saveExportFmt(std::wstring &exportFmt);
+	void saveExportCsvParams(ExportCsvParams & params);
 	void saveExportExcelParams(ExportExcelParams & params);
 	void saveExportSqlParams(ExportSqlParams & params);
 	void saveExportPath(std::wstring & exportPath);
@@ -154,9 +157,11 @@ private:
 	virtual LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual void paintItem(CDC &dc, CRect &paintRect);
 	void OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickExportSqlRadios(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeselectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCsvColumnNameCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd);

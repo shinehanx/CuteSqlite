@@ -144,6 +144,13 @@ typedef enum {
 	EXPORT_SELECT_FIELDS_LISTBOX_ID = WM_USER + 200,
 } ListBoxId;
 
+typedef enum {
+	COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID = WM_USER + 220,
+	COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID,
+	COPY_ALL_ROWS_AS_SQL_MEMU_ID,
+	COPY_SEL_ROWS_AS_SQL_MEMU_ID,
+} MenuId;
+
 // PostMessage messageId
 typedef enum {
 	MSG_TIMER_MOVE_ID = WM_USER + 200, // QPopAnimate 触发的移动定时器

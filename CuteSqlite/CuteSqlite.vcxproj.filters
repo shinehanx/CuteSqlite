@@ -195,6 +195,9 @@
     <ClCompile Include="core\repository\user\ColumnUserRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\ClipboardUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -423,6 +426,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\repository\user\ColumnUserRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ClipboardUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

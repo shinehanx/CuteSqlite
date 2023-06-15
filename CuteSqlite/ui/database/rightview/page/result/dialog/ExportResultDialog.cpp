@@ -572,6 +572,16 @@ void ExportResultDialog::saveExportFmt(std::wstring &exportFmt)
 	settingService->setSysInit(L"export_fmt", exportFmt);
 }
 
+
+void ExportResultDialog::saveExportCsvParams(ExportCsvParams & params)
+{
+	settingService->setSysInit(L"csv_field_terminaated_by", params.csvFieldEnclosedBy);
+	settingService->setSysInit(L"csv_field_enclosed_by", params.csvFieldEnclosedBy);
+	settingService->setSysInit(L"csv_field_escaped_by", params.csvFieldEscapedBy);
+	settingService->setSysInit(L"csv_line_terminaated_by", params.csvLineTerminatedBy);
+	settingService->setSysInit(L"csv_column_name", params.hasColumnOnTop ? L"true" : L"false");
+}
+
 void ExportResultDialog::saveExportExcelParams(ExportExcelParams & params)
 {
 	settingService->setSysInit(L"excel_column_max_size", std::to_wstring(params.excelComlumnMaxSize));
@@ -795,6 +805,23 @@ void ExportResultDialog::OnClickExportFmtRadios(UINT uNotifyCode, int nID, HWND 
 	loadExportPathEdit();
 }
 
+
+void ExportResultDialog::OnClickExportSqlRadios(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	HWND selHwnd = nullptr;
+	std::for_each(sqlRadioPtrs.begin(), sqlRadioPtrs.end(), [&hwnd, &selHwnd](CButton * ptr) {
+		int checked = ptr->GetCheck();
+		if (ptr->m_hWnd == hwnd) {
+			if (!checked) {
+				ptr->SetCheck(!checked);
+			}
+			selHwnd = hwnd;
+		}else {
+			ptr->SetCheck(0);
+		}
+	});
+}
+
 void ExportResultDialog::OnClickSelectAllFieldsButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	if (selectFieldsListBox.GetCount() == 0) {
@@ -859,6 +886,13 @@ void ExportResultDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND b
 
 }
 
+
+void ExportResultDialog::OnClickCsvColumnNameCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int isChecked = csvColumnNameCheckBox.GetCheck();
+	csvColumnNameCheckBox.SetCheck(!isChecked);
+}
+
 void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportSelectedColumns selectedColumns;
@@ -883,6 +917,7 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 			return ;
 		}
 		exportRows = exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
+		saveExportCsvParams(csvParams);
 		fmt = L"CSV";
 	} else if (selHwnd == jsonRadio.m_hWnd) { 
 		exportRows = exportResultService->exportToJson(exportPath, columns, selectedColumns, datas);

@@ -71,7 +71,21 @@ public:
 		}
 	}
 
-	static void createOrShowLabel(HWND hwnd, CStatic & win, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = SS_LEFT, int fontSize = 18)
+	static void createOrShowCheckBox(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0)
+	{
+		if (::IsWindow(hwnd) && !win.IsWindow()) {
+			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | BS_CHECKBOX ; // 注意 BS_CHECKBOX
+			if (exStyle) dwStyle = dwStyle | exStyle;
+			win.Create(hwnd, rect, text.c_str(), dwStyle , 0, id);
+			win.BringWindowToTop();
+			return ;
+		} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
+			win.MoveWindow(&rect);
+			win.ShowWindow(SW_SHOW);		
+		}
+	}
+
+	static void createOrShowLabel(HWND hwnd, CStatic & win, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = SS_LEFT, int fontSize = 14)
 	{
 		if (::IsWindow(hwnd) && !win.IsWindow()) {
 			DWORD dwStyle = WS_CHILD | WS_VISIBLE  | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
@@ -96,8 +110,8 @@ public:
 			if (exStyle) {
 				dwStyle |= exStyle;
 			}
-			win.Create(hwnd, rect, text.c_str(), dwStyle , 0, id);
-			HFONT hfont = GdiPlusUtil::GetHFONT(18, DEFAULT_CHARSET, true);
+			win.Create(hwnd, rect, text.c_str(), dwStyle , WS_EX_CLIENTEDGE, id);
+			HFONT hfont = GdiPlusUtil::GetHFONT(14, DEFAULT_CHARSET, true);
 			win.SetFont(hfont);
 			win.SetReadOnly(readOnly);
 			win.SetWindowText(text.c_str());
@@ -118,7 +132,7 @@ public:
 				dwStyle |= exStyle;
 			}
 
-			win.Create(hwnd, rect, text.c_str(), dwStyle , 0, id);			
+			win.Create(hwnd, rect, text.c_str(), dwStyle , WS_EX_CLIENTEDGE, id);
 			win.SetFont(hfont);
 			win.SetReadOnly(readOnly);			
 			//win.SetWindowText(text.c_str());

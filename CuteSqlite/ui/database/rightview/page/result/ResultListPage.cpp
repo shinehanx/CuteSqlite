@@ -37,7 +37,7 @@ void ResultListPage::createOrShowUI()
 
 	CRect clientRect;
 	GetClientRect(clientRect);
-	createOrShowToolBarElements(clientRect);
+	createOrShowToolBarElems(clientRect);
 	createOrShowListView(listView, clientRect);
 }
 
@@ -46,7 +46,7 @@ void ResultListPage::createOrShowUI()
  * 
  * @param clientRect The page's client rect
  */
-void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
+void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 {
 	CRect topbarRect = getTopRect(clientRect);
 	int x = 5, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
@@ -77,14 +77,12 @@ void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
 
 	rect.OffsetRect(120 + 20, 0);
 	rect.InflateRect(0, 0, 20, 4);
-	formViewCheckBox.setBkgColor(buttonColor);
-	formViewCheckBox.setFontSize(Lang::fontSize(L"checkbox-size")); 
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
 		
-	rect.MoveToX(topbarRect.right - 300);
-	rect.InflateRect(0, -2, -100, -2);
+	rect.MoveToX(topbarRect.right - 350);
+	rect.InflateRect(0, -2, -100, 0);
 	normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
-	pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png"; 
+	pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
 	filterButton.SetIconPath(normalImagePath, pressedImagePath);
 	filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);
@@ -95,6 +93,23 @@ void ResultListPage::createOrShowToolBarElements(CRect & clientRect)
 	refreshButton.SetIconPath(normalImagePath, pressedImagePath);
 	refreshButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::LISTVIEW_REFRESH_BUTTON_ID, L"", rect, clientRect);
+
+	rect.OffsetRect(16 + 20, 0);
+	rect.InflateRect(0, 0, 36, 0);
+	QWinCreater::createOrShowCheckBox(m_hWnd, limitCheckBox, Config::LISTVIEW_LIMIT_CHECKBOX_ID, S(L"limit-rows"), rect, clientRect);
+
+	rect.OffsetRect(60 + 5, 2);
+	rect.InflateRect(0, 0, -10, 0);
+	QWinCreater::createOrShowLabel(m_hWnd, offsetLabel, S(L"offset").append(L":"), rect, clientRect, SS_RIGHT);
+
+	rect.OffsetRect(50 + 2, -2);
+	QWinCreater::createOrShowEdit(m_hWnd, offsetEdit, 0, L"0", rect, clientRect, ES_NUMBER, false);
+
+	rect.OffsetRect(50 + 5, 2);
+	QWinCreater::createOrShowLabel(m_hWnd, limitLabel, S(L"rows").append(L":"), rect, clientRect, SS_RIGHT);
+
+	rect.OffsetRect(50 + 2, -2);
+	QWinCreater::createOrShowEdit(m_hWnd, limitEdit, 0, L"1000", rect, clientRect, ES_NUMBER, false);
 }
 
 void ResultListPage::loadWindow()
@@ -138,6 +153,38 @@ void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRec
 	}
 }
 
+void ResultListPage::createCopyMenu()
+{
+	copyMenu.CreatePopupMenu();
+	copyMenu.AppendMenu(MF_STRING, Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, S(L"copy-all-rows-to-clipboard").c_str());
+	copyMenu.AppendMenu(MF_STRING, Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, S(L"copy-sel-rows-to-clipboard").c_str());
+	copyMenu.AppendMenu(MF_STRING, Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, S(L"copy-all-rows-as-sql").c_str());
+	copyMenu.AppendMenu(MF_STRING, Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, S(L"copy-sel-rows-as-sql").c_str());
+
+}
+
+void ResultListPage::popupCopyMenu(CPoint & pt)
+{
+	if (listView.GetItemCount() == 0) {
+		copyMenu.EnableMenuItem(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, MF_DISABLED);
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, MF_DISABLED);
+		copyMenu.EnableMenuItem(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, MF_DISABLED);
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, MF_DISABLED);
+	} else {
+		copyMenu.EnableMenuItem(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, MF_ENABLED);
+		copyMenu.EnableMenuItem(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, MF_ENABLED);
+	}
+
+	if (listView.GetSelectedCount() == 0) {
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, MF_DISABLED);
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, MF_DISABLED);
+	}else {
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, MF_ENABLED);
+		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, MF_ENABLED);
+	}
+	copyMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, m_hWnd);
+}
+
 void ResultListPage::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -162,13 +209,16 @@ int ResultListPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
+	textFont = FT(L"form-text-size");
 	createImageList();
+	createCopyMenu();
 	return ret;
 }
 
 int ResultListPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
+	if (textFont) ::DeleteObject(textFont);
 
 	if (exportButton.IsWindow()) exportButton.DestroyWindow();
 	if (copyButton.IsWindow()) copyButton.DestroyWindow();
@@ -198,6 +248,17 @@ LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled
 {
 	auto ptr = (LPNMITEMACTIVATE)pnmh;
 	
+	return 0;
+}
+
+LRESULT ResultListPage::OnRightClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	LPNMITEMACTIVATE lpmnItemActive = (LPNMITEMACTIVATE)pnmh;
+	//CPoint pt = lpmnItemActive->ptAction;
+	CPoint pt; 
+	GetCursorPos(&pt);
+	popupCopyMenu(pt);
+
 	return 0;
 }
 
@@ -282,7 +343,7 @@ void ResultListPage::OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportResultDialog exportResultDialog(m_hWnd, adapter);
 
-	int rows = exportResultDialog.DoModal(m_hWnd);
+	int rows = static_cast<int>(exportResultDialog.DoModal(m_hWnd));
 	if (rows > 0) {
 		std::wstring msg = StringUtil::replace(S(L"export-success-text"), std::wstring(L"{rows}"), std::to_wstring(rows));
 		//QPopAnimate::success(m_hWnd, msg);
@@ -293,5 +354,44 @@ void ResultListPage::OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd)
 			::ShellExecuteW(NULL, L"open", L"Explorer.exe",selelctFile.c_str() , NULL, SW_SHOWDEFAULT);
 		}
 	}
+}
+
+void ResultListPage::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CRect rect;
+	copyButton.GetWindowRect(rect);
+	CPoint pt(rect.left, rect.bottom);
+	popupCopyMenu(pt);
+}
+
+void ResultListPage::OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->copyAllRowsToClipboard();
+}
+
+void ResultListPage::OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->copySelRowsToClipboard();
+}
+
+HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, topbarColor);
+	::SelectObject(hdc, textFont);
+	return topbarBrush;
+}
+
+HBRUSH ResultListPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, bkgColor);
+	::SelectObject(hdc, textFont);
+	return AtlGetStockBrush(WHITE_BRUSH);
+}
+
+HBRUSH ResultListPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, bkgColor);
+	::SelectObject(hdc, textFont);
+	return AtlGetStockBrush(WHITE_BRUSH);
 }
 

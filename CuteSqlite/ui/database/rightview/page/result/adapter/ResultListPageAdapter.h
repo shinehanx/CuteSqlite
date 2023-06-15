@@ -40,12 +40,18 @@ public:
 
 	void changeSelectAllItems();
 
+	DataList getSelectedDatas();
+
 	UserTableStrings getRuntimeTables();
 	Columns getRuntimeColumns();
 	DataList getRuntimeDatas();
 
 	UserColumnList getRuntimeUserColumns(std::wstring & tblName);
 	UserTable getRuntimeUserTable(std::wstring & tblName);
+
+	// copy data
+	void copyAllRowsToClipboard();
+	void copySelRowsToClipboard();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

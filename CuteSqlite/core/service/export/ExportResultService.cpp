@@ -21,11 +21,7 @@
 #include "ExportResultService.h"
 #include <fstream>
 #include "utils/FileUtil.h"
-#include <rapidjson/writer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
 
-using namespace rapidjson;
 int ExportResultService::exportToCsv(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas, ExportCsvParams & csvParams)
 {
 	ATLASSERT(!exportPath.empty() && !columns.empty() && !selColumns.empty() && !datas.empty());
@@ -312,6 +308,12 @@ int ExportResultService::exportToSql(std::wstring & exportPath,
 		ofs << tbl.sql << L";" << endl;
 	}
 	
+	if (sqlarams.sqlSetting == L"structure-only") {
+		ofs.flush();
+		ofs.close();
+		return 0;
+	}
+	
 	// 3.write the data to file
 	n = 0;
 	for (auto vals : datas) {
@@ -339,7 +341,7 @@ int ExportResultService::exportToSql(std::wstring & exportPath,
 		}
 		columnStmt <<  L')';
 		valuesStmt << L')';
-		dataSql << columnStmt.str() << valuesStmt.str() << L';' << endl;
+		dataSql << columnStmt.str() << valuesStmt.str() << L';';
 		ofs << dataSql.str() << endl;
 		n++;
 	}

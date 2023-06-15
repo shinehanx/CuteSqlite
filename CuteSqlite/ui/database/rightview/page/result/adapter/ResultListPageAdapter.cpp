@@ -5,6 +5,7 @@
 #include "core/common/repository/QSqlException.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "utils/SqlUtil.h"
+#include "utils/ClipboardUtil.h"
 
 ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView)
 {
@@ -173,6 +174,26 @@ void ResultListPageAdapter::changeSelectAllItems()
 	headerCtrl.SetItem(0, &headerItem);
 }
 
+DataList ResultListPageAdapter::getSelectedDatas()
+{
+	if (!dataView->GetSelectedCount()) {
+		return DataList();
+	}
+	DataList result;
+	int nSelItem = -1;
+	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		DataList::iterator itor = runtimeDatas.begin();		
+		for (int i = 0; i < nSelItem && itor != runtimeDatas.end(); i++) {
+			itor++;
+		}
+		if (itor != runtimeDatas.end()) {
+			result.push_back(*itor);
+		}
+		
+	}
+	return result;
+}
+
 UserTableStrings ResultListPageAdapter::getRuntimeTables()
 {
 	return runtimeTables;
@@ -198,4 +219,84 @@ UserTable ResultListPageAdapter::getRuntimeUserTable(std::wstring & tblName)
 {
 	ATLASSERT(runtimeUserDbId && !tblName.empty());
 	return databaseService->getUserTable(runtimeUserDbId, tblName);
+}
+
+void ResultListPageAdapter::copyAllRowsToClipboard()
+{
+	int n = static_cast<int>(runtimeColumns.size());
+	std::wostringstream oss;
+	// 1.write the columns to stringstream
+	for (int i = 0; i < n; i++) {
+		auto column = runtimeColumns.at(i);
+		if (i > 0) {
+			oss << L",";
+		}
+		oss << L'"' << column << L'"';
+	}
+	oss << endl;
+
+	// 2.write the datas to stringstream
+	n = 0;	
+	for (auto vals : runtimeDatas) {
+		if (vals.empty()) {
+			continue;
+		}
+		
+		int i = 0;
+		for (auto val : vals) {
+			if (i > 0) {
+				oss << L",";
+			}
+
+			std::wstring rval = StringUtil::escape(val);
+			oss << L'"' << rval << L'"';
+			i++;
+		}
+		oss << endl;
+	}
+	oss.flush();
+
+	// 3. copy the stringstream to clipboard
+	ClipboardUtil::copyToClipboard(oss.str());
+}
+
+void ResultListPageAdapter::copySelRowsToClipboard()
+{
+	int n = static_cast<int>(runtimeColumns.size());
+	std::wostringstream oss;
+	// 1.write the columns to stringstream
+	for (int i = 0; i < n; i++) {
+		auto column = runtimeColumns.at(i);
+		if (i > 0) {
+			oss << L",";
+		}
+		oss << L'"' << column << L'"';
+	}
+	oss << endl;
+
+	// 2.write the selected datas to stringstream
+	n = 0;	
+	DataList selDatas = getSelectedDatas();
+	for (auto vals : selDatas) {
+		if (vals.empty()) {
+			continue;
+		}
+		
+		int i = 0;
+		for (auto val : vals) {
+			if (i > 0) {
+				oss << L",";
+			}
+
+			std::wstring rval = StringUtil::escape(val);
+			oss << L'"' << rval << L'"';
+			i++;
+		}
+		oss << endl;
+		n++;
+	}
+	oss.flush();
+
+	// 3. copy the stringstream to clipboard
+	ClipboardUtil::copyToClipboard(oss.str());
 }
