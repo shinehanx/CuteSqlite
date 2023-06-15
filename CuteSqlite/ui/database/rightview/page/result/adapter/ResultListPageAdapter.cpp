@@ -300,3 +300,96 @@ void ResultListPageAdapter::copySelRowsToClipboard()
 	// 3. copy the stringstream to clipboard
 	ClipboardUtil::copyToClipboard(oss.str());
 }
+
+void ResultListPageAdapter::copyAllRowsAsSql()
+{
+	if (runtimeTables.empty() || runtimeTables.size() > 1) {
+		return ;
+	}
+
+	std::wstring tbl = runtimeTables.at(0);
+	int n = static_cast<int>(runtimeColumns.size());
+	std::wostringstream oss;
+	// 1.write the data to stringstream
+	n = 0;
+	for (auto vals : runtimeDatas) {
+		if (vals.empty()) {
+			continue;
+		}
+		int i = 0;
+		std::wostringstream dataSql, columnStmt, valuesStmt;
+		dataSql << L"INSERT INTO " << tbl << L' ';
+
+		columnStmt << L"(";
+		valuesStmt << L" VALUES (";
+		// write the selected column data value
+		for (auto column : runtimeColumns) {			
+			std::wstring val = StringUtil::escapeSql(vals.at(i));
+
+			if (i > 0) {
+				columnStmt << L", ";
+				valuesStmt <<  L", ";
+			}
+			columnStmt << L"\"" << column << "\"";
+			valuesStmt << L"'" << val <<  L"'";
+			i++;
+		}
+		columnStmt <<  L')';
+		valuesStmt << L')';
+		dataSql << columnStmt.str() << valuesStmt.str() << L';';
+		oss << dataSql.str() << endl;
+		n++;
+	}
+	
+	oss.flush();
+
+	// 2. copy the stringstream to clipboard
+	ClipboardUtil::copyToClipboard(oss.str());
+}
+
+void ResultListPageAdapter::copySelRowsAsSql()
+{
+	if (runtimeTables.empty() || runtimeTables.size() > 1) {
+		return ;
+	}
+
+	std::wstring tbl = runtimeTables.at(0);
+	int n = static_cast<int>(runtimeColumns.size());
+	std::wostringstream oss;
+	// 1.write the data to stringstream
+	n = 0;
+	DataList selDatas = getSelectedDatas();
+	for (auto vals : selDatas) {
+		if (vals.empty()) {
+			continue;
+		}
+		int i = 0;
+		std::wostringstream dataSql, columnStmt, valuesStmt;
+		dataSql << L"INSERT INTO " << tbl << L' ';
+
+		columnStmt << L"(";
+		valuesStmt << L" VALUES (";
+		// write the selected column data value
+		for (auto column : runtimeColumns) {			
+			std::wstring val = StringUtil::escapeSql(vals.at(i));
+
+			if (i > 0) {
+				columnStmt << L", ";
+				valuesStmt <<  L", ";
+			}
+			columnStmt << L"\"" << column << "\"";
+			valuesStmt << L"'" << val <<  L"'";
+			i++;
+		}
+		columnStmt <<  L')';
+		valuesStmt << L')';
+		dataSql << columnStmt.str() << valuesStmt.str() << L';';
+		oss << dataSql.str() << endl;
+		n++;
+	}
+	
+	oss.flush();
+
+	// 2. copy the stringstream to clipboard
+	ClipboardUtil::copyToClipboard(oss.str());
+}

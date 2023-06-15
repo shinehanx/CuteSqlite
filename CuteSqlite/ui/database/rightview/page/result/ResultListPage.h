@@ -47,6 +47,8 @@ public:
 		COMMAND_HANDLER_EX(Config::LISTVIEW_COPY_BUTTON_ID, BN_CLICKED, OnClickCopyButton)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopyAllRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopySelRowsToClipboardMenu)
+		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, OnClickCopyAllRowsAsSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, OnClickCopySelRowsAsSqlMenu)
 		
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -113,6 +115,8 @@ protected:
 	void OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);

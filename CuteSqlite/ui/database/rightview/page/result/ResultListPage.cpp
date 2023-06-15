@@ -374,6 +374,16 @@ void ResultListPage::OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID
 	adapter->copySelRowsToClipboard();
 }
 
+void ResultListPage::OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->copyAllRowsAsSql();
+}
+
+void ResultListPage::OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->copySelRowsAsSql();
+}
+
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);

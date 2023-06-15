@@ -52,6 +52,8 @@ public:
 	// copy data
 	void copyAllRowsToClipboard();
 	void copySelRowsToClipboard();
+	void copyAllRowsAsSql();
+	void copySelRowsAsSql();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
