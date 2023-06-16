@@ -26,7 +26,7 @@
 #include "ui/common/checkbox/QCheckBox.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
-
+#include "ui/database/rightview/page/result/form/RowDataFormView.h"
 
 class ResultListPage : public QPage {
 public:
@@ -35,7 +35,7 @@ public:
 	BEGIN_MSG_MAP_EX(ResultListPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_CLICK, OnClickListView)		
+		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_CLICK, OnClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_RCLICK, OnRightClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChange)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
@@ -45,6 +45,7 @@ public:
 
 		COMMAND_HANDLER_EX(Config::LISTVIEW_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportButton)
 		COMMAND_HANDLER_EX(Config::LISTVIEW_COPY_BUTTON_ID, BN_CLICKED, OnClickCopyButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, BN_CLICKED, OnClickFormViewCheckBox)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopyAllRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopySelRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, OnClickCopyAllRowsAsSqlMenu)
@@ -85,6 +86,7 @@ protected:
 	CEdit limitEdit;
 
 	CListViewCtrl listView;
+	RowDataFormView formView;
 
 	ResultListPageAdapter * adapter = nullptr;
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
@@ -92,12 +94,19 @@ protected:
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 
+	CRect getLeftListRect(CRect & clientRect);
+	CRect getRightFormRect(CRect & clientRect);
+
 	void createImageList();
 	void createOrShowToolBarElems(CRect & clientRect);
 	void createOrShowListView(CListViewCtrl & win, CRect & clientRect);
+	void createOrShowFormView(RowDataFormView & win, CRect & clientRect);
 
 	void createCopyMenu();
 	void popupCopyMenu(CPoint & pt);
+
+	void loadReadWriteComboBox();
+	void loadFormViewCheckBox();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
@@ -113,6 +122,7 @@ protected:
 
 	void OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickFormViewCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -121,4 +131,6 @@ protected:
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
+
+	bool isShowFormView();
 };

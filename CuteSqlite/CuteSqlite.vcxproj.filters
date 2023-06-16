@@ -198,6 +198,9 @@
     <ClCompile Include="utils\ClipboardUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\result\form\RowDataFormView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -429,6 +432,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\ClipboardUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\result\form\RowDataFormView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

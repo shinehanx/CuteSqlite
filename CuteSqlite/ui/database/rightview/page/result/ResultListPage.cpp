@@ -23,9 +23,10 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
-#include "ui/common/QWinCreater.h"
+#include "ui/common/QWinCreater.h" 
 #include "ui/database/rightview/page/result/dialog/ExportResultDialog.h"
 
+#define ROW_FORM_VIEW_WIDTH 320
 void ResultListPage::setup(std::wstring & sql)
 {
 	this->sql = sql;
@@ -39,6 +40,7 @@ void ResultListPage::createOrShowUI()
 	GetClientRect(clientRect);
 	createOrShowToolBarElems(clientRect);
 	createOrShowListView(listView, clientRect);
+	createOrShowFormView(formView, clientRect);
 }
 
 /**
@@ -73,7 +75,7 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	rect.OffsetRect(24 + 10, 0);
 	rect.InflateRect(0, 2, 80, -2); 
 	QWinCreater::createOrShowComboBox(m_hWnd, readWriteComboBox, Config::LISTVIEW_READ_WRITE_COMBOBOX_ID, rect, clientRect);
-	readWriteComboBox.SetFont(FT(L"combobox-size"));
+	readWriteComboBox.SetFont(textFont);
 
 	rect.OffsetRect(120 + 20, 0);
 	rect.InflateRect(0, 0, 20, 4);
@@ -116,10 +118,14 @@ void ResultListPage::loadWindow()
 {
 	QPage::loadWindow();
 
+	loadReadWriteComboBox();
+	loadFormViewCheckBox();
+
 	if (!isNeedReload || sql.empty()) {
 		return;
 	}
 	isNeedReload = false;
+	
 
 	uint64_t userDbId = supplier->getSeletedUserDbId();
 	if (!userDbId) {
@@ -129,6 +135,28 @@ void ResultListPage::loadWindow()
 	rowCount = adapter->loadListView(userDbId, sql);
 }
 
+CRect ResultListPage::getLeftListRect(CRect & clientRect)
+{
+	CRect & pageRect = getPageRect(clientRect);
+	bool checked = isShowFormView();
+	if (checked) {
+		return { pageRect.left, pageRect.top, pageRect.right - ROW_FORM_VIEW_WIDTH - 1, pageRect.bottom };
+	} else {
+		return pageRect;
+	}
+}
+
+CRect ResultListPage::getRightFormRect(CRect & clientRect)
+{
+	CRect & pageRect = getPageRect(clientRect);
+	bool checked = isShowFormView();
+	if (checked) {
+		return { pageRect.right - ROW_FORM_VIEW_WIDTH, pageRect.top, pageRect.right, pageRect.bottom };
+	} else {
+		return { 0, 0, 0, 0 };
+	}
+}
+
 void ResultListPage::paintItem(CDC & dc, CRect & paintRect)
 {
 	
@@ -136,7 +164,7 @@ void ResultListPage::paintItem(CDC & dc, CRect & paintRect)
 
 void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRect)
 {
-	CRect & rect = getPageRect(clientRect);
+	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
 		win.Create(m_hWnd, rect,NULL, 
 			WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA , // | LVS_OWNERDATA
@@ -146,8 +174,28 @@ void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRec
 		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);
 		adapter = new ResultListPageAdapter(m_hWnd, &win);
+	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
 	}
-	else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
+}
+
+void ResultListPage::createOrShowFormView(RowDataFormView & win, CRect & clientRect)
+{
+	CRect & rect = getRightFormRect(clientRect);
+	
+	if (!rect.Width()) {
+		if (win.IsWindow()) {
+			win.DestroyWindow();
+		}
+		return;
+	}
+	if (IsWindow() && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_BORDER;
+		win.setup(adapter);
+		win.Create(m_hWnd, rect, NULL, dwStyle);
+		win.loadFormData();
+	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -183,6 +231,25 @@ void ResultListPage::popupCopyMenu(CPoint & pt)
 		copyMenu.EnableMenuItem(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, MF_ENABLED);
 	}
 	copyMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, m_hWnd);
+}
+
+void ResultListPage::loadReadWriteComboBox()
+{
+	readWriteComboBox.ResetContent();
+	readWriteComboBox.AddString(S(L"read-only").c_str());
+	readWriteComboBox.SetCurSel(0);
+}
+
+void ResultListPage::loadFormViewCheckBox()
+{
+	bool checked = isShowFormView();
+	formViewCheckBox.SetCheck(checked);
+}
+
+bool ResultListPage::isShowFormView()
+{
+	std::wstring showFormView = SettingService::getInstance()->getSysInit(L"show-form-view");
+	return showFormView == L"true" ? true : false;
 }
 
 void ResultListPage::createImageList()
@@ -247,7 +314,11 @@ int ResultListPage::OnDestroy()
 LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto ptr = (LPNMITEMACTIVATE)pnmh;
-	
+	bool checked = isShowFormView();
+	if (checked) {
+		formView.loadFormData();
+	}
+
 	return 0;
 }
 
@@ -360,8 +431,26 @@ void ResultListPage::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	CRect rect;
 	copyButton.GetWindowRect(rect);
-	CPoint pt(rect.left, rect.bottom);
+	CPoint pt(rect.left, rect.bottom + 5);
 	popupCopyMenu(pt);
+}
+
+void ResultListPage::OnClickFormViewCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int checked = formViewCheckBox.GetCheck();
+	bool isShowFormView = !checked;
+	formViewCheckBox.SetCheck(isShowFormView);
+	std::wstring val = isShowFormView ? L"true" : L"false";
+	SettingService::getInstance()->setSysInit(L"show-form-view", val);
+
+	CRect clientRect;
+	GetClientRect(clientRect);
+	if (isShowFormView) {
+		createOrShowFormView(formView, clientRect);
+	} else {
+		if (formView.IsWindow()) formView.DestroyWindow();
+	}
+	createOrShowListView(listView, clientRect);
 }
 
 void ResultListPage::OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
