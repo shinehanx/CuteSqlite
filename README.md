@@ -50,7 +50,7 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shinehanx/CuteSqlite.git)
 
 六、项目预览
-![在这里插入图片描述](https://img-blog.csdnimg.cn/8f9c8d3761784ffdb3287df9a2eacd0b.png#pic_center)
+![在这里插入图片描述](./CuteSqlite/res/images/preview/CuteSqlite.png)
 
 
 ​
