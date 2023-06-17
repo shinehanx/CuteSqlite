@@ -28,6 +28,7 @@ public:
 	BEGIN_MSG_MAP_EX(ResultFilterDialog)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::FILTER_OP_BUTTON_ID_START, Config::FILTER_OP_BUTTON_ID_END, BN_CLICKED, OnClickOpButton)
 		CHAIN_MSG_MAP(QDialog<ResultFilterDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -41,22 +42,35 @@ private:
 	std::vector<CStatic *>  headerLabels;
 
 	// dynamic elements pointers, the size of elements will be equal
+	std::vector<CComboBox *>  connectComboBoxes; // connect by and/or
 	std::vector<CComboBox *>  columnComboBoxes;
 	std::vector<CComboBox *>  operatorComboBoxes;
 	std::vector<CEdit *> valueEdits;
 	std::vector<CButton *> opButtons;
 
-	void initWindowRect();
+	void initWindowRect(int rows = 0);
 	virtual void createOrShowUI();
 
 	void clearElems();
 	void createOrShowElems();
+
+	void resizeElems();
+	void resizeRowElems(int nIndex, CRect & clientRect);
+
 	void createOrShowHeaderLabels(CRect & clientRect);
 	void createOrShowRowElems(int nIndex, FilterTuple & tuple, CRect & clientRect);
 
-	void loadComboBox(CComboBox * ptr, std::vector<std::wstring> & columns, std::wstring & defVal);
-	
+	void updateOpButtonsText();
+
+	void removeRowElems(int nIndex);
+
+	template<typename E>
+	void removeElem(std::vector<E *> & ptrs, int nIndex);
+
+	void loadComboBox(CComboBox * ptr, std::vector<std::wstring> & columns, std::wstring & defVal);	
 
 	virtual LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	void OnClickOpButton(UINT uNotifyCode, int nID, HWND hwnd);
 };

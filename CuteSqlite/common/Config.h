@@ -165,4 +165,9 @@ typedef enum {
 	QIMAGE_LIST_ID_START = WM_USER + 1024,
 	QIMAGE_LIST_ID_END = WM_USER + 1099,
 } ImageIdRank;
+
+typedef enum {
+	FILTER_OP_BUTTON_ID_START = WM_USER + 1124,
+	FILTER_OP_BUTTON_ID_END = WM_USER + 1199,
+} ButtonIdRank;
 };

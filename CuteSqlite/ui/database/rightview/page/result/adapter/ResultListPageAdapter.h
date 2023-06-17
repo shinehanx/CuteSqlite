@@ -31,9 +31,9 @@
 /**
  * Define FilterTuple & DataFilters
  * that is the query condition vector of the filters .
- * the tuple param means 0-column, 1-operator, 2-value
+ * the tuple param means 0-and/or, 1-column, 2-operator, 3-value
  */
-typedef std::tuple<std::wstring, std::wstring, std::wstring> FilterTuple;
+typedef std::tuple<std::wstring, std::wstring, std::wstring, std::wstring> FilterTuple;
 typedef std::vector<FilterTuple> DataFilters;
 
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
