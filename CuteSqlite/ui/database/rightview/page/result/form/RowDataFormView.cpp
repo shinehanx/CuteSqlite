@@ -101,6 +101,7 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 	
 	CRect labelRect(5, 10, 85, 10 + pixel);
 	int perCxPixel = clientRect.Width() - 5 - 80 - 5 - 20;
+	nHeightSum = 0;
 	for (int i = 0; i < n; i++) {
 		std::wstring column = columns.at(i);
 		std::wstring value = rowItem.at(i);
@@ -119,9 +120,13 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 
 		x = labelRect.left, y = editRect.bottom + 10, w = 80, h = pixel;
 		labelRect = { x, y, x + w, y + h };
+
+		nHeightSum = editRect.bottom;
 	}
 
-	
+	// onSize will trigger init the v-scrollbar
+	CSize size(clientRect.Width(), clientRect.Height());
+	initScrollBar(size);
 }
 
 void RowDataFormView::paintItem(CDC & dc, CRect & paintRect)
@@ -157,15 +162,29 @@ int RowDataFormView::OnDestroy()
 void RowDataFormView::OnSize(UINT nType, CSize size)
 {
 	QPage::OnSize(nType, size);
+	loadFormData();
+}
 
-	cxClient = size.cx;
-	cyClient = size.cy;
-
+void RowDataFormView::initScrollBar(CSize & clientSize)
+{
+	if (clientSize.cx == 0 || clientSize.cy == 0 || nHeightSum == 0) {
+		return ;
+	}
+	int pageNums = nHeightSum % clientSize.cy ? 
+		nHeightSum / clientSize.cy + 1 : nHeightSum / clientSize.cy;
 	si.cbSize = sizeof(SCROLLINFO);   // setting the scrollbar
-	si.fMask  = SIF_RANGE | SIF_PAGE;
-	si.nMin = 0;
-	si.nMax = 50;
-	si.nPage = y;
+
+	// change 3 values(SIF_RANGE: si.nMin, si.nMax, si.nPage; SIF_PAGE:si.nPage; SIF_POS: si.nPos)
+	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
+	si.nMin = 0; // must set si.fMask = SIF_RANGE
+	si.nMax = 50; // must set si.fMask = SIF_RANGE
+	si.nPos = 0; // must set si.fMask = SIF_POS
+
+	// must set si.fMask = SIF_PAGE
+	si.nPage = si.nMax % pageNums ? 
+		si.nMax / pageNums + 1 : si.nMax / pageNums;
+
+	y = si.nPage;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 }
 
@@ -202,8 +221,7 @@ LRESULT RowDataFormView::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);
 
-	if (iVscrollPos != si.nPos)
-	{
+	if (iVscrollPos != si.nPos) {
 		::ScrollWindow(m_hWnd, 0, cyChar * (iVscrollPos - si.nPos), nullptr, nullptr);
 		::UpdateWindow(m_hWnd);
 	}

@@ -25,6 +25,7 @@
 #include "ui/common/message/QMessageBox.h"
 #include "ui/common/QWinCreater.h" 
 #include "ui/database/rightview/page/result/dialog/ExportResultDialog.h"
+#include "ui/database/rightview/page/result/dialog/ResultFilterDialog.h"
 
 #define ROW_FORM_VIEW_WIDTH 320
 void ResultListPage::setup(std::wstring & sql)
@@ -88,6 +89,7 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	filterButton.SetIconPath(normalImagePath, pressedImagePath);
 	filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);
+	filterButton.SetToolTip(S(L"filter"));
 
 	rect.OffsetRect(16 + 10, 0);
 	normalImagePath = imgDir + L"database\\list\\button\\refresh-button-normal.png";
@@ -95,6 +97,7 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	refreshButton.SetIconPath(normalImagePath, pressedImagePath);
 	refreshButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::LISTVIEW_REFRESH_BUTTON_ID, L"", rect, clientRect);
+	refreshButton.SetToolTip(S(L"refresh"));
 
 	rect.OffsetRect(16 + 20, 0);
 	rect.InflateRect(0, 0, 36, 0);
@@ -471,6 +474,14 @@ void ResultListPage::OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND
 void ResultListPage::OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copySelRowsAsSql();
+}
+
+void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CRect btnWinRect;
+	filterButton.GetWindowRect(btnWinRect);
+	ResultFilterDialog resultFilterDialog(m_hWnd, adapter, btnWinRect);
+	resultFilterDialog.DoModal(m_hWnd);
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)

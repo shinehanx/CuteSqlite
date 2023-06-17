@@ -221,6 +221,21 @@ UserTable ResultListPageAdapter::getRuntimeUserTable(std::wstring & tblName)
 	return databaseService->getUserTable(runtimeUserDbId, tblName);
 }
 
+DataFilters ResultListPageAdapter::getRuntimeFilters()
+{
+	return runtimeFilters;
+}
+
+void ResultListPageAdapter::setRuntimeFilters(DataFilters & filters)
+{
+	runtimeFilters = filters;
+}
+
+void ResultListPageAdapter::clearRuntimeFilters()
+{
+	runtimeFilters.clear();
+}
+
 void ResultListPageAdapter::copyAllRowsToClipboard()
 {
 	int n = static_cast<int>(runtimeColumns.size());

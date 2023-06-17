@@ -216,7 +216,6 @@ LRESULT QDialog<T>::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 template <class T>
 LRESULT QDialog<T>::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	
 	return 0;
 }
 
@@ -306,11 +305,10 @@ template <class T>
 void QDialog<T>::createOrShowFormComboBox(WTL::CComboBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWN | CBS_HASSTRINGS , 0, id);
+		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS , 0, id);
 		HFONT hfont = FT(L"form-text-size");
 		win.SetFont(hfont);
 		::DeleteObject(hfont);
-		loadFormComboBox(win , id); //加载初始化数据
 		return;
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);

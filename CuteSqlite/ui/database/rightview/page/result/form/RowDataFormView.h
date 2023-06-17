@@ -22,7 +22,7 @@
 #include "ui/common/page/QPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 
-static int cxChar, cyChar, iVscrollPos, cxClient, cyClient, y=5;
+static int cxChar, cyChar, iVscrollPos, y=5;
 class RowDataFormView : public QPage
 {
 public:
@@ -49,15 +49,19 @@ private:
 
 	TEXTMETRIC tm;
 	SCROLLINFO si;
+	int nHeightSum = 0;
 
 	void clearLabelsAndEdits();
 	void showColumnsAndValues(Columns & columns, RowItem & rowItem);
 
 	virtual void paintItem(CDC & dc, CRect & paintRect);
+	void initScrollBar(CSize & clientSize);
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
 	virtual void OnSize(UINT nType, CSize size);
+
+	
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

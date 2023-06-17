@@ -45,6 +45,7 @@ public:
 
 		COMMAND_HANDLER_EX(Config::LISTVIEW_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportButton)
 		COMMAND_HANDLER_EX(Config::LISTVIEW_COPY_BUTTON_ID, BN_CLICKED, OnClickCopyButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_FILTER_BUTTON_ID, BN_CLICKED, OnClickFilterButton)
 		COMMAND_HANDLER_EX(Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, BN_CLICKED, OnClickFormViewCheckBox)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopyAllRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopySelRowsToClipboardMenu)
@@ -127,6 +128,7 @@ protected:
 	void OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);

@@ -22,10 +22,19 @@
 #include <cstdint>
 #include <string>
 #include <list>
+#include <tuple>
 #include "ui/common/adapter/QAdapter.h"
 #include "core/service/db/SqlService.h"
 #include "core/service/db/DatabaseService.h"
 #include "core/common/repository/QSqlStatement.h"
+
+/**
+ * Define FilterTuple & DataFilters
+ * that is the query condition vector of the filters .
+ * the tuple param means 0-column, 1-operator, 2-value
+ */
+typedef std::tuple<std::wstring, std::wstring, std::wstring> FilterTuple;
+typedef std::vector<FilterTuple> DataFilters;
 
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
 {
@@ -49,6 +58,10 @@ public:
 	UserColumnList getRuntimeUserColumns(std::wstring & tblName);
 	UserTable getRuntimeUserTable(std::wstring & tblName);
 
+	DataFilters getRuntimeFilters();
+	void setRuntimeFilters(DataFilters & filters);
+	void clearRuntimeFilters();
+
 	// copy data
 	void copyAllRowsToClipboard();
 	void copySelRowsToClipboard();
@@ -63,6 +76,8 @@ private:
 	UserTableStrings runtimeTables;
 	Columns runtimeColumns;
 	DataList runtimeDatas;
+
+	DataFilters runtimeFilters;
 
 	void loadRuntimeTables(uint64_t userDbId, std::wstring & sql);
 	void loadRuntimeHeader(QSqlStatement & query);
