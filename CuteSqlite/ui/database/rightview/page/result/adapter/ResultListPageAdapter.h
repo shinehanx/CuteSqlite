@@ -29,8 +29,8 @@
 #include "core/common/repository/QSqlStatement.h"
 
 /**
- * Define FilterTuple & DataFilters
- * that is the query condition vector of the filters .
+ * Define FilterTuple and DataFilters
+ * that is the query condition vector of the filters that used in ResultFilterDialog to restore the filter condition.
  * the tuple param means 0-and/or, 1-column, 2-operator, 3-value
  */
 typedef std::tuple<std::wstring, std::wstring, std::wstring, std::wstring> FilterTuple;
@@ -44,6 +44,9 @@ public:
 
 	int loadListView(uint64_t userDbId, std::wstring & sql);
 	
+	// Add filters for result list
+	int loadFilterListView();
+
 	// virtual list data load
 	LRESULT fillListViewItemData(NMLVDISPINFO * pLvdi);
 
@@ -55,12 +58,14 @@ public:
 	Columns getRuntimeColumns();
 	DataList getRuntimeDatas();
 
-	UserColumnList getRuntimeUserColumns(std::wstring & tblName);
+	ColumnInfoList getRuntimeColumnInfos(std::wstring & tblName);
 	UserTable getRuntimeUserTable(std::wstring & tblName);
+	Columns getRuntimeValidFilterColumns();
 
 	DataFilters getRuntimeFilters();
 	void setRuntimeFilters(DataFilters & filters);
 	void clearRuntimeFilters();
+	bool isRuntimeFiltersEmpty();
 
 	// copy data
 	void copyAllRowsToClipboard();
@@ -73,6 +78,9 @@ private:
 	
 	// the runtime varibles
 	uint64_t runtimeUserDbId = 0;
+	std::wstring originSql;
+	std::wstring runtimeSql;
+
 	UserTableStrings runtimeTables;
 	Columns runtimeColumns;
 	DataList runtimeDatas;
@@ -84,4 +92,6 @@ private:
 	int loadRuntimeData(QSqlStatement & query);
 
 	bool getIsChecked(int iItem);
+
+	std::wstring buildRungtimeSqlWithFilters();
 };

@@ -23,6 +23,8 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 	dataView->DeleteAllItems();
 
 	runtimeUserDbId = userDbId;
+	originSql = sql;
+	runtimeSql = sql;
 	runtimeTables.clear();
 	runtimeDatas.clear();
 	
@@ -30,9 +32,31 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		return 0;
 	}
 	try {
-		QSqlStatement query = sqlService->executeSql(userDbId, sql);
-		loadRuntimeTables(userDbId, sql); 
+		QSqlStatement query = sqlService->executeSql(userDbId, originSql);
+		loadRuntimeTables(userDbId, originSql); 
 		loadRuntimeHeader(query);
+		return loadRuntimeData(query);
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		//supplier.
+	}
+	return 0;
+}
+
+int ResultListPageAdapter::loadFilterListView()
+{
+	dataView->DeleteAllItems();
+	runtimeTables.clear();
+	runtimeDatas.clear();
+
+	if (originSql.empty()) {
+		return 0;
+	}
+	runtimeSql = buildRungtimeSqlWithFilters();
+	try {
+		QSqlStatement query = sqlService->executeSql(runtimeUserDbId, runtimeSql);
+		loadRuntimeTables(runtimeUserDbId, runtimeSql); 
 		return loadRuntimeData(query);
 	} catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
@@ -105,7 +129,7 @@ void ResultListPageAdapter::loadRuntimeHeader(QSqlStatement & query)
 {
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
 	int n = query.getColumnCount();
-	for (int i = 0; i < n - 1; i++) {
+	for (int i = 0; i < n; i++) {
 		std::wstring columnName = query.getColumnName(i);
 		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
 		runtimeColumns.push_back(columnName);
@@ -154,6 +178,69 @@ bool ResultListPageAdapter::getIsChecked(int iItem)
 	}
 
 	return false;
+}
+
+/**
+ * Buid runtime sql statement with origin sql statement.
+ * 
+ * @return new runtime sql
+ */
+std::wstring ResultListPageAdapter::buildRungtimeSqlWithFilters()
+{
+	std::wstring newSql;
+	std::wstring whereClause = SqlUtil::getWhereClause(originSql);
+	std::wstring fourthClause = SqlUtil::getFourthClause(originSql);
+
+	std::wstring condition;
+	int n = static_cast<int>(runtimeFilters.size());
+	for (int i = 0; i < n; i++) {
+		auto tuple = runtimeFilters.at(i);
+		auto connect = std::get<0>(tuple);// connect such as "and/or"
+		auto column = std::get<1>(tuple);// column
+		auto operater =std::get<2>(tuple);// operator such as "=,>,<..."
+		auto val = StringUtil::escapeSql(std::get<3>(tuple));// value
+
+		// ignore if column is empty or operater is empty
+		if (column.empty() || operater.empty()) {
+			continue;
+		}
+		condition.append(connect).append(L" ") 
+			.append(column).append(L" ") 
+			.append(operater).append(L" '") // 
+			.append(val).append(L"' "); 
+	}
+
+	std::wstring newWhereClause = whereClause;
+	if (whereClause.empty() && !condition.empty()) {		
+		if (fourthClause.empty()) {
+			// for example : select * from analysis_hair_inspection;
+			newWhereClause.append(L" WHERE ").append(condition);
+		}else {
+			// for example : select * from analysis_hair_inspection order by uid;
+			newWhereClause.append(L" WHERE ").append(condition).append(L" ").append(fourthClause);
+		}
+		
+	}else if (!whereClause.empty() && !condition.empty()) {
+		// for example : select * from analysis_hair_inspection where id=1 order by uid;
+		newWhereClause.append(L" AND (").append(condition).append(L")");
+	}
+
+	if (!whereClause.empty()) {
+		newSql = StringUtil::replace(originSql, whereClause, newWhereClause);
+	} else {
+		// for example : select * from analysis_hair_inspection
+		if (fourthClause.empty() && !newWhereClause.empty()) {
+			newSql.assign(originSql).append(L" ").append(newWhereClause);
+		}else if (!fourthClause.empty()){
+			// for example : select * from analysis_hair_inspection order by uid;
+			newSql = StringUtil::replace(originSql, fourthClause, newWhereClause);
+		}else {
+			newSql = originSql;
+		}
+		
+	}
+	
+	return newSql;
 }
 
 void ResultListPageAdapter::changeSelectAllItems()
@@ -209,7 +296,7 @@ DataList ResultListPageAdapter::getRuntimeDatas()
 	return runtimeDatas;
 }
 
-UserColumnList ResultListPageAdapter::getRuntimeUserColumns(std::wstring & tblName)
+ColumnInfoList ResultListPageAdapter::getRuntimeColumnInfos(std::wstring & tblName)
 {
 	ATLASSERT(runtimeUserDbId && !tblName.empty());
 	return databaseService->getUserColumns(runtimeUserDbId, tblName);
@@ -219,6 +306,33 @@ UserTable ResultListPageAdapter::getRuntimeUserTable(std::wstring & tblName)
 {
 	ATLASSERT(runtimeUserDbId && !tblName.empty());
 	return databaseService->getUserTable(runtimeUserDbId, tblName);
+}
+
+/**
+ * Get the runtime valid query columns for filter the result list.
+ * 
+ * @return valid query columns
+ */
+Columns ResultListPageAdapter::getRuntimeValidFilterColumns()
+{
+	if (runtimeTables.empty() || runtimeColumns.empty()) {
+		return Columns();
+	}
+	Columns validColums;
+
+	for (auto tblName : runtimeTables) {
+		ColumnInfoList columnInfos = getRuntimeColumnInfos(tblName);
+		for (auto column : runtimeColumns) {
+			auto iter = std::find_if(columnInfos.begin(), columnInfos.end(), [&column](ColumnInfo & columnInfo) {
+				return column == columnInfo.name;
+			});
+			if (iter != columnInfos.end()) {
+				validColums.push_back(column);
+			}
+		}
+	}
+
+	return validColums;
 }
 
 DataFilters ResultListPageAdapter::getRuntimeFilters()
@@ -234,6 +348,11 @@ void ResultListPageAdapter::setRuntimeFilters(DataFilters & filters)
 void ResultListPageAdapter::clearRuntimeFilters()
 {
 	runtimeFilters.clear();
+}
+
+bool ResultListPageAdapter::isRuntimeFiltersEmpty()
+{
+	return std::empty(runtimeFilters);
 }
 
 void ResultListPageAdapter::copyAllRowsToClipboard()

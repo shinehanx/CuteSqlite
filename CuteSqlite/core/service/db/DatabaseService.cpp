@@ -159,7 +159,7 @@ UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId)
 	return triggerUserRepository->getListByUserDbId(userDbId);
 }
 
-UserColumnList DatabaseService::getUserColumns(uint64_t userDbId, std::wstring & tblName)
+ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, std::wstring & tblName)
 {
 	return fieldUserRepository->getListByTblName(userDbId, tblName);
 }

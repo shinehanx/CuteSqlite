@@ -27,7 +27,7 @@ public:
 	ColumnUserRepository() {}
 	~ColumnUserRepository() {}
 
-	UserColumnList getListByTblName(uint64_t userDbId, std::wstring &tblName);
+	ColumnInfoList getListByTblName(uint64_t userDbId, std::wstring &tblName);
 private:
-	UserColumn toUserField(QSqlStatement &query);
+	ColumnInfo toUserField(QSqlStatement &query);
 };

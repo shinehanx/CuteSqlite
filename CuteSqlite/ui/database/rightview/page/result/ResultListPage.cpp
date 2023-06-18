@@ -56,20 +56,24 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	CRect rect(x, y, x + w, y + h);
 	// create or show button
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
-	std::wstring normalImagePath = imgDir + L"database\\list\\button\\export-button-normal.png";
-	std::wstring pressedImagePath = imgDir + L"database\\list\\button\\export-button-pressed.png";
-	exportButton.SetIconPath(normalImagePath, pressedImagePath);
-	exportButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	std::wstring normalImagePath, pressedImagePath;
+	if (!exportButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\export-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\export-button-pressed.png";
+		exportButton.SetIconPath(normalImagePath, pressedImagePath);
+		exportButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
 	QWinCreater::createOrShowButton(m_hWnd, exportButton,  Config::LISTVIEW_EXPORT_BUTTON_ID, L"", rect, clientRect);
 	exportButton.SetToolTip(S(L"export-result-as"));
 
 	rect.OffsetRect(16 + 10, 0);
 	rect.InflateRect(0, 0, 8, 0); 
-	normalImagePath = imgDir + L"database\\list\\button\\copy-button-normal.png";
-	pressedImagePath = imgDir + L"database\\list\\button\\copy-button-pressed.png";
-	copyButton.SetIconPath(normalImagePath, pressedImagePath);
-	copyButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-	copyButton.SetToolTip(S(L"copy"));
+	if (!copyButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\copy-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\copy-button-pressed.png";
+		copyButton.SetIconPath(normalImagePath, pressedImagePath);
+		copyButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
 	QWinCreater::createOrShowButton(m_hWnd, copyButton, Config::LISTVIEW_COPY_BUTTON_ID, L"", rect, clientRect);
 	copyButton.SetToolTip(S(L"copy-result-data"));
 
@@ -84,18 +88,22 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 		
 	rect.MoveToX(topbarRect.right - 350);
 	rect.InflateRect(0, -2, -100, 0);
-	normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
-	pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
-	filterButton.SetIconPath(normalImagePath, pressedImagePath);
-	filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	if (!filterButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
+		pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
+		filterButton.SetIconPath(normalImagePath, pressedImagePath);
+		filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		filterButton.SetToolTip(S(L"filter"));
+	}	
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);
-	filterButton.SetToolTip(S(L"filter"));
-
+	
 	rect.OffsetRect(16 + 10, 0);
-	normalImagePath = imgDir + L"database\\list\\button\\refresh-button-normal.png";
-	pressedImagePath = imgDir + L"database\\list\\button\\refresh-button-pressed.png";
-	refreshButton.SetIconPath(normalImagePath, pressedImagePath);
-	refreshButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	if (!refreshButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\refresh-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\refresh-button-pressed.png";
+		refreshButton.SetIconPath(normalImagePath, pressedImagePath);
+		refreshButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
 	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::LISTVIEW_REFRESH_BUTTON_ID, L"", rect, clientRect);
 	refreshButton.SetToolTip(S(L"refresh"));
 
@@ -253,6 +261,29 @@ bool ResultListPage::isShowFormView()
 {
 	std::wstring showFormView = SettingService::getInstance()->getSysInit(L"show-form-view");
 	return showFormView == L"true" ? true : false;
+}
+
+/**
+ * change the filter button image to red icon.
+ * 
+ * @param hasRedIcon
+ */
+void ResultListPage::changeFilterButtonStatus(bool hasRedIcon)
+{
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	if (hasRedIcon) {
+		std::wstring normalImagePath = imgDir + L"database\\list\\button\\filter-red-button-normal.png"; 
+		std::wstring pressedImagePath = imgDir + L"database\\list\\button\\filter-red-button-pressed.png";
+		filterButton.SetIconPath(normalImagePath, pressedImagePath);
+		filterButton.SetToolTip(S(L"filter-in-use"));
+		filterButton.Invalidate(FALSE);
+	}else {
+		std::wstring normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
+		std::wstring pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
+		filterButton.SetIconPath(normalImagePath, pressedImagePath);
+		filterButton.SetToolTip(S(L"filter"));
+		filterButton.Invalidate(FALSE); 
+	}
 }
 
 void ResultListPage::createImageList()
@@ -481,7 +512,18 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 	CRect btnWinRect;
 	filterButton.GetWindowRect(btnWinRect);
 	ResultFilterDialog resultFilterDialog(m_hWnd, adapter, btnWinRect);
+	
 	resultFilterDialog.DoModal(m_hWnd);
+	
+	bool hasRedIcon = !adapter->isRuntimeFiltersEmpty();
+	// change the filterButton to red
+	changeFilterButtonStatus(hasRedIcon);
+	
+}
+
+void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->loadFilterListView();
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)

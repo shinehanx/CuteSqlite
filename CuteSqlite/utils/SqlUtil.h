@@ -27,8 +27,17 @@ public:
 	// select sql regex pattern
 	static std::wregex selectPat;
 
+	// where clause regex pattern
+	static std::wregex whereClausePat1;
+	static std::wregex whereClausePat2;
+
+	// fourth clause regex pattern 
+	static std::wregex fourthClausePat;
+
 	// table statement of select sql regex pattern
 	static std::wregex selectTablesPat;
+
+	
 
 	// field regex pattern
 	static std::wregex columnPat;
@@ -38,5 +47,7 @@ public:
 	static bool isSelectSql(std::wstring & sql);
 	static std::wstring getColumnName(std::wstring & str);
 	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
-	static std::vector<std::wstring> parseTablesFromTableStatement(std::wstring & tblStmt);
+	static std::vector<std::wstring> parseTablesFromTableClause(std::wstring & tblStmt);
+	static std::wstring getWhereClause(std::wstring & sql);
+	static std::wstring getFourthClause(std::wstring & sql);
 };

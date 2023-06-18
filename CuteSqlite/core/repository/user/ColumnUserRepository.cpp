@@ -22,16 +22,16 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-UserColumnList ColumnUserRepository::getListByTblName(uint64_t userDbId, std::wstring &tblName)
+ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, std::wstring &tblName)
 {
-	UserColumnList result;
+	ColumnInfoList result;
 	std::wstring sql = L"PRAGMA table_info(";
 	sql.append(tblName).append(L")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
 		while (query.executeStep()) {
-			UserColumn item = toUserField(query);
+			ColumnInfo item = toUserField(query);
 			result.push_back(item);
 		}
 		return result;
@@ -43,9 +43,9 @@ UserColumnList ColumnUserRepository::getListByTblName(uint64_t userDbId, std::ws
 	}
 }
 
-UserColumn ColumnUserRepository::toUserField(QSqlStatement &query)
+ColumnInfo ColumnUserRepository::toUserField(QSqlStatement &query)
 {
-	UserColumn item;
+	ColumnInfo item;
 	item.cid = query.getColumn(L"cid").isNull() ? 0
 		: query.getColumn(L"cid").getUInt();
 	item.name = query.getColumn(L"name").isNull() ? L""

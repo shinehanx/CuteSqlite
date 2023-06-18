@@ -56,7 +56,7 @@ public:
 	UserTriggerList getUserTriggers(uint64_t userDbId);
 
 	// user indexes operations
-	UserColumnList getUserColumns(uint64_t userDbId, std::wstring & tblName);
+	ColumnInfoList getUserColumns(uint64_t userDbId, std::wstring & tblName);
 
 	// user indexes operations
 	UserIndexList getUserIndexes(uint64_t userDbId, std::wstring & tblName);

@@ -69,15 +69,15 @@ typedef std::vector<UserTrigger> UserTriggerList;
 typedef std::vector<UserIndex> UserIndexList;
 
 // table fields
-typedef struct _UserFields {
+typedef struct _ColumnInfo {
 	uint32_t cid = 0;
 	std::wstring name;
 	std::wstring type;
 	int notnull = 0;
 	std::wstring dfltValue;
 	int pk = 0;
-} UserColumn;
-typedef std::vector<UserColumn> UserColumnList;
+} ColumnInfo;
+typedef std::vector<ColumnInfo> ColumnInfoList;
 
 //Export to CSV params
 typedef struct _ExportCsvParams {

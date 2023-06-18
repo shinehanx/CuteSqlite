@@ -310,8 +310,8 @@ void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem,
 void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
-		UserColumnList list = databaseService->getUserColumns(userDbId, userTable.name);
-		for (UserColumn item : list) {
+		ColumnInfoList list = databaseService->getUserColumns(userDbId, userTable.name);
+		for (ColumnInfo item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
 			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hFieldsFolderItem, TVI_LAST);

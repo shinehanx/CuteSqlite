@@ -18,6 +18,7 @@
  * @date   2023-06-17
  *********************************************************************/
 #include "stdafx.h"
+#include <atlstr.h>
 #include "ResultFilterDialog.h"
 #include "ui/common/QWinCreater.h"
 
@@ -51,8 +52,18 @@ void ResultFilterDialog::initWindowRect(int rows)
 
 	CRect clientRect;
 	GetClientRect(clientRect);
+	createOrShowClearButton(clearButton, clientRect);
 	createOrShowYesButton(yesButton, clientRect);
 	createOrShowNoButton(noButton, clientRect);
+}
+
+void ResultFilterDialog::createOrShowClearButton(CButton & win, CRect &clientRect)
+{
+	CRect rect(clientRect.right - 3 * QDIALOG_BUTTON_WIDTH - 10 - 10 - 20, 
+		clientRect.bottom - QDIALOG_BUTTON_HEIGHT - 10, 
+		clientRect.right  - 2 * QDIALOG_BUTTON_WIDTH- 10 - 10 - 20, 
+		clientRect.bottom - 10);
+	createOrShowFormButton(win, Config::QDIALOG_CLEAR_BUTTON_ID, S(L"clear-all"), rect, clientRect);
 }
 
 void ResultFilterDialog::createOrShowUI()
@@ -166,7 +177,7 @@ void ResultFilterDialog::createOrShowHeaderLabels(CRect & clientRect)
 
 void ResultFilterDialog::createOrShowRowElems(int nIndex, FilterTuple & tuple, CRect & clientRect)
 {	
-	Columns columns = adapter->getRuntimeColumns();
+	Columns columns = adapter->getRuntimeValidFilterColumns();
 	std::vector<std::wstring> operators = {L"=", L"<>", L">", L"<", L">=", L"<=", L"like"};
 	std::vector<std::wstring> connects = {L"AND", L"OR"};
 
@@ -275,7 +286,7 @@ void ResultFilterDialog::resizeRowElems(int nIndex, CRect & clientRect)
 	// +/- button
 	CButton * opButton = opButtons.at(nIndex);
 	x = rect.right +  RESULT_FILTER_ELEM_SPLIT;
-	w = RESULT_FILTER_ELEM_HEIGHT;
+	w = RESULT_FILTER_ELEM2_WIDTH;
 	rect = { x, y, x + w, y + h };
 	opButton->MoveWindow(rect);
 }
@@ -388,5 +399,44 @@ void ResultFilterDialog::OnClickOpButton(UINT uNotifyCode, int nID, HWND hwnd)
 		removeRowElems(nIndex);
 	}
 
+}
+
+void ResultFilterDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	//Build a DataFilters object
+	DataFilters filters;
+	adapter->clearRuntimeFilters();
+	int n = static_cast<int>(columnComboBoxes.size());
+	for (int i = 0; i < n; i++) {		
+		auto connCombo = connectComboBoxes.at(i);
+		auto columnCombo = columnComboBoxes.at(i);
+		auto operatorCombo = operatorComboBoxes.at(i);
+		auto valueEdit = valueEdits.at(i);
+
+		CString connect, column, operater, value;
+		if (connCombo) {
+			connCombo->GetWindowText(connect);
+		}		
+		columnCombo->GetWindowText(column);
+		operatorCombo->GetWindowText(operater);
+		valueEdit->GetWindowText(value);
+		if (column.IsEmpty() || operater.IsEmpty()) {
+			continue;
+		}
+
+		FilterTuple tuple(connect.GetString(), column.GetString(), operater.GetString(), value.GetString());
+
+		filters.push_back(tuple);
+	}
+	adapter->setRuntimeFilters(filters);
+	adapter->loadFilterListView();
+	EndDialog(Config::QDIALOG_YES_BUTTON_ID);
+}
+
+void ResultFilterDialog::OnClickClearButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	clearElems();
+	adapter->clearRuntimeFilters();
+	createOrShowUI();
 }
 

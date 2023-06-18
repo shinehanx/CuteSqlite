@@ -29,6 +29,7 @@ public:
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::FILTER_OP_BUTTON_ID_START, Config::FILTER_OP_BUTTON_ID_END, BN_CLICKED, OnClickOpButton)
+		COMMAND_HANDLER_EX(Config::QDIALOG_CLEAR_BUTTON_ID, BN_CLICKED, OnClickClearButton)
 		CHAIN_MSG_MAP(QDialog<ResultFilterDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -38,6 +39,8 @@ private:
 	HWND parentHwnd = nullptr;
 	ResultListPageAdapter * adapter = nullptr;
 	CRect btnRect;
+
+	CButton clearButton;
 	// static elements for header
 	std::vector<CStatic *>  headerLabels;
 
@@ -57,6 +60,7 @@ private:
 	void resizeElems();
 	void resizeRowElems(int nIndex, CRect & clientRect);
 
+	void createOrShowClearButton(CButton & win, CRect &clientRect);
 	void createOrShowHeaderLabels(CRect & clientRect);
 	void createOrShowRowElems(int nIndex, FilterTuple & tuple, CRect & clientRect);
 
@@ -73,4 +77,7 @@ private:
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	void OnClickOpButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickClearButton(UINT uNotifyCode, int nID, HWND hwnd);
 };
