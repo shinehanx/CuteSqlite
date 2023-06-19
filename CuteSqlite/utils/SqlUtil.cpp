@@ -27,6 +27,8 @@ std::wregex SqlUtil::whereClausePat1(L"((where)\\s+.*)\\s+(order|group|limit|hav
 
 std::wregex SqlUtil::whereClausePat2(L"(where .*)+", std::wregex::icase);
 
+std::wregex SqlUtil::limitClausePat(L"(limit .*)+", std::wregex::icase);
+
 std::wregex SqlUtil::fourthClausePat(L"((order|group|limit|having|window)\\s+.*)+", std::wregex::icase);
 
 std::wregex SqlUtil::columnPat(L"(.*)\\s+\\[(.*)\\]+");
@@ -41,6 +43,18 @@ bool SqlUtil::isSelectSql(std::wstring & sql)
 	}
 
 	if (std::regex_search(sql, SqlUtil::selectPat)) {
+		return true;
+	}
+	return false;
+}
+
+bool SqlUtil::hasLimitClause(std::wstring & sql)
+{
+	if (sql.empty()) {
+		return false;
+	}
+
+	if (std::regex_search(sql, SqlUtil::limitClausePat)) {
 		return true;
 	}
 	return false;

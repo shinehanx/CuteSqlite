@@ -379,6 +379,22 @@ public:
 		});
 		return s;
 	}
+
+	static bool isDigit(std::wstring & s)
+	{
+		if (s.empty()) {
+			return false;
+		}
+
+		int n = static_cast<int>(s.length());
+		for (int i = 0; i < n; i++) {
+			wchar_t ch = s.at(i);
+			if (!std::iswdigit(ch)) {
+				return false;
+			}
+		}
+		return true;
+	}
 };
 
 

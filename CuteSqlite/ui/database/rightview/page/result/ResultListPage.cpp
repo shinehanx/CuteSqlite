@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "ResultListPage.h"
+#include "utils/SqlUtil.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
@@ -28,6 +29,7 @@
 #include "ui/database/rightview/page/result/dialog/ResultFilterDialog.h"
 
 #define ROW_FORM_VIEW_WIDTH 320
+#define RESULT_STATUS_BAR_HEIGHT 22
 void ResultListPage::setup(std::wstring & sql)
 {
 	this->sql = sql;
@@ -42,6 +44,7 @@ void ResultListPage::createOrShowUI()
 	createOrShowToolBarElems(clientRect);
 	createOrShowListView(listView, clientRect);
 	createOrShowFormView(formView, clientRect);
+	createOrShowStatusBar(statusBar, clientRect);
 }
 
 /**
@@ -119,10 +122,10 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	QWinCreater::createOrShowEdit(m_hWnd, offsetEdit, 0, L"0", rect, clientRect, ES_NUMBER, false);
 
 	rect.OffsetRect(50 + 5, 2);
-	QWinCreater::createOrShowLabel(m_hWnd, limitLabel, S(L"rows").append(L":"), rect, clientRect, SS_RIGHT);
+	QWinCreater::createOrShowLabel(m_hWnd, rowsLabel, S(L"rows").append(L":"), rect, clientRect, SS_RIGHT);
 
 	rect.OffsetRect(50 + 2, -2);
-	QWinCreater::createOrShowEdit(m_hWnd, limitEdit, 0, L"1000", rect, clientRect, ES_NUMBER, false);
+	QWinCreater::createOrShowEdit(m_hWnd, rowsEdit, 0, L"1000", rect, clientRect, ES_NUMBER, false);
 }
 
 void ResultListPage::loadWindow()
@@ -131,19 +134,25 @@ void ResultListPage::loadWindow()
 
 	loadReadWriteComboBox();
 	loadFormViewCheckBox();
+	LimitParams limitParams = loadLimitElems();
 
 	if (!isNeedReload || sql.empty()) {
 		return;
 	}
-	isNeedReload = false;
-	
+	isNeedReload = false;	
 
 	uint64_t userDbId = supplier->getSeletedUserDbId();
 	if (!userDbId) {
 		QPopAnimate::warn(m_hWnd, S(L"no-select-userdb"));
 		return;
 	}
+
+	auto _begin = beginExecTime();
 	rowCount = adapter->loadListView(userDbId, sql);
+	endExecTime(_begin);
+
+	displayResultRows();
+
 }
 
 CRect ResultListPage::getLeftListRect(CRect & clientRect)
@@ -151,7 +160,7 @@ CRect ResultListPage::getLeftListRect(CRect & clientRect)
 	CRect & pageRect = getPageRect(clientRect);
 	bool checked = isShowFormView();
 	if (checked) {
-		return { pageRect.left, pageRect.top, pageRect.right - ROW_FORM_VIEW_WIDTH - 1, pageRect.bottom };
+		return { pageRect.left, pageRect.top, pageRect.right - ROW_FORM_VIEW_WIDTH - 1, pageRect.bottom - RESULT_STATUS_BAR_HEIGHT};
 	} else {
 		return pageRect;
 	}
@@ -162,10 +171,16 @@ CRect ResultListPage::getRightFormRect(CRect & clientRect)
 	CRect & pageRect = getPageRect(clientRect);
 	bool checked = isShowFormView();
 	if (checked) {
-		return { pageRect.right - ROW_FORM_VIEW_WIDTH, pageRect.top, pageRect.right, pageRect.bottom };
+		return { pageRect.right - ROW_FORM_VIEW_WIDTH, pageRect.top, pageRect.right, pageRect.bottom - RESULT_STATUS_BAR_HEIGHT };
 	} else {
 		return { 0, 0, 0, 0 };
 	}
+}
+
+CRect ResultListPage::getBottomStatusRect(CRect & clientRect)
+{
+	int x = 0, y = clientRect.bottom - RESULT_STATUS_BAR_HEIGHT, w = clientRect.Width(), h = RESULT_STATUS_BAR_HEIGHT;
+	return { x, y, x + w, y + h };
 }
 
 void ResultListPage::paintItem(CDC & dc, CRect & paintRect)
@@ -212,6 +227,31 @@ void ResultListPage::createOrShowFormView(RowDataFormView & win, CRect & clientR
 	}
 }
 
+void ResultListPage::createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect & clientRect)
+{
+	CRect rect = getBottomStatusRect(clientRect);
+
+	if (IsWindow() && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP | SBT_TOOLTIPS;
+		win.Create(m_hWnd, sql.c_str(), dwStyle);
+		int anPanes[] = {
+			Config::RESULT_STATUSBAR_SQL_PANE_ID, 
+			Config::RESULT_STATUSBAR_ROWS_PANE_ID,
+			Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID,
+		};
+		 win.SetPanes (anPanes, 3, false);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 200);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 400);
+	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 200);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 400);
+	}
+}
+
 void ResultListPage::createCopyMenu()
 {
 	copyMenu.CreatePopupMenu();
@@ -255,6 +295,58 @@ void ResultListPage::loadFormViewCheckBox()
 {
 	bool checked = isShowFormView();
 	formViewCheckBox.SetCheck(checked);
+}
+
+LimitParams ResultListPage::loadLimitElems()
+{
+	bool hasLimitClause = false;
+	if (!sql.empty() && SqlUtil::hasLimitClause(sql)) {
+		hasLimitClause = true;
+	}	
+	limitCheckBox.EnableWindow(!hasLimitClause);
+
+	std::wstring limitChecked = SettingService::getInstance()->getSysInit(L"limit-checked");
+	std::wstring offset = SettingService::getInstance()->getSysInit(L"limit-offset");
+	std::wstring rows = SettingService::getInstance()->getSysInit(L"limit-rows");
+	offset = StringUtil::isDigit(offset) ? offset : L"0";
+	rows = StringUtil::isDigit(rows) ? rows : L"1000";
+
+	bool isLimitChecked = limitChecked == L"true";
+	limitCheckBox.SetCheck(isLimitChecked);
+	offsetEdit.SetWindowText(offset.c_str());
+	rowsEdit.SetWindowText(rows.c_str());
+
+	int checked = limitCheckBox.GetCheck();
+	if (checked && !hasLimitClause) {
+		offsetLabel.EnableWindow(true);
+		offsetEdit.EnableWindow(true);
+		rowsLabel.EnableWindow(true);
+		rowsEdit.EnableWindow(true);
+
+		return { true, std::stoi(offset), std::stoi(rows) };
+	} else {
+		offsetLabel.EnableWindow(false);
+		offsetEdit.EnableWindow(false);
+		rowsLabel.EnableWindow(false);
+		rowsEdit.EnableWindow(false);
+
+		return { false, std::stoi(offset), std::stoi(rows) };
+	}
+}
+
+void ResultListPage::saveLimitParams()
+{
+	int checked = limitCheckBox.GetCheck();
+	std::wstring val = checked ? L"true" : L"false";
+	SettingService::getInstance()->setSysInit(L"limit-checked", val);
+
+	if (checked) {
+		CString offset, rows;
+		offsetEdit.GetWindowText(offset);
+		rowsEdit.GetWindowText(rows);
+		SettingService::getInstance()->setSysInit(L"limit-offset", offset.GetString());
+		SettingService::getInstance()->setSysInit(L"limit-rows", rows.GetString());
+	}
 }
 
 bool ResultListPage::isShowFormView()
@@ -330,8 +422,8 @@ int ResultListPage::OnDestroy()
 	if (limitCheckBox.IsWindow()) limitCheckBox.DestroyWindow();
 	if (offsetLabel.IsWindow()) offsetLabel.DestroyWindow();
 	if (offsetEdit.IsWindow()) offsetEdit.DestroyWindow();
-	if (limitLabel.IsWindow()) limitLabel.DestroyWindow();
-	if (limitEdit.IsWindow()) limitEdit.DestroyWindow();
+	if (rowsLabel.IsWindow()) rowsLabel.DestroyWindow();
+	if (rowsEdit.IsWindow()) rowsEdit.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 
@@ -487,6 +579,24 @@ void ResultListPage::OnClickFormViewCheckBox(UINT uNotifyCode, int nID, HWND hwn
 	createOrShowListView(listView, clientRect);
 }
 
+void ResultListPage::OnClickLimitCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int newChecked = !limitCheckBox.GetCheck();
+	limitCheckBox.SetCheck(newChecked);
+	if (newChecked) {
+		offsetLabel.EnableWindow(true);
+		offsetEdit.EnableWindow(true);
+		rowsLabel.EnableWindow(true);
+		rowsEdit.EnableWindow(true);
+	} else {
+		offsetLabel.EnableWindow(false);
+		offsetEdit.EnableWindow(false);
+		rowsLabel.EnableWindow(false);
+		rowsEdit.EnableWindow(false);
+	}
+	saveLimitParams();
+}
+
 void ResultListPage::OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copyAllRowsToClipboard();
@@ -509,21 +619,32 @@ void ResultListPage::OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND
 
 void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	saveLimitParams();
+
 	CRect btnWinRect;
 	filterButton.GetWindowRect(btnWinRect);
 	ResultFilterDialog resultFilterDialog(m_hWnd, adapter, btnWinRect);
 	
-	resultFilterDialog.DoModal(m_hWnd);
+	if (resultFilterDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+		auto _begin = beginExecTime();
+		rowCount = adapter->loadFilterListView();
+		endExecTime(_begin);
+		displayResultRows();
+	}
 	
 	bool hasRedIcon = !adapter->isRuntimeFiltersEmpty();
 	// change the filterButton to red
-	changeFilterButtonStatus(hasRedIcon);
-	
+	changeFilterButtonStatus(hasRedIcon);	
 }
 
 void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	adapter->loadFilterListView();
+	saveLimitParams();
+
+	auto _begin = beginExecTime();
+	rowCount = adapter->loadFilterListView();
+	endExecTime(_begin);
+	displayResultRows();
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
@@ -547,3 +668,23 @@ HBRUSH ResultListPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
+std::chrono::steady_clock::time_point ResultListPage::beginExecTime()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
+void ResultListPage::endExecTime(std::chrono::steady_clock::time_point _begin)
+{
+	auto _end = std::chrono::high_resolution_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(_end - _begin);
+	CString execTime, resultRows;
+	execTime.Format(L"Exec time: %.3f ms", static_cast<double>(elapsed.count()));	
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, execTime);	
+}
+
+void ResultListPage::displayResultRows()
+{
+	CString resultRows;
+	resultRows.Format(L"%d rows", rowCount);
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_ROWS_PANE_ID, resultRows);
+}

@@ -90,6 +90,7 @@ private:
 	void loadRuntimeTables(uint64_t userDbId, std::wstring & sql);
 	void loadRuntimeHeader(QSqlStatement & query);
 	int loadRuntimeData(QSqlStatement & query);
+	void loadLimitParams(LimitParams & limitParams);
 
 	bool getIsChecked(int iItem);
 

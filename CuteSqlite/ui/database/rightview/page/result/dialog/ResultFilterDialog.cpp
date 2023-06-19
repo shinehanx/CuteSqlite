@@ -429,7 +429,6 @@ void ResultFilterDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 		filters.push_back(tuple);
 	}
 	adapter->setRuntimeFilters(filters);
-	adapter->loadFilterListView();
 	EndDialog(Config::QDIALOG_YES_BUTTON_ID);
 }
 

@@ -3,6 +3,7 @@
 #include <Strsafe.h>
 #include <CommCtrl.h>
 #include "core/common/repository/QSqlException.h"
+#include "core/service/system/SettingService.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "utils/SqlUtil.h"
 #include "utils/ClipboardUtil.h"
@@ -21,19 +22,28 @@ ResultListPageAdapter::~ResultListPageAdapter()
 int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 {
 	dataView->DeleteAllItems();
+	runtimeTables.clear();
+	runtimeDatas.clear();
 
 	runtimeUserDbId = userDbId;
 	originSql = sql;
 	runtimeSql = sql;
-	runtimeTables.clear();
-	runtimeDatas.clear();
-	
+
 	if (sql.empty()) {
 		return 0;
 	}
+
+	if (!SqlUtil::hasLimitClause(originSql)) {
+		LimitParams limitParams;
+		loadLimitParams(limitParams);
+		if (limitParams.checked) {
+			runtimeSql.append(L" LIMIT ").append(std::to_wstring(limitParams.rows))
+				.append(L" OFFSET ").append(std::to_wstring(limitParams.offset));
+		}		
+	}
 	try {
-		QSqlStatement query = sqlService->executeSql(userDbId, originSql);
-		loadRuntimeTables(userDbId, originSql); 
+		QSqlStatement query = sqlService->executeSql(userDbId, runtimeSql);
+		loadRuntimeTables(userDbId, runtimeSql); 
 		loadRuntimeHeader(query);
 		return loadRuntimeData(query);
 	} catch (SQLite::QSqlException &ex) {
@@ -41,6 +51,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
 		//supplier.
 	}
+	
 	return 0;
 }
 
@@ -157,6 +168,18 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 	return nRow;
 }
 
+void ResultListPageAdapter::loadLimitParams(LimitParams & limitParams)
+{
+	std::wstring limitChecked = SettingService::getInstance()->getSysInit(L"limit-checked");
+	std::wstring offset = SettingService::getInstance()->getSysInit(L"limit-offset");
+	std::wstring rows = SettingService::getInstance()->getSysInit(L"limit-rows");
+	offset = StringUtil::isDigit(offset) ? offset : L"0";
+	rows = StringUtil::isDigit(rows) ? rows : L"1000";
+	limitParams.checked = limitChecked == L"true";
+	limitParams.offset = std::stoi(offset);
+	limitParams.rows = std::stoi(rows);
+}
+
 /**
  * if the row of index=iItem is selected.
  * 
@@ -236,8 +259,16 @@ std::wstring ResultListPageAdapter::buildRungtimeSqlWithFilters()
 			newSql = StringUtil::replace(originSql, fourthClause, newWhereClause);
 		}else {
 			newSql = originSql;
-		}
-		
+		}		
+	}
+
+	if (!SqlUtil::hasLimitClause(originSql)) {
+		LimitParams limitParams;
+		loadLimitParams(limitParams);
+		if (limitParams.checked) {
+			newSql.append(L" LIMIT ").append(std::to_wstring(limitParams.rows))
+				.append(L" OFFSET ").append(std::to_wstring(limitParams.offset));
+		}		
 	}
 	
 	return newSql;

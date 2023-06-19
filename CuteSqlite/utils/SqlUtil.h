@@ -31,6 +31,9 @@ public:
 	static std::wregex whereClausePat1;
 	static std::wregex whereClausePat2;
 
+	// limit clause regex patter
+	static std::wregex limitClausePat;
+
 	// fourth clause regex pattern 
 	static std::wregex fourthClausePat;
 
@@ -45,6 +48,7 @@ public:
 	static std::vector<std::wstring> tableTags;
 
 	static bool isSelectSql(std::wstring & sql);
+	static bool hasLimitClause(std::wstring & sql);
 	static std::wstring getColumnName(std::wstring & str);
 	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
 	static std::vector<std::wstring> parseTablesFromTableClause(std::wstring & tblStmt);

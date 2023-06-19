@@ -48,6 +48,7 @@ public:
 		COMMAND_HANDLER_EX(Config::LISTVIEW_FILTER_BUTTON_ID, BN_CLICKED, OnClickFilterButton)
 		COMMAND_HANDLER_EX(Config::LISTVIEW_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
 		COMMAND_HANDLER_EX(Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, BN_CLICKED, OnClickFormViewCheckBox)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_LIMIT_CHECKBOX_ID, BN_CLICKED, OnClickLimitCheckBox)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopyAllRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopySelRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, OnClickCopyAllRowsAsSqlMenu)
@@ -84,31 +85,36 @@ protected:
 	CButton limitCheckBox;
 	CStatic offsetLabel;
 	CEdit offsetEdit;
-	CStatic limitLabel;
-	CEdit limitEdit;
+	CStatic rowsLabel;
+	CEdit rowsEdit;
 
 	CListViewCtrl listView;
 	RowDataFormView formView;
+	CMultiPaneStatusBarCtrl statusBar;
 
 	ResultListPageAdapter * adapter = nullptr;
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
-	virtual void loadWindow();
+	virtual void loadWindow();	
 
 	CRect getLeftListRect(CRect & clientRect);
 	CRect getRightFormRect(CRect & clientRect);
+	CRect getBottomStatusRect(CRect & clientRect);
 
 	void createImageList();
 	void createOrShowToolBarElems(CRect & clientRect);
 	void createOrShowListView(CListViewCtrl & win, CRect & clientRect);
 	void createOrShowFormView(RowDataFormView & win, CRect & clientRect);
+	void createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect & clientRect);
 
 	void createCopyMenu();
 	void popupCopyMenu(CPoint & pt);
 
 	void loadReadWriteComboBox();
 	void loadFormViewCheckBox();
+	LimitParams loadLimitElems();
+	void saveLimitParams();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
@@ -125,6 +131,7 @@ protected:
 	void OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickFormViewCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickLimitCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -139,4 +146,9 @@ protected:
 	bool isShowFormView();
 
 	void changeFilterButtonStatus(bool hasRedIcon);
+
+	// display the result rows and exec time in the status bar
+	std::chrono::steady_clock::time_point beginExecTime();
+	void endExecTime(std::chrono::steady_clock::time_point _begin);
+	void displayResultRows();
 };

@@ -105,5 +105,12 @@ typedef std::vector<std::wstring> ExportSelectedColumns;
 typedef std::vector<std::wstring> RowItem, Columns, UserTableStrings;
 // data items list
 typedef std::list<RowItem> DataList;
+
+//select sql - limit clause params
+typedef struct _LimitParams {
+	bool checked = false;
+	int offset = 0;
+	int rows = 0;
+} LimitParams;
 #endif
 
