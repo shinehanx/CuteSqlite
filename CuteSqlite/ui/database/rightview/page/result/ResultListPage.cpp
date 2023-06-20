@@ -48,7 +48,7 @@ void ResultListPage::createOrShowUI()
 }
 
 /**
- * create or show page toolbar buttons and other elments.
+ * create or show buttons and other elments on page toolbar.
  * 
  * @param clientRect The page's client rect
  */
@@ -57,6 +57,26 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	CRect topbarRect = getTopRect(clientRect);
 	int x = 5, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
 	CRect rect(x, y, x + w, y + h);
+	doCreateOrShowToolBarFirstPaneElems(rect, clientRect);
+
+
+	doCreateOrShowToolBarSecondPaneElems(rect, clientRect);
+
+		
+	// create or show the topbar elements
+	doCreateOrShowToolBarRightPaneElems(rect, clientRect);
+
+}
+
+
+/**
+ * Create or show first pane elements on page toolbar.
+ * 
+ * @param rect [in,out]
+ * @param clientRect
+ */
+void ResultListPage::doCreateOrShowToolBarFirstPaneElems(CRect &rect, CRect & clientRect)
+{
 	// create or show button
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	std::wstring normalImagePath, pressedImagePath;
@@ -66,11 +86,11 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 		exportButton.SetIconPath(normalImagePath, pressedImagePath);
 		exportButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, exportButton,  Config::LISTVIEW_EXPORT_BUTTON_ID, L"", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, exportButton, Config::LISTVIEW_EXPORT_BUTTON_ID, L"", rect, clientRect);
 	exportButton.SetToolTip(S(L"export-result-as"));
 
 	rect.OffsetRect(16 + 10, 0);
-	rect.InflateRect(0, 0, 8, 0); 
+	rect.InflateRect(0, 0, 8, 0);
 	if (!copyButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\copy-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\copy-button-pressed.png";
@@ -79,27 +99,48 @@ void ResultListPage::createOrShowToolBarElems(CRect & clientRect)
 	}
 	QWinCreater::createOrShowButton(m_hWnd, copyButton, Config::LISTVIEW_COPY_BUTTON_ID, L"", rect, clientRect);
 	copyButton.SetToolTip(S(L"copy-result-data"));
+}
 
+/**
+ *  Create or show second pane elements on page toolbar.
+ * 
+ * @param rect  [in,out]
+ * @param clientRect
+ */
+void ResultListPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect)
+{
 	rect.OffsetRect(24 + 10, 0);
-	rect.InflateRect(0, 2, 80, -2); 
+	rect.InflateRect(0, 2, 80, -2);
 	QWinCreater::createOrShowComboBox(m_hWnd, readWriteComboBox, Config::LISTVIEW_READ_WRITE_COMBOBOX_ID, rect, clientRect);
 	readWriteComboBox.SetFont(textFont);
 
 	rect.OffsetRect(120 + 20, 0);
 	rect.InflateRect(0, 0, 20, 4);
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
-		
+}
+
+/**
+ *  Create or show right pane elements on page toolbar.
+ * 
+ * @param rect  [in,out]
+ * @param clientRect
+ */
+void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & clientRect)
+{
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	CRect topbarRect = getTopRect(clientRect);
+	std::wstring normalImagePath, pressedImagePath;
 	rect.MoveToX(topbarRect.right - 350);
 	rect.InflateRect(0, -2, -100, 0);
 	if (!filterButton.IsWindow()) {
-		normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png"; 
+		normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
 		filterButton.SetIconPath(normalImagePath, pressedImagePath);
 		filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 		filterButton.SetToolTip(S(L"filter"));
-	}	
+	}
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);
-	
+
 	rect.OffsetRect(16 + 10, 0);
 	if (!refreshButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\refresh-button-normal.png";
@@ -141,6 +182,14 @@ void ResultListPage::loadWindow()
 	}
 	isNeedReload = false;	
 
+	// 
+	loadListView();
+	return;
+
+}
+
+void ResultListPage::loadListView()
+{
 	uint64_t userDbId = supplier->getSeletedUserDbId();
 	if (!userDbId) {
 		QPopAnimate::warn(m_hWnd, S(L"no-select-userdb"));
@@ -152,7 +201,6 @@ void ResultListPage::loadWindow()
 	endExecTime(_begin);
 
 	displayResultRows();
-
 }
 
 CRect ResultListPage::getLeftListRect(CRect & clientRect)
@@ -199,7 +247,7 @@ void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRec
 		win.SetImageList(imageList, LVSIL_SMALL);
 		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);
-		adapter = new ResultListPageAdapter(m_hWnd, &win);
+		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_RESULT);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
@@ -305,9 +353,9 @@ LimitParams ResultListPage::loadLimitElems()
 	}	
 	limitCheckBox.EnableWindow(!hasLimitClause);
 
-	std::wstring limitChecked = SettingService::getInstance()->getSysInit(L"limit-checked");
-	std::wstring offset = SettingService::getInstance()->getSysInit(L"limit-offset");
-	std::wstring rows = SettingService::getInstance()->getSysInit(L"limit-rows");
+	std::wstring limitChecked = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-checked");
+	std::wstring offset = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-offset");
+	std::wstring rows = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-rows");
 	offset = StringUtil::isDigit(offset) ? offset : L"0";
 	rows = StringUtil::isDigit(rows) ? rows : L"1000";
 
@@ -338,20 +386,20 @@ void ResultListPage::saveLimitParams()
 {
 	int checked = limitCheckBox.GetCheck();
 	std::wstring val = checked ? L"true" : L"false";
-	SettingService::getInstance()->setSysInit(L"limit-checked", val);
+	SettingService::getInstance()->setSysInit(settingPrefix + L"limit-checked", val);
 
 	if (checked) {
 		CString offset, rows;
 		offsetEdit.GetWindowText(offset);
 		rowsEdit.GetWindowText(rows);
-		SettingService::getInstance()->setSysInit(L"limit-offset", offset.GetString());
-		SettingService::getInstance()->setSysInit(L"limit-rows", rows.GetString());
+		SettingService::getInstance()->setSysInit(settingPrefix + L"limit-offset", offset.GetString());
+		SettingService::getInstance()->setSysInit(settingPrefix + L"limit-rows", rows.GetString());
 	}
 }
 
 bool ResultListPage::isShowFormView()
 {
-	std::wstring showFormView = SettingService::getInstance()->getSysInit(L"show-form-view");
+	std::wstring showFormView = SettingService::getInstance()->getSysInit(settingPrefix + L"show-form-view");
 	return showFormView == L"true" ? true : false;
 }
 
@@ -567,7 +615,7 @@ void ResultListPage::OnClickFormViewCheckBox(UINT uNotifyCode, int nID, HWND hwn
 	bool isShowFormView = !checked;
 	formViewCheckBox.SetCheck(isShowFormView);
 	std::wstring val = isShowFormView ? L"true" : L"false";
-	SettingService::getInstance()->setSysInit(L"show-form-view", val);
+	SettingService::getInstance()->setSysInit(settingPrefix + L"show-form-view", val);
 
 	CRect clientRect;
 	GetClientRect(clientRect);

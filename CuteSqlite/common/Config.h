@@ -159,6 +159,7 @@ typedef enum {
 	MSG_QIMAGE_CLICK_ID, // 点击QStaticImage,如果命中右下角小图标，则调用上一个消息ID， 否则，给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
 	MSG_QIMAGE_CONERICON_CLICK_ID, // 点击QStaticImage图片右下角小图标（拍照等），给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
 	MSG_QIMAGELIST_CLICK_ID, // 单击QImageList图片列表，给父窗口发送消息，wParam为被选中项下标nSelItem，lParam带上被选中项的窗口句柄
+	MSG_TREEVIEW_CLICK_ID, // 单击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	MSG_TREEVIEW_DBCLICK_ID, // 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 }MessageId;
 

@@ -18,23 +18,34 @@
  * @date   2023-05-22
  *********************************************************************/
 #pragma once
-#include "ui/common/page/QPage.h"
+#include <atltypes.h>
+#include "ResultListPage.h"
 
-class ResultTableDataPage : public QPage {
+class ResultTableDataPage : public ResultListPage 
+{
 public:
 	DECLARE_WND_CLASS(NULL)
 
-	BEGIN_MSG_MAP_EX(ResultInfoPage)
+	BEGIN_MSG_MAP_EX(ResultTableDataPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		CHAIN_MSG_MAP(QPage)
+		CHAIN_MSG_MAP(ResultListPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+	ResultTableDataPage();
 
+	virtual void setup(std::wstring & table); // override
+	void loadTableDatas();
 protected:
+	std::wstring table; // table name
+
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 
+	virtual void createOrShowListView(CListViewCtrl & win, CRect & clientRect); // override 
+
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
+
+	
 };

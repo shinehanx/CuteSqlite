@@ -8,10 +8,14 @@
 #include "utils/SqlUtil.h"
 #include "utils/ClipboardUtil.h"
 
-ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView)
+ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView, ResultType resultType)
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = listView;
+	this->resultType = resultType;
+	if (this->resultType == TABLE_DATA) {
+		settingPrefix = TABLE_DATA_SETTING_PREFIX;
+	}
 }
 
 ResultListPageAdapter::~ResultListPageAdapter()
@@ -21,9 +25,15 @@ ResultListPageAdapter::~ResultListPageAdapter()
 
 int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 {
+	int nCols = static_cast<int>(runtimeColumns.size());
+	for (int i = nCols; i >=0 ; i--) {
+		dataView->DeleteColumn(i);
+	}
 	dataView->DeleteAllItems();
 	runtimeTables.clear();
 	runtimeDatas.clear();
+	runtimeColumns.clear();
+	runtimeFilters.clear();
 
 	runtimeUserDbId = userDbId;
 	originSql = sql;
@@ -170,9 +180,9 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 
 void ResultListPageAdapter::loadLimitParams(LimitParams & limitParams)
 {
-	std::wstring limitChecked = SettingService::getInstance()->getSysInit(L"limit-checked");
-	std::wstring offset = SettingService::getInstance()->getSysInit(L"limit-offset");
-	std::wstring rows = SettingService::getInstance()->getSysInit(L"limit-rows");
+	std::wstring limitChecked = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-checked");
+	std::wstring offset = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-offset");
+	std::wstring rows = SettingService::getInstance()->getSysInit(settingPrefix + L"limit-rows");
 	offset = StringUtil::isDigit(offset) ? offset : L"0";
 	rows = StringUtil::isDigit(rows) ? rows : L"1000";
 	limitParams.checked = limitChecked == L"true";
@@ -557,4 +567,9 @@ void ResultListPageAdapter::copySelRowsAsSql()
 
 	// 2. copy the stringstream to clipboard
 	ClipboardUtil::copyToClipboard(oss.str());
+}
+
+void ResultListPageAdapter::setSettingPrefix(std::wstring &prefix)
+{
+	settingPrefix = prefix;
 }

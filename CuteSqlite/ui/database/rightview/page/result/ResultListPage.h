@@ -61,11 +61,12 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(std::wstring & sql);
+	virtual void setup(std::wstring & sql);
 protected:
 	bool isNeedReload = true;
 	std::wstring sql;
 	int rowCount = 0;
+	std::wstring settingPrefix;
 
 	COLORREF buttonColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;
@@ -96,14 +97,21 @@ protected:
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
-	virtual void loadWindow();	
+
+	virtual void loadWindow();
+	void loadListView();
 
 	CRect getLeftListRect(CRect & clientRect);
 	CRect getRightFormRect(CRect & clientRect);
 	CRect getBottomStatusRect(CRect & clientRect);
 
 	void createImageList();
-	void createOrShowToolBarElems(CRect & clientRect);
+
+	virtual void createOrShowToolBarElems(CRect & clientRect);
+	virtual void doCreateOrShowToolBarFirstPaneElems(CRect &rect, CRect & clientRect);
+	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);
+	virtual void doCreateOrShowToolBarRightPaneElems(CRect &rect, CRect & clientRect);
+
 	void createOrShowListView(CListViewCtrl & win, CRect & clientRect);
 	void createOrShowFormView(RowDataFormView & win, CRect & clientRect);
 	void createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect & clientRect);

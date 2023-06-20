@@ -341,7 +341,7 @@ LRESULT LeftTreeView::OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHa
 		return 0;
 	}
 	UserDbList dbs = treeViewAdapter->getDbs();
-	auto itor = std::find_if(dbs.begin(), dbs.end(), [&userDbId, &dbs](UserDb item) {
+	auto itor = std::find_if(dbs.begin(), dbs.end(), [&userDbId, &dbs](UserDb & item) {
 		return item.id == userDbId && item.isActive == 1;
 	});
 
@@ -350,6 +350,13 @@ LRESULT LeftTreeView::OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHa
 		selectComboBox(userDbId);
 	}
 
+	CTreeItem treeItem = treeViewAdapter->getSeletedItem();
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+
+	if (nImage == 0 || nImage == 2 || nImage == 3 || nImage == 4 || nImage == 5 || nImage == 6) {
+		AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, WPARAM(treeViewAdapter), (LPARAM)hSelTreeItem);
+	}
 	
 	return 0;
 }

@@ -36,10 +36,17 @@
 typedef std::tuple<std::wstring, std::wstring, std::wstring, std::wstring> FilterTuple;
 typedef std::vector<FilterTuple> DataFilters;
 
+// query result type 
+typedef enum {
+	QUERY_RESULT,
+	TABLE_DATA
+} ResultType;
+
+#define TABLE_DATA_SETTING_PREFIX L"table-data-"
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
 {
 public:
-	ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView);
+	ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView, ResultType resultType = QUERY_RESULT);
 	~ResultListPageAdapter();
 
 	int loadListView(uint64_t userDbId, std::wstring & sql);
@@ -72,11 +79,16 @@ public:
 	void copySelRowsToClipboard();
 	void copyAllRowsAsSql();
 	void copySelRowsAsSql();
+
+	// system sys_init table key prefix
+	void setSettingPrefix(std::wstring & prefix);
+
+	
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	
-	// the runtime varibles
+	// the runtime variable
 	uint64_t runtimeUserDbId = 0;
 	std::wstring originSql;
 	std::wstring runtimeSql;
@@ -86,6 +98,9 @@ private:
 	DataList runtimeDatas;
 
 	DataFilters runtimeFilters;
+
+	ResultType resultType;
+	std::wstring settingPrefix;
 
 	void loadRuntimeTables(uint64_t userDbId, std::wstring & sql);
 	void loadRuntimeHeader(QSqlStatement & query);

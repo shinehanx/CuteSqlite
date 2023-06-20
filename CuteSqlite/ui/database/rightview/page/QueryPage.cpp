@@ -137,12 +137,14 @@ void QueryPage::createOrShowResultTabView(ResultTabView & win, CRect & clientRec
 int QueryPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
+	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
 	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
 	return ret;
 }
 
 int QueryPage::OnDestroy()
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
 
 	bool ret = QPage::OnDestroy();
@@ -151,6 +153,38 @@ int QueryPage::OnDestroy()
 	if (splitter.IsWindow()) splitter.DestroyWindow();
 
 	return ret;
+}
+
+LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	LeftTreeViewAdapter * treeViewAdapter = (LeftTreeViewAdapter *)wParam;
+	HTREEITEM hSelTreeItem = (HTREEITEM)lParam;
+	if (!hSelTreeItem) {
+		return 0;
+	}
+
+	CTreeItem treeItem = treeViewAdapter->getSeletedItem();
+	wchar_t cch[512] = { 0 };
+	bool ret = treeItem.GetText(cch, 512);
+	if (!ret) {
+		return 0;
+	}
+
+	int nImage = -1, nSeletedImage = -1;
+	ret = treeItem.GetImage(nImage, nSeletedImage);
+	if (!ret || nImage == -1) {
+		return 0;
+	}
+
+	std::wstring selItemText(cch);
+	if (nImage == 2) { // 2 - table
+		supplier->selectTable = selItemText;
+	}
+
+	if (resultTabView.isActiveTableDataPage()) {
+		resultTabView.loadTableDatas(supplier->selectTable);
+	}
+	return 0;
 }
 
 /**
@@ -184,7 +218,7 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	}
 
 	std::wstring selItemText(cch);
-	if (nImage == 3) {
+	if (nImage == 3) { // 3 - column
 		std::wstring fieldName = SqlUtil::getColumnName(selItemText);
 		sqlEditor.replaceSelText(fieldName);
 	} else {

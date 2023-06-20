@@ -43,10 +43,15 @@ public:
 	END_MSG_MAP()
 
 	HWND getActiveResultListPageHwnd();
+	
+
 	void clearResultListPage();
 	void addResultListPage(std::wstring & sql, int tabNo);
 	int getPageIndex(HWND hwnd);
 	void setActivePage(int pageIndex);
+
+	bool isActiveTableDataPage();
+	void loadTableDatas(std::wstring & table);
 private:
 	bool isNeedReload = true;
 

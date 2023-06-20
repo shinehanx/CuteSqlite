@@ -44,6 +44,24 @@ HWND ResultTabView::getActiveResultListPageHwnd()
 	return nullptr;
 }
 
+bool ResultTabView::isActiveTableDataPage()
+{
+	HWND activeHwnd = tabView.GetPageHWND(tabView.GetActivePage());
+	if (!activeHwnd) {
+		return false;
+	}
+	if (activeHwnd == resultTableDataPage.m_hWnd) {
+		return true;
+	}
+	return false;
+}
+
+void ResultTabView::loadTableDatas(std::wstring & table)
+{
+	resultTableDataPage.setup(table);
+	resultTableDataPage.loadTableDatas();
+}
+
 void ResultTabView::clearResultListPage()
 {
 	// destry window and delete ptr from resultListPage vector
@@ -133,7 +151,6 @@ void ResultTabView::createOrShowUI()
 	CRect clientRect;
 	GetClientRect(clientRect);
 	createOrShowTabView(tabView, clientRect);
-	createOrShowFirstResultListPage(clientRect);
 	createOrShowResultInfoPage(resultInfoPage, clientRect);
 	createOrShowResultTableDataPage(resultTableDataPage, clientRect);
 }
@@ -151,28 +168,6 @@ void ResultTabView::createOrShowTabView(QTabView &win, CRect & clientRect)
 		win.ShowWindow(true);
 	}
 }
-
-void ResultTabView::createOrShowFirstResultListPage(CRect &clientRect)
-{
-	CRect pageRect = getPageRect(clientRect);
-	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height() - 2;
-	CRect rect(x, y, x + w, y + h);
-		
-	if (IsWindow() && resultListPagePtrs.empty()) {
-		ResultListPage * resultListPagePtr = new ResultListPage();
-		resultListPagePtr->Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-		tabView.AddPage(resultListPagePtr->m_hWnd, S(L"result-list").c_str(), 0, resultListPagePtr);
-		resultListPagePtrs.push_back(resultListPagePtr);
-	}
-	else if (IsWindow() && tabView.IsWindow()) {
-		auto hwnd = getActiveResultListPageHwnd();
-		if (hwnd) {
-			::MoveWindow(hwnd, rect.left, rect.top, rect.Width(), rect.Height(), true);
-			::ShowWindow(hwnd, true);
-		}
-	}
-}
-
 
 void ResultTabView::createOrShowResultInfoPage(ResultInfoPage & win, CRect &clientRect)
 {

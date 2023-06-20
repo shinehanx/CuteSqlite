@@ -55,9 +55,11 @@ public:
 	// Tab Page Data vector for page, template param HWND
 	std::vector<TabPageData> mainTabPages;
 	
-
 	// sql statements
 	std::vector<std::wstring> sqlVector;
+
+	// selected table name
+	std::wstring selectTable;
 
 	// // --------------------------------
 
