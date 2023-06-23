@@ -59,6 +59,11 @@ typedef enum {
 	LISTVIEW_COPY_BUTTON_ID,
 	LISTVIEW_FILTER_BUTTON_ID,
 	LISTVIEW_REFRESH_BUTTON_ID,
+	LISTVIEW_NEW_ROW_BUTTON_ID,
+	LISTVIEW_COPY_ROW_BUTTON_ID,
+	LISTVIEW_SAVE_BUTTON_ID,
+	LISTVIEW_DELETE_BUTTON_ID,
+	LISTVIEW_CANCEL_BUTTON_ID,
 
 	QDIALOG_CLEAR_BUTTON_ID,
 	QDIALOG_YES_BUTTON_ID,
@@ -102,6 +107,8 @@ typedef enum {
 	EXPORT_EXCEL_COLUMN_MAX_SIZE_EDIT_ID,
 	EXPORT_EXCEL_DECIMAL_PLACES_EDIT_ID,
 	EXPORT_PATH_EDIT_ID,
+	// RESULT
+	QLISTVIEWCTRL_SUBITEM_EDIT_ID
 } EditorId;
 
 typedef enum {
@@ -161,6 +168,8 @@ typedef enum {
 	MSG_QIMAGELIST_CLICK_ID, // 单击QImageList图片列表，给父窗口发送消息，wParam为被选中项下标nSelItem，lParam带上被选中项的窗口句柄
 	MSG_TREEVIEW_CLICK_ID, // 单击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	MSG_TREEVIEW_DBCLICK_ID, // 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
+	MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, // QListViewCtrl的子项（subItem）的文本发生改变时，向父窗口发送该消息,wParam=iItem, lParam=iSubItem
+	MSG_QLISTVIEW_COLUMN_CLICK_ID, // QListViewCtrl的Column被点击时，向父窗口发送该消息,wParam=iItem, lParam=(LPNMHEADER)lParam
 }MessageId;
 
 typedef enum {

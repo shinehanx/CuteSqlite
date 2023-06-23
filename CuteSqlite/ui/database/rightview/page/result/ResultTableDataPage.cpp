@@ -20,6 +20,10 @@
 
 #include "stdafx.h"
 #include "ResultTableDataPage.h"
+#include <atlstr.h>
+#include "utils/Log.h"
+#include "core/common/Lang.h"
+#include "ui/common/QWinCreater.h"
 
 ResultTableDataPage::ResultTableDataPage()
 {
@@ -39,6 +43,7 @@ void ResultTableDataPage::loadTableDatas()
 	if (table.empty() || sql.empty()) {
 		return ;
 	}
+	saveLimitParams();
 	loadListView();
 }
 
@@ -48,7 +53,8 @@ void ResultTableDataPage::createOrShowUI()
 
 	CRect clientRect;
 	GetClientRect(clientRect);
-
+	
+	//createOrShowEdits(clientRect);
 }
 
 void ResultTableDataPage::loadWindow()
@@ -63,16 +69,16 @@ void ResultTableDataPage::loadWindow()
  * @param win
  * @param clientRect
  */
-void ResultTableDataPage::createOrShowListView(CListViewCtrl & win, CRect & clientRect)
+void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
 {
 	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		win.Create(m_hWnd, rect,NULL, 
-			WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_EDITLABELS | WS_BORDER | LVS_OWNERDATA , // | LVS_OWNERDATA
-			0, Config::DATABASE_QUERY_LISTVIEW_ID );
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA; // | LVS_OWNERDATA
+
+		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.SetImageList(imageList, LVSIL_SMALL);
-		CHeaderCtrl header = win.GetHeader();
+		CHeaderCtrl header = win.GetHeader();		
 		header.SetImageList(imageList);
 		adapter = new ResultListPageAdapter(m_hWnd, &win, TABLE_DATA);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
@@ -81,6 +87,106 @@ void ResultTableDataPage::createOrShowListView(CListViewCtrl & win, CRect & clie
 	}
 }
 
+void ResultTableDataPage::createOrShowToolBarElems(CRect & clientRect)
+{
+	CRect topbarRect = getTopRect(clientRect);
+	int x = 5, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
+	CRect rect(x, y, x + w, y + h);
+	// first pane
+	doCreateOrShowToolBarFirstPaneElems(rect, clientRect);
+
+	// second pane
+	doCreateOrShowToolBarSecondPaneElems(rect, clientRect);
+
+	// third pane
+	doCreateOrShowToolBarThirdPaneElems(rect, clientRect);
+		
+	// right pane
+	doCreateOrShowToolBarRightPaneElems(rect, clientRect);
+}
+
+void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect)
+{
+	
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	// split
+	CRect splitRect(rect.right + 2, rect.top, rect.right + 18, rect.bottom);
+	if (!splitImage.IsWindow()) {
+		std::wstring splitImagePath = imgDir + L"database\\list\\button\\split.png";
+		splitImage.load(splitImagePath.c_str(), BI_PNG, true);
+		splitImage.setBkgColor(topbarColor); 
+	}
+	QWinCreater::createOrShowImage(m_hWnd, splitImage, 0, splitRect, clientRect);
+
+	rect.OffsetRect(16 + 22, 0);	
+	std::wstring normalImagePath, pressedImagePath;
+	if (!newRowButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\new-row-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\new-row-button-pressed.png";
+		newRowButton.SetIconPath(normalImagePath, pressedImagePath);
+		newRowButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, newRowButton, Config::LISTVIEW_NEW_ROW_BUTTON_ID, L"", rect, clientRect);
+	newRowButton.SetToolTip(S(L"new-row"));
+
+	rect.OffsetRect(16 + 10, 0);
+	if (!copyRowButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\copy-row-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\copy-row-button-pressed.png";
+		copyRowButton.SetIconPath(normalImagePath, pressedImagePath);
+		copyRowButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, copyRowButton, Config::LISTVIEW_COPY_ROW_BUTTON_ID, L"", rect, clientRect);
+	copyRowButton.SetToolTip(S(L"copy-row"));
+
+	rect.OffsetRect(16 + 10, 0);
+	if (!saveButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\save-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\save-button-pressed.png";
+		saveButton.SetIconPath(normalImagePath, pressedImagePath);
+		saveButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::LISTVIEW_SAVE_BUTTON_ID, L"", rect, clientRect);
+	saveButton.SetToolTip(S(L"save"));
+
+	rect.OffsetRect(16 + 10, 0);
+	if (!deleteButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\delete-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\delete-button-pressed.png";
+		deleteButton.SetIconPath(normalImagePath, pressedImagePath);
+		deleteButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::LISTVIEW_DELETE_BUTTON_ID, L"", rect, clientRect);
+	deleteButton.SetToolTip(S(L"delete"));
+
+	rect.OffsetRect(16 + 10, 0);
+	if (!cancelButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\list\\button\\cancel-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\cancel-button-pressed.png";
+		cancelButton.SetIconPath(normalImagePath, pressedImagePath);
+		cancelButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, cancelButton, Config::LISTVIEW_CANCEL_BUTTON_ID, L"", rect, clientRect);
+	cancelButton.SetToolTip(S(L"cancel"));
+}
+
+void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect)
+{
+	// split
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	CRect splitRect(rect.right + 2, rect.top, rect.right + 18, rect.bottom);
+	if (!splitImage2.IsWindow()) {
+		std::wstring splitImagePath = imgDir + L"database\\list\\button\\split2.png";
+		splitImage2.load(splitImagePath.c_str(), BI_PNG, true); 
+		splitImage2.setBkgColor(topbarColor); 
+	}
+	QWinCreater::createOrShowImage(m_hWnd, splitImage2, 0, splitRect, clientRect);
+
+	// show form checkbox
+	rect.OffsetRect(16 + 30, 0);
+	rect.InflateRect(0, 0, 50, 4);
+	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
+}
 
 
 int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -92,6 +198,44 @@ int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int ResultTableDataPage::OnDestroy()
 {
 	bool ret = ResultListPage::OnDestroy();
+	if (splitImage.IsWindow()) splitImage.DestroyWindow();
+	if (splitImage2.IsWindow()) splitImage2.DestroyWindow();
+
+	if (newRowButton.IsWindow()) newRowButton.DestroyWindow();
+	if (copyRowButton.IsWindow()) copyRowButton.DestroyWindow();
+	if (saveButton.IsWindow()) saveButton.DestroyWindow();
+	if (deleteButton.IsWindow()) deleteButton.DestroyWindow();
+	if (cancelButton.IsWindow()) cancelButton.DestroyWindow();
 
 	return ret;
 }
+
+LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
+	
+	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
+
+	Q_INFO(L"OnBeginLabelEditListView, pdi.item.iItem.:{}, pdi.item.iSubItem:{}", aItem->iItem, aItem->iSubItem);
+	
+	CRect clientRect;
+	GetClientRect(clientRect);
+
+	// show the editor
+	listView.createOrShowEdits(subItemPos, clientRect);
+
+	return 0;
+}
+
+LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	QListViewCtrl::SubItemValues changedVals = listView.getChangedVals();
+	for (auto val : changedVals) {
+		adapter->changeRuntimeDatasItem(val.subItemPos.first, val.subItemPos.second, val.origVal, val.newVal);
+		adapter->invalidateSubItem(val.subItemPos.first, val.subItemPos.second);
+	}
+	
+	return 0;
+}
+
+

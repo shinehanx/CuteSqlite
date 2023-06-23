@@ -8,7 +8,7 @@
 #include "utils/SqlUtil.h"
 #include "utils/ClipboardUtil.h"
 
-ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView, ResultType resultType)
+ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * listView, ResultType resultType)
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = listView;
@@ -572,4 +572,31 @@ void ResultListPageAdapter::copySelRowsAsSql()
 void ResultListPageAdapter::setSettingPrefix(std::wstring &prefix)
 {
 	settingPrefix = prefix;
+}
+
+/**
+ * change the runtimeDatas variable before changed the list view subitem text .
+ * 
+ * @param iItem
+ * @param iSubItem
+ * @param text
+ */
+void ResultListPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText)
+{
+	ATLASSERT(iItem >= 0 && iSubItem > 0);
+	auto iter = runtimeDatas.begin();
+	
+	for (int i = 0; i < iItem; i++) {
+		iter++;
+	}
+	RowItem & rowItem = *iter;
+	// rowItem.index = listView.row.iSubItem - 1 
+	rowItem[iSubItem - 1] = newText;
+}
+
+void ResultListPageAdapter::invalidateSubItem(int iItem, int iSubItem)
+{
+	CRect subItemRect;
+	dataView->GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
+	dataView->InvalidateRect(subItemRect, false);
 }

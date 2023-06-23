@@ -30,6 +30,8 @@
 class ResultTabView : public CWindowImpl<ResultTabView>
 {
 public:
+	BOOL PreTranslateMessage(MSG* pMsg);
+
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(ResultTabView)

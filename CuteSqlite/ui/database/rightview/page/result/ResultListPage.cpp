@@ -30,6 +30,15 @@
 
 #define ROW_FORM_VIEW_WIDTH 320
 #define RESULT_STATUS_BAR_HEIGHT 22
+
+BOOL ResultListPage::PreTranslateMessage(MSG* pMsg)
+{
+	if (listView.IsWindow() && listView.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void ResultListPage::setup(std::wstring & sql)
 {
 	this->sql = sql;
@@ -130,8 +139,8 @@ void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & c
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	CRect topbarRect = getTopRect(clientRect);
 	std::wstring normalImagePath, pressedImagePath;
-	rect.MoveToX(topbarRect.right - 350);
-	rect.InflateRect(0, -2, -100, 0);
+	int x = topbarRect.right - 350, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
+	rect = { x , y , x + w, y + h };
 	if (!filterButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\filter-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
@@ -152,11 +161,11 @@ void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & c
 	refreshButton.SetToolTip(S(L"refresh"));
 
 	rect.OffsetRect(16 + 20, 0);
-	rect.InflateRect(0, 0, 36, 0);
+	rect.InflateRect(0, 0, 50, 0);
 	QWinCreater::createOrShowCheckBox(m_hWnd, limitCheckBox, Config::LISTVIEW_LIMIT_CHECKBOX_ID, S(L"limit-rows"), rect, clientRect);
 
 	rect.OffsetRect(60 + 5, 2);
-	rect.InflateRect(0, 0, -10, 0);
+	rect.InflateRect(0, 0, -16, 0);
 	QWinCreater::createOrShowLabel(m_hWnd, offsetLabel, S(L"offset").append(L":"), rect, clientRect, SS_RIGHT);
 
 	rect.OffsetRect(50 + 2, -2);
@@ -182,7 +191,7 @@ void ResultListPage::loadWindow()
 	}
 	isNeedReload = false;	
 
-	// 
+	// load the datas from dbfile to show in list view
 	loadListView();
 	return;
 
@@ -195,11 +204,12 @@ void ResultListPage::loadListView()
 		QPopAnimate::warn(m_hWnd, S(L"no-select-userdb"));
 		return;
 	}
-
+	
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_SQL_PANE_ID, this->sql.c_str());
 	auto _begin = beginExecTime();
 	rowCount = adapter->loadListView(userDbId, sql);
 	endExecTime(_begin);
-
+	
 	displayResultRows();
 }
 
@@ -210,7 +220,7 @@ CRect ResultListPage::getLeftListRect(CRect & clientRect)
 	if (checked) {
 		return { pageRect.left, pageRect.top, pageRect.right - ROW_FORM_VIEW_WIDTH - 1, pageRect.bottom - RESULT_STATUS_BAR_HEIGHT};
 	} else {
-		return pageRect;
+		return { pageRect.left, pageRect.top, pageRect.right, pageRect.bottom - RESULT_STATUS_BAR_HEIGHT};
 	}
 }
 
@@ -236,12 +246,12 @@ void ResultListPage::paintItem(CDC & dc, CRect & paintRect)
 	
 }
 
-void ResultListPage::createOrShowListView(CListViewCtrl & win, CRect & clientRect)
+void ResultListPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
 {
 	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		win.Create(m_hWnd, rect,NULL, 
-			WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA , // | LVS_OWNERDATA
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA;
+		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.SetImageList(imageList, LVSIL_SMALL);
@@ -334,9 +344,11 @@ void ResultListPage::popupCopyMenu(CPoint & pt)
 
 void ResultListPage::loadReadWriteComboBox()
 {
-	readWriteComboBox.ResetContent();
-	readWriteComboBox.AddString(S(L"read-only").c_str());
-	readWriteComboBox.SetCurSel(0);
+	if (readWriteComboBox.IsWindow()) {
+		readWriteComboBox.ResetContent();
+		readWriteComboBox.AddString(S(L"read-only").c_str());
+		readWriteComboBox.SetCurSel(0);
+	}	
 }
 
 void ResultListPage::loadFormViewCheckBox()
@@ -472,8 +484,11 @@ int ResultListPage::OnDestroy()
 	if (offsetEdit.IsWindow()) offsetEdit.DestroyWindow();
 	if (rowsLabel.IsWindow()) rowsLabel.DestroyWindow();
 	if (rowsEdit.IsWindow()) rowsEdit.DestroyWindow();
+	copyMenu.DestroyMenu();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
+	if (formView.IsWindow()) formView.DestroyWindow();
+	if (statusBar.IsWindow()) statusBar.DestroyWindow();
 
 	if (adapter) {
 		delete adapter;
@@ -547,16 +562,37 @@ LRESULT ResultListPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHand
  */
 LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
+	bHandled = false;
+
 	LPNMLISTVIEW headerPtr = (LPNMLISTVIEW)pnmh; 
 
 	// Refrence url:https://learn.microsoft.com/zh-cn/windows/win32/controls/lvn-columnclick
 	if (headerPtr->iSubItem  != 0) {
 		return 0;
 	}
-	adapter->changeSelectAllItems();
+	adapter->changeSelectAllItems();	
 	return 0;
 }
 
+/**
+ * QListViewCtrl的Column被点击时，向父窗口发送该消息,wParam=iItem, lParam=(LPNMHEADER)lParam.
+ * 
+ * @param uMsg
+ * @param wParam - Column item
+ * @param lParam - (LPNMHEADER)lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT ResultListPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	LPNMHEADER pHeader = (LPNMHEADER)lParam;
+
+	if (wParam == 0) {
+		adapter->changeSelectAllItems();
+	}
+	
+	return 0;
+}
 /**
  * select the grid subitem .
  * 

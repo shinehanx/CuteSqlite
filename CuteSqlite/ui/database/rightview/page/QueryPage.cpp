@@ -33,6 +33,11 @@ BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 	if (sqlEditor.IsWindow() && sqlEditor.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
+
+	if (resultTabView.IsWindow() && resultTabView.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
 	return FALSE;
 }
 

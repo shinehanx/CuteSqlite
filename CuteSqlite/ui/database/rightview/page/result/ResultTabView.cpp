@@ -27,6 +27,15 @@
 #define RESULT_BUTTON_WIDTH 16
 
 
+BOOL ResultTabView::PreTranslateMessage(MSG* pMsg)
+{
+	if (resultTableDataPage.IsWindow() && resultTableDataPage.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
+	return false;
+}
+
 HWND ResultTabView::getActiveResultListPageHwnd()
 {
 	if (resultListPagePtrs.empty()) {

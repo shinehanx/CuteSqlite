@@ -276,6 +276,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\image\QImage.cpp" />
     <ClCompile Include="ui\common\image\QImageList.cpp" />
     <ClCompile Include="ui\common\image\QStaticImage.cpp" />
+    <ClCompile Include="ui\common\listview\QListViewCtrl.cpp" />
     <ClCompile Include="ui\common\message\QMessageBox.cpp" />
     <ClCompile Include="ui\common\message\QPopAnimate.cpp" />
     <ClCompile Include="ui\common\page\QHelpPage.cpp" />
@@ -354,6 +355,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\message\QPopAnimate.h" />
     <ClInclude Include="ui\common\page\QHelpPage.h" />
     <ClInclude Include="ui\common\page\QPage.h" />
+    <ClInclude Include="ui\common\listview\QListViewCtrl.h" />
     <ClInclude Include="ui\common\QWinCreater.h" />
     <ClInclude Include="ui\common\tabview\QTabView.h" />
     <ClInclude Include="ui\database\DatabasePanel.h" />

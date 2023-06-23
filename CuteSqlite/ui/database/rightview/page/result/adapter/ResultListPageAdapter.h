@@ -27,6 +27,7 @@
 #include "core/service/db/SqlService.h"
 #include "core/service/db/DatabaseService.h"
 #include "core/common/repository/QSqlStatement.h"
+#include "ui/common/listview/QListViewCtrl.h"
 
 /**
  * Define FilterTuple and DataFilters
@@ -43,10 +44,10 @@ typedef enum {
 } ResultType;
 
 #define TABLE_DATA_SETTING_PREFIX L"table-data-"
-class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, CListViewCtrl>
+class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, QListViewCtrl>
 {
 public:
-	ResultListPageAdapter(HWND parentHwnd, CListViewCtrl * listView, ResultType resultType = QUERY_RESULT);
+	ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * listView, ResultType resultType = QUERY_RESULT);
 	~ResultListPageAdapter();
 
 	int loadListView(uint64_t userDbId, std::wstring & sql);
@@ -83,7 +84,8 @@ public:
 	// system sys_init table key prefix
 	void setSettingPrefix(std::wstring & prefix);
 
-	
+	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
+	void invalidateSubItem(int iItem, int iSubItem);
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

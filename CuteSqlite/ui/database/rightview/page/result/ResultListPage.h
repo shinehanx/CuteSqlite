@@ -27,9 +27,12 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/rightview/page/result/form/RowDataFormView.h"
+#include "ui/common/listview/QListViewCtrl.h"
 
 class ResultListPage : public QPage {
 public:
+	BOOL PreTranslateMessage(MSG* pMsg);
+
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(ResultListPage)
@@ -53,6 +56,8 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID, OnClickCopySelRowsToClipboardMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, OnClickCopyAllRowsAsSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, OnClickCopySelRowsAsSqlMenu)
+
+		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_COLUMN_CLICK_ID, OnClickListViewColumn)
 		
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -89,7 +94,7 @@ protected:
 	CStatic rowsLabel;
 	CEdit rowsEdit;
 
-	CListViewCtrl listView;
+	QListViewCtrl listView;
 	RowDataFormView formView;
 	CMultiPaneStatusBarCtrl statusBar;
 
@@ -112,7 +117,7 @@ protected:
 	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);
 	virtual void doCreateOrShowToolBarRightPaneElems(CRect &rect, CRect & clientRect);
 
-	void createOrShowListView(CListViewCtrl & win, CRect & clientRect);
+	virtual void createOrShowListView(QListViewCtrl & win, CRect & clientRect);
 	void createOrShowFormView(RowDataFormView & win, CRect & clientRect);
 	void createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect & clientRect);
 
@@ -146,6 +151,8 @@ protected:
 	void OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
