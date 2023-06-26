@@ -73,7 +73,8 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 {
 	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA; // | LVS_OWNERDATA
+		// virtual listview must be have LVS_OWNERDATA style
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA; 
 
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
@@ -140,34 +141,49 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 	copyRowButton.SetToolTip(S(L"copy-row"));
 
 	rect.OffsetRect(16 + 10, 0);
+	bool enabledSave;
 	if (!saveButton.IsWindow()) {
-		normalImagePath = imgDir + L"database\\list\\button\\save-button-normal.png";
-		pressedImagePath = imgDir + L"database\\list\\button\\save-button-pressed.png";
+		normalImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
 		saveButton.SetIconPath(normalImagePath, pressedImagePath);
 		saveButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		enabledSave = false;
+	} else {
+		enabledSave = saveButton.IsWindowEnabled();
 	}
 	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::LISTVIEW_SAVE_BUTTON_ID, L"", rect, clientRect);
 	saveButton.SetToolTip(S(L"save"));
-
+	enableSaveButton(enabledSave);
+	
 	rect.OffsetRect(16 + 10, 0);
+	bool enabledDelete;
 	if (!deleteButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\delete-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\delete-button-pressed.png";
 		deleteButton.SetIconPath(normalImagePath, pressedImagePath);
 		deleteButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		enabledDelete = false;
+	} else {
+		enabledDelete = deleteButton.IsWindowEnabled();
 	}
 	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::LISTVIEW_DELETE_BUTTON_ID, L"", rect, clientRect);
 	deleteButton.SetToolTip(S(L"delete"));
+	enableDeleteButton(enabledDelete);
 
 	rect.OffsetRect(16 + 10, 0);
+	bool enabledCancel;
 	if (!cancelButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\cancel-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\cancel-button-pressed.png";
 		cancelButton.SetIconPath(normalImagePath, pressedImagePath);
 		cancelButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		enabledCancel = false;
+	} else {
+		enabledCancel = cancelButton.IsWindowEnabled();
 	}
 	QWinCreater::createOrShowButton(m_hWnd, cancelButton, Config::LISTVIEW_CANCEL_BUTTON_ID, L"", rect, clientRect);
 	cancelButton.SetToolTip(S(L"cancel"));
+	enableCancelButton(enabledCancel);
 }
 
 void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect)
@@ -188,6 +204,63 @@ void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
 }
 
+
+void ResultTableDataPage::enableSaveButton(bool enabled)
+{
+	bool origEnabled = saveButton.IsWindowEnabled();
+	if (origEnabled == enabled) {
+		return ;
+	}
+	std::wstring normalImagePath, pressedImagePath;
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	if (enabled) {
+		normalImagePath = imgDir + L"database\\list\\button\\save-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\save-button-pressed.png";
+	} else {
+		normalImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
+	}
+	saveButton.SetIconPath(normalImagePath, pressedImagePath);
+	saveButton.EnableWindow(enabled);
+}
+
+void ResultTableDataPage::enableDeleteButton(bool enabled)
+{
+	bool origEnabled = deleteButton.IsWindowEnabled();
+	if (origEnabled == enabled) {
+		return ;
+	}
+	std::wstring normalImagePath, pressedImagePath;
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	if (enabled) {
+		normalImagePath = imgDir + L"database\\list\\button\\delete-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\delete-button-pressed.png";
+	} else {
+		normalImagePath = imgDir + L"database\\list\\button\\delete-button-disabled.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\delete-button-disabled.png";
+	}
+	deleteButton.SetIconPath(normalImagePath, pressedImagePath);
+	deleteButton.EnableWindow(enabled);
+}
+
+void ResultTableDataPage::enableCancelButton(bool enabled)
+{
+	bool origEnabled = cancelButton.IsWindowEnabled();
+	if (origEnabled == enabled) {
+		return ;
+	}
+	std::wstring normalImagePath, pressedImagePath;
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	if (enabled) {
+		normalImagePath = imgDir + L"database\\list\\button\\cancel-button-normal.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\cancel-button-pressed.png";
+	} else {
+		normalImagePath = imgDir + L"database\\list\\button\\cancel-button-disabled.png";
+		pressedImagePath = imgDir + L"database\\list\\button\\cancel-button-disabled.png";
+	}
+	cancelButton.SetIconPath(normalImagePath, pressedImagePath);
+	cancelButton.EnableWindow(enabled);
+}
 
 int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -210,32 +283,120 @@ int ResultTableDataPage::OnDestroy()
 	return ret;
 }
 
+void ResultTableDataPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	ResultListPage::OnClickFilterButton(uNotifyCode, nID, hwnd);
+	enableSaveButton(false);
+	enableCancelButton(false);
+}
+
+void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	ResultListPage::OnClickRefreshButton(uNotifyCode, nID, hwnd);
+	enableSaveButton(false);
+	enableCancelButton(false);
+}
+
+LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	auto ret = ResultListPage::OnClickListView(idCtrl, pnmh, bHandled);
+	// show toolbar buttons after selected items in ListView
+	afterSelectedListView();
+	return ret;
+}
+
+LRESULT ResultTableDataPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	auto ret = ResultListPage::OnClickListViewColumn(uMsg, wParam, lParam, bHandled);
+	// show toolbar buttons after selected items in ListView
+	afterSelectedListView();
+	return ret;
+}
+
+void ResultTableDataPage::afterSelectedListView()
+{
+	if (listView.GetSelectedCount()) {
+		enableDeleteButton(true);
+	}
+	else {
+		enableDeleteButton(false);
+	}
+}
+
 LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	Q_INFO(L"OnBeginLabelEditListView, pdi.item.iItem.:{}, pdi.item.iSubItem:{}", aItem->iItem, aItem->iSubItem);
+	Q_INFO(L"OnDbClickListView, pdi.item.iItem.:{}, pdi.item.iSubItem:{}", aItem->iItem, aItem->iSubItem);
 	
-	CRect clientRect;
-	GetClientRect(clientRect);
-
 	// show the editor
-	listView.createOrShowEdits(subItemPos, clientRect);
+	listView.createOrShowEditor(subItemPos);
+
+	// show toolbar buttons after selected items in ListView
+	afterSelectedListView();
 
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	QListViewCtrl::SubItemValues changedVals = listView.getChangedVals();
+	SubItemValues changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
-		adapter->changeRuntimeDatasItem(val.subItemPos.first, val.subItemPos.second, val.origVal, val.newVal);
-		adapter->invalidateSubItem(val.subItemPos.first, val.subItemPos.second);
+		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
+		adapter->invalidateSubItem(val.iItem, val.iSubItem);
+	}
+	if (!changedVals.empty()) {
+		enableSaveButton(true);
+		enableCancelButton(true);
+	}
+	return 0;
+}
+
+LRESULT ResultTableDataPage::OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->createNewRow();
+	enableSaveButton(true);
+	enableCancelButton(true);
+	return 0;
+}
+
+LRESULT ResultTableDataPage::OnClickCopyRowButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->copyNewRow();
+	enableSaveButton(true);
+	enableCancelButton(true);
+	return 0;
+}
+
+LRESULT ResultTableDataPage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	if (adapter->save()) {
+		enableSaveButton(false);
+		enableCancelButton(false);
 	}
 	
 	return 0;
 }
 
+LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	if (adapter->remove()) {
+		enableSaveButton(false);
+		enableCancelButton(false);
+	}
+	
+	return 0;
+}
+
+LRESULT ResultTableDataPage::OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	if (adapter->cancel()) {
+		enableSaveButton(false);
+		enableCancelButton(false);
+	}
+	
+	return 0;
+}
 

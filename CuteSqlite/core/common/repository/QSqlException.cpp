@@ -41,7 +41,7 @@ QSqlException::QSqlException(sqlite3* apSQLite, int ret) :
 
 const std::wstring QSqlException::getErrorStr() const noexcept
 {
-	const char * msg = sqlite3_errstr(mErrcode);
+	const char * msg = what();
 	std::wstring wmsg = StringUtil::utf82Unicode(msg);
 	return wmsg;
 }

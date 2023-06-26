@@ -60,7 +60,9 @@ public:
 
 	void changeSelectAllItems();
 
+	RowItem getFirstSelectdRowItem();
 	DataList getSelectedDatas();
+	int getSelectedItemCount();
 
 	UserTableStrings getRuntimeTables();
 	Columns getRuntimeColumns();
@@ -86,6 +88,17 @@ public:
 
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
+
+	// create/copy a new rows operation
+	void createNewRow();
+	void copyNewRow();
+	// save/delete/cancel
+	bool save();
+	bool remove();
+
+	int removeRowFromDb(int nSelItem, RowItem & rowItem);
+
+	bool cancel();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -97,7 +110,8 @@ private:
 
 	UserTableStrings runtimeTables;
 	Columns runtimeColumns;
-	DataList runtimeDatas;
+	DataList runtimeDatas;   // runtime data(s) for showing list view
+	std::vector<int> runtimeNewRows; // runtimeDatas index for create or copy a new row
 
 	DataFilters runtimeFilters;
 
@@ -112,4 +126,8 @@ private:
 	bool getIsChecked(int iItem);
 
 	std::wstring buildRungtimeSqlWithFilters();
+
+	//save datas
+	bool saveChangeVals();
+	bool saveNewRows();
 };

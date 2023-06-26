@@ -25,33 +25,32 @@
 #include <atlcrack.h>
 #include <atltypes.h>
 #include "common/Config.h"
+#include "core/entity/Entity.h"
 
 
 class QListViewCtrl : public CWindowImpl<QListViewCtrl,CListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
-
-	typedef struct {
-		std::pair<int, int> subItemPos;
-		std::wstring origVal;
-		std::wstring newVal;
-	} SubItemValue;
-	typedef std::vector<SubItemValue> SubItemValues;
-
 	DECLARE_WND_SUPERCLASS(_T("WTL_SortListViewCtrl"), GetWndClassName())
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
 		MSG_WM_NOTIFY(OnNotify)
+		MSG_WM_SIZE(OnSize)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus);
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void createOrShowEdits(std::pair<int, int> subItemPos, CRect & clientRect);
+	void createOrShowEditor(std::pair<int, int> subItemPos);
+	void createOrShowEditor(int iItem, int iSubItem);
+
 	SubItemValues getChangedVals();
+	SubItemValues getRowChangedVals(int iItem);
+	void setChangedVals(SubItemValues & changeVals);
 	void clearChangeVals();
+	void removeChangedValsItems(int iItem);
 private:
 	CEdit subItemEdit;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
@@ -67,6 +66,7 @@ private:
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnSize(UINT nType, CSize size);
 
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
 };

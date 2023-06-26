@@ -15,8 +15,8 @@
 #include "resource.h"
 #include "ui/common/button/QImageButton.h"
 
-#define QMESSAGEBOX_WIDTH 300
-#define QMESSAGEBOX_HEIGHT 120
+#define QMESSAGEBOX_WIDTH 400
+#define QMESSAGEBOX_HEIGHT 180
 class QMessageBox : public CDialogImpl<QMessageBox> {
 public:
 	enum { IDD = IDD_QFORM_DIALOG };

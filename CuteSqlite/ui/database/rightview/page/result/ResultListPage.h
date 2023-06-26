@@ -133,7 +133,7 @@ protected:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
-	LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	virtual LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnRightClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
@@ -149,10 +149,10 @@ protected:
 	void OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
+	virtual void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
+	virtual void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
 
-	LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);

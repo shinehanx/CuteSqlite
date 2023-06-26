@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "QListViewCtrl.h"
 #include <atlstr.h>
-
+#include <algorithm>
 
 BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 {
@@ -30,13 +30,12 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	} else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) {
 		changeSubItemText();
-		//return FALSE;
 	}
 
 	return FALSE;
 }
 
-void QListViewCtrl::createOrShowEdits(std::pair<int, int> subItemPos, CRect & clientRect)
+void QListViewCtrl::createOrShowEditor(std::pair<int, int> subItemPos)
 {
 	if (subItemPos.first < 0 || subItemPos.second < 0) {
 		return;
@@ -55,15 +54,66 @@ void QListViewCtrl::createOrShowEdits(std::pair<int, int> subItemPos, CRect & cl
 }
 
 
-QListViewCtrl::SubItemValues QListViewCtrl::getChangedVals()
+void QListViewCtrl::createOrShowEditor(int iItem, int iSubItem)
+{
+	createOrShowEditor(std::pair<int, int>(iItem, iSubItem));
+}
+
+SubItemValues QListViewCtrl::getChangedVals()
 {
 	return changeVals;
 }
 
+/**
+ * Get changed values only the specified row index.
+ * 
+ * @param iItem The row index
+ * @return 
+ */
+SubItemValues QListViewCtrl::getRowChangedVals(int iItem)
+{
+	if (changeVals.empty() || iItem < 0 || iItem >= GetItemCount()) {
+		return SubItemValues();
+	}
+
+	SubItemValues result;
+	for (auto val : changeVals) {
+		if (val.iItem == iItem) {
+			result.push_back(val);
+		}
+	}
+
+	return result;
+}
+
+void QListViewCtrl::setChangedVals(SubItemValues & changeVals)
+{
+	this->changeVals = changeVals;
+}
 
 void QListViewCtrl::clearChangeVals()
 {
 	changeVals.clear();
+}
+
+/**
+ * find the item(s) from changeVals and then remove them.
+ * 
+ * @param iItem
+ */
+void QListViewCtrl::removeChangedValsItems(int iItem)
+{
+	auto iter = changeVals.begin();
+	for (; iter != changeVals.end(); iter++) {
+		if ((*iter).iItem == iItem) {
+			if (iter != changeVals.begin()) {
+				changeVals.erase(iter--);
+			} else {
+				changeVals.erase(iter);
+				iter = changeVals.begin();
+			}			
+		}		
+	}
 }
 
 /**
@@ -87,7 +137,8 @@ void QListViewCtrl::changeSubItemText()
 		GetItemText(subItemPos.first, subItemPos.second, cch, 1024);
 		
 
-		subItemVal.subItemPos = { subItemPos.first, subItemPos.second };
+		subItemVal.iItem = subItemPos.first;
+		subItemVal.iSubItem = subItemPos.second;
 		subItemVal.origVal.assign(cch);
 		subItemVal.newVal = text;
 
@@ -97,7 +148,19 @@ void QListViewCtrl::changeSubItemText()
 			isVisibleEdit = false;
 			return;
 		}
-		changeVals.push_back(subItemVal);
+
+		// change the newVal in exists item in changeVals vector
+		auto iter = std::find_if(changeVals.begin(), changeVals.end(), [&subItemVal](SubItemValue &val) {
+			return val.iItem == subItemVal.iItem && val.iSubItem == subItemVal.iSubItem;
+		});
+
+		// Only change newVal, origVal not need change for the exist item.
+		if (iter != changeVals.end()) {
+			(*iter).newVal = subItemVal.newVal;
+		} else {
+			changeVals.push_back(subItemVal);
+		}
+		
 		subItemEdit.DestroyWindow();
 		isVisibleEdit = false;
 
@@ -145,6 +208,12 @@ LRESULT QListViewCtrl::OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hw
 	changeSubItemText();
 
 	return 0;
+}
+
+
+void QListViewCtrl::OnSize(UINT nType, CSize size)
+{
+	changeSubItemText();
 }
 
 LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)

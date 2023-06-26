@@ -112,5 +112,13 @@ typedef struct _LimitParams {
 	int offset = 0;
 	int rows = 0;
 } LimitParams;
+
+typedef struct {
+	int iItem;
+	int iSubItem;
+	std::wstring origVal;
+	std::wstring newVal;
+} SubItemValue;
+typedef std::vector<SubItemValue> SubItemValues;
 #endif
 

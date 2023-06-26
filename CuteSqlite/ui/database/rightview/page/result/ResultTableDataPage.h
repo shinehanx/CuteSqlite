@@ -33,6 +33,11 @@ public:
 		MSG_WM_DESTROY(OnDestroy)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_NEW_ROW_BUTTON_ID, BN_CLICKED, OnClickNewRowButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_COPY_ROW_BUTTON_ID, BN_CLICKED, OnClickCopyRowButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_SAVE_BUTTON_ID, BN_CLICKED, OnClickSaveButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_DELETE_BUTTON_ID, BN_CLICKED, OnClickDeleteButton)
+		COMMAND_HANDLER_EX(Config::LISTVIEW_CANCEL_BUTTON_ID, BN_CLICKED, OnClickCancelButton)
 		CHAIN_MSG_MAP(ResultListPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -62,11 +67,26 @@ protected:
 	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);	 // override
 	void doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect);	 // extend 
 
-	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	void enableSaveButton(bool enabled);
+	void enableDeleteButton(bool enabled);
+	void enableCancelButton(bool enabled);
+	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct); 
 	virtual int OnDestroy();
+	virtual void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
+	virtual void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	virtual LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	virtual LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
 
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
+	LRESULT OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickCopyRowButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl);
 
+	void afterSelectedListView();
 };

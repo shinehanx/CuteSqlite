@@ -239,13 +239,13 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "CuteSqlite Module"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileDescription", "CuteSqlite"
+            VALUE "FileVersion", "0, 0, 0, 1"
             VALUE "InternalName", "CuteSqlite"
-            VALUE "LegalCopyright", "Copyright 2023"
+            VALUE "LegalCopyright", "Copyright 2023 Xuehan Qin"
             VALUE "OriginalFilename", "CuteSqlite.exe"
-            VALUE "ProductName", "CuteSqlite Module"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductName", "CuteSqlite"
+            VALUE "ProductVersion", "0, 0, 0, 1"
         END
     END
     BLOCK "VarFileInfo"

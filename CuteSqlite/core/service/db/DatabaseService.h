@@ -61,6 +61,9 @@ public:
 	// user indexes operations
 	UserIndexList getUserIndexes(uint64_t userDbId, std::wstring & tblName);
 	
+	// get runtime user unique or index columns
+	std::wstring getPrimaryKeyColumn(uint64_t userDbId, std::wstring & tblName, Columns & columns);
+
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();

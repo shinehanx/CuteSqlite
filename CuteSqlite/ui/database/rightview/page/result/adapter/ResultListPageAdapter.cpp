@@ -2,9 +2,11 @@
 #include "ResultListPageAdapter.h"
 #include <Strsafe.h>
 #include <CommCtrl.h>
+#include "core/common/Lang.h"
 #include "core/common/repository/QSqlException.h"
 #include "core/service/system/SettingService.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "ui/common/message/QMessageBox.h"
 #include "utils/SqlUtil.h"
 #include "utils/ClipboardUtil.h"
 
@@ -30,10 +32,12 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		dataView->DeleteColumn(i);
 	}
 	dataView->DeleteAllItems();
+	dataView->clearChangeVals();
 	runtimeTables.clear();
 	runtimeDatas.clear();
 	runtimeColumns.clear();
 	runtimeFilters.clear();
+	runtimeNewRows.clear();
 
 	runtimeUserDbId = userDbId;
 	originSql = sql;
@@ -68,8 +72,10 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 int ResultListPageAdapter::loadFilterListView()
 {
 	dataView->DeleteAllItems();
+	dataView->clearChangeVals();
 	runtimeTables.clear();
 	runtimeDatas.clear();
+	runtimeNewRows.clear();
 
 	if (originSql.empty()) {
 		return 0;
@@ -103,8 +109,11 @@ LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
 	if (!count || count <= iItem)
 		return 0;
 
-	// set check image in the first column
-	
+	if (iItem == count - 1) {
+		iItem = count - 1;
+	}
+
+	// set checked/unchecked image in the first column	
 	if (pLvdi->item.iSubItem == 0 && pLvdi->item.mask & LVIF_TEXT) {
 		pLvdi->item.mask = LVIF_IMAGE;
 		if (getIsChecked(pLvdi->item.iItem)) {
@@ -172,7 +181,7 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 		runtimeDatas.push_back(rowItem);
 	}
 	int nRow = static_cast<int>(runtimeDatas.size());
-	// trigger CListViewCtrl message LVN_GETDISPINFO to parent HWND, will call functon this->fillListViewItemData(NMLVDISPINFO * pLvdi)
+	// trigger CListViewCtrl message LVN_GETDISPINFO to parent HWND, it will call this->fillListViewItemData(NMLVDISPINFO * pLvdi)
 	dataView->SetItemCount(nRow);
 	
 	return nRow;
@@ -201,7 +210,7 @@ bool ResultListPageAdapter::getIsChecked(int iItem)
 	if (dataView->GetSelectedCount() == 0) {
 		return false;
 	}
-	int nSelItem = dataView->GetNextItem(-1, LVNI_ALL | LVNI_SELECTED); //向下搜索选中的项 -1表示先找出第一个
+	int nSelItem = dataView->GetNextItem(-1, LVNI_ALL | LVNI_SELECTED); // 向下搜索选中的项 -1表示先找出第一个
 	
 	while (nSelItem != -1) {
 		if (nSelItem == iItem) {
@@ -284,6 +293,8 @@ std::wstring ResultListPageAdapter::buildRungtimeSqlWithFilters()
 	return newSql;
 }
 
+
+
 void ResultListPageAdapter::changeSelectAllItems()
 {
 	CHeaderCtrl headerCtrl = dataView->GetHeader();
@@ -300,6 +311,23 @@ void ResultListPageAdapter::changeSelectAllItems()
 	}
 	headerItem.fmt = HDF_LEFT;
 	headerCtrl.SetItem(0, &headerItem);
+}
+
+RowItem ResultListPageAdapter::getFirstSelectdRowItem()
+{
+	if (!dataView->GetSelectedCount()) {
+		return RowItem();
+	}
+	
+	int nSelItem = -1;
+	if ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		DataList::iterator itor = runtimeDatas.begin();		
+		for (int i = 0; i < nSelItem && itor != runtimeDatas.end(); i++) {
+			itor++;
+		}
+		return *itor;
+	}
+	return RowItem();
 }
 
 DataList ResultListPageAdapter::getSelectedDatas()
@@ -320,6 +348,11 @@ DataList ResultListPageAdapter::getSelectedDatas()
 		
 	}
 	return result;
+}
+
+int ResultListPageAdapter::getSelectedItemCount()
+{
+	return dataView->GetSelectedCount();
 }
 
 UserTableStrings ResultListPageAdapter::getRuntimeTables()
@@ -599,4 +632,307 @@ void ResultListPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 	CRect subItemRect;
 	dataView->GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
 	dataView->InvalidateRect(subItemRect, false);
+}
+
+void ResultListPageAdapter::createNewRow()
+{
+	if (runtimeColumns.empty()) {
+		return;
+	}
+	// 1.create a empty row and push it to runtimeDatas list
+	RowItem row;
+	std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	int n = static_cast<int>(runtimeColumns.size());
+	for (int i = 0; i < n; i++) {
+		auto colum = runtimeColumns.at(i);
+		if (colum == primaryKey) {
+			row.push_back(L"(Auto)");
+		}else {
+			row.push_back(std::wstring());
+		}
+		
+	}
+	runtimeDatas.push_back(row);
+
+	// 2.update the item count and selected the new row	
+	n = static_cast<int>(runtimeDatas.size());
+	runtimeNewRows.push_back(n-1); // param - runtimeDatas index
+	dataView->SetItemCount(n);
+	dataView->SelectItem(n-1);
+
+	// 3.show the editor on first column for the new row 
+	dataView->createOrShowEditor(n - 1, 1);// the 1th column
+}
+
+void ResultListPageAdapter::copyNewRow()
+{
+	if (runtimeColumns.empty()) {
+		return;
+	}
+	// 1.copy selected row and push it to runtimeDatas list
+	RowItem row = getFirstSelectdRowItem();
+	if (row.empty()) {
+		return;
+	}
+	auto primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	if (primaryKey == runtimeColumns.at(0)) {
+		row[0] = L"(Auto)";
+	}
+	runtimeDatas.push_back(row);
+	int n = static_cast<int>(runtimeDatas.size());
+	runtimeNewRows.push_back(n-1); // runtimeDatas index
+	dataView->SetItemCount(n);
+	dataView->SelectItem(n-1);
+
+	// 2.show the editor on first column for the new row 
+	std::pair<int, int> subItemPos(n - 1, 1); // the 1th column
+	dataView->createOrShowEditor(subItemPos);
+}
+
+/**
+ * save the change data includes:
+ * 1.The changeVals from QListView::getChangeVals
+ * 2.The runtimeDates index from runtimeNewRows 
+ * 
+ * @return 
+ */
+bool ResultListPageAdapter::save()
+{
+	// 1.The changeVals from QListViewCtrl::getChangeVals function
+	bool ret = saveChangeVals();
+	if (!ret) {
+		return ret;
+	}
+	// 2. The runtimeNewRows that it save runtimeDatas index  
+	ret = saveNewRows();
+	if (!ret) {
+		return ret;
+	}
+
+	return true;
+}
+
+/**
+ * The changeVals from QListViewCtrl::getChangeVals function will be save.
+ * 
+ */
+bool ResultListPageAdapter::saveChangeVals()
+{
+	SubItemValues changeVals = dataView->getChangedVals();
+	SubItemValues errorChanges;
+	for (auto subItemVal : changeVals) {
+		int iItem = subItemVal.iItem;
+		int iSubItem = subItemVal.iSubItem;
+
+		//iItem will be excludes if it's in the vector rumtimeNewRows
+		auto iterItem = std::find(runtimeNewRows.begin(), runtimeNewRows.end(), iItem);
+		if (iterItem != runtimeNewRows.end()) {
+			continue;
+		}
+
+		auto iter = runtimeDatas.begin();
+		for (int i = 0; i < iItem ; i++) {
+			iter++;
+		}
+		// this row change vals vector
+		SubItemValues rowChangeVals = dataView->getRowChangedVals(iItem);
+
+		RowItem & rowItem = *iter;
+		std::wstring tblName = runtimeTables.at(0);
+		std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+		std::wstring whereClause;
+		int nSelSubItem = iSubItem - 1;
+		std::wstring & origVal = subItemVal.origVal;
+		if (primaryKey.empty()) {
+			whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangeVals);
+		} else {
+			whereClause = SqlUtil::makeWhereClauseByPrimaryKey(primaryKey, runtimeColumns, rowItem, rowChangeVals);
+		}
+
+		std::wstring newVal = StringUtil::escapeSql(subItemVal.newVal);
+		std::wstring sqlUpdate(L"UPDATE ");
+		sqlUpdate.append(tblName)
+			.append(L" SET \"")
+			.append(runtimeColumns.at(nSelSubItem))
+			.append(L"\"='")
+			.append(newVal).append(L"'")
+			.append(whereClause);
+
+		try {
+			auto stmt = sqlService->executeSql(runtimeUserDbId, sqlUpdate);
+			stmt.exec();
+		}  catch (SQLite::QSqlException &ex) {
+			errorChanges.push_back(subItemVal);
+			std::wstring _err(L"Error:\r\n");
+			_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlUpdate);
+			Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
+			// QPopAnimate::error(parentHwnd, _err);
+			QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
+			dataView->createOrShowEditor(subItemVal.iItem, subItemVal.iSubItem);
+		}
+	}
+	// clear changes
+	dataView->clearChangeVals();
+
+	// restore the changeVals if has error
+	if (!errorChanges.empty()) {
+		dataView->setChangedVals(errorChanges);
+		return false;
+	} 
+	return true;
+}
+
+/**
+ * The runtimeDates index from runtimeNewRows.
+ * 
+ */
+bool ResultListPageAdapter::saveNewRows()
+{
+	if (runtimeNewRows.empty()) {
+		return true;
+	}
+	std::vector<int> errorNewRows;
+	std::wstring tblName = runtimeTables.at(0);
+	for (auto nItem : runtimeNewRows) {
+		auto itor = runtimeDatas.begin();
+		for (int i = 0; i < nItem; i++) {
+			itor++;
+		}
+		std::wstring colums = SqlUtil::makeInsertColumsClause(runtimeColumns);
+		std::wstring values = SqlUtil::makeInsertValuesClause(*itor);
+		if (colums.empty() || values.empty()) {
+			continue;
+		}
+		
+		std::wstring sqlInsert(L"INSERT INTO ");
+		sqlInsert.append(tblName).append(colums).append(values);
+
+		try {
+			auto stmt = sqlService->executeSql(runtimeUserDbId, sqlInsert);
+			stmt.exec();
+		}  catch (SQLite::QSqlException &ex) {
+			errorNewRows.push_back(nItem);
+			std::wstring _err(L"Error:\r\n");
+			_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlInsert);
+			Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
+			QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
+			dataView->createOrShowEditor(nItem, 1);
+		}
+	}
+
+	// clear new rows
+	runtimeNewRows.clear();
+
+	// reset the runtimeNewRows if has error
+	if (!errorNewRows.empty()) {
+		runtimeNewRows = errorNewRows;
+		return false;
+	} 
+	loadFilterListView();
+	return true;
+}
+
+bool ResultListPageAdapter::remove()
+{
+	if (!dataView->GetSelectedCount()) {
+		return false;
+	}
+	if (QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+		return false;
+	}
+		
+	// 1. delete the changeVals from dataView
+	std::vector<int> nSelItems;
+	int nSelItem = -1;
+	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		nSelItems.push_back(nSelItem);
+		dataView->removeChangedValsItems(nSelItem);
+	}
+
+	if (nSelItems.empty()) {
+		return false;
+	}
+
+	// 2.delete from runtimeDatas and database and dataView that the item begin from the last selected item
+	int n = static_cast<int>(nSelItems.size());
+	for (int i = n - 1; i >= 0; i--) {
+		nSelItem = nSelItems.at(i);
+		auto iter = runtimeDatas.begin();
+		for (int j = 0; j < nSelItem; j++) {
+			iter++;
+		}
+		RowItem & rowItem = (*iter);
+		// 2.1 delete row from database 
+		if (!removeRowFromDb(nSelItem, rowItem)) {
+			return false;
+		}
+
+		// 2.2 delete row from runtimeDatas vector 
+		runtimeDatas.erase(iter);
+
+		// 2.3 delete row from dataView
+		dataView->DeleteItem(nSelItem);
+	}
+
+	// 3.delete or subtract runtimeNewRows item begin from the last selected item
+	for (int i = n - 1; i >= 0; i--) {
+		nSelItem = nSelItems.at(i);
+		auto itor = runtimeNewRows.begin();
+		for (; itor != runtimeNewRows.end(); itor++) {
+			if ((*itor) == nSelItem) {
+				if (itor != runtimeNewRows.begin()) {
+					runtimeNewRows.erase(itor--);
+				} else {
+					runtimeNewRows.erase(itor);
+					itor = runtimeNewRows.begin();
+				}				
+			} else if ((*itor) > nSelItem) {
+				(*itor)--;
+			}
+		}
+	}
+
+	return true;
+}
+
+int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
+{
+	std::wstring & tblName = runtimeTables.at(0);
+
+	// if the nSelItem row 
+	auto iter = std::find(runtimeNewRows.begin(), runtimeNewRows.end(), nSelItem);
+	if (iter != runtimeNewRows.end()) {
+		return 1;
+	}
+
+	// this row change vals vector
+	SubItemValues rowChangedVals = dataView->getRowChangedVals(nSelItem);
+
+	// delete row from database 
+	std::wstring sqlDelete = L"DELETE FROM ";
+	std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+	std::wstring whereClause;
+	if (primaryKey.empty()) {
+		whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangedVals);
+	}
+	else {
+		whereClause = SqlUtil::makeWhereClauseByPrimaryKey(primaryKey, runtimeColumns, rowItem, rowChangedVals);
+	}
+	sqlDelete.append(tblName).append(whereClause);
+	try {
+		auto stmt = sqlService->executeSql(runtimeUserDbId, sqlDelete);
+		return stmt.exec();
+	} catch (SQLite::QSqlException &ex) {
+
+		std::wstring _err(L"Error:\r\n");
+		_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlDelete);
+		Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
+		QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
+		return 0;
+	}
+}
+
+bool ResultListPageAdapter::cancel()
+{
+	return true;
 }

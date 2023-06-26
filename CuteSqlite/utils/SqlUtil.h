@@ -21,6 +21,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include "core/entity/Entity.h"
 
 class SqlUtil {
 public:
@@ -40,18 +41,27 @@ public:
 	// table statement of select sql regex pattern
 	static std::wregex selectTablesPat;
 
-	
+	//primary key pattern of create table statement
+	static std::wregex primaryKeyPat;
 
 	// field regex pattern
 	static std::wregex columnPat;
 
 	static std::vector<std::wstring> tableTags;
 
+	// parse sql 
 	static bool isSelectSql(std::wstring & sql);
 	static bool hasLimitClause(std::wstring & sql);
 	static std::wstring getColumnName(std::wstring & str);
 	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
 	static std::vector<std::wstring> parseTablesFromTableClause(std::wstring & tblStmt);
+	static std::wstring parsePrimaryKeyFromCreateTableSql(std::wstring & createTblSql);
 	static std::wstring getWhereClause(std::wstring & sql);
 	static std::wstring getFourthClause(std::wstring & sql);
+
+	// make sql
+	static std::wstring makeWhereClause(Columns & columns, RowItem &rowItem , SubItemValues &rowChangeVals);
+	static std::wstring makeWhereClauseByPrimaryKey(std::wstring & primaryKey, Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals);
+	static std::wstring makeInsertColumsClause(Columns & columns);
+	static std::wstring makeInsertValuesClause(RowItem & rowItem);
 };

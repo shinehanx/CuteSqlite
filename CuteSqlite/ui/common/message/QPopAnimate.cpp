@@ -94,7 +94,12 @@ void QPopAnimate::createOrShowImage(CRect & clientRect)
 void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 {
 	int fontSize = Lang::fontSize(L"message-text-size");
-	int x = clientRect.left + 10 + 20 + 5, y = (clientRect.Height() - fontSize) / 2 , w = clientRect.Width() - x - 20, h = fontSize;
+	std::wstring fontName = Lang::fontName();
+	CSize size = FontUtil::measureTextSize(text.c_str(), fontSize, false, fontName.c_str());
+	int x = clientRect.left + 10 + 20 + 5, 
+		y = (clientRect.Height() - fontSize) / 2 , 
+		w = clientRect.Width() - x - 20, 
+		h = size.cx % w ? (size.cx / w + 1) * size.cy : size.cx / w * size.cy;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, text, rect, clientRect, textFont, ES_MULTILINE);
 }

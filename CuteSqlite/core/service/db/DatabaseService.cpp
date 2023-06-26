@@ -21,6 +21,7 @@
 #include "DatabaseService.h"
 #include "utils/DateUtil.h"
 #include "utils/Log.h"
+#include "utils/SqlUtil.h"
 #include "core/common/exception/QRuntimeException.h"
 
 DatabaseService::DatabaseService()
@@ -141,6 +142,7 @@ UserTable DatabaseService::getUserTable(uint64_t userDbId, std::wstring & tblNam
 
 UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId)
 {
+	ATLASSERT(userDbId > 0);
 	UserTableStrings result;
 	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId);
 	for (auto userTable : userTableList) {
@@ -151,20 +153,46 @@ UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId)
 
 UserViewList DatabaseService::getUserViews(uint64_t userDbId)
 {
+	ATLASSERT(userDbId > 0);
 	return viewUserRepository->getListByUserDbId(userDbId);
 }
 
 UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId)
 {
+	ATLASSERT(userDbId > 0);
 	return triggerUserRepository->getListByUserDbId(userDbId);
 }
 
 ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, std::wstring & tblName)
 {
+	ATLASSERT(userDbId > 0 && !tblName.empty());
 	return fieldUserRepository->getListByTblName(userDbId, tblName);
 }
 
 UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, std::wstring & tblName)
 {
+	ATLASSERT(userDbId > 0 && !tblName.empty());
 	return indexUserRepository->getListByTblName(userDbId, tblName);
+}
+
+std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, std::wstring & tblName, Columns & columns)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName);
+	if (userTable.name.empty() || userTable.sql.empty()) {
+		return L"";
+	}
+
+	std::wstring & createTblSql = userTable.sql;
+	std::wstring primaryKey = SqlUtil::parsePrimaryKeyFromCreateTableSql(createTblSql);
+	if (primaryKey.empty()) {
+		return primaryKey;
+	}
+
+	for (auto column : columns) {
+		if (column == primaryKey) {
+			return primaryKey;
+		}
+	}
+	return L"";
 }

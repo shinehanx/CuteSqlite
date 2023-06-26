@@ -585,8 +585,6 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
  */
 LRESULT ResultListPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	LPNMHEADER pHeader = (LPNMHEADER)lParam;
-
 	if (wParam == 0) {
 		adapter->changeSelectAllItems();
 	}
@@ -724,7 +722,6 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	saveLimitParams();
-
 	auto _begin = beginExecTime();
 	rowCount = adapter->loadFilterListView();
 	endExecTime(_begin);
