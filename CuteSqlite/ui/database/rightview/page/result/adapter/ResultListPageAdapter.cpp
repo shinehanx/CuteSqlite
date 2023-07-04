@@ -832,12 +832,12 @@ bool ResultListPageAdapter::saveNewRows()
 	return true;
 }
 
-bool ResultListPageAdapter::remove()
+bool ResultListPageAdapter::remove(bool confirm)
 {
 	if (!dataView->GetSelectedCount()) {
 		return false;
 	}
-	if (QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
 		return false;
 	}
 		
@@ -874,21 +874,26 @@ bool ResultListPageAdapter::remove()
 		dataView->DeleteItem(nSelItem);
 	}
 
-	// 3.delete or subtract runtimeNewRows item begin from the last selected item
+	// 3.delete or subtract item index in runtimeNewRows and changeVals the item begin from the last selected item
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
 		auto itor = runtimeNewRows.begin();
-		for (; itor != runtimeNewRows.end(); itor++) {
+		while (itor != runtimeNewRows.end()) {
 			if ((*itor) == nSelItem) {
 				if (itor != runtimeNewRows.begin()) {
 					runtimeNewRows.erase(itor--);
 				} else {
 					runtimeNewRows.erase(itor);
 					itor = runtimeNewRows.begin();
-				}				
+					continue;
+				}
+				if (runtimeNewRows.empty()) {
+					break;
+				}
 			} else if ((*itor) > nSelItem) {
 				(*itor)--;
 			}
+			itor++;
 		}
 	}
 
@@ -932,7 +937,57 @@ int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
 	}
 }
 
+bool ResultListPageAdapter::isDirty()
+{
+	bool hasEditSubItem = dataView && dataView->IsWindow() ? dataView->getChangedCount() : false;
+	bool hasNewRow = !runtimeNewRows.empty(); 
+
+	return hasEditSubItem || hasNewRow;
+}
+
 bool ResultListPageAdapter::cancel()
 {
+	// 1. delete the new item from runtimeNewRows
+	if (!runtimeNewRows.empty()) {
+		int n = static_cast<int>(runtimeNewRows.size());
+		for (int i = n - 1; i >= 0; i--) {
+			int nSelItem = runtimeNewRows.at(i);
+			dataView->SelectItem(nSelItem);
+			if (!remove(false)) {
+				return false;
+			}
+		}		
+	}	
+
+	// 2. restore the text of subitem in the listview
+	if (!restoreChangeVals()) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * restore the change values from list view.
+ * 
+ */
+bool ResultListPageAdapter::restoreChangeVals()
+{
+	// 1.restore the runtimeDatas and refresh the text of the changed subitem 
+	auto changeVals = dataView->getChangedVals();
+	int n = static_cast<int>(changeVals.size());
+	for (int i = n - 1; i >= 0; i--) {
+		auto item = changeVals.at(i);
+		auto iter = runtimeDatas.begin();
+		for (int j = 0; j < item.iItem; j++) {
+			iter++;
+		}
+		(*iter).at(item.iSubItem - 1) = item.origVal;
+
+		// invalidate the subitem
+		invalidateSubItem(item.iItem, item.iSubItem);
+	}
+
+	// 2. clear all change vals
+	dataView->clearChangeVals();
 	return true;
 }

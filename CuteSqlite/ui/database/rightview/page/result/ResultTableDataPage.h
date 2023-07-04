@@ -67,9 +67,9 @@ protected:
 	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);	 // override
 	void doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect);	 // extend 
 
-	void enableSaveButton(bool enabled);
+	void enableSaveButton();
 	void enableDeleteButton(bool enabled);
-	void enableCancelButton(bool enabled);
+	void enableCancelButton();
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct); 
 	virtual int OnDestroy();
 	virtual void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);

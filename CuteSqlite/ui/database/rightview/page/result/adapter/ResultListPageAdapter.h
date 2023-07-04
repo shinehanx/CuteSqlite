@@ -94,11 +94,12 @@ public:
 	void copyNewRow();
 	// save/delete/cancel
 	bool save();
-	bool remove();
+	bool remove(bool confirm=true);
+	bool cancel();
 
 	int removeRowFromDb(int nSelItem, RowItem & rowItem);
 
-	bool cancel();
+	bool isDirty();
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -130,4 +131,5 @@ private:
 	//save datas
 	bool saveChangeVals();
 	bool saveNewRows();
+	bool restoreChangeVals();
 };

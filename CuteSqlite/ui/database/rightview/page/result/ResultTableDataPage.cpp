@@ -141,19 +141,15 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 	copyRowButton.SetToolTip(S(L"copy-row"));
 
 	rect.OffsetRect(16 + 10, 0);
-	bool enabledSave;
 	if (!saveButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\save-button-disabled.png";
 		saveButton.SetIconPath(normalImagePath, pressedImagePath);
 		saveButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-		enabledSave = false;
-	} else {
-		enabledSave = saveButton.IsWindowEnabled();
-	}
+	} 
 	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::LISTVIEW_SAVE_BUTTON_ID, L"", rect, clientRect);
 	saveButton.SetToolTip(S(L"save"));
-	enableSaveButton(enabledSave);
+	enableSaveButton();
 	
 	rect.OffsetRect(16 + 10, 0);
 	bool enabledDelete;
@@ -171,19 +167,15 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 	enableDeleteButton(enabledDelete);
 
 	rect.OffsetRect(16 + 10, 0);
-	bool enabledCancel;
 	if (!cancelButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\cancel-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\cancel-button-pressed.png";
 		cancelButton.SetIconPath(normalImagePath, pressedImagePath);
 		cancelButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-		enabledCancel = false;
-	} else {
-		enabledCancel = cancelButton.IsWindowEnabled();
 	}
 	QWinCreater::createOrShowButton(m_hWnd, cancelButton, Config::LISTVIEW_CANCEL_BUTTON_ID, L"", rect, clientRect);
 	cancelButton.SetToolTip(S(L"cancel"));
-	enableCancelButton(enabledCancel);
+	enableCancelButton();
 }
 
 void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect)
@@ -205,8 +197,9 @@ void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect
 }
 
 
-void ResultTableDataPage::enableSaveButton(bool enabled)
+void ResultTableDataPage::enableSaveButton()
 {
+	bool enabled = adapter ? adapter->isDirty() : false;
 	bool origEnabled = saveButton.IsWindowEnabled();
 	if (origEnabled == enabled) {
 		return ;
@@ -243,8 +236,9 @@ void ResultTableDataPage::enableDeleteButton(bool enabled)
 	deleteButton.EnableWindow(enabled);
 }
 
-void ResultTableDataPage::enableCancelButton(bool enabled)
+void ResultTableDataPage::enableCancelButton()
 {
+	bool enabled = adapter ? adapter->isDirty() : false;
 	bool origEnabled = cancelButton.IsWindowEnabled();
 	if (origEnabled == enabled) {
 		return ;
@@ -286,15 +280,15 @@ int ResultTableDataPage::OnDestroy()
 void ResultTableDataPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ResultListPage::OnClickFilterButton(uNotifyCode, nID, hwnd);
-	enableSaveButton(false);
-	enableCancelButton(false);
+	enableSaveButton();
+	enableCancelButton();
 }
 
 void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ResultListPage::OnClickRefreshButton(uNotifyCode, nID, hwnd);
-	enableSaveButton(false);
-	enableCancelButton(false);
+	enableSaveButton();
+	enableCancelButton();
 }
 
 LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
@@ -347,56 +341,53 @@ LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPara
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
 	}
-	if (!changedVals.empty()) {
-		enableSaveButton(true);
-		enableCancelButton(true);
-	}
+	
+	enableSaveButton();
+	enableCancelButton();
+	
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewRow();
-	enableSaveButton(true);
-	enableCancelButton(true);
+	enableSaveButton();
+	enableCancelButton();
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickCopyRowButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->copyNewRow();
-	enableSaveButton(true);
-	enableCancelButton(true);
+	enableSaveButton();
+	enableCancelButton();
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	if (adapter->save()) {
-		enableSaveButton(false);
-		enableCancelButton(false);
-	}
+	adapter->save();
+	enableSaveButton();
+	enableCancelButton();
+	
 	
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	if (adapter->remove()) {
-		enableSaveButton(false);
-		enableCancelButton(false);
-	}
+	adapter->remove();
+	enableSaveButton();
+	enableCancelButton();
 	
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	if (adapter->cancel()) {
-		enableSaveButton(false);
-		enableCancelButton(false);
-	}
-	
+	adapter->cancel();
+	enableSaveButton();
+	enableCancelButton();	
 	return 0;
 }
 

@@ -47,6 +47,7 @@ public:
 	void createOrShowEditor(int iItem, int iSubItem);
 
 	SubItemValues getChangedVals();
+	int getChangedCount();
 	SubItemValues getRowChangedVals(int iItem);
 	void setChangedVals(SubItemValues & changeVals);
 	void clearChangeVals();

@@ -64,6 +64,12 @@ SubItemValues QListViewCtrl::getChangedVals()
 	return changeVals;
 }
 
+
+int QListViewCtrl::getChangedCount()
+{
+	return static_cast<int>(changeVals.size());
+}
+
 /**
  * Get changed values only the specified row index.
  * 
@@ -88,7 +94,11 @@ SubItemValues QListViewCtrl::getRowChangedVals(int iItem)
 
 void QListViewCtrl::setChangedVals(SubItemValues & changeVals)
 {
-	this->changeVals = changeVals;
+	if (changeVals.empty()) {
+		this->changeVals.clear();
+		return ;
+	}
+	this->changeVals.assign(changeVals.begin(), changeVals.end());
 }
 
 void QListViewCtrl::clearChangeVals()
@@ -96,23 +106,38 @@ void QListViewCtrl::clearChangeVals()
 	changeVals.clear();
 }
 
+
+
 /**
  * find the item(s) from changeVals and then remove them.
+ * and then subtract the (*iter).iItem index if (*iter).iItem is bigger than the specified iItem
  * 
  * @param iItem
  */
 void QListViewCtrl::removeChangedValsItems(int iItem)
-{
+{	
 	auto iter = changeVals.begin();
-	for (; iter != changeVals.end(); iter++) {
+	while (iter != std::end(changeVals)) {
 		if ((*iter).iItem == iItem) {
 			if (iter != changeVals.begin()) {
 				changeVals.erase(iter--);
 			} else {
 				changeVals.erase(iter);
 				iter = changeVals.begin();
-			}			
-		}		
+				continue;
+			}
+			if (changeVals.empty()) {
+				break;
+			}
+		}
+		iter++;
+	}
+
+	// subsctract the iItem index 
+	for (auto iter = changeVals.begin(); iter != changeVals.end(); iter++) {
+		if ((*iter).iItem > iItem) {
+			(*iter).iItem--;
+		}
 	}
 }
 
