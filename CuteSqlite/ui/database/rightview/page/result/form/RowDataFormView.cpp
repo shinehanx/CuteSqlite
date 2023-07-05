@@ -28,9 +28,9 @@ void RowDataFormView::setup(ResultListPageAdapter * adapter)
 }
 
 
-void RowDataFormView::loadFormData()
+void RowDataFormView::loadFormData(bool readOnly)
 {
-	
+	this->readOnly = readOnly;
 	if (adapter == nullptr) {
 		return ;
 	}
@@ -81,6 +81,25 @@ void RowDataFormView::clearLabelsAndEdits()
 	}
 }
 
+
+void RowDataFormView::setEditText(int editIndex, std::wstring & text)
+{
+	if (editIndex < 0 || editIndex >= static_cast<int>(edits.size())) {
+		return ;
+	}
+	
+	auto ptr = edits.at(editIndex);
+	if (!ptr) {
+		return;
+	}
+	CString str;
+	ptr->GetWindowText(str);
+	if (text == str.GetString()) {
+		return;
+	}
+	ptr->SetWindowText(text.c_str());
+}
+
 /**
  * .
  * 
@@ -115,7 +134,7 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 		int x = labelRect.right + 5, y = labelRect.top, w = perCxPixel, h = (textSize.cy + 5) * lines;
 		CRect editRect(x, y, x + w, y + h);
 		CEdit * edit = new CEdit();
-		QWinCreater::createOrShowEdit(m_hWnd, *edit, 0, value, editRect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL);
+		QWinCreater::createOrShowEdit(m_hWnd, *edit, Config::FORMVIEW_EDIT_ID_START + i, value, editRect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL, readOnly);
 		edits.push_back(edit);
 
 		x = labelRect.left, y = editRect.bottom + 10, w = 80, h = pixel;
@@ -162,7 +181,7 @@ int RowDataFormView::OnDestroy()
 void RowDataFormView::OnSize(UINT nType, CSize size)
 {
 	QPage::OnSize(nType, size);
-	loadFormData();
+	loadFormData(this->readOnly);
 }
 
 void RowDataFormView::initScrollBar(CSize & clientSize)
@@ -244,6 +263,43 @@ LRESULT RowDataFormView::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	return 0;
 }
 
+LRESULT RowDataFormView::OnEditKillFocus(UINT uMsg, WPARAM wParam, HWND hwnd, BOOL& bHandled)
+{
+	int n = static_cast<int>(edits.size());
+	int nSelItem = -1;
+	CString newStr;
+	for (int i = 0; i < n; i++) {
+		auto ptr = edits.at(i);
+		if (ptr->m_hWnd == hwnd) {
+			nSelItem = i;
+			ptr->GetWindowText(newStr);
+			break;
+		}
+	}
+	if (nSelItem == -1) {
+		return 0;
+	}
+	if (!adapter->getSelectedItemCount()) {
+		return 0;
+	}
+	RowItem rowItem = adapter->getFirstSelectdRowItem();
+	SubItemValue subItemVal;
+	subItemVal.iItem = adapter->getFirstSelectdIndex();
+	subItemVal.iSubItem = nSelItem + 1;
+	subItemVal.origVal = rowItem.at(nSelItem);
+	subItemVal.newVal = newStr.GetString();
+	if (subItemVal.origVal == subItemVal.newVal) {
+		return 0;
+	}
+
+	// update the listview subitem text and runtimedatas
+	adapter->addListViewChangeVal(subItemVal);
+
+	// send 
+	::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(subItemVal.iItem), LPARAM(subItemVal.iSubItem));
+	return 0;
+}
+
 HBRUSH RowDataFormView::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
@@ -253,7 +309,14 @@ HBRUSH RowDataFormView::OnCtlColorStatic(HDC hdc, HWND hwnd)
 
 HBRUSH RowDataFormView::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {
-	::SetBkColor(hdc, topbarColor);
+	if (readOnly) {
+		::SetBkColor(hdc, topbarColor);
+	} else {
+		::SetBkColor(hdc, bkgColor);
+	}
+	
 	::SelectObject(hdc, textFont);
 	return topbarBrush;
 }
+
+

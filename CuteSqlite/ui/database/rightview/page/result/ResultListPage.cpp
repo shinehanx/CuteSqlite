@@ -211,6 +211,11 @@ void ResultListPage::loadListView()
 	endExecTime(_begin);
 	
 	displayResultRows();
+
+	int checkedFormView = formViewCheckBox.GetCheck();
+	if (checkedFormView) {
+		formView.clearLabelsAndEdits();
+	}
 }
 
 CRect ResultListPage::getLeftListRect(CRect & clientRect)
@@ -505,7 +510,7 @@ LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled
 	auto ptr = (LPNMITEMACTIVATE)pnmh;
 	bool checked = isShowFormView();
 	if (checked) {
-		formView.loadFormData();
+		formView.loadFormData(formViewReadOnly);
 	}
 
 	return 0;

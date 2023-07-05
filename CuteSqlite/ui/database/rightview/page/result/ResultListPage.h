@@ -96,6 +96,7 @@ protected:
 
 	QListViewCtrl listView;
 	RowDataFormView formView;
+	bool formViewReadOnly = true;
 	CMultiPaneStatusBarCtrl statusBar;
 
 	ResultListPageAdapter * adapter = nullptr;

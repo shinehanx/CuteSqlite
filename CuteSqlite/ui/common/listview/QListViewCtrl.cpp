@@ -28,7 +28,10 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->hwnd == subItemEdit.m_hWnd) {
 		changeSubItemText();
 		return TRUE;
-	} else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) {
+	} else if (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB) {
+		pressedTabToMoveEditor();
+	}
+	else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) {
 		changeSubItemText();
 	}
 
@@ -106,8 +109,6 @@ void QListViewCtrl::clearChangeVals()
 	changeVals.clear();
 }
 
-
-
 /**
  * find the item(s) from changeVals and then remove them.
  * and then subtract the (*iter).iItem index if (*iter).iItem is bigger than the specified iItem
@@ -174,22 +175,29 @@ void QListViewCtrl::changeSubItemText()
 			return;
 		}
 
-		// change the newVal in exists item in changeVals vector
-		auto iter = std::find_if(changeVals.begin(), changeVals.end(), [&subItemVal](SubItemValue &val) {
-			return val.iItem == subItemVal.iItem && val.iSubItem == subItemVal.iSubItem;
-		});
-
-		// Only change newVal, origVal not need change for the exist item.
-		if (iter != changeVals.end()) {
-			(*iter).newVal = subItemVal.newVal;
-		} else {
-			changeVals.push_back(subItemVal);
-		}
+		setChangeVal(subItemVal);
 		
 		subItemEdit.DestroyWindow();
 		isVisibleEdit = false;
 
 		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(subItemPos.first), LPARAM(subItemPos.second));
+	}
+}
+
+
+void QListViewCtrl::setChangeVal(SubItemValue &subItemVal)
+{
+	// change the newVal in exists item in changeVals vector
+	auto iter = std::find_if(changeVals.begin(), changeVals.end(), [&subItemVal](SubItemValue &val) {
+		return val.iItem == subItemVal.iItem && val.iSubItem == subItemVal.iSubItem;
+	});
+
+	// Only change newVal, origVal not need change for the exist item.
+	if (iter != changeVals.end()) {
+		(*iter).newVal = subItemVal.newVal;
+	}
+	else {
+		changeVals.push_back(subItemVal);
 	}
 }
 
@@ -210,6 +218,30 @@ void QListViewCtrl::createOrShowSubItemEdit(CEdit & win, std::wstring & text, CR
 	win.SetFocus();
 }
 
+
+void QListViewCtrl::pressedTabToMoveEditor()
+{
+	changeSubItemText();
+	int columnCount = GetHeader().GetItemCount();
+	int rowCount = GetItemCount();
+	if (subItemPos.first >= rowCount - 1 && subItemPos.second >= columnCount - 1) {
+		return;
+	}
+
+	int iItem = subItemPos.first, iSubItem = subItemPos.second;
+	if (subItemPos.first < rowCount - 1 && subItemPos.second == columnCount - 1) {
+		iItem = subItemPos.first + 1;
+		iSubItem = 1;
+		createOrShowEditor(iItem, iSubItem);
+		return;
+	}
+
+	if (subItemPos.first <= rowCount - 1 && subItemPos.second < columnCount - 1) {
+		iSubItem = subItemPos.second + 1;
+	}
+
+	createOrShowEditor(iItem, iSubItem);
+}
 
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {	 

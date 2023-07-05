@@ -50,6 +50,7 @@ public:
 	int getChangedCount();
 	SubItemValues getRowChangedVals(int iItem);
 	void setChangedVals(SubItemValues & changeVals);
+	void setChangeVal(SubItemValue &subItemVal);
 	void clearChangeVals();
 	void removeChangedValsItems(int iItem);
 private:
@@ -62,7 +63,11 @@ private:
 	SCROLLINFO si;
 	
 	void changeSubItemText();
+
+	
+
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
+	void pressedTabToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

@@ -61,12 +61,15 @@ public:
 	void changeSelectAllItems();
 
 	RowItem getFirstSelectdRowItem();
+	int getFirstSelectdIndex();
 	DataList getSelectedDatas();
 	int getSelectedItemCount();
 
 	UserTableStrings getRuntimeTables();
 	Columns getRuntimeColumns();
 	DataList getRuntimeDatas();
+
+	void addListViewChangeVal(SubItemValue &subItemVal);
 
 	ColumnInfoList getRuntimeColumnInfos(std::wstring & tblName);
 	UserTable getRuntimeUserTable(std::wstring & tblName);

@@ -127,7 +127,7 @@ public:
 	static void createOrShowEdit(HWND hwnd, WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, HFONT hfont, DWORD exStyle = 0,  bool readOnly=true)
 	{
 		if (::IsWindow(hwnd) && !win.IsWindow()) {
-			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS; // WS_TABSTOP 
+			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | WS_TABSTOP; // WS_TABSTOP 
 			if (exStyle) {
 				dwStyle |= exStyle;
 			}

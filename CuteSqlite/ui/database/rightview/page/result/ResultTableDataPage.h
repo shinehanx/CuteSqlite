@@ -70,6 +70,9 @@ protected:
 	void enableSaveButton();
 	void enableDeleteButton(bool enabled);
 	void enableCancelButton();
+
+	void doCancelFormView();
+
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct); 
 	virtual int OnDestroy();
 	virtual void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);

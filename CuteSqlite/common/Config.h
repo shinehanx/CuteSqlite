@@ -187,4 +187,10 @@ typedef enum {
 	FILTER_OP_BUTTON_ID_START = WM_USER + 1124,
 	FILTER_OP_BUTTON_ID_END = WM_USER + 1199,
 } ButtonIdRank;
+
+typedef enum {
+	FORMVIEW_EDIT_ID_START = WM_USER + 1200,
+	FORMVIEW_EDIT_ID_END = WM_USER + 1712,
+} EditIdRank;
+
 };

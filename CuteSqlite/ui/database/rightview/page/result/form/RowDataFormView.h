@@ -33,13 +33,20 @@ public:
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
+		//COMMAND_RANGE_CODE_HANDLER(Config::FORMVIEW_EDIT_ID_START, Config::FORMVIEW_EDIT_ID_END, EN_KILLFOCUS, OnEditKillFocus)
+		COMMAND_RANGE_CODE_HANDLER(Config::FORMVIEW_EDIT_ID_START, Config::FORMVIEW_EDIT_ID_END, EN_CHANGE, OnEditKillFocus)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 	void setup(ResultListPageAdapter * adapter);
-	void loadFormData();
+	void loadFormData(bool readOnly=true);
+
+	void clearLabelsAndEdits();
+
+	void setEditText(int editIndex, std::wstring & text);
 private:
+	bool readOnly = true;
 	ResultListPageAdapter * adapter = nullptr;
 
 	HFONT textFont = nullptr;
@@ -51,7 +58,7 @@ private:
 	SCROLLINFO si;
 	int nHeightSum = 0;
 
-	void clearLabelsAndEdits();
+	
 	void showColumnsAndValues(Columns & columns, RowItem & rowItem);
 
 	virtual void paintItem(CDC & dc, CRect & paintRect);
@@ -65,9 +72,10 @@ private:
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnEditKillFocus(UINT uMsg, WPARAM wParam, HWND lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
-
+	
 	
 };

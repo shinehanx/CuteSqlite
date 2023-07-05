@@ -35,7 +35,7 @@ void ResultTableDataPage::setup(std::wstring & table)
 	this->table = table;
 	// genderate query table sql
 	this->sql.assign(L"SELECT * FROM ").append(table);
-
+	formViewReadOnly = false;
 }
 
 void ResultTableDataPage::loadTableDatas()
@@ -60,6 +60,15 @@ void ResultTableDataPage::createOrShowUI()
 void ResultTableDataPage::loadWindow()
 {
 	ResultListPage::loadWindow();
+
+	if (!supplier || supplier->selectTable.empty()) {
+		return ;
+	}
+
+	if (supplier->selectTable != table) {
+		setup(supplier->selectTable);
+		loadTableDatas();
+	}	
 }
 
 /**
@@ -340,6 +349,7 @@ LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPara
 	for (auto val : changedVals) {
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
+		formView.setEditText(val.iSubItem - 1, val.newVal);
 	}
 	
 	enableSaveButton();
@@ -385,9 +395,21 @@ LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND
 
 LRESULT ResultTableDataPage::OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
+	// 1.cancel the form view editor text change
+	doCancelFormView();
+
+	// 2.cancel listview.changeVals and cancel adapter.runtimeDatas and cancel adapter.runtimeNewRows
 	adapter->cancel();
+	
 	enableSaveButton();
 	enableCancelButton();	
 	return 0;
 }
 
+void ResultTableDataPage::doCancelFormView()
+{
+	SubItemValues changedVals = listView.getChangedVals();
+	for (auto val : changedVals) {
+		formView.setEditText(val.iSubItem - 1, val.origVal);
+	}
+}

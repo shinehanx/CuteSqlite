@@ -330,6 +330,16 @@ RowItem ResultListPageAdapter::getFirstSelectdRowItem()
 	return RowItem();
 }
 
+int ResultListPageAdapter::getFirstSelectdIndex()
+{
+	if (!dataView->GetSelectedCount()) {
+		return -1;
+	}
+
+	int nSelItem = -1;
+	return  dataView->GetNextItem(nSelItem, LVNI_SELECTED);
+}
+
 DataList ResultListPageAdapter::getSelectedDatas()
 {
 	if (!dataView->GetSelectedCount()) {
@@ -368,6 +378,16 @@ Columns ResultListPageAdapter::getRuntimeColumns()
 DataList ResultListPageAdapter::getRuntimeDatas()
 {
 	return runtimeDatas;
+}
+
+/**
+ * add subItemVal to variable changeVals of QListView.
+ * 
+ * @param subItemVal
+ */
+void ResultListPageAdapter::addListViewChangeVal(SubItemValue &subItemVal)
+{
+	dataView->setChangeVal(subItemVal);
 }
 
 ColumnInfoList ResultListPageAdapter::getRuntimeColumnInfos(std::wstring & tblName)
