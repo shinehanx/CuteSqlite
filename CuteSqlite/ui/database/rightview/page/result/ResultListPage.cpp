@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include "ResultListPage.h"
 #include "utils/SqlUtil.h"
+#include "utils/PerformUtil.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
@@ -206,11 +207,14 @@ void ResultListPage::loadListView()
 	}
 	
 	statusBar.SetPaneText(Config::RESULT_STATUSBAR_SQL_PANE_ID, this->sql.c_str());
-	auto _begin = beginExecTime();
+	auto _begin = PerformUtil::begin();
 	rowCount = adapter->loadListView(userDbId, sql);
-	endExecTime(_begin);
-	
+	ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
+	resultInfo.totalTime = PerformUtil::end(_begin);
+
+	adapter->sendExecSqlMessage(resultInfo);
 	displayResultRows();
+	displayExecTime(resultInfo);
 
 	int checkedFormView = formViewCheckBox.GetCheck();
 	if (checkedFormView) {
@@ -303,15 +307,15 @@ void ResultListPage::createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect 
 			Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID,
 		};
 		 win.SetPanes (anPanes, 3, false);
-		 win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 200);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 350);
 		 win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
-		 win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 400);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 550);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
-		win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 200);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 350);
 		win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
-		win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 400);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 550);
 	}
 }
 
@@ -713,10 +717,14 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 	ResultFilterDialog resultFilterDialog(m_hWnd, adapter, btnWinRect);
 	
 	if (resultFilterDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
-		auto _begin = beginExecTime();
+		auto _bt = PerformUtil::begin();
 		rowCount = adapter->loadFilterListView();
-		endExecTime(_begin);
+		
+		ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
+		resultInfo.totalTime = PerformUtil::end(_bt);
+		adapter->sendExecSqlMessage(resultInfo);
 		displayResultRows();
+		displayExecTime(resultInfo);
 	}
 	
 	bool hasRedIcon = !adapter->isRuntimeFiltersEmpty();
@@ -727,10 +735,14 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	saveLimitParams();
-	auto _begin = beginExecTime();
+	auto _bt = PerformUtil::begin();
 	rowCount = adapter->loadFilterListView();
-	endExecTime(_begin);
+	ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
+	resultInfo.totalTime = PerformUtil::end(_bt);
+
+	adapter->sendExecSqlMessage(resultInfo);
 	displayResultRows();
+	displayExecTime(resultInfo);
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
@@ -754,23 +766,17 @@ HBRUSH ResultListPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-std::chrono::steady_clock::time_point ResultListPage::beginExecTime()
-{
-	return std::chrono::high_resolution_clock::now();
-}
-
-void ResultListPage::endExecTime(std::chrono::steady_clock::time_point _begin)
-{
-	auto _end = std::chrono::high_resolution_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(_end - _begin);
-	CString execTime, resultRows;
-	execTime.Format(L"Exec time: %.3f ms", static_cast<double>(elapsed.count()));	
-	statusBar.SetPaneText(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, execTime);	
-}
-
 void ResultListPage::displayResultRows()
 {
 	CString resultRows;
 	resultRows.Format(L"%d rows", rowCount);
 	statusBar.SetPaneText(Config::RESULT_STATUSBAR_ROWS_PANE_ID, resultRows);
+}
+
+void ResultListPage::displayExecTime(ResultInfo & resultInfo)
+{
+	CString execTime;
+	execTime.Format(L"Exec:%s Transfer:%s Total:%s", 
+		resultInfo.execTime.c_str(), resultInfo.transferTime.c_str(), resultInfo.totalTime.c_str());
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, execTime);
 }

@@ -19,6 +19,7 @@
  *********************************************************************/
 #pragma once
 #include "ui/common/page/QPage.h"
+#include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 
 class ResultInfoPage : public QPage {
 public:
@@ -27,14 +28,29 @@ public:
 	BEGIN_MSG_MAP_EX(ResultInfoPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
+		MESSAGE_HANDLER(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, OnExecSqlResultMessage)
+		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 protected:
+	HFONT textFont = nullptr;
+
+	CEdit infoEdit;
+	ResultListPageAdapter * adapter = nullptr;
+
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 
+	void createOrShowInfoEditor(CRect & clientRect);
+	virtual void paintItem(CDC & dc, CRect & paintRect);
+
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
+	LRESULT OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 };

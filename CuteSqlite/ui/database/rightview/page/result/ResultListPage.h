@@ -164,7 +164,6 @@ protected:
 	void changeFilterButtonStatus(bool hasRedIcon);
 
 	// display the result rows and exec time in the status bar
-	std::chrono::steady_clock::time_point beginExecTime();
-	void endExecTime(std::chrono::steady_clock::time_point _begin);
 	void displayResultRows();
+	void displayExecTime(ResultInfo & resultInfo);
 };

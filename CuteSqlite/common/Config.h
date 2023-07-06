@@ -108,7 +108,8 @@ typedef enum {
 	EXPORT_EXCEL_DECIMAL_PLACES_EDIT_ID,
 	EXPORT_PATH_EDIT_ID,
 	// RESULT
-	QLISTVIEWCTRL_SUBITEM_EDIT_ID
+	QLISTVIEWCTRL_SUBITEM_EDIT_ID,
+	INFOPAGE_INFO_EDIT_ID,
 } EditorId;
 
 typedef enum {
@@ -170,6 +171,7 @@ typedef enum {
 	MSG_TREEVIEW_DBCLICK_ID, // 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, // QListViewCtrl的子项（subItem）的文本发生改变时，向父窗口发送该消息,wParam=iItem, lParam=iSubItem
 	MSG_QLISTVIEW_COLUMN_CLICK_ID, // QListViewCtrl的Column被点击时，向父窗口发送该消息,wParam=iItem, lParam=(LPNMHEADER)lParam
+	MSG_EXEC_SQL_RESULT_MESSAGE_ID, // 执行SQL语句后，返回的消息，wParam- NULL，lParam - point of adapter.runtimeResultInfo
 }MessageId;
 
 typedef enum {

@@ -103,6 +103,10 @@ public:
 	int removeRowFromDb(int nSelItem, RowItem & rowItem);
 
 	bool isDirty();
+
+	// query result info
+	ResultInfo & getRuntimeResultInfo();
+	void sendExecSqlMessage(ResultInfo & resultInfo);
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -116,6 +120,7 @@ private:
 	Columns runtimeColumns;
 	DataList runtimeDatas;   // runtime data(s) for showing list view
 	std::vector<int> runtimeNewRows; // runtimeDatas index for create or copy a new row
+	ResultInfo runtimeResultInfo;
 
 	DataFilters runtimeFilters;
 
@@ -135,4 +140,5 @@ private:
 	bool saveChangeVals();
 	bool saveNewRows();
 	bool restoreChangeVals();
+	void resetRuntimeResultInfo();
 };

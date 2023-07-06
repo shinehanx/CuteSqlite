@@ -120,5 +120,16 @@ typedef struct {
 	std::wstring newVal;
 } SubItemValue;
 typedef std::vector<SubItemValue> SubItemValues;
+
+// Execute sql result
+typedef struct _ResultInfo {
+	int effectRows = 0;
+	std::wstring execTime;
+	std::wstring transferTime;
+	std::wstring totalTime;
+	std::wstring sql;
+	int code = 0;
+	std::wstring msg;
+} ResultInfo;
 #endif
 
