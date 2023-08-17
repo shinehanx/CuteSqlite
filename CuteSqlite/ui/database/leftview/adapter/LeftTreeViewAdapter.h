@@ -32,11 +32,13 @@ public:
 	void createUserDatabase(std::wstring & dbPath);
 	void openUserDatabase(std::wstring & dbPath);
 	void activeUserDatabase(uint64_t userDbId);
+	
 
 	void loadTreeView();
 	CTreeItem getSeletedItem();
 	uint64_t getSeletedItemData();
 	void removeSeletedItem();
+	void selectItem(uint64_t userDbId);
 
 	uint64_t getSeletedUserDbId();
 

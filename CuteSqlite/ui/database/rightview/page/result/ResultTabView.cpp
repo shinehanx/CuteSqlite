@@ -67,6 +67,7 @@ bool ResultTabView::isActiveTableDataPage()
 
 void ResultTabView::loadTableDatas(std::wstring & table)
 {
+	resultInfoPage.clear();
 	resultTableDataPage.setup(table);
 	resultTableDataPage.loadTableDatas();
 }
@@ -88,6 +89,11 @@ void ResultTabView::clearResultListPage()
 		}
 	}
 	resultListPagePtrs.clear();
+}
+
+void ResultTabView::clearMessage()
+{
+	resultInfoPage.clear();
 }
 
 void ResultTabView::addResultListPage(std::wstring & sql, int tabNo)

@@ -62,6 +62,7 @@ void QueryPage::execAndShow()
 
 	supplier->splitToSqlVector(sqls);
 	resultTabView.clearResultListPage();
+	resultTabView.clearMessage();
 	std::vector<std::wstring> & sqlVector = supplier->sqlVector;
 	int n = static_cast<int>(sqlVector.size());
 	for (int i = 0; i < n; i++) {

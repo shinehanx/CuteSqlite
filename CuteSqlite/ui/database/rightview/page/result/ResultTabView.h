@@ -48,6 +48,7 @@ public:
 	
 
 	void clearResultListPage();
+	void clearMessage();
 	void addResultListPage(std::wstring & sql, int tabNo);
 	int getPageIndex(HWND hwnd);
 	void setActivePage(int pageIndex);

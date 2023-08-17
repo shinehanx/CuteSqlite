@@ -24,6 +24,11 @@
 #include "core/common/Lang.h"
 #include "common/AppContext.h"
 
+void ResultInfoPage::clear()
+{
+	infoEdit.Clear();
+}
+
 void ResultInfoPage::createOrShowUI()
 {
 	QPage::createOrShowUI();

@@ -25,6 +25,8 @@
 #include "core/service/db/DatabaseService.h"
 #include "ui/common/button/QImageButton.h"
 #include "ui/database/leftview/adapter/LeftTreeViewAdapter.h"
+#include "ui/database/leftview/adapter/DatabaseMenuAdapter.h"
+#include "ui/database/leftview/adapter/TableMenuAdapter.h"
 
 class LeftTreeView : public CWindowImpl<LeftTreeView> 
 {
@@ -41,12 +43,24 @@ public:
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 
-		COMMAND_HANDLER_EX(Config::DATABASE_CREATE_BUTTON_ID, BN_CLICKED, OnClickCreateDbButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_OPEN_BUTTON_ID, BN_CLICKED, OnClickOpenDbButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshDbButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_DELETE_BUTTON_ID, BN_CLICKED, OnClickDeleteDbButton)
-		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_SELCHANGED, OnChangeTreeViewItem)
+		
+		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_SELCHANGED, OnChangedTreeViewItem)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
+		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_RCLICK, OnRightClickTreeViewItem)
+		COMMAND_HANDLER_EX(Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeSelectDbComboBox)
+
+		// buttons
+		COMMAND_HANDLER_EX(Config::DATABASE_CREATE_BUTTON_ID, BN_CLICKED, OnClickCreateDatabaseButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_OPEN_BUTTON_ID, BN_CLICKED, OnClickOpenDatabaseButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshDatabaseButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_DELETE_BUTTON_ID, BN_CLICKED, OnClickDeleteDatabaseButton)
+
+		// menus
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_CREATE_MENU_ID, OnClickCreateDatabaseMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_MENU_ID, OnClickOpenDatabaseMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_REFRESH_MENU_ID, OnClickRefreshDatabaseMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_DELETE_MENU_ID, OnClickDeleteDatabaseMenu)
+
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -60,12 +74,17 @@ private:
 	QImageButton openDbButton;
 	QImageButton refreshDbButton;
 	QImageButton deleteDbButton;
-	CComboBox seletedDbComboBox;
+	CComboBox selectedDbComboBox;
 
 	CTreeViewCtrlEx treeView;
+
+	// refreshLock 
+	bool refreshLock = false;
 	
 	// singleton pointer
 	LeftTreeViewAdapter * treeViewAdapter = nullptr;
+	DatabaseMenuAdapter * databaseMenuAdapter = nullptr;
+	TableMenuAdapter * tableMenuAdapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	CRect getTopRect(CRect & clientRect);
@@ -92,12 +111,34 @@ private:
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 
-	LRESULT OnClickCreateDbButton(UINT uNotifyCode, int nID, HWND hwnd);
-	LRESULT OnClickOpenDbButton(UINT uNotifyCode, int nID, HWND hwnd);
-	LRESULT OnClickRefreshDbButton(UINT uNotifyCode, int nID, HWND hwnd);
-	LRESULT OnClickDeleteDbButton(UINT uNotifyCode, int nID, HWND hwnd);
+	
 	// change selected treeview item .
-	LRESULT OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
-	// double click reeview item .
+	LRESULT OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+	// double click treeview item .
 	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+	// right click treeview item
+	LRESULT OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL &bHandled);
+
+	//buttons
+	LRESULT OnClickCreateDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickOpenDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickRefreshDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	void doRefreshDatabase();
+
+	LRESULT OnClickDeleteDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+
+	void doDeleteDatabase();
+
+	//menus
+	void OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickOpenDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
+	void doCreateDatabase();
+	void doOpenDatabase();
+
 };

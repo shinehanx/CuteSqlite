@@ -35,6 +35,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	void clear();
 protected:
 	HFONT textFont = nullptr;
 

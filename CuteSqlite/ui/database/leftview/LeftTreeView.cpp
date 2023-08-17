@@ -50,7 +50,7 @@ void LeftTreeView::createOrShowUI()
 	createOrShowRefreshDbButton(refreshDbButton, clientRect);
 	createOrShowDeleteDbButton(deleteDbButton, clientRect);
 	createOrShowTreeView(treeView, clientRect);
-	createOrShowSelectedDbComboBox(seletedDbComboBox, clientRect);
+	createOrShowSelectedDbComboBox(selectedDbComboBox, clientRect);
 }
 
 
@@ -135,8 +135,11 @@ void LeftTreeView::createOrShowTreeView(CTreeViewCtrlEx & win, CRect & clientRec
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_FULLROWSELECT 
 			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
+			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 		// create a singleton treeViewAdapter pointer
 		treeViewAdapter = LeftTreeViewAdapter::getInstance(m_hWnd, &win); 
+		databaseMenuAdapter = DatabaseMenuAdapter::getInstance(m_hWnd, &win); 
+		tableMenuAdapter = TableMenuAdapter::getInstance(m_hWnd, &win); 
 		return;
 	}
 	else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
@@ -173,25 +176,25 @@ void LeftTreeView::loadComboBox()
 {
 	// db list
 	UserDbList dbs = treeViewAdapter->getDbs();
-	seletedDbComboBox.ResetContent();
+	selectedDbComboBox.ResetContent();
 	int n = static_cast<int>(dbs.size());
 	int nSelItem = -1;
 	for (int i = 0; i< n; i++) {
 		auto item = dbs.at(i);
-		int nItem = seletedDbComboBox.AddString(item.name.c_str());
-		seletedDbComboBox.SetItemData(nItem, item.id);
+		int nItem = selectedDbComboBox.AddString(item.name.c_str());
+		selectedDbComboBox.SetItemData(nItem, item.id);
 		if (item.isActive) {
 			nSelItem = i;			
 		}
 	}
-	seletedDbComboBox.SetCurSel(nSelItem);
+	selectedDbComboBox.SetCurSel(nSelItem);
 }
 
 void LeftTreeView::selectComboBox(uint64_t userDbId)
 {
 	int nSelItem = -1;
-	for (int i = 0; i < seletedDbComboBox.GetCount(); i++) {
-		uint64_t data = (uint64_t)seletedDbComboBox.GetItemData(i);
+	for (int i = 0; i < selectedDbComboBox.GetCount(); i++) {
+		uint64_t data = (uint64_t)selectedDbComboBox.GetItemData(i);
 		if (data == userDbId) {
 			nSelItem = i;
 		}
@@ -199,7 +202,7 @@ void LeftTreeView::selectComboBox(uint64_t userDbId)
 	if (nSelItem == -1) {
 		return ;
 	}
-	seletedDbComboBox.SetCurSel(nSelItem);
+	selectedDbComboBox.SetCurSel(nSelItem);
 }
 
 int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -272,54 +275,6 @@ HBRUSH LeftTreeView::OnCtlColorEdit(HDC hdc, HWND hwnd)
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-LRESULT LeftTreeView::OnClickCreateDbButton(UINT uNotifyCode, int nID, HWND hwnd)
-{
-
-	CFileDialog fileDialog(FALSE,  // TRUE-打开 false-另存为
-		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
-		_T(""),
-		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
-		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
-		m_hWnd);
-
-	if (fileDialog.DoModal() == IDOK) {
-		std::wstring databasePath = fileDialog.m_szFileName;
-		treeViewAdapter->createUserDatabase(databasePath);
-		loadComboBox();
-	}
-	return 0; 
-}
-
-LRESULT LeftTreeView::OnClickOpenDbButton(UINT uNotifyCode, int nID, HWND hwnd)
-{
-	CFileDialog fileDialog(TRUE,  // TRUE-打开 false-另存为
-		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
-		_T(""),
-		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
-		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
-		m_hWnd);
-
-	if (fileDialog.DoModal() == IDOK) {
-		std::wstring databasePath = fileDialog.m_szFileName;		
-		treeViewAdapter->openUserDatabase(databasePath);
-		loadComboBox();
-	}
-	return 0;
-}
-
-LRESULT LeftTreeView::OnClickRefreshDbButton(UINT uNotifyCode, int nID, HWND hwnd)
-{
-	treeViewAdapter->loadTreeView();
-	loadComboBox();
-	return 0;
-}
-
-LRESULT LeftTreeView::OnClickDeleteDbButton(UINT uNotifyCode, int nID, HWND hwnd)
-{
-	treeViewAdapter->removeSeletedItem();
-	loadComboBox();
-	return 0;
-}
 
 /**
  * change selected treeview item .
@@ -329,8 +284,13 @@ LRESULT LeftTreeView::OnClickDeleteDbButton(UINT uNotifyCode, int nID, HWND hwnd
  * @param bHandled
  * @return 
  */
-LRESULT LeftTreeView::OnChangeTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
+LRESULT LeftTreeView::OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
 {
+	// if refresh,then exit imediatly
+	if (refreshLock) {
+		return 0;
+	}
+
 	auto ptr = (LPNMTREEVIEW)lParam;
 	HTREEITEM hSelTreeItem = ptr->itemNew.hItem;
 	if (!hSelTreeItem) {
@@ -379,4 +339,140 @@ LRESULT LeftTreeView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bH
 	}
 	
 	return 0;
+}
+
+LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL &bHandled)
+{
+	Q_INFO(L"LeftTreeView::OnRightClickTreeViewItem");
+
+	CPoint pt; 
+	::GetCursorPos(&pt);
+	CPoint pt2 = pt;
+	treeView.ScreenToClient(&pt2);
+	UINT uFlag;
+	CTreeItem selItem = treeView.HitTest(pt2, &uFlag);
+
+	if (!selItem.IsNull()) {
+		treeView.SelectItem(selItem.m_hTreeItem);
+
+		int nImage = -1, nSeletedImage = -1;
+		bool ret = selItem.GetImage(nImage, nSeletedImage);
+	
+		if (nImage == 0) {
+			databaseMenuAdapter->popupMenu(pt);
+		}else if (nImage == 1) {
+			CTreeItem pTreeItem = treeView.GetParentItem(selItem.m_hTreeItem);
+			int npImage = -1, npSelImage = -1;
+			bool ret = pTreeItem.GetImage(npImage, npSelImage);
+			if (npImage == 0) {
+				databaseMenuAdapter->popupMenu(pt);
+			}			
+		}
+	}
+	
+	
+	return 0;
+}
+
+LRESULT LeftTreeView::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int nSelItem = selectedDbComboBox.GetCurSel();
+	uint64_t userDbId = static_cast<uint64_t>(selectedDbComboBox.GetItemData(nSelItem));
+
+	treeViewAdapter->selectItem(userDbId);
+
+	return 0;
+}
+
+LRESULT LeftTreeView::OnClickCreateDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doCreateDatabase();
+	return 0; 
+}
+
+LRESULT LeftTreeView::OnClickOpenDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doOpenDatabase();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnClickRefreshDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doRefreshDatabase();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnClickDeleteDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doDeleteDatabase();
+
+	return 0;
+}
+
+
+
+void LeftTreeView::OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doCreateDatabase();
+}
+
+void LeftTreeView::OnClickOpenDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doOpenDatabase();
+}
+
+void LeftTreeView::OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doRefreshDatabase();
+}
+
+void LeftTreeView::OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doDeleteDatabase();
+}
+
+void LeftTreeView::doCreateDatabase()
+{
+	CFileDialog fileDialog(FALSE,  // TRUE-打开 false-另存为
+		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
+		_T(""),
+		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
+		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
+		m_hWnd);
+
+	if (fileDialog.DoModal() == IDOK) {
+		std::wstring databasePath = fileDialog.m_szFileName;
+		treeViewAdapter->createUserDatabase(databasePath);
+		loadComboBox();
+	}
+}
+
+void LeftTreeView::doOpenDatabase()
+{
+	CFileDialog fileDialog(TRUE,  // TRUE-打开 false-另存为
+		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
+		_T(""),
+		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
+		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
+		m_hWnd);
+
+	if (fileDialog.DoModal() == IDOK) {
+		std::wstring databasePath = fileDialog.m_szFileName;
+		treeViewAdapter->openUserDatabase(databasePath);
+		loadComboBox();
+	}
+}
+
+void LeftTreeView::doRefreshDatabase()
+{
+	refreshLock = true;
+	treeViewAdapter->loadTreeView();
+	refreshLock = false;
+	loadComboBox();
+}
+
+void LeftTreeView::doDeleteDatabase()
+{
+	treeViewAdapter->removeSeletedItem();
+	loadComboBox();
 }
