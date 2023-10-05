@@ -25,6 +25,7 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
+#include "ui/database/dialog/ExportAsSqlDialog.h"
 
 #define TREEVIEW_TOPBAR_HEIGHT 30
 #define TREEVIEW_BUTTON_WIDTH 16
@@ -431,6 +432,11 @@ void LeftTreeView::OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwn
 	doDeleteDatabase();
 }
 
+void LeftTreeView::OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doExportAsSql();
+}
+
 void LeftTreeView::doCreateDatabase()
 {
 	CFileDialog fileDialog(FALSE,  // TRUE-´ò¿ª false-Áí´æÎª
@@ -475,4 +481,11 @@ void LeftTreeView::doDeleteDatabase()
 {
 	treeViewAdapter->removeSeletedItem();
 	loadComboBox();
+}
+
+void LeftTreeView::doExportAsSql()
+{
+	auto adapter = ExportDatabaseAdapter::getInstance(m_hWnd, nullptr);
+	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, adapter);
+	exportAsSqlDialog.DoModal(m_hWnd);
 }

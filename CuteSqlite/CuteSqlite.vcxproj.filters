@@ -219,6 +219,15 @@
     <ClCompile Include="ui\database\leftview\adapter\TableMenuAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\adapter\ExportDatabaseAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -471,6 +480,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\leftview\adapter\TableMenuAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\adapter\ExportDatabaseAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

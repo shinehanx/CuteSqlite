@@ -24,7 +24,7 @@
 /**
  * template T - subclass ,V - dataView class such as listview/treeview
  */
-template <typename T, typename V>
+template <typename T, typename V = ATL::CWindow>
 class QAdapter
 {
 public:

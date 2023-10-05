@@ -47,8 +47,8 @@ void DatabaseMenuAdapter::createMenu()
 	menu.AppendMenu(MF_STRING, Config::DATABASE_REFRESH_MENU_ID, S(L"database-refresh").c_str());
 	menu.AppendMenu(MF_STRING, Config::DATABASE_DELETE_MENU_ID, S(L"database-delete").c_str());
 	menu.AppendMenu(MF_SEPARATOR);
-	menu.AppendMenu(MF_STRING, Config::DATABASE_EXPORT_MENU_ID, S(L"database-export").c_str());
-	menu.AppendMenu(MF_STRING, Config::DATABASE_IMPORT_MENU_ID, S(L"database-import").c_str());
+	menu.AppendMenu(MF_STRING, Config::DATABASE_EXPORT_AS_SQL_MENU_ID, S(L"database-export-as-sql").c_str());
+	menu.AppendMenu(MF_STRING, Config::DATABASE_IMPORT_MENU_ID, S(L"database-import-from-sql").c_str());
 	menu.AppendMenu(MF_SEPARATOR);
 	// New - the sub popup menu
 	newSubMenu.CreatePopupMenu();

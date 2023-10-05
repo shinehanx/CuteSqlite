@@ -212,7 +212,7 @@ uint64_t LeftTreeViewAdapter::getSeletedUserDbId()
 		// if nImage == 0, seleted item is a item of user database
 		if (nImage == 0) {
 			uint64_t userDbId = static_cast<uint64_t>(dataView->GetItemData(parentItem));
-			// databaseSupplier->setSeletedUserDbId(userDbId);
+			databaseSupplier->setSeletedUserDbId(userDbId);
 			return userDbId;
 		}		
 	} while (!(parentItem = parentItem.GetParent()).IsNull());

@@ -27,6 +27,8 @@
 #include "ui/database/leftview/adapter/LeftTreeViewAdapter.h"
 #include "ui/database/leftview/adapter/DatabaseMenuAdapter.h"
 #include "ui/database/leftview/adapter/TableMenuAdapter.h"
+#include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
+#include "ui/database/dialog/adapter/ExportDatabaseAdapter.h"
 
 class LeftTreeView : public CWindowImpl<LeftTreeView> 
 {
@@ -60,6 +62,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_MENU_ID, OnClickOpenDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_REFRESH_MENU_ID, OnClickRefreshDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_DELETE_MENU_ID, OnClickDeleteDatabaseMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPORT_AS_SQL_MENU_ID, OnClickExportAsSqlMenu)
 
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -86,6 +89,7 @@ private:
 	DatabaseMenuAdapter * databaseMenuAdapter = nullptr;
 	TableMenuAdapter * tableMenuAdapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	ResultListPageAdapter * resultListPageAdapter = nullptr;
 
 	CRect getTopRect(CRect & clientRect);
 	CRect getTreeRect(CRect & clientRect);
@@ -124,21 +128,25 @@ private:
 	LRESULT OnClickOpenDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickRefreshDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 
-	void doRefreshDatabase();
+	
 
 	LRESULT OnClickDeleteDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 
-	void doDeleteDatabase();
+	
 
 	//menus
 	void OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
+	void doRefreshDatabase();
+	void doDeleteDatabase();
 	void doCreateDatabase();
 	void doOpenDatabase();
+	void doExportAsSql();
 
 };
