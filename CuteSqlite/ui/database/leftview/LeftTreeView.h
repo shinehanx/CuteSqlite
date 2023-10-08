@@ -29,6 +29,7 @@
 #include "ui/database/leftview/adapter/TableMenuAdapter.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/dialog/adapter/ExportDatabaseAdapter.h"
+#include "ui/database/dialog/adapter/ImportDatabaseAdapter.h"
 
 class LeftTreeView : public CWindowImpl<LeftTreeView> 
 {
@@ -63,6 +64,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_REFRESH_MENU_ID, OnClickRefreshDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_DELETE_MENU_ID, OnClickDeleteDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPORT_AS_SQL_MENU_ID, OnClickExportAsSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_IMPORT_FROM_SQL_MENU_ID, OnClickImportFromSqlMenu)
 
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -127,14 +129,9 @@ private:
 	LRESULT OnClickCreateDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickOpenDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickRefreshDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
-
-	
-
 	LRESULT OnClickDeleteDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
-
-	
 
 	//menus
 	void OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -142,11 +139,13 @@ private:
 	void OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 	void doRefreshDatabase();
 	void doDeleteDatabase();
 	void doCreateDatabase();
 	void doOpenDatabase();
 	void doExportAsSql();
+	void doImportFromSql();
 
 };

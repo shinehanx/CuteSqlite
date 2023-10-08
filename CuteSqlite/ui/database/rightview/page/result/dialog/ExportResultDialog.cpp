@@ -441,7 +441,7 @@ void ExportResultDialog::loadExportPathEdit()
 	exportPathEdit.GetWindowText(str);
 	std::wstring exportPath = str.GetString();
 	if (str.IsEmpty()) {
-		exportPath = settingService->getSysInit(L"export_path"); 		
+		exportPath = settingService->getSysInit(L"export_path");
 	} else if (hwnd == csvRadio.m_hWnd) {
 		exportPath = exportResultService->changeExportPathExt(exportPath, L"csv");
 	} else if (hwnd == jsonRadio.m_hWnd) {

@@ -11,6 +11,7 @@
 #include <atltypes.h>
 #include <cwctype>
 #include <algorithm>
+#include <regex>
 
 /// <summary>
 /// 字符串转换工具类，
@@ -230,19 +231,46 @@ public:
 	 * #param str       : 操作之前的字符串
 	 * #param before    : 将要被替换的字符串
 	 * #param after     : 替换目标字符串
+	 * #param ignoreCase : 忽略大小写
 	 * #return          : void
 	 */
-	static std::wstring replace(std::wstring str, const std::wstring& before, const std::wstring& after)
-	{
-		for (std::wstring::size_type pos(0); pos != std::wstring::npos; pos += after.length())
-		{
-			pos = str.find(before, pos);
-			if (pos != std::wstring::npos)
-				str.replace(pos, before.length(), after);
-			else
-				break;
+	static std::wstring replace(const std::wstring & str, const std::wstring& before, const std::wstring& after, bool ignoreCase = false)
+	{		
+		std::wstring text = str;
+		if (!ignoreCase) {			
+			for (std::wstring::size_type pos(0); pos != std::wstring::npos; pos += after.length()) {
+				pos = text.find(before, pos);
+				if (pos != std::wstring::npos)
+					text.replace(pos, before.length(), after);
+				else
+					break;
+			}
+		} else {
+			std::wregex pattern(before, std::wregex::icase);
+			text = std::regex_replace(text, pattern, after, std::regex_constants::match_any);
 		}
-		return str;
+		
+		return text;
+	}
+
+	/**
+	 * .
+	 * 
+	 * @param str - original text
+	 * @param search - search text
+	 * @param ignoreCase - ignore case 
+	 * @return 
+	 */
+	static bool search(const std::wstring & str, const std::wstring & search, bool ignoreCase = false)
+	{
+		if (!ignoreCase) {
+			std::wstring text = str;
+			size_t pos = text.find_first_of(search);
+			return pos != std::wstring::npos;
+		} else {
+			std::wregex pattern(search, std::wregex::icase);
+			return std::regex_search(str, pattern);
+		}
 	}
 
 	/**

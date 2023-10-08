@@ -28,6 +28,7 @@ public:
 	~TriggerUserRepository() {}
 
 	UserTriggerList getListByUserDbId(uint64_t userDbId);
+	UserTrigger getTrigger(uint64_t userDbId, std::wstring & triggerName);
 private:
 	UserTrigger toUserTrigger(QSqlStatement &query);
 };

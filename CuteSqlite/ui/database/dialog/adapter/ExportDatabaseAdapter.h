@@ -22,6 +22,8 @@
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
+#include "core/service/export/ExportDatabaseObjectsService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
 class ExportDatabaseAdapter : public QAdapter<ExportDatabaseAdapter>
@@ -32,12 +34,42 @@ public:
 
 	UserDbList getDbs();
 	void loadDbs();
-
 	uint64_t getSeletedUserDbId();
+
+	void exportObjectsToSql(uint64_t userDbId,
+		std::wstring & exportPath,
+		UserTableList & tblList,
+		UserViewList & viewList,
+		UserTriggerList & triggerList,
+		StructAndDataParams & structureAndDataParams,
+		InsertStatementParams & insertStatementParams,
+		TblStatementParams & tblStatementParams);
 private:
 	UserDbList dbs;
-
+	ExportDatabaseObjectsService * exportDatabaseObjectsService = ExportDatabaseObjectsService::getInstance();	
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+
+	int exportTablesToSql(uint64_t userDbId,
+		std::wofstream & ofs, 
+		UserTableList & tblList, 
+		StructAndDataParams & structureAndDataParams,
+		InsertStatementParams & insertStatementParams,
+		TblStatementParams & tblStatementParams, int & percent);
+	void exportViewsToSql(uint64_t userDbId, std::wofstream & ofs, UserViewList & viewList, 
+		TblStatementParams & tblStatementParams, int & percent);
+	void exportTriggersToSql(uint64_t userDbId, std::wofstream & ofs, UserTriggerList & triggerList, 
+		TblStatementParams & tblStatementParams, int & percent);
+
+	void doExportCreateTableStructure(std::wofstream & ofs, uint64_t userDbId, 
+		const UserTable tbl, const StructAndDataParams & structureAndDataParams, const TblStatementParams & tblStatementParams);
+
+	void doExportTableInsertStatement(std::wofstream & ofs, uint64_t userDbId, 
+		const UserTable &tbl, const StructAndDataParams & structureAndDataParams, const InsertStatementParams & insertStatementParams);
+
+	void replaceCreateTableClause(std::wstring &sql);	
+	void replaceCreateViewClause(std::wstring &sql);	
+	void replaceCreateTriggerClause(std::wstring &sql);	
 };
 

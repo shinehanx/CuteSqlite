@@ -23,6 +23,26 @@ HWND AppContext::getMainFrmHwnd()
 	return mainFrmHwnd;
 }
 
+std::wstring AppContext::getMainFrmCaption()
+{
+	wchar_t cch[1024] = {0};
+	HWND hWnd = ::GetForegroundWindow();
+	::GetWindowTextW(hWnd, cch, 1024);
+	std::wstring text(cch);
+	return text;
+}
+
+void AppContext::appendMainFrmCaption(const std::wstring & text)
+{
+	if (text.empty()) {
+		return;
+	}
+	std::wstring caption = L"CuteSqlite - ";
+	caption.append(text);
+	HWND hWnd = ::GetForegroundWindow();
+	::SetWindowTextW(hWnd, caption.c_str());
+}
+
 std::wstring AppContext::get(const std::wstring k)
 {
 	return settings.at(k);

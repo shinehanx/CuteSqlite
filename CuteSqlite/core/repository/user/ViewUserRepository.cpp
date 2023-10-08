@@ -42,10 +42,31 @@ UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
+UserView ViewUserRepository::getView(uint64_t userDbId, std::wstring & viewName)
+{
+	UserTrigger result;
+	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' and name=:name ORDER BY name ASC";
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":name", viewName);
+
+		if (query.executeStep()) {
+			result = toUserView(query);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	}
+}
+
 UserView ViewUserRepository::toUserView(QSqlStatement &query)
 {
 	UserView item;
-	item.name = query.getColumn(L"name").getText();
-	item.sql = query.getColumn(L"sql").getText();
+	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
+	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
+	item.tblName = query.getColumn(L"tbl_name").isNull() ? L"" : query.getColumn(L"tbl_name").getText();
 	return item;
 }

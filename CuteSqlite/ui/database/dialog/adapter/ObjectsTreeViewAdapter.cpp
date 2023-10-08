@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "ObjectsTreeViewAdapter.h"
+#include <atlstr.h>
 #include "utils/ResourceUtil.h"
 #include "core/common/Lang.h"
 #include "core/common/exception/QRuntimeException.h"
@@ -47,9 +48,9 @@ void ObjectsTreeViewAdapter::loadTreeView()
 	dataView->DeleteAllItems();
 	this->dataView->SetImageList(imageList);
 	
-	HTREEITEM hTablesFolderItem = dataView->InsertItem(S(L"tables").c_str(), 0, 0, NULL, TVI_LAST);
-	HTREEITEM hViewsFolderItem = dataView->InsertItem(S(L"views").c_str(), 0, 0, NULL, TVI_LAST);
-	HTREEITEM hTriggersFolderItem = dataView->InsertItem(S(L"triggers").c_str(), 0, 0, NULL, TVI_LAST);
+	hTablesFolderItem = dataView->InsertItem(S(L"tables").c_str(), 0, 0, NULL, TVI_LAST);
+	hViewsFolderItem = dataView->InsertItem(S(L"views").c_str(), 0, 0, NULL, TVI_LAST);
+	hTriggersFolderItem = dataView->InsertItem(S(L"triggers").c_str(), 0, 0, NULL, TVI_LAST);
 
 	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
 	if (exportSelectedDbId.empty()) {
@@ -59,8 +60,25 @@ void ObjectsTreeViewAdapter::loadTreeView()
 	loadTablesForTreeView(hTablesFolderItem, userDbId);
 	loadViewsForTreeView(hViewsFolderItem, userDbId);
 	loadTriggersForTreeView(hTriggersFolderItem, userDbId);
+
+	// default select all items
+	selectAll(TRUE);
 }
 
+
+void ObjectsTreeViewAdapter::selectItem(uint64_t userDbId)
+{
+	if (userDbId <= 0) {
+		return ;
+	}
+
+	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
+	if (userDbId == std::stoull(exportSelectedDbId)) {
+		return ;
+	}
+	settingService->setSysInit(L"export_selected_db_id", std::to_wstring(userDbId));
+	loadTreeView();
+}
 
 void ObjectsTreeViewAdapter::checkToTree(HTREEITEM hItem, BOOL bCheck)
 {
@@ -121,6 +139,105 @@ void ObjectsTreeViewAdapter::setParentCheck(HTREEITEM hItem, BOOL bCheck)
 
     // µÝ¹éµ÷ÓÃ
     setParentCheck(hParent, dataView->GetCheckState(hParent));
+}
+
+
+void ObjectsTreeViewAdapter::selectAll(BOOL bCheck)
+{
+	dataView->SetCheckState(hTablesFolderItem, bCheck);
+	dataView->SetCheckState(hViewsFolderItem, bCheck);
+	dataView->SetCheckState(hTriggersFolderItem, bCheck);
+
+	checkToTree(hTablesFolderItem, bCheck);
+	checkToTree(hViewsFolderItem, bCheck);
+	checkToTree(hTriggersFolderItem, bCheck);
+}
+
+
+bool ObjectsTreeViewAdapter::getSelUserTableList(uint64_t userDbId, UserTableList & tblList)
+{
+	ATLASSERT(userDbId > 0 && hTablesFolderItem != nullptr);
+	if (!tblList.empty()) tblList.clear();
+
+	HTREEITEM hChildItem = dataView->GetChildItem(hTablesFolderItem);
+    while(hChildItem) {
+        BOOL bCheck = dataView->GetCheckState(hChildItem);
+		// not checked
+		if (!bCheck) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+        
+		wchar_t cch[512] = { 0 };
+		if (!dataView->GetItemText(hChildItem, cch, 512)) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+		std::wstring tblName(cch);
+		UserTable userTbl = databaseService->getUserTable(userDbId, tblName);
+		tblList.push_back(userTbl);
+
+        hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+    }
+	return !tblList.empty();
+}
+
+
+bool ObjectsTreeViewAdapter::getSelUserViewList(uint64_t userDbId, UserViewList & viewList)
+{
+	ATLASSERT(userDbId > 0 && hViewsFolderItem != nullptr);
+	if (!viewList.empty()) viewList.clear();
+
+	HTREEITEM hChildItem = dataView->GetChildItem(hViewsFolderItem);
+    while(hChildItem) {
+        BOOL bCheck = dataView->GetCheckState(hChildItem);
+		// not checked
+		if (!bCheck) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+        
+		wchar_t cch[512] = { 0 };
+		if (!dataView->GetItemText(hChildItem, cch, 512)) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+		std::wstring name(cch);
+		UserView item = databaseService->getUserView(userDbId, name);
+		viewList.push_back(item);
+
+        hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+    }
+	return !viewList.empty();
+}
+
+
+bool ObjectsTreeViewAdapter::getSelUserTriggerList(uint64_t userDbId, UserTriggerList &triggerList)
+{
+	ATLASSERT(userDbId > 0 && hTriggersFolderItem != nullptr);
+	if (!triggerList.empty()) triggerList.clear();
+
+	HTREEITEM hChildItem = dataView->GetChildItem(hTriggersFolderItem);
+    while(hChildItem) {
+        BOOL bCheck = dataView->GetCheckState(hChildItem);
+		// not checked
+		if (!bCheck) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+        
+		wchar_t cch[512] = { 0 };
+		if (!dataView->GetItemText(hChildItem, cch, 512)) {
+			hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+			continue;
+		}
+		std::wstring name(cch);
+		UserTrigger item = databaseService->getUserTrigger(userDbId, name);
+		triggerList.push_back(item);
+
+        hChildItem =  dataView->GetNextSiblingItem(hChildItem);
+    }
+	return !triggerList.empty();
 }
 
 void ObjectsTreeViewAdapter::createImageList()

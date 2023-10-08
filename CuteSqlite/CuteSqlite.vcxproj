@@ -256,6 +256,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\repository\user\ViewUserRepository.cpp" />
     <ClCompile Include="core\service\db\DatabaseService.cpp" />
     <ClCompile Include="core\service\db\SqlService.cpp" />
+    <ClCompile Include="core\service\db\TableService.cpp" />
+    <ClCompile Include="core\service\export\ExportDatabaseObjectsService.cpp" />
     <ClCompile Include="core\service\export\ExportResultService.cpp" />
     <ClCompile Include="core\service\system\SettingService.cpp" />
     <ClCompile Include="CuteSqlite.cpp" />
@@ -281,10 +283,13 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\message\QPopAnimate.cpp" />
     <ClCompile Include="ui\common\page\QHelpPage.cpp" />
     <ClCompile Include="ui\common\page\QPage.cpp" />
+    <ClCompile Include="ui\common\process\QProcessBar.cpp" />
     <ClCompile Include="ui\common\tabview\QTabView.cpp" />
     <ClCompile Include="ui\database\DatabasePanel.cpp" />
     <ClCompile Include="ui\database\dialog\adapter\ExportDatabaseAdapter.cpp" />
+    <ClCompile Include="ui\database\dialog\adapter\ImportDatabaseAdapter.cpp" />
     <ClCompile Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.cpp" />
+    <ClCompile Include="ui\database\dialog\ImportFromSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\DatabaseMenuAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\LeftTreeViewAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\TableMenuAdapter.cpp" />
@@ -341,6 +346,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\repository\user\ViewUserRepository.h" />
     <ClInclude Include="core\service\db\DatabaseService.h" />
     <ClInclude Include="core\service\db\SqlService.h" />
+    <ClInclude Include="core\service\db\TableService.h" />
+    <ClInclude Include="core\service\export\ExportDatabaseObjectsService.h" />
     <ClInclude Include="core\service\export\ExportResultService.h" />
     <ClInclude Include="core\service\system\SettingService.h" />
     <ClInclude Include="MainFrm.h" />
@@ -363,11 +370,14 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\page\QHelpPage.h" />
     <ClInclude Include="ui\common\page\QPage.h" />
     <ClInclude Include="ui\common\listview\QListViewCtrl.h" />
+    <ClInclude Include="ui\common\process\QProcessBar.h" />
     <ClInclude Include="ui\common\QWinCreater.h" />
     <ClInclude Include="ui\common\tabview\QTabView.h" />
     <ClInclude Include="ui\database\DatabasePanel.h" />
     <ClInclude Include="ui\database\dialog\adapter\ExportDatabaseAdapter.h" />
+    <ClInclude Include="ui\database\dialog\adapter\ImportDatabaseAdapter.h" />
     <ClInclude Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.h" />
+    <ClInclude Include="ui\database\dialog\ImportFromSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\adapter\DatabaseMenuAdapter.h" />
     <ClInclude Include="ui\database\leftview\adapter\TableMenuAdapter.h" />
     <ClInclude Include="ui\database\leftview\adapter\TreeViewMenuAdapter.h" />
@@ -409,6 +419,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <None Include="ClassDiagram1.cd" />
     <None Include="res\CuteSqlite.ico" />
     <None Include="res\toolbar.bmp" />
+    <None Include="res\tpl\export-database-as-sql.tpl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

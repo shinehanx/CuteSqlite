@@ -62,10 +62,66 @@ UserTable TableUserRepository::getTable(uint64_t userDbId, std::wstring & tblNam
 	}
 }
 
+uint64_t TableUserRepository::getDataCount(uint64_t userDbId, std::wstring & tblName)
+{
+	uint64_t n = 0;
+	std::wstring sql = L"SELECT COUNT(*) AS n FROM ";
+	sql.append(tblName);
+
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+
+		if (query.executeStep()) {
+			n = query.getColumn(0).getInt64();
+		}
+		return n;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	}
+}
+
+DataList TableUserRepository::getPageDataList(uint64_t userDbId, std::wstring & tblName, int page, int perpage)
+{
+	DataList result;
+	QPagePair pagePair = { page, perpage };
+	std::wstring sql = L"SELECT * FROM ";
+	sql.append(tblName);
+	std::wstring limitSql = limitClause(pagePair);
+	sql.append(limitSql);
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+
+		while (query.executeStep()) {
+			RowItem rowItem = toRowItem(query);
+			result.push_back(rowItem);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
+	}
+}
+
 UserTable TableUserRepository::toUserTable(QSqlStatement &query)
 {
 	UserTable item;
-	item.name = query.getColumn(L"name").getText();
-	item.sql = query.getColumn(L"sql").getText();
+	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
+	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
+	item.tblName = query.getColumn(L"tbl_name").isNull() ? L"" : query.getColumn(L"tbl_name").getText();
 	return item;
+}
+
+RowItem TableUserRepository::toRowItem(QSqlStatement &query)
+{
+	RowItem rowItem;
+	int columnCount = query.getColumnCount();
+	for (int i = 0; i < columnCount; i++) {
+		std::wstring val = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
+		rowItem.push_back(val);
+	}
+	return rowItem;
 }

@@ -31,9 +31,15 @@ public:
 	~ObjectsTreeViewAdapter();
 
 	void loadTreeView();
+	void selectItem(uint64_t userDbId);
 	void checkToTree(HTREEITEM hItem , BOOL bCheck);
     void setChildCheck(HTREEITEM hItem, BOOL bCheck);
     void setParentCheck(HTREEITEM hItem, BOOL bCheck);
+	void selectAll(BOOL bCheck);
+
+	bool getSelUserTableList(uint64_t userDbId, UserTableList & tblList);
+	bool getSelUserViewList(uint64_t userDbId, UserViewList & viewList);
+	bool getSelUserTriggerList(uint64_t userDbId, UserTriggerList &triggerList);
 private:
 	CImageList imageList;
 
@@ -41,6 +47,10 @@ private:
 	HBITMAP tableBitmap = nullptr;
 	HBITMAP viewBitmap = nullptr;
 	HBITMAP triggerBitmap = nullptr;
+
+	HTREEITEM hTablesFolderItem = nullptr;
+	HTREEITEM hViewsFolderItem = nullptr ;
+	HTREEITEM hTriggersFolderItem = nullptr;
 
 	SettingService * settingService = SettingService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

@@ -11,24 +11,26 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   ExportDatabaseObjectsService.h
+ * @brief  Export the database objects to file
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-06
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
+#include "core/common/service/BaseService.h"
+#include "core/repository/db/UserDbRepository.h"
 #include "core/entity/Entity.h"
 
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
+#define EXPERT_PER_PAGE 100
+
+class ExportDatabaseObjectsService : public BaseService<ExportDatabaseObjectsService, UserDbRepository>
 {
 public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
+	ExportDatabaseObjectsService() {};
+	~ExportDatabaseObjectsService() {};
 
-	UserViewList getListByUserDbId(uint64_t userDbId);
-	UserView getView(uint64_t userDbId, std::wstring & viewName);
-private:
-	UserView toUserView(QSqlStatement &query);
+	std::wstring readExportDatabaseTemplate();
+
+	
 };

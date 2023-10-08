@@ -265,7 +265,7 @@ std::wstring SqlUtil::makeWhereClause(Columns & columns, RowItem &rowItem, SubIt
 	int n = static_cast<int>(columns.size());
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
-			whereClause.append(L",");
+			whereClause.append(L" AND ");
 		}
 
 		std::wstring val;

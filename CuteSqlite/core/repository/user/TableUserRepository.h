@@ -29,6 +29,11 @@ public:
 
 	UserTableList getListByUserDbId(uint64_t userDbId);
 	UserTable getTable(uint64_t userDbId, std::wstring & tblName);
+
+	uint64_t getDataCount(uint64_t userDbId, std::wstring & tblName);
+	DataList getPageDataList(uint64_t userDbId, std::wstring & tblName, int page, int perpage);
 private:
+	
 	UserTable toUserTable(QSqlStatement &query);
+	RowItem toRowItem(QSqlStatement &query);
 };

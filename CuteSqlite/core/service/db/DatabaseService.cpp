@@ -48,11 +48,17 @@ uint64_t DatabaseService::hasUserDb(std::wstring & dbPath)
 }
 
 
-bool DatabaseService::hasUserDb(uint64_t usersDbId)
+bool DatabaseService::hasUserDb(uint64_t userDbId)
 {
-	ATLASSERT(usersDbId > 0);
-	UserDb userDb = getRepository()->getById(usersDbId);
+	ATLASSERT(userDbId > 0);
+	UserDb userDb = getRepository()->getById(userDbId);
 	return userDb.id > 0;
+}
+
+UserDb DatabaseService::getUserDb(uint64_t userDbId)
+{
+	ATLASSERT(userDbId > 0);
+	return getRepository()->getById(userDbId);
 }
 
 uint64_t DatabaseService::createUserDb(std::wstring & dbPath)
@@ -157,10 +163,22 @@ UserViewList DatabaseService::getUserViews(uint64_t userDbId)
 	return viewUserRepository->getListByUserDbId(userDbId);
 }
 
+UserView DatabaseService::getUserView(uint64_t userDbId, std::wstring & viewName)
+{
+	ATLASSERT(userDbId > 0 && !viewName.empty());
+	return viewUserRepository->getView(userDbId, viewName);
+}
+
 UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId)
 {
 	ATLASSERT(userDbId > 0);
 	return triggerUserRepository->getListByUserDbId(userDbId);
+}
+
+UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, std::wstring & triggerName)
+{
+	ATLASSERT(userDbId > 0 && !triggerName.empty());
+	return triggerUserRepository->getTrigger(userDbId, triggerName);
 }
 
 ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, std::wstring & tblName)

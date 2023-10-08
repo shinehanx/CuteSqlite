@@ -61,6 +61,7 @@ typedef std::vector<UserDb> UserDbList;
 typedef struct _UserTable {
 	std::wstring name;
 	std::wstring sql;
+	std::wstring tblName;
 } UserTable, UserView, UserTrigger, UserIndex;
 
 typedef std::vector<UserTable> UserTableList;
@@ -97,7 +98,7 @@ typedef struct _ExportExcelParams {
 //Export to sql params
 typedef struct _ExportSqlParams {
 	std::wstring sqlSetting;
-} ExportSqlParams;
+} ExportSqlParams, StructAndDataParams;
 
 typedef std::vector<std::wstring> ExportSelectedColumns;
 
@@ -120,6 +121,17 @@ typedef struct {
 	std::wstring newVal;
 } SubItemValue;
 typedef std::vector<SubItemValue> SubItemValues;
+
+//Insert statement params for export as sql 
+typedef struct _InsertStatementParams {
+	bool retainColumn = false;
+	bool multiRows = false;
+} InsertStatementParams;
+
+//Insert statement params for export as sql 
+typedef struct _TblStatementParams {
+	std::wstring param;
+} TblStatementParams;
 
 // Execute sql result
 typedef struct _ResultInfo {

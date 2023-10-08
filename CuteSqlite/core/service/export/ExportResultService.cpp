@@ -282,13 +282,13 @@ int ExportResultService::exportToExcelXml(std::wstring & exportPath, Columns & c
  * @return Export rows count 
  */
 int ExportResultService::exportToSql(std::wstring & exportPath, 
-	UserTable & tbl, 
-	Columns & columns, 
-	ExportSelectedColumns & selColumns, 
-	DataList & datas, 
-	ExportSqlParams & sqlarams)
+		UserTable & tbl, 
+		Columns & columns, 
+		ExportSelectedColumns & selColumns, 
+		DataList & datas, 
+		ExportSqlParams & sqlarams)
 {
-	ATLASSERT(!exportPath.empty() && !columns.empty() && !selColumns.empty() && !datas.empty());
+	ATLASSERT(!exportPath.empty() && !columns.empty() && !selColumns.empty());
 	std::wstring dirPath = FileUtil::getFileDir(exportPath);
 	FileUtil::createDirectory(dirPath);
 
@@ -459,5 +459,5 @@ std::wstring ExportResultService::readQueryResultSqlTemplate()
 	std::wstring result(content);
 
 	ifs.close();
-	return result;	
+	return result;
 }

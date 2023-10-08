@@ -18,6 +18,8 @@ public:
 	// mainFrmµÄ´°¿Ú¾ä±ú
 	void setMainFrmHwnd(HWND hwnd);
 	HWND getMainFrmHwnd();
+	std::wstring getMainFrmCaption();
+	void appendMainFrmCaption(const std::wstring & text);
 
 	std::wstring get(std::wstring k);
 	int getInt(std::wstring k);

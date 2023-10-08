@@ -11,24 +11,29 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   ImportDatabaseAdapter.h
+ * @brief  Import the table(s),view(s),trigger(s) of the selected database from SQL file.
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-08
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
+#include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
+#include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
+class ImportDatabaseAdapter : public QAdapter<ImportDatabaseAdapter>
 {
 public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
+	ImportDatabaseAdapter(HWND parentHwnd, ATL::CWindow * view);
+	~ImportDatabaseAdapter();
 
-	UserViewList getListByUserDbId(uint64_t userDbId);
-	UserView getView(uint64_t userDbId, std::wstring & viewName);
+	UserDbList getDbs();
+	void loadDbs();
 private:
-	UserView toUserView(QSqlStatement &query);
+	UserDbList dbs;
+
+	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 };

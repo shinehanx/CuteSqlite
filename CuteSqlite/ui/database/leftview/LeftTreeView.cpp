@@ -26,6 +26,7 @@
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
 #include "ui/database/dialog/ExportAsSqlDialog.h"
+#include "ui/database/dialog/ImportFromSqlDialog.h"
 
 #define TREEVIEW_TOPBAR_HEIGHT 30
 #define TREEVIEW_BUTTON_WIDTH 16
@@ -193,6 +194,12 @@ void LeftTreeView::loadComboBox()
 
 void LeftTreeView::selectComboBox(uint64_t userDbId)
 {
+	int nCurSelItem = selectedDbComboBox.GetCurSel();
+	uint64_t selUserDbId = (uint64_t)selectedDbComboBox.GetItemData(nCurSelItem);
+	if (userDbId == selUserDbId) {
+		return;
+	}
+
 	int nSelItem = -1;
 	for (int i = 0; i < selectedDbComboBox.GetCount(); i++) {
 		uint64_t data = (uint64_t)selectedDbComboBox.GetItemData(i);
@@ -204,6 +211,10 @@ void LeftTreeView::selectComboBox(uint64_t userDbId)
 		return ;
 	}
 	selectedDbComboBox.SetCurSel(nSelItem);
+	
+	// change the main caption
+	UserDb userDb = databaseService->getUserDb(userDbId);
+	AppContext::getInstance()->appendMainFrmCaption(userDb.path);
 }
 
 int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -382,6 +393,11 @@ LRESULT LeftTreeView::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND h
 
 	treeViewAdapter->selectItem(userDbId);
 
+	// set main caption text, such as "CuteSqlite - f:\path1\path2\xxx.db"
+	std::wstring caption = AppContext::getInstance()->getMainFrmCaption();
+	UserDb userDb = databaseService->getUserDb(userDbId);
+	AppContext::getInstance()->appendMainFrmCaption(userDb.path);
+
 	return 0;
 }
 
@@ -437,6 +453,11 @@ void LeftTreeView::OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	doExportAsSql();
 }
 
+void LeftTreeView::OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doImportFromSql();
+}
+
 void LeftTreeView::doCreateDatabase()
 {
 	CFileDialog fileDialog(FALSE,  // TRUE-´ò¿ª false-Áí´æÎª
@@ -488,4 +509,11 @@ void LeftTreeView::doExportAsSql()
 	auto adapter = ExportDatabaseAdapter::getInstance(m_hWnd, nullptr);
 	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, adapter);
 	exportAsSqlDialog.DoModal(m_hWnd);
+}
+
+void LeftTreeView::doImportFromSql()
+{
+	auto adapter = ImportDatabaseAdapter::getInstance(m_hWnd, nullptr);
+	ImportFromSqlDialog dialog(m_hWnd, adapter);
+	dialog.DoModal(m_hWnd);
 }

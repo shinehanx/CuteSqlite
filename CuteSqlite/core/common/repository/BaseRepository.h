@@ -350,7 +350,7 @@ std::wstring BaseRepository<T>::limitClause(const QPagePair & pagePair)
 	std::wstring limitSql = L" LIMIT ";
 	std::wstring perpage = to_wstring(pagePair.second);
 	std::wstring strpos = to_wstring(pos);
-	limitSql.append(perpage).append(L" offset ").append(strpos);
+	limitSql.append(perpage).append(L" OFFSET ").append(strpos);
 
 	return limitSql;
 }

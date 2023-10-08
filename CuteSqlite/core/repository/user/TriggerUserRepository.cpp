@@ -25,7 +25,7 @@
 UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId)
 {
 	UserTriggerList result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' ORDER BY name ASC";
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
@@ -42,10 +42,31 @@ UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
+UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, std::wstring & triggerName)
+{
+	UserTrigger result;
+	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' and name=:name ORDER BY name ASC";
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":name", triggerName);
+
+		if (query.executeStep()) {
+			result = toUserTrigger(query);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	}
+}
+
 UserTrigger TriggerUserRepository::toUserTrigger(QSqlStatement &query)
 {
 	UserTrigger item;
-	item.name = query.getColumn(L"name").getText();
-	item.sql = query.getColumn(L"sql").getText();
+	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
+	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
+	item.tblName = query.getColumn(L"tbl_name").isNull() ? L"" : query.getColumn(L"tbl_name").getText();
 	return item;
 }

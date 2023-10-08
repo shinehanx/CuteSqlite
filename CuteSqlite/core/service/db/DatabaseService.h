@@ -12,7 +12,7 @@
  * limitations under the License.
 
  * @file   DatabaseService.h
- * @brief   The Sqlite Databases management
+ * @brief  The Sqlite Databases management class
  * 
  * @author Xuehan Qin
  * @date   2023-05-19
@@ -36,7 +36,8 @@ public:
 	// user db operations
 	UserDbList getAllUserDbs();
 	uint64_t hasUserDb(std::wstring & dbPath);
-	bool hasUserDb(uint64_t usersDbId);
+	bool hasUserDb(uint64_t userDbId);
+	UserDb getUserDb(uint64_t userDbId);
 	uint64_t createUserDb(std::wstring & dbPath);
 	uint64_t openUserDb(std::wstring & dbPath);
 	void removeUserDb(uint64_t userDbId, bool isRealDelete=false);
@@ -51,9 +52,11 @@ public:
 
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId);
+	UserView getUserView(uint64_t userDbId, std::wstring & viewName);
 
 	// user triggers operations
 	UserTriggerList getUserTriggers(uint64_t userDbId);
+	UserTrigger getUserTrigger(uint64_t userDbId, std::wstring & triggerName);
 
 	// user indexes operations
 	ColumnInfoList getUserColumns(uint64_t userDbId, std::wstring & tblName);

@@ -228,6 +228,21 @@
     <ClCompile Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\common\process\QProcessBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\service\export\ExportDatabaseObjectsService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\service\db\TableService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\adapter\ImportDatabaseAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\ImportFromSqlDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -491,6 +506,21 @@
     <ClInclude Include="ui\database\dialog\adapter\ObjectsTreeViewAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ui\common\process\QProcessBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\export\ExportDatabaseObjectsService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\db\TableService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\adapter\ImportDatabaseAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\ImportFromSqlDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CuteSqlite.rc">
@@ -505,5 +535,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="ClassDiagram1.cd" />
+    <None Include="res\tpl\export-database-as-sql.tpl" />
   </ItemGroup>
 </Project>
