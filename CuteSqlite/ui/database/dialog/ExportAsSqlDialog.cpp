@@ -66,6 +66,8 @@ void ExportAsSqlDialog::createOrShowUI()
 	
 	// process bar 
 	createOrShowProcessBar(processBar, clientRect);
+
+	yesButton.SetWindowText(S(L"export").c_str());
 }
 
 
@@ -148,6 +150,7 @@ void ExportAsSqlDialog::createOrShowExportPathElems(CRect & clientRect)
 
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormEdit(exportPathEdit, Config::EXPORT_DB_AS_SQL_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
+	exportPathEdit.SetLimitText(1024);
 
 	rect.OffsetRect(w + 10, 0);	
 	rect = { rect.left, rect.top, rect.left + 50, rect.bottom };

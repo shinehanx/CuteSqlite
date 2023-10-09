@@ -270,6 +270,9 @@ void ObjectsTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, 
 	try {
 		UserTableList tableList = databaseService->getUserTables(userDbId);
 		for (UserTable item : tableList) {
+			if (item.name == L"sqlite_sequence") {
+				continue;
+			}
 			HTREEITEM hTblItem = dataView->InsertItem(item.name.c_str(), 1, 1, hTablesFolderItem, TVI_LAST);
 		}		
 	} catch (QRuntimeException &ex) {

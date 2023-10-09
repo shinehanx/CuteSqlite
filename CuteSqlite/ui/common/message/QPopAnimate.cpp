@@ -100,8 +100,9 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 		y = (clientRect.Height() - fontSize) / 2 , 
 		w = clientRect.Width() - x - 20, 
 		h = size.cx % w ? (size.cx / w + 1) * size.cy : size.cx / w * size.cy;
-	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, text, rect, clientRect, textFont, ES_MULTILINE);
+	CRect rect(x, y, x + w, y + h +10);
+	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, text, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL, false);
+	::SetWindowLong(textEdit.m_hWnd, GWL_STYLE, ::GetWindowLongW(textEdit.m_hWnd, GWL_STYLE) & ~WS_BORDER);
 }
 
 LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

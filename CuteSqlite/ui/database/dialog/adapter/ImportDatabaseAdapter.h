@@ -22,6 +22,7 @@
 #include "core/entity/Entity.h"
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/TableService.h"
+#include "core/service/db/SqlService.h"
 
 class ImportDatabaseAdapter : public QAdapter<ImportDatabaseAdapter>
 {
@@ -31,9 +32,16 @@ public:
 
 	UserDbList getDbs();
 	void loadDbs();
+
+	bool importFromSql(uint64_t userDbId, const std::wstring & importPath);
+	
 private:
 	UserDbList dbs;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
+	SqlService * sqlService = SqlService::getInstance();
+
+	std::wstring readFromSqlFile(const std::wstring & importPath);
+	void execCommandLine(const wchar_t * cmdline);
 };

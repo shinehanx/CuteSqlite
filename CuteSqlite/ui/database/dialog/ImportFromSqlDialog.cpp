@@ -46,6 +46,8 @@ void ImportFromSqlDialog::createOrShowUI()
 	createOrShowImportPathElems(clientRect);
 	createOrShowAbortOnErrorElems(clientRect);
 	createOrShowProcessBar(processBar, clientRect);
+
+	yesButton.SetWindowText(S(L"import").c_str());
 }
 
 
@@ -98,6 +100,7 @@ void ImportFromSqlDialog::createOrShowImportPathElems(CRect & clientRect)
 
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormEdit(importPathEdit, Config::IMPORT_DB_FROM_SQL_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
+	importPathEdit.SetLimitText(1024);
 
 	rect.OffsetRect(w + 10, 0);	
 	rect = { rect.left, rect.top, rect.left + 50, rect.bottom };
@@ -138,6 +141,7 @@ void ImportFromSqlDialog::loadWindow()
 	isNeedReload = false;
 	loadSelectDbComboBox();
 	loadImportPathEdit();
+	loadAbortOnErrorCheckBox();
 }
 
 
@@ -177,6 +181,11 @@ void ImportFromSqlDialog::loadImportPathEdit()
 	importPathEdit.SetWindowText(importPath.c_str());
 }
 
+
+void ImportFromSqlDialog::loadAbortOnErrorCheckBox()
+{
+	abortOnErrorCheckbox.SetCheck(1);
+}
 
 bool ImportFromSqlDialog::getSelUserDbId(uint64_t & userDbId)
 {
@@ -232,6 +241,8 @@ LRESULT ImportFromSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 {
 	QDialog::OnDestroy(uMsg, wParam, lParam, bHandled);
 
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID);
+
 	if (!linePen.IsNull()) linePen.DeleteObject();
 	if (elemFont) ::DeleteObject(elemFont);
 
@@ -247,6 +258,9 @@ LRESULT ImportFromSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	if (importPathEdit.IsWindow()) importPathEdit.DestroyWindow();
 	if (openFileButton.IsWindow()) openFileButton.DestroyWindow();
 
+	if (abortOnErrorCheckbox.IsWindow()) abortOnErrorCheckbox.DestroyWindow();
+
+	
 	return 0;
 }
 
@@ -268,6 +282,20 @@ void ImportFromSqlDialog::paintItem(CDC &dc, CRect &paintRect)
 	dc.MoveTo(x, y);
 	dc.LineTo(x + w, y);
 	dc.SelectPen(oldPen);
+}
+
+
+LRESULT ImportFromSqlDialog::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int nSelItem = selectDbComboBox.GetCurSel();
+	uint64_t userDbId = static_cast<uint64_t>(selectDbComboBox.GetItemData(nSelItem));
+	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
+	if (userDbId == std::stoull(exportSelectedDbId)) {
+		return 0;
+	}
+	settingService->setSysInit(L"export_selected_db_id", std::to_wstring(userDbId));
+	
+	return 0;
 }
 
 void ImportFromSqlDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -300,7 +328,7 @@ void ImportFromSqlDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND 
 
 void ImportFromSqlDialog::OnClickAbortOnErrorCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	abortOnErrorCheckbox.SetCheck(!abortOnErrorCheckbox.GetCheck());
+	abortOnErrorCheckbox.SetCheck(1);
 }
 
 void ImportFromSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -316,4 +344,48 @@ void ImportFromSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	if (!getSelUserDbId(userDbId) || userDbId == -1) {
 		return ;
 	}
+
+	isRunning = true;
+	yesButton.EnableWindow(false);
+
+	// Export objects(tables/views/triggers) to sql file
+	if (!adapter->importFromSql(userDbId, importPath)) {
+		yesButton.EnableWindow(true);
+		return ;
+	}
+
+	yesButton.EnableWindow(true);
 }
+
+/**
+ * Handle the message for export process.
+ * 
+ * @param uMsg - Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID
+ * @param wParam - 0 : Import in progress, 1:Import is complete 2:Import has error(s)
+ * @param lParam - Percent of export progress
+ * @param bHandled - not use
+ * @return 0
+ */
+LRESULT ImportFromSqlDialog::OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	Q_INFO(L"recieve MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
+
+	if (wParam == 1) { // 1 表示执行完成
+		AppContext * appContext = AppContext::getInstance();
+		processBar.run(100);
+		isRunning = false;
+	} else if (wParam == 0) { 
+		// 进度条
+		int percent = static_cast<int>(lParam);
+		processBar.run(percent);
+	} else if (wParam == 2) {
+		QPopAnimate::error(m_hWnd, S(L"import-from-sql-error-text"));
+		isRunning = false;
+	} else if (wParam == 3) {
+		QPopAnimate::error(m_hWnd, S(L"file-not-found"));
+		isRunning = false;
+	}
+	return 0;
+}
+
+

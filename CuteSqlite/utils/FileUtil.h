@@ -59,7 +59,12 @@ public:
 		return 0;
 	}
 
-	// 文件扩展名
+	/**
+	 * Get the file extension.
+	 * 
+	 * @param filePath
+	 * @return 
+	 */
 	static std::wstring getFileExt(const std::wstring &filePath) 
 	{
 		size_t p = filePath.find_last_of(L'.');

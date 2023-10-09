@@ -33,8 +33,10 @@ public:
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
+		COMMAND_HANDLER_EX(Config::IMPORT_DB_FROM_SQL_SELECT_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeSelectDbComboBox)
 		COMMAND_HANDLER_EX(Config::IMPORT_DB_FROM_SQL_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
 		COMMAND_HANDLER_EX(Config::IMPORT_ABORT_ON_ERROR_CHECKBOX_ID, BN_CLICKED, OnClickAbortOnErrorCheckBox)
+		MESSAGE_HANDLER(Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, OnProcessExport); // ÏìÓ¦½ø¶È
 		CHAIN_MSG_MAP(QDialog<ImportFromSqlDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -81,6 +83,7 @@ private:
 	void loadWindow();
 	void loadSelectDbComboBox();
 	void loadImportPathEdit();
+	void loadAbortOnErrorCheckBox();
 
 	bool getSelUserDbId(uint64_t & userDbId);
 	bool getImportPath(std::wstring & importPath);
@@ -92,8 +95,12 @@ private:
 	virtual LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual void paintItem(CDC &dc, CRect &paintRect);
 
+	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickAbortOnErrorCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// Handle the message for import process
+	LRESULT OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

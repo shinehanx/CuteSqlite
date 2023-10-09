@@ -83,13 +83,8 @@ void ExportDatabaseAdapter::exportObjectsToSql(uint64_t userDbId,
 	ofs.imbue(utf8);
 	ofs.open(exportPath, std::ios::out | std::ios::trunc);
 
-	std::wstring tplSql = exportDatabaseObjectsService->readExportDatabaseTemplate();
-	UserDb userDb = databaseService->getUserDb(userDbId);
-	std::wstring dbName = userDb.name;
-	tplSql = StringUtil::replace(tplSql, L"{<!--export_database-->}", dbName);
-	tplSql = StringUtil::replace(tplSql, L"{<!--database_path-->}", userDb.path);
-	tplSql = StringUtil::replace(tplSql, L"{<!--export_time-->}", DateUtil::getCurrentDateTime());
-	ofs << tplSql << endl;
+	ofs << L"--" << endl;
+	ofs << L"PRAGMA foreign_keys=OFF;" << endl;
 	ofs << L"BEGIN TRANSACTION;" << endl;
 
 	// 2.Export tables/views/triggers to sql

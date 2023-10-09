@@ -136,7 +136,7 @@ void LeftTreeView::createOrShowTreeView(CTreeViewCtrlEx & win, CRect & clientRec
 	CRect rect = getTreeRect(clientRect);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_FULLROWSELECT 
-			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
+			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS | TVS_INFOTIP , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 		// create a singleton treeViewAdapter pointer
 		treeViewAdapter = LeftTreeViewAdapter::getInstance(m_hWnd, &win); 
@@ -186,7 +186,8 @@ void LeftTreeView::loadComboBox()
 		int nItem = selectedDbComboBox.AddString(item.name.c_str());
 		selectedDbComboBox.SetItemData(nItem, item.id);
 		if (item.isActive) {
-			nSelItem = i;			
+			nSelItem = i;
+			AppContext::getInstance()->appendMainFrmCaption(item.path);
 		}
 	}
 	selectedDbComboBox.SetCurSel(nSelItem);
@@ -330,6 +331,38 @@ LRESULT LeftTreeView::OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bH
 		AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, WPARAM(treeViewAdapter), (LPARAM)hSelTreeItem);
 	}
 	
+	return 0;
+}
+
+/**
+ * Show the tooltip in the CTreeItem.
+ * @reference url - https://learn.microsoft.com/zh-cn/windows/win32/api/commctrl/ns-commctrl-nmtvgetinfotipa
+ * 
+ * @param wParam - not use
+ * @param lParam - NMTVGETINFOTIP struct pointer
+ * @param bHandled
+ * @return 
+ */
+LRESULT LeftTreeView::OnShowTreeViewItemToolTip(int wParam, LPNMHDR lParam, BOOL& bHandled)
+{
+	LPNMTVGETINFOTIP lpGetInfoTip = (LPNMTVGETINFOTIP)lParam;
+	int nImage = -1, nSelImage = -1;
+	treeView.GetItemImage(lpGetInfoTip->hItem, nImage, nSelImage);
+	// Database item : nImage == 0
+	if (nImage != 0) { 
+		return 0;
+	}
+	uint64_t userDbId = treeView.GetItemData(lpGetInfoTip->hItem);
+	if (!userDbId) {
+		return 0;
+	}
+	UserDb userDb = databaseService->getUserDb(userDbId);
+	if (!userDb.id || userDb.path.empty()) {
+		return 0;
+	}
+	wchar_t cch[1025] = {0};
+	wmemcpy_s(cch, 1024, userDb.path.c_str(), userDb.path.size());
+	lpGetInfoTip->pszText = cch;
 	return 0;
 }
 
