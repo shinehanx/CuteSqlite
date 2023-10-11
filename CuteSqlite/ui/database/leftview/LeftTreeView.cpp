@@ -131,11 +131,11 @@ void LeftTreeView::createOrShowDeleteDbButton(QImageButton & win, CRect &clientR
 	}
 }
 
-void LeftTreeView::createOrShowTreeView(CTreeViewCtrlEx & win, CRect & clientRect)
+void LeftTreeView::createOrShowTreeView(QTreeViewCtrl & win, CRect & clientRect)
 {	
 	CRect rect = getTreeRect(clientRect);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_FULLROWSELECT 
+		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE  | WS_CLIPSIBLINGS | TVS_FULLROWSELECT 
 			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS | TVS_INFOTIP , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 		// create a singleton treeViewAdapter pointer
@@ -170,6 +170,10 @@ void LeftTreeView::createOrShowSelectedDbComboBox(CComboBox & win, CRect & clien
 
 void LeftTreeView::loadWindow()
 {
+	if (!isNeedReload) {
+		return;
+	}
+	isNeedReload = false;
 	treeViewAdapter->loadTreeView();
 	loadComboBox();
 }

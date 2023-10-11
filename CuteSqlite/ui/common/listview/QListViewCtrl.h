@@ -24,7 +24,6 @@
 #include <atlctrlx.h>
 #include <atlcrack.h>
 #include <atltypes.h>
-#include <utility>
 #include <map>
 #include "common/Config.h"
 #include "core/entity/Entity.h"

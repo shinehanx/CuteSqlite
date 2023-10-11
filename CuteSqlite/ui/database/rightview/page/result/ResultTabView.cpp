@@ -278,5 +278,5 @@ void ResultTabView::OnPaint(CDCHandle dc)
 
 BOOL ResultTabView::OnEraseBkgnd(CDCHandle dc)
 {
-	return true;
+	return TRUE;
 }

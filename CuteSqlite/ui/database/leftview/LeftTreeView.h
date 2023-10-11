@@ -30,6 +30,7 @@
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/dialog/adapter/ExportDatabaseAdapter.h"
 #include "ui/database/dialog/adapter/ImportDatabaseAdapter.h"
+#include "ui/common/treeview/QTreeViewCtrl.h"
 
 class LeftTreeView : public CWindowImpl<LeftTreeView> 
 {
@@ -71,6 +72,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
+	bool isNeedReload = true;
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
 	COLORREF topbarColor = RGB(238, 238, 238);
@@ -83,7 +85,7 @@ private:
 	QImageButton deleteDbButton;
 	CComboBox selectedDbComboBox;
 
-	CTreeViewCtrlEx treeView;
+	QTreeViewCtrl treeView;
 
 	// refreshLock 
 	bool refreshLock = false;
@@ -103,7 +105,7 @@ private:
 	void createOrShowOpenDbButton(QImageButton & win, CRect &clientRect);
 	void createOrShowRefreshDbButton(QImageButton & win, CRect &clientRect);
 	void createOrShowDeleteDbButton(QImageButton & win, CRect &clientRect);
-	void createOrShowTreeView(CTreeViewCtrlEx & win, CRect & clientRect);
+	void createOrShowTreeView(QTreeViewCtrl & win, CRect & clientRect);
 	void createOrShowSelectedDbComboBox(CComboBox & win, CRect & clientRect);
 
 	void loadWindow();

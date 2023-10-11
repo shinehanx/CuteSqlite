@@ -255,6 +255,9 @@
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\common\treeview\QTreeViewCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -543,6 +546,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\common\treeview\QTreeViewCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
