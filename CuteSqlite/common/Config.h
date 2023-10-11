@@ -81,11 +81,20 @@ typedef enum {
 
 	// IMPORT DB FROM SQL
 	IMPORT_DB_FROM_SQL_OPEN_FILE_BUTTON_ID,
+
+	// NEW TABLE PAGE
+	TABLE_NEW_COLUMN_BUTTON_ID,
+	TABLE_DEL_COLUMN_BUTTON_ID,
+	TABLE_UP_COLUMN_BUTTON_ID,
+	TABLE_DOWN_COLUMN_BUTTON_ID,
+	TABLE_SAVE_BUTTON_ID,
+	TABLE_REVERT_BUTTON_ID,
 } ButtonId;
 
 // TabView id
 typedef enum {
 	DATABASE_WORK_TAB_VIEW_ID = WM_USER + 100,
+	DATABASE_TABLE_TAB_VIEW_ID,
 } TabViewId;
 
 typedef enum {
@@ -98,6 +107,10 @@ typedef enum {
 	EXPORT_DB_AS_SQL_SELECT_DB_COMBOBOX_ID,
 	// IMPORT DATABASE FROM SQL
 	IMPORT_DB_FROM_SQL_SELECT_DB_COMBOBOX_ID,
+
+	//NEW TABLE 
+	NEW_TABLE_DATABASE_COMBOBOX_ID,
+	NEW_TABLE_SCHEMA_COMBOBOX_ID,
 } ComboBoxId;
 
 
@@ -128,10 +141,16 @@ typedef enum {
 	EXPORT_DB_AS_SQL_PATH_EDIT_ID,
 	// IMPORT DATABASE FROM SQL
 	IMPORT_DB_FROM_SQL_PATH_EDIT_ID,
+
+	// NEW TABLE
+	NEW_TABLE_TBL_NAME_EDIT_ID,
 } EditorId;
 
 typedef enum {
+	// QUERY RESULT
 	DATABASE_QUERY_LISTVIEW_ID = WM_USER + 140,
+	// NEW TABLE/MODIFY TABLE
+	DATABASE_TABLE_COLUMNS_LISTVIEW_ID,
 } ListViewId;
 
 typedef enum {
@@ -231,6 +250,7 @@ typedef enum {
 	MSG_EXEC_SQL_RESULT_MESSAGE_ID, // 执行SQL语句后，返回的消息，wParam- NULL，lParam - point of adapter.runtimeResultInfo
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
+	MSG_NEW_TABLE_ID, // Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 }MessageId;
 
 typedef enum {
@@ -254,4 +274,15 @@ typedef enum {
 	FORMVIEW_EDIT_ID_END = WM_USER + 1712,
 } EditIdRank;
 
+typedef enum {
+	//list combobox id rank
+	QLISTVIEWCTRL_COMBOBOX_ID_START = WM_USER + 1801,
+	QLISTVIEWCTRL_COMBOBOX_ID_END = WM_USER + 3800,
+} ListViweComboBoxIdRank;
+
+typedef enum {
+	//list combobox id rank
+	QLISTVIEWCTRL_CHECKBOX_ID_START = WM_USER + 3801,
+	QLISTVIEWCTRL_CHECKBOX_ID_END = WM_USER + 8800,
+} ListViweCheckBoxIdRank;
 };

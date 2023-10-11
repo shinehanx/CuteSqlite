@@ -40,11 +40,7 @@ void QPage::createOrShowUI()
 
 void QPage::loadWindow()
 {
-	if (!isNeedReload) {
-		return;
-	}
-
-	isNeedReload = false;
+	
 }
 
 int QPage::OnCreate(LPCREATESTRUCT lpCreateStruct)

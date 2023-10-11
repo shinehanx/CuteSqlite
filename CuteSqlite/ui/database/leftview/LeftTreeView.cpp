@@ -274,16 +274,16 @@ BOOL LeftTreeView::OnEraseBkgnd(CDCHandle dc)
 
 HBRUSH LeftTreeView::OnCtlColorListBox(HDC hdc, HWND hwnd)
 {
-	::SetTextColor(hdc, RGB(0, 0, 0)); //文本区域前景色
-	::SetBkColor(hdc, RGB(153, 153, 153)); // 文本区域背景色
+	::SetTextColor(hdc, RGB(0, 0, 0)); // Text area foreground color
+	::SetBkColor(hdc, RGB(153, 153, 153)); // Text area background color
 	::SelectObject(hdc, comboFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
 HBRUSH LeftTreeView::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {
-	::SetTextColor(hdc, RGB(0, 0, 0)); //文本区域前景色
-	::SetBkColor(hdc, RGB(153, 153, 153)); // 文本区域背景色
+	::SetTextColor(hdc, RGB(0, 0, 0)); // Text area foreground color
+	::SetBkColor(hdc, RGB(153, 153, 153)); // Text area background color
 	::SelectObject(hdc, comboFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
@@ -459,8 +459,6 @@ LRESULT LeftTreeView::OnClickDeleteDatabaseButton(UINT uNotifyCode, int nID, HWN
 	return 0;
 }
 
-
-
 void LeftTreeView::OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doCreateDatabase();
@@ -489,6 +487,11 @@ void LeftTreeView::OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 void LeftTreeView::OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doImportFromSql();
+}
+
+void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doNewTable();
 }
 
 void LeftTreeView::doCreateDatabase()
@@ -549,4 +552,9 @@ void LeftTreeView::doImportFromSql()
 	auto adapter = ImportDatabaseAdapter::getInstance(m_hWnd, nullptr);
 	ImportFromSqlDialog dialog(m_hWnd, adapter);
 	dialog.DoModal(m_hWnd);
+}
+
+void LeftTreeView::doNewTable()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID, NULL, NULL);
 }

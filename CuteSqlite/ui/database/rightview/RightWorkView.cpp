@@ -13,15 +13,16 @@
 
  * @file   RightWorkView.cpp
  * @brief  Right work space for splitter,include data query, sql execute and so on.
- * @ClassChain  RightWorkView 
- *                    |-> QueryPage 
- *                          |-> CHorSplitterWindow 
- *                                |-> QHelpEdit -> QSqlEdit(Scintilla)
- *                                |-> ResultTabView 
- *                                        |-> QTabView
- *                                              |-> ResultListPage 
- *                                              |-> ResultInfoPage 
- *                                              |-> ResultTableDataPage
+ * @ClassChain  RightWorkView
+ *                    |-> QueryPage
+ *                    |      |-> CHorSplitterWindow
+ *                    |            |-> QHelpEdit -> QSqlEdit(Scintilla)
+ *                    |            |-> ResultTabView
+ *                    |                    |-> QTabView
+ *                    |                          |-> ResultListPage
+ *                    |                          |-> ResultInfoPage
+ *                    |                          |-> ResultTableDataPage
+ *                    |-> NewTablePage
  * @author Xuehan Qin
  * @date   2023-05-21
  *********************************************************************/
@@ -30,6 +31,7 @@
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
+
 
 #define RIGHTVIEW_TOPBAR_HEIGHT 30
 #define RIGHTVIEW_BUTTON_WIDTH 16
@@ -51,10 +53,12 @@ void RightWorkView::createImageList()
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	queryBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\query.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	historyBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\history.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
+	tableBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\table.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
 
 	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
 	imageList.Add(queryBitmap); // 0 - query
 	imageList.Add(historyBitmap); // 1 - history
+	imageList.Add(tableBitmap); // 2 - table
 	
 }
 
@@ -140,6 +144,20 @@ void RightWorkView::createOrShowQueryPage(QueryPage &win, CRect & clientRect)
 	}
 }
 
+void RightWorkView::createOrShowNewTablePage(NewTablePage &win, CRect & clientRect)
+{
+	CRect tabRect = getTabRect(clientRect);
+	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (IsWindow() && !win.IsWindow()) {
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);
+	}
+	else if (IsWindow() && tabView.IsWindow()) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+	}
+}
+
 void RightWorkView::loadWindow()
 {
 	if (!isNeedReload) {
@@ -162,6 +180,7 @@ void RightWorkView::loadTabViewPages()
 
 int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
 	createImageList();
 
 	topbarBrush = ::CreateSolidBrush(topbarColor);
@@ -171,18 +190,32 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int RightWorkView::OnDestroy()
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
+
 	if (topbarBrush) ::DeleteObject(topbarBrush);
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 
-	if (queryBitmap) ::DeleteObject(queryBitmap);
-	if (historyBitmap) ::DeleteObject(historyBitmap);
-	
+	if (execSqlButton.IsWindow()) execSqlButton.DestroyWindow();
+	if (execAllButton.IsWindow()) execAllButton.DestroyWindow();
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (historyPage.IsWindow()) historyPage.DestroyWindow();
 	if (queryPage.IsWindow()) queryPage.DestroyWindow();
 	
-	imageList.Destroy();
+	if (queryBitmap) ::DeleteObject(queryBitmap);
+	if (historyBitmap) ::DeleteObject(historyBitmap);
+	if (tableBitmap) ::DeleteObject(tableBitmap);
+	if (!imageList.IsNull()) imageList.Destroy();
+
+	// destroy the pagePtr and release the memory from pagePtrs vector
+	for (QPage * pagePtr : pagePtrs) {
+		if (pagePtr && pagePtr->IsWindow()) {
+			pagePtr->DestroyWindow();
+			delete pagePtr;
+			pagePtr = nullptr;
+		}
+	}
+	pagePtrs.clear();
 	return 0;
 }
 
@@ -233,4 +266,32 @@ LRESULT RightWorkView::OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd
 LRESULT RightWorkView::OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	return 0;
+}
+/**
+ * Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL.
+ * 
+ * @param uMsg
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT RightWorkView::OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	doAddNewTable();
+	return 0;
+}
+
+void RightWorkView::doAddNewTable()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	NewTablePage * newTablePage = new NewTablePage();
+	createOrShowNewTablePage(*newTablePage, clientRect);
+	pagePtrs.push_back(newTablePage);
+
+	// nImage = 2 : table 
+	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 2, newTablePage);
+
+	supplier->mainTabPages.push_back({ DatabaseSupplier::NEW_TABLE_PAGE, newTablePage->m_hWnd });
 }

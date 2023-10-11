@@ -194,7 +194,6 @@ void ResultListPage::loadWindow()
 
 	// load the datas from dbfile to show in list view
 	loadListView();
-	return;
 
 }
 

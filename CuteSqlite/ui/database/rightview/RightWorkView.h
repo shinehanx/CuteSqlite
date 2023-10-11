@@ -19,13 +19,14 @@
  *			supplier: DatabaseSupplier
  * @ClassChain  RightWorkView
  *                    |-> QueryPage
- *                          |-> CHorSplitterWindow
- *                                |-> QHelpEdit -> QSqlEdit(Scintilla)
- *                                |-> ResultTabView
- *                                        |-> QTabView
- *                                              |-> ResultListPage
- *                                              |-> ResultInfoPage
- *                                              |-> ResultTableDataPage
+ *                    |      |-> CHorSplitterWindow
+ *                    |            |-> QHelpEdit -> QSqlEdit(Scintilla)
+ *                    |            |-> ResultTabView
+ *                    |                    |-> QTabView
+ *                    |                          |-> ResultListPage
+ *                    |                          |-> ResultInfoPage
+ *                    |                          |-> ResultTableDataPage
+ *                    |-> NewTablePage
  * @author Xuehan Qin
  * @date   2023-05-21
  *********************************************************************/
@@ -39,6 +40,7 @@
 #include "ui/common/button/QImageButton.h"
 #include "ui/database/rightview/page/QueryPage.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/database/rightview/page/NewTablePage.h"
 
 class RightWorkView : public CWindowImpl<RightWorkView>
 {
@@ -56,6 +58,7 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
+		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -73,10 +76,12 @@ private:
 	QTabView tabView;
 	CEdit historyPage;
 	QueryPage queryPage;
+	std::vector<QPage *> pagePtrs;
 	CImageList imageList;
 
 	HBITMAP queryBitmap = nullptr;
 	HBITMAP historyBitmap = nullptr;
+	HBITMAP tableBitmap = nullptr;
 
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	
@@ -91,6 +96,7 @@ private:
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowHistoryPage(CEdit &win, CRect & clientRect);
 	void createOrShowQueryPage(QueryPage &win, CRect & clientRect);
+	void createOrShowNewTablePage(NewTablePage &win, CRect & clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();
@@ -104,4 +110,9 @@ private:
 
 	LRESULT OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	void doAddNewTable();
 };

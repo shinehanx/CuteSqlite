@@ -54,7 +54,7 @@ public:
 			return ;
 		} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
 			win.MoveWindow(&rect);
-			win.ShowWindow(SW_SHOW);		
+			win.ShowWindow(SW_SHOW);
 		}
 	}
 

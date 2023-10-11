@@ -30,7 +30,8 @@ public:
 		HISTORY_PAGE,
 		RESULT_PAGE,
 		INFO_PAGE,
-		TABLE_DATA_PAGE,
+		TABLE_DATA_PAGE,		
+		NEW_TABLE_PAGE,
 	} TabPageType;
 
 	// For tabView.SetPageData function

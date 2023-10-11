@@ -24,27 +24,49 @@
 #include <atlctrlx.h>
 #include <atlcrack.h>
 #include <atltypes.h>
+#include <utility>
+#include <map>
 #include "common/Config.h"
 #include "core/entity/Entity.h"
 
+// template params : std::pair<int - iItem, int - iSubItem>, CComboBox *  - combobox pointer
+typedef std::map<std::pair<int, int>, CComboBox *> SubItemComboBoxMap;
+typedef std::map<std::pair<int, int>, CButton *> SubItemCheckBoxMap;
 
-class QListViewCtrl : public CWindowImpl<QListViewCtrl,CListViewCtrl>
+class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 	DECLARE_WND_SUPERCLASS(_T("WTL_SortListViewCtrl"), GetWndClassName())
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
+		//MSG_WM_CREATE(OnCreate)
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_SIZE(OnSize)
+		MSG_WM_DESTROY(OnDestroy)
+		MSG_WM_MEASUREITEM(OnMeasureItem)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
-		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus);
+		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::QLISTVIEWCTRL_CHECKBOX_ID_START, Config::QLISTVIEWCTRL_CHECKBOX_ID_END, BN_CLICKED, OnClickCheckBox)
+		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
+		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
+		
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	// editor
 	void createOrShowEditor(std::pair<int, int> subItemPos);
 	void createOrShowEditor(int iItem, int iSubItem);
+
+	// combobox
+	void createOrShowComboBox(std::pair<int, int> & subItemPos, const std::vector<std::wstring> &strList, int nSelItem = 0);
+	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
+
+	//CheckBox
+	void createOrShowCheckBox(int iItem, int iSubItem);
+	
 
 	SubItemValues getChangedVals();
 	int getChangedCount();
@@ -54,25 +76,40 @@ public:
 	void clearChangeVals();
 	void removeChangedValsItems(int iItem);
 private:
+	COLORREF bkgColor = RGB(255, 255, 255);
+	HBRUSH bkgBrush = nullptr;
+	HFONT textFont = nullptr;	
+	HFONT comboFont = nullptr;
+
 	CEdit subItemEdit;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
 	CRect subItemRect;
 	bool isVisibleEdit = false;
 
 	SubItemValues changeVals;
+	SubItemComboBoxMap subItemComboBoxMap;
+	SubItemCheckBoxMap subItemCheckBoxMap;
 	SCROLLINFO si;
 	
 	void changeSubItemText();
 
-	
-
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
+	void createOrShowSubItemComboBox(CRect & subItemRect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
+	void createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, int iSubItem);
+	void loadSubItemComboBox(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem);
 	void pressedTabToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnSize(UINT nType, CSize size);
+	void OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 
-	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
+	void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+	void OnDestroy();
+	void OnSize(UINT nType, CSize size);
+	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);	
+
+	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 };

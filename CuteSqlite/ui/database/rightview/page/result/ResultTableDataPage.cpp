@@ -88,7 +88,7 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.SetImageList(imageList, LVSIL_SMALL);
-		CHeaderCtrl header = win.GetHeader();		
+		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);
 		adapter = new ResultListPageAdapter(m_hWnd, &win, TABLE_DATA);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {

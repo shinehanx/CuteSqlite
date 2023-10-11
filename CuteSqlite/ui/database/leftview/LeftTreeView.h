@@ -66,6 +66,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_DELETE_MENU_ID, OnClickDeleteDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPORT_AS_SQL_MENU_ID, OnClickExportAsSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_IMPORT_FROM_SQL_MENU_ID, OnClickImportFromSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_TABLE_MENU_ID, OnClickNewTableMenu)
 
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -142,6 +143,7 @@ private:
 	void OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 	void doRefreshDatabase();
 	void doDeleteDatabase();
@@ -149,5 +151,6 @@ private:
 	void doOpenDatabase();
 	void doExportAsSql();
 	void doImportFromSql();
+	void doNewTable();
 
 };
