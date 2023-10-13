@@ -31,6 +31,7 @@
  */
 BOOL NewTablePage::PreTranslateMessage(MSG* pMsg)
 {
+	BOOL result = FALSE;
 	if (tableTabView.IsWindow() && tableTabView.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}

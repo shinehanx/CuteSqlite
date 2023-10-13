@@ -24,6 +24,7 @@
 
 BOOL TableTabView::PreTranslateMessage(MSG* pMsg)
 {
+	BOOL result = FALSE;
 	if (tableColumnsPage.IsWindow() && tableColumnsPage.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}

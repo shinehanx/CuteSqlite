@@ -26,8 +26,7 @@
 
 #define NEW_TBL_EMPTY_COLUMN_SIZE 6
 // Support create/modify table
-typedef enum 
-{
+typedef enum {
 	NEW_TABLE,
 	MOD_TABLE,
 } TblOperateType;
@@ -38,19 +37,31 @@ public:
 	TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType resultType = NEW_TABLE);
 	~TableColumnsPageAdapter();
 
-	int loadNewTblListView(uint64_t userDbId, const std::wstring & schema);
-	LRESULT fillListViewWithEmptyItemData(NMLVDISPINFO * pLvdi);
+	int loadTblColumnsListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
+	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
+
+	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
+	void invalidateSubItem(int iItem, int iSubItem);
+
+	// create/copy a new column row operation
+	void createNewColumn();
 private:
-	const static Columns columns;
+	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;
 	const static std::vector<int> columnFormats;
 	const static std::vector<std::wstring> dataTypeList;
 
+	// store the runtime data of the column(s) settings
+	ColumnInfoList runtimeDatas;
+
 	TblOperateType operateType;
 
-	void loadColumnsForListView();
+	DatabaseService * databaseService = DatabaseService::getInstance();
+
+	void loadHeadersForListView();
 	int loadEmptyRowsForListView();
+	int loadColumnRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName);
 
 	bool getIsChecked(int iItem);
-	
+	int getSelDataType(const std::wstring & dataType);
 };

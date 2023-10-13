@@ -28,8 +28,7 @@
 
 
 
-typedef struct _SysInit
-{
+typedef struct _SysInit {
 	std::wstring name;
 	std::wstring val;
 } SysInit;
@@ -72,11 +71,15 @@ typedef std::vector<UserIndex> UserIndexList;
 // table fields
 typedef struct _ColumnInfo {
 	uint32_t cid = 0;
+	uint8_t notnull = 0; //not null
+	uint8_t pk = 0; // primary key
+	uint8_t ai = 0; // auto increment
+	uint8_t un = 0; // unsigned
+
 	std::wstring name;
 	std::wstring type;
-	int notnull = 0;
-	std::wstring dfltValue;
-	int pk = 0;
+	std::wstring defVal;
+	std::wstring checks;	
 } ColumnInfo;
 typedef std::vector<ColumnInfo> ColumnInfoList;
 

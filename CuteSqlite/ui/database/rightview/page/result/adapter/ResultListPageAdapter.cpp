@@ -121,7 +121,7 @@ int ResultListPageAdapter::loadFilterListView()
  * @param pLvdi
  * @return 
  */
-LRESULT ResultListPageAdapter::fillListViewItemData(NMLVDISPINFO * pLvdi)
+LRESULT ResultListPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 {
 	auto iItem = pLvdi->item.iItem;
 	if (-1 == iItem)
@@ -913,7 +913,7 @@ bool ResultListPageAdapter::remove(bool confirm)
 		runtimeDatas.erase(iter);
 
 		// 2.3 delete row from dataView
-		dataView->DeleteItem(nSelItem);
+		dataView->RemoveItem(nSelItem);
 	}
 
 	// 3.delete or subtract item index in runtimeNewRows and changeVals the item begin from the last selected item

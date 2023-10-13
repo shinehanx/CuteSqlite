@@ -42,7 +42,7 @@ UserTableList TableUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
-UserTable TableUserRepository::getTable(uint64_t userDbId, std::wstring & tblName)
+UserTable TableUserRepository::getTable(uint64_t userDbId, const std::wstring & tblName)
 {
 	UserTable result;
 	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='table' and name=:name ORDER BY name ASC";
@@ -62,7 +62,7 @@ UserTable TableUserRepository::getTable(uint64_t userDbId, std::wstring & tblNam
 	}
 }
 
-uint64_t TableUserRepository::getDataCount(uint64_t userDbId, std::wstring & tblName)
+uint64_t TableUserRepository::getDataCount(uint64_t userDbId, const std::wstring & tblName)
 {
 	uint64_t n = 0;
 	std::wstring sql = L"SELECT COUNT(*) AS n FROM ";
@@ -83,7 +83,7 @@ uint64_t TableUserRepository::getDataCount(uint64_t userDbId, std::wstring & tbl
 	}
 }
 
-DataList TableUserRepository::getPageDataList(uint64_t userDbId, std::wstring & tblName, int page, int perpage)
+DataList TableUserRepository::getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage)
 {
 	DataList result;
 	QPagePair pagePair = { page, perpage };

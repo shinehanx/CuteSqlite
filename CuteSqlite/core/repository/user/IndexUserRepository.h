@@ -27,7 +27,7 @@ public:
 	IndexUserRepository() {}
 	~IndexUserRepository() {}
 
-	UserIndexList getListByTblName(uint64_t userDbId, std::wstring &tblName);
+	UserIndexList getListByTblName(uint64_t userDbId, const std::wstring &tblName);
 private:
 	UserIndex toUserIndex(QSqlStatement &query);
 };

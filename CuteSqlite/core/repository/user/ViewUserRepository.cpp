@@ -42,7 +42,7 @@ UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
-UserView ViewUserRepository::getView(uint64_t userDbId, std::wstring & viewName)
+UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & viewName)
 {
 	UserTrigger result;
 	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' and name=:name ORDER BY name ASC";

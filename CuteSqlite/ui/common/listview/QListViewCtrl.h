@@ -33,6 +33,7 @@ typedef std::map<std::pair<int, int>, CComboBox *> SubItemComboBoxMap;
 typedef std::map<std::pair<int, int>, CButton *> SubItemCheckBoxMap;
 
 class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
+	//, public COwnerDraw<QListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
@@ -40,10 +41,10 @@ public:
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
 		//MSG_WM_CREATE(OnCreate)
+		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_SIZE(OnSize)
-		MSG_WM_DESTROY(OnDestroy)
-		MSG_WM_MEASUREITEM(OnMeasureItem)
+		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
@@ -51,7 +52,6 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
-		
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -60,12 +60,13 @@ public:
 	void createOrShowEditor(int iItem, int iSubItem);
 
 	// combobox
-	void createOrShowComboBox(std::pair<int, int> & subItemPos, const std::vector<std::wstring> &strList, int nSelItem = 0);
+	void createOrShowComboBox(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> &strList, int nSelItem = 0);
 	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
+	CComboBox * getComboBoxPtr(int iItem, int iSubItem);
 
 	//CheckBox
 	void createOrShowCheckBox(int iItem, int iSubItem);
-	
+	CButton * getCheckBoxPtr(int iItem, int iSubItem);
 
 	SubItemValues getChangedVals();
 	int getChangedCount();
@@ -74,6 +75,7 @@ public:
 	void setChangeVal(SubItemValue &subItemVal);
 	void clearChangeVals();
 	void removeChangedValsItems(int iItem);
+	void RemoveItem(int nItem);
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
@@ -88,9 +90,10 @@ private:
 	SubItemValues changeVals;
 	SubItemComboBoxMap subItemComboBoxMap;
 	SubItemCheckBoxMap subItemCheckBoxMap;
-	SCROLLINFO si;
 	
 	void changeSubItemText();
+	void changeComboBoxesRect();
+	void changeCheckBoxesRect();
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
 	void createOrShowSubItemComboBox(CRect & subItemRect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
@@ -103,10 +106,10 @@ private:
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
 
-	void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	void OnDestroy();
 	void OnSize(UINT nType, CSize size);
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);	
+	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);

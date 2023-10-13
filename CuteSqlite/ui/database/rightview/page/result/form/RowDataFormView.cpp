@@ -203,7 +203,7 @@ void RowDataFormView::initScrollBar(CSize & clientSize)
 	si.nPage = si.nMax % pageNums ? 
 		si.nMax / pageNums + 1 : si.nMax / pageNums;
 
-	y = si.nPage;
+	vScrollPages = si.nPage;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 }
 
@@ -226,16 +226,16 @@ LRESULT RowDataFormView::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		si.nPos -= 1;
 		break;
 	case SB_PAGEDOWN:
-		si.nPos += y;
+		si.nPos += vScrollPages;
 		break;
 	case SB_PAGEUP:
-		si.nPos -= y;
+		si.nPos -= vScrollPages;
 		break;
 	case SB_THUMBTRACK:
 		si.nPos = si.nTrackPos ;
 		break;
 	}
-	si.nPos = min(50 - y, max(0, si.nPos));
+	si.nPos = min(50 - vScrollPages, max(0, si.nPos));
 	si.fMask = SIF_POS;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);

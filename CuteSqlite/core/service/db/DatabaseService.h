@@ -45,33 +45,33 @@ public:
 
 	// user table operations
 	UserTableList getUserTables(uint64_t userDbId);
-	UserTable getUserTable(uint64_t userDbId, std::wstring & tblName);
+	UserTable getUserTable(uint64_t userDbId, const std::wstring & tblName);
 
 	// user table operations
 	UserTableStrings getUserTableStrings(uint64_t userDbId);
 
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId);
-	UserView getUserView(uint64_t userDbId, std::wstring & viewName);
+	UserView getUserView(uint64_t userDbId, const std::wstring & viewName);
 
 	// user triggers operations
 	UserTriggerList getUserTriggers(uint64_t userDbId);
-	UserTrigger getUserTrigger(uint64_t userDbId, std::wstring & triggerName);
+	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName);
 
 	// user indexes operations
-	ColumnInfoList getUserColumns(uint64_t userDbId, std::wstring & tblName);
+	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName);
 
 	// user indexes operations
-	UserIndexList getUserIndexes(uint64_t userDbId, std::wstring & tblName);
+	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName);
 	
 	// get runtime user unique or index columns
-	std::wstring getPrimaryKeyColumn(uint64_t userDbId, std::wstring & tblName, Columns & columns);
+	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns);
 
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	ViewUserRepository * viewUserRepository = ViewUserRepository::getInstance();
 	TriggerUserRepository * triggerUserRepository = TriggerUserRepository::getInstance();
-	ColumnUserRepository * fieldUserRepository = ColumnUserRepository::getInstance();
+	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
 	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 };

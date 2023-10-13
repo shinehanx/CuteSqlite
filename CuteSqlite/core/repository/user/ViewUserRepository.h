@@ -28,7 +28,7 @@ public:
 	~ViewUserRepository() {}
 
 	UserViewList getListByUserDbId(uint64_t userDbId);
-	UserView getView(uint64_t userDbId, std::wstring & viewName);
+	UserView getView(uint64_t userDbId, const std::wstring & viewName);
 private:
 	UserView toUserView(QSqlStatement &query);
 };

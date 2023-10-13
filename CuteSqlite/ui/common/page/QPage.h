@@ -33,6 +33,7 @@
 class QPage : public CWindowImpl<QPage>
 {
 public:
+	BOOL PreTranslateMessage(MSG* pMsg);
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(QPage)

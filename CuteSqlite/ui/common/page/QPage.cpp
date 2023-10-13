@@ -22,6 +22,11 @@
 
 
 
+BOOL QPage::PreTranslateMessage(MSG* pMsg)
+{
+	return FALSE;
+}
+
 CRect QPage::getTopRect(CRect & clientRect)
 {
 	return { 0, 0, clientRect.right, PAGE_TOPBAR_HEIGHT };

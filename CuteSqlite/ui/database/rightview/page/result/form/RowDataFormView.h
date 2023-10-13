@@ -22,7 +22,7 @@
 #include "ui/common/page/QPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 
-static int cxChar, cyChar, iVscrollPos, y=5;
+static int cxChar, cyChar, iVscrollPos, vScrollPages=5;
 class RowDataFormView : public QPage
 {
 public:

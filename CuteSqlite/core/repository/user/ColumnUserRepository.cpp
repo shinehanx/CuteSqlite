@@ -22,7 +22,7 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, std::wstring &tblName)
+ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName)
 {
 	ColumnInfoList result;
 	std::wstring sql = L"PRAGMA table_info(";
@@ -52,7 +52,7 @@ ColumnInfo ColumnUserRepository::toUserField(QSqlStatement &query)
 	item.type = query.getColumn(L"type").isNull() ? L"" 
 		: query.getColumn(L"type").getText();
 	item.notnull = query.getColumn(L"notnull").getInt();
-	item.dfltValue = query.getColumn(L"dflt_value").isNull() ? L"" 
+	item.defVal = query.getColumn(L"dflt_value").isNull() ? L"" 
 		: query.getColumn(L"dflt_value").getText();
 	item.pk = query.getColumn(L"pk").getInt();
 	return item;

@@ -42,7 +42,7 @@ UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
-UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, std::wstring & triggerName)
+UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, const std::wstring & triggerName)
 {
 	UserTrigger result;
 	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' and name=:name ORDER BY name ASC";

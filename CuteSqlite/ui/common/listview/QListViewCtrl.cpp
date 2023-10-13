@@ -24,18 +24,20 @@
 #include <algorithm>
 #include "core/common/Lang.h"
 #include "utils/GdiPlusUtil.h"
+#include "utils/Log.h"
 
 BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 {
 	// press enter key or the mouse wheel
 	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->hwnd == subItemEdit.m_hWnd) {
 		changeSubItemText();
-		return TRUE;
 	} else if (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB) {
 		pressedTabToMoveEditor();
 	}
 	else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) {
 		changeSubItemText();
+		changeComboBoxesRect();
+		changeCheckBoxesRect();
 	}
 
 	return FALSE;
@@ -72,17 +74,15 @@ void QListViewCtrl::createOrShowEditor(int iItem, int iSubItem)
  * @param strList - string list will show in the combobox of the subItem
  * @param nSelItem - selected item in the the combobox
  */
-void QListViewCtrl::createOrShowComboBox(std::pair<int, int> & subItemPos, const std::vector<std::wstring> & strList, int nSelItem)
+void QListViewCtrl::createOrShowComboBox(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> & strList, int nSelItem)
 {
-	if (subItemPos.first < 0 || subItemPos.second < 0) {
+	if (subItemPosition.first < 0 || subItemPosition.second < 0) {
 		return;
 	}
 	CRect listRect;
-	this->subItemPos = subItemPos;
-	GetSubItemRect(subItemPos.first, subItemPos.second, LVIR_BOUNDS, subItemRect);
-	subItemRect.left += 2;
-	subItemRect.right -= 2;
-	createOrShowSubItemComboBox(subItemRect, subItemPos.first, subItemPos.second, strList, nSelItem);
+	GetSubItemRect(subItemPosition.first, subItemPosition.second, LVIR_BOUNDS, subItemRect);
+	CRect rect = subItemRect;
+	createOrShowSubItemComboBox(rect, subItemPosition.first, subItemPosition.second, strList, nSelItem);
 }
 
 
@@ -92,6 +92,25 @@ void QListViewCtrl::createOrShowComboBox(int iItem, int iSubItem, const std::vec
 }
 
 
+CComboBox * QListViewCtrl::getComboBoxPtr(int iItem, int iSubItem)
+{
+	if (iItem < 0 || iSubItem < 0) {
+		return nullptr;
+	}
+
+	CComboBox * ptr = nullptr;
+	if (subItemComboBoxMap.empty()) {
+		return ptr;
+	}
+	std::pair<int, int> pair(iItem, iSubItem);
+	auto iter = subItemComboBoxMap.find(pair);
+	if (iter == subItemComboBoxMap.end()) {
+		return ptr;
+	}
+	ptr = iter->second;
+	return ptr;
+}
+
 void QListViewCtrl::createOrShowCheckBox(int iItem, int iSubItem)
 {
 	if (iItem < 0 || iSubItem < 0) {
@@ -100,6 +119,25 @@ void QListViewCtrl::createOrShowCheckBox(int iItem, int iSubItem)
 
 	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
 	createOrShowSubItemCheckBox(subItemRect, iItem, iSubItem);
+}
+
+
+CButton * QListViewCtrl::getCheckBoxPtr(int iItem, int iSubItem)
+{
+	if (iItem < 0 || iSubItem < 0) {
+		return nullptr;
+	}
+	CButton * ptr = nullptr;
+	if (subItemCheckBoxMap.empty()) {
+		return ptr;
+	}
+	std::pair<int, int> pair(iItem, iSubItem);
+	auto iter = subItemCheckBoxMap.find(pair);
+	if (iter == subItemCheckBoxMap.end()) {
+		return ptr;
+	}
+	ptr = iter->second;
+	return ptr;
 }
 
 SubItemValues QListViewCtrl::getChangedVals()
@@ -197,9 +235,8 @@ void QListViewCtrl::changeSubItemText()
 		subItemEdit.GetWindowText(text);
 		//SetItemText(subItemPos.first, subItemPos.second, text);
 		SubItemValue subItemVal;
-		wchar_t cch[1024];
+		wchar_t cch[1025];
 		memset(cch, 0, sizeof(cch));
-		BSTR itemText = cch;
 		GetItemText(subItemPos.first, subItemPos.second, cch, 1024);
 		
 
@@ -224,6 +261,56 @@ void QListViewCtrl::changeSubItemText()
 	}
 }
 
+void QListViewCtrl::changeComboBoxesRect()
+{
+	CHeaderCtrl header = GetHeader();
+	CRect headRect;
+	header.GetClientRect(headRect);
+	for (auto iter = subItemComboBoxMap.begin(); iter != subItemComboBoxMap.end(); iter++) {
+		auto pair = iter->first;
+		auto ptr = iter->second;
+		CRect subItemRect;
+		GetSubItemRect(pair.first, pair.second, LVIR_BOUNDS, subItemRect);	
+		
+		if (ptr && ptr->IsWindow()) {
+			CRect rect(subItemRect.left + 2, 
+				subItemRect.top + 2, 
+				subItemRect.right - 4, 
+				subItemRect.bottom - 4);
+			ptr->MoveWindow(subItemRect);
+			if (subItemRect.top >= headRect.Height()) {
+				ptr->ShowWindow(true);
+				ptr->BringWindowToTop();
+			} else {
+				ptr->ShowWindow(false);
+			}
+			
+		}
+	}
+}
+
+void QListViewCtrl::changeCheckBoxesRect()
+{
+	for (auto iter = subItemCheckBoxMap.begin(); iter != subItemCheckBoxMap.end(); iter++) {
+		auto pair = iter->first;
+		auto ptr = iter->second;
+		CRect subItemRect;
+		if (GetSubItemRect(pair.first, pair.second, LVIR_BOUNDS, subItemRect) == false) {
+			Q_ERROR(L"GetSubItemRect error, iItem={}, iSubItem={}", pair.first, pair.second);
+		}
+		if (subItemRect.top < 0) {
+			Q_ERROR(L"subItemRect.top < 0, iItem={}, iSubItem={}, subItemRect=(r:{}, t:{}, w:{}, h:{})", 
+				pair.first, pair.second, subItemRect.top, subItemRect.top, subItemRect.Width(), subItemRect.Height());
+		}
+		if (ptr && ptr->IsWindow()) {
+			int x = subItemRect.left + (subItemRect.Width() - 100) / 2,
+				y = subItemRect.top + (subItemRect.Height() - 20) / 2,
+				w = 100, h = 20;
+			CRect rect(x, y, x + w, y + h);
+			ptr->MoveWindow(rect);
+		}
+	}
+}
 
 void QListViewCtrl::setChangeVal(SubItemValue &subItemVal)
 {
@@ -278,15 +365,15 @@ void QListViewCtrl::createOrShowSubItemComboBox(CRect & subItemRect, int iItem, 
 	}
 	
 	comboBoxPtr = new CComboBox();
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS;
 	UINT nID = Config::QLISTVIEWCTRL_COMBOBOX_ID_START + static_cast<int>(subItemComboBoxMap.size());
 	comboBoxPtr->Create(m_hWnd, subItemRect, L"",  dwStyle , 0, nID);
 	HFONT hfont = GdiPlusUtil::GetHFONT(12, DEFAULT_CHARSET, false);
 	comboBoxPtr->SetFont(hfont);
 	DeleteObject(hfont);
-	comboBoxPtr->BringWindowToTop();
 	loadSubItemComboBox(comboBoxPtr, strList, nSelItem);
 	subItemComboBoxMap[pair] = comboBoxPtr;
+	changeComboBoxesRect();
 }
 
 
@@ -295,9 +382,9 @@ void QListViewCtrl::createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, i
 	CButton * checkboxPtr = nullptr;
 	std::pair<int, int> pair(iItem, iSubItem);
 	auto iter = subItemCheckBoxMap.find(pair);
-	int x = subItemRect.left + (subItemRect.Width() - 20) / 2,
+	int x = subItemRect.left + (subItemRect.Width() - 100) / 2,
 		y = subItemRect.top + (subItemRect.Height() - 20) / 2,
-		w = 20, h = 20;
+		w = 100, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	if (iter != subItemCheckBoxMap.end()) {
 		checkboxPtr = iter->second;
@@ -307,10 +394,10 @@ void QListViewCtrl::createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, i
 	checkboxPtr = new CButton();
 	UINT nID = Config::QLISTVIEWCTRL_CHECKBOX_ID_START + static_cast<int>(subItemCheckBoxMap.size());	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  |WS_TABSTOP | WS_CLIPSIBLINGS | BS_CHECKBOX ;
-	checkboxPtr->Create(m_hWnd, rect, L"", dwStyle , 0, nID);
-	checkboxPtr->BringWindowToTop();
-	checkboxPtr->EnableWindow(TRUE);
+	//checkboxPtr->Create(m_hWnd, rect, L"", dwStyle , 0, nID);
+	checkboxPtr->Create(m_hWnd, rect, std::to_wstring(iItem).c_str(), dwStyle , 0, nID);
 	subItemCheckBoxMap[pair] = checkboxPtr;
+	changeCheckBoxesRect();
 }
 
 void QListViewCtrl::loadSubItemComboBox(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem)
@@ -353,11 +440,12 @@ void QListViewCtrl::pressedTabToMoveEditor()
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {	 
 	changeSubItemText();
+	changeComboBoxesRect();
+	changeCheckBoxesRect();
 	// The message return to parent class 
 	bHandled = false;
 	return 1;
 }
-
 
 LRESULT QListViewCtrl::OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -389,12 +477,35 @@ void QListViewCtrl::OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 	
 }
 
-void QListViewCtrl::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+void QListViewCtrl::RemoveItem(int nItem)
 {
-	UINT height = lpMeasureItemStruct->itemHeight;
-	lpMeasureItemStruct->itemHeight = 30; 
+	CListViewCtrl::DeleteItem(nItem);
 }
 
+/*
+void QListViewCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+
+}
+
+
+void QListViewCtrl::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+{
+	UINT height = lpMeasureItemStruct->itemHeight;
+	lpMeasureItemStruct->itemHeight = 50; 
+}
+
+void QListViewCtrl::DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct)
+{
+
+}
+
+
+LRESULT QListViewCtrl::CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct)
+{
+	return 1;
+}
+*/
 void QListViewCtrl::OnDestroy()
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);
@@ -439,6 +550,8 @@ void QListViewCtrl::OnSize(UINT nType, CSize size)
 	if (!comboFont) comboFont = FTB(L"list-combobox-size", true);
 
 	changeSubItemText();
+	//changeComboBoxesRect();
+	//changeCheckBoxesRect();
 }
 
 LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)
@@ -464,6 +577,12 @@ LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)
 	}
 	this->SetMsgHandled(false); 
 	return 0;
+}
+
+
+BOOL QListViewCtrl::OnEraseBkgnd(CDCHandle dc)
+{
+	return true;
 }
 
 HBRUSH QListViewCtrl::OnCtlColorStatic(HDC hdc, HWND hwnd)

@@ -121,7 +121,7 @@ void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA ;
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA ;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
@@ -148,7 +148,7 @@ void TableColumnsPage::loadWindow()
 
 void TableColumnsPage::loadListView()
 {
-	rowCount = adapter->loadNewTblListView(userDbId, schema);
+	rowCount = adapter->loadTblColumnsListView(userDbId, schema);
 }
 
 int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -187,17 +187,18 @@ void TableColumnsPage::paintItem(CDC & dc, CRect & paintRect)
 }
 
 
-LRESULT TableColumnsPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableColumnsPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	if (aItem->iSubItem < 3 || aItem->iSubItem > 6) {
+	if (aItem->iSubItem >= 2 && aItem->iSubItem <= 6) {
 		return 0;
 	}
 
-	// todo...
+	// show the editor
+	listView.createOrShowEditor(subItemPos);
 	return 0;
 }
 
@@ -225,7 +226,7 @@ HBRUSH TableColumnsPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 LRESULT TableColumnsPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMLVDISPINFO* plvdi = (NMLVDISPINFO*)pnmh;
-	adapter->fillListViewWithEmptyItemData(plvdi);
+	adapter->fillDataInListViewSubItem(plvdi);
 
 	return 0;
 }
@@ -248,5 +249,21 @@ LRESULT TableColumnsPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 	if (!count || count <= iItem)
 		return -1;
 
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	SubItemValues changedVals = listView.getChangedVals();
+	for (auto val : changedVals) {
+		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
+		adapter->invalidateSubItem(val.iItem, val.iSubItem);
+	}
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->createNewColumn();
 	return 0;
 }

@@ -40,11 +40,12 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, NM_CLICK, OnClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
-
+		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
+		COMMAND_HANDLER_EX(Config::TABLE_NEW_COLUMN_BUTTON_ID, BN_CLICKED, OnClickNewColumnButton)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -88,7 +89,7 @@ private:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
-	LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
@@ -97,4 +98,7 @@ private:
 	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+
+	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

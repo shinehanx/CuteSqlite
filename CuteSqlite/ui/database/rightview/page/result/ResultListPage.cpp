@@ -533,7 +533,7 @@ LRESULT ResultListPage::OnRightClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 LRESULT ResultListPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMLVDISPINFO* plvdi = (NMLVDISPINFO*)pnmh;
-	adapter->fillListViewItemData(plvdi);
+	adapter->fillDataInListViewSubItem(plvdi);
 
 	return 0;
 }

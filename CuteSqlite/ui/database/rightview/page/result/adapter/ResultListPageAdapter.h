@@ -56,7 +56,7 @@ public:
 	int loadFilterListView();
 
 	// virtual list data load
-	LRESULT fillListViewItemData(NMLVDISPINFO * pLvdi);
+	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
 	void changeSelectAllItems();
 
@@ -92,7 +92,7 @@ public:
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
-	// create/copy a new rows operation
+	// create/copy a new row operation
 	void createNewRow();
 	void copyNewRow();
 	// save/delete/cancel

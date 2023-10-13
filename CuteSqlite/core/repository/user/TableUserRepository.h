@@ -28,10 +28,10 @@ public:
 	~TableUserRepository() {}
 
 	UserTableList getListByUserDbId(uint64_t userDbId);
-	UserTable getTable(uint64_t userDbId, std::wstring & tblName);
+	UserTable getTable(uint64_t userDbId, const std::wstring & tblName);
 
-	uint64_t getDataCount(uint64_t userDbId, std::wstring & tblName);
-	DataList getPageDataList(uint64_t userDbId, std::wstring & tblName, int page, int perpage);
+	uint64_t getDataCount(uint64_t userDbId, const std::wstring & tblName);
+	DataList getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage);
 private:
 	
 	UserTable toUserTable(QSqlStatement &query);

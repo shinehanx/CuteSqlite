@@ -76,7 +76,7 @@ private:
 	QTabView tabView;
 	CEdit historyPage;
 	QueryPage queryPage;
-	std::vector<QPage *> pagePtrs;
+	std::vector<NewTablePage *> newTablePagePtrs; // The pointers of dynamically created page
 	CImageList imageList;
 
 	HBITMAP queryBitmap = nullptr;

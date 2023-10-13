@@ -38,8 +38,14 @@
 
 BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 {
+	BOOL result = FALSE;
 	if (queryPage.IsWindow() && queryPage.PreTranslateMessage(pMsg)) {
 		return TRUE;
+	}
+	for (auto pagePtr : newTablePagePtrs) {
+		if (pagePtr->IsWindow() && pagePtr->PreTranslateMessage(pMsg)) {
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
@@ -208,14 +214,14 @@ int RightWorkView::OnDestroy()
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
-	for (QPage * pagePtr : pagePtrs) {
+	for (QPage * pagePtr : newTablePagePtrs) {
 		if (pagePtr && pagePtr->IsWindow()) {
 			pagePtr->DestroyWindow();
 			delete pagePtr;
 			pagePtr = nullptr;
 		}
 	}
-	pagePtrs.clear();
+	newTablePagePtrs.clear();
 	return 0;
 }
 
@@ -288,7 +294,7 @@ void RightWorkView::doAddNewTable()
 	GetClientRect(clientRect);
 	NewTablePage * newTablePage = new NewTablePage();
 	createOrShowNewTablePage(*newTablePage, clientRect);
-	pagePtrs.push_back(newTablePage);
+	newTablePagePtrs.push_back(newTablePage);
 
 	// nImage = 2 : table 
 	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 2, newTablePage);
