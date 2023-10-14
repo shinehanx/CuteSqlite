@@ -13,8 +13,7 @@ The goal of this project is to develop a lightweight, high-performance, and feat
 3. Windows Template Library (WTL) version 10.0.10320 Release (2020-11-15)
 4. Uses third-party projects: curl, rapidjson, Scintilla, spdlog, and sqlite3
 
-**Open Source License: **
-
+**Open Source License:**
 [Apache2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 **Project URL:**
@@ -50,7 +49,7 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shinehanx/CuteSqlite.git)
 
 六、项目预览
-![在这里插入图片描述](https://img-blog.csdnimg.cn/27c075464da1425eb5a8bd47c61f7cf6.png#pic_center)
+![在这里插入图片描述](https://img-blog.csdnimg.cn/84f044745ce240898a48c1736ce041ca.png#pic_center)
 
 
 ​
