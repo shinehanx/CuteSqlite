@@ -113,7 +113,7 @@ void TableColumnsPage::createOrShowToolBarElems(CRect & clientRect)
 		downColumnButton.SetIconPath(normalImagePath, pressedImagePath);
 		downColumnButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, downColumnButton, Config::TABLE_UP_COLUMN_BUTTON_ID, L"", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, downColumnButton, Config::TABLE_DOWN_COLUMN_BUTTON_ID, L"", rect, clientRect);
 	downColumnButton.SetToolTip(S(L"move-down"));
 }
 
@@ -265,5 +265,23 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 LRESULT TableColumnsPage::OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewColumn();
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnClickDelColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->deleteSelColumns();
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnClickUpColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->moveUpSelColumns();
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnClickDownColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+{
+	adapter->moveDownSelColumns();
 	return 0;
 }

@@ -28,12 +28,23 @@
 #include "common/Config.h"
 #include "core/entity/Entity.h"
 
+// Compare key by pair, this class use for declare SubItemComboBoxMap/SubItemCheckBoxMap class
+struct CompareKeyByPair {
+	bool operator()(const std::pair<int, int> & key1, const std::pair<int, int> & key2) const 
+	{  
+		if (key1.first < key2.first) {
+			return true;
+		} else if (key1.first == key2.first && key1.second < key2.second) {
+			return true;
+		}
+		return false;
+	}  
+};
 // template params : std::pair<int - iItem, int - iSubItem>, CComboBox *  - combobox pointer
-typedef std::map<std::pair<int, int>, CComboBox *> SubItemComboBoxMap;
-typedef std::map<std::pair<int, int>, CButton *> SubItemCheckBoxMap;
+typedef std::map<std::pair<int, int>, CComboBox *, CompareKeyByPair> SubItemComboBoxMap;
+typedef std::map<std::pair<int, int>, CButton *, CompareKeyByPair> SubItemCheckBoxMap;
 
 class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
-	//, public COwnerDraw<QListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
@@ -63,10 +74,11 @@ public:
 	void createOrShowComboBox(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> &strList, int nSelItem = 0);
 	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
 	CComboBox * getComboBoxPtr(int iItem, int iSubItem);
-
+	
 	//CheckBox
 	void createOrShowCheckBox(int iItem, int iSubItem);
 	CButton * getCheckBoxPtr(int iItem, int iSubItem);
+	
 
 	SubItemValues getChangedVals();
 	int getChangedCount();
@@ -75,7 +87,18 @@ public:
 	void setChangeVal(SubItemValue &subItemVal);
 	void clearChangeVals();
 	void removeChangedValsItems(int iItem);
-	void RemoveItem(int nItem);
+	void moveUpChangeValsItem(int iItem);
+	void moveDownChangeValsItem(int iItem);
+	void RemoveItem(int iItem);
+
+	// move up / down
+	void moveUpComboBoxes(int iItem);
+	void moveDownComboBoxes(int iItem);
+
+	void moveUpCheckBoxes(int iItem);
+	void moveDownCheckBoxes(int iItem);
+
+	void resetChildElemsRect();
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
@@ -94,6 +117,9 @@ private:
 	void changeSubItemText();
 	void changeComboBoxesRect();
 	void changeCheckBoxesRect();
+
+	void removeComboBoxes(int iItem);
+	void removeCheckBoxes(int iItem);
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
 	void createOrShowSubItemComboBox(CRect & subItemRect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);

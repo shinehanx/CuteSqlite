@@ -46,6 +46,9 @@ public:
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_COLUMN_BUTTON_ID, BN_CLICKED, OnClickNewColumnButton)
+		COMMAND_HANDLER_EX(Config::TABLE_DEL_COLUMN_BUTTON_ID, BN_CLICKED, OnClickDelColumnButton)
+		COMMAND_HANDLER_EX(Config::TABLE_UP_COLUMN_BUTTON_ID, BN_CLICKED, OnClickUpColumnButton)
+		COMMAND_HANDLER_EX(Config::TABLE_DOWN_COLUMN_BUTTON_ID, BN_CLICKED, OnClickDownColumnButton)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -101,4 +104,7 @@ private:
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickDelColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickUpColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickDownColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

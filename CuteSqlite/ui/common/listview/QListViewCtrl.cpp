@@ -220,6 +220,46 @@ void QListViewCtrl::removeChangedValsItems(int iItem)
 	}
 }
 
+
+void QListViewCtrl::moveUpChangeValsItem(int iItem)
+{
+	if (iItem < 1) {
+		return ;
+	}
+	int iSwapItem = iItem - 1;
+	auto iter = changeVals.begin();
+	while (iter != std::end(changeVals)) {
+		if ((*iter).iItem == iItem) {
+			(*iter).iItem--;
+		}
+
+		if ((*iter).iItem == iSwapItem) {
+			(*iter).iItem++;
+		}
+		iter++;
+	}
+}
+
+
+void QListViewCtrl::moveDownChangeValsItem(int iItem)
+{
+	if (iItem >= GetItemCount() - 1) {
+		return ;
+	}
+	int iSwapItem = iItem + 1;
+	auto iter = changeVals.begin();
+	while (iter != std::end(changeVals)) {
+		if ((*iter).iItem == iItem) {
+			(*iter).iItem++;
+		}
+
+		if ((*iter).iItem == iSwapItem) {
+			(*iter).iItem--;
+		}
+		iter++;
+	}
+}
+
 /**
  * change the sub item text from edit.
  * 
@@ -261,6 +301,12 @@ void QListViewCtrl::changeSubItemText()
 	}
 }
 
+void QListViewCtrl::resetChildElemsRect()
+{
+	changeComboBoxesRect();
+	changeCheckBoxesRect();
+}
+
 void QListViewCtrl::changeComboBoxesRect()
 {
 	CHeaderCtrl header = GetHeader();
@@ -276,8 +322,8 @@ void QListViewCtrl::changeComboBoxesRect()
 			CRect rect(subItemRect.left + 2, 
 				subItemRect.top + 2, 
 				subItemRect.right - 4, 
-				subItemRect.bottom - 4);
-			ptr->MoveWindow(subItemRect);
+				subItemRect.bottom);
+			ptr->MoveWindow(rect);
 			if (subItemRect.top >= headRect.Height()) {
 				ptr->ShowWindow(true);
 				ptr->BringWindowToTop();
@@ -368,9 +414,7 @@ void QListViewCtrl::createOrShowSubItemComboBox(CRect & subItemRect, int iItem, 
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS;
 	UINT nID = Config::QLISTVIEWCTRL_COMBOBOX_ID_START + static_cast<int>(subItemComboBoxMap.size());
 	comboBoxPtr->Create(m_hWnd, subItemRect, L"",  dwStyle , 0, nID);
-	HFONT hfont = GdiPlusUtil::GetHFONT(12, DEFAULT_CHARSET, false);
-	comboBoxPtr->SetFont(hfont);
-	DeleteObject(hfont);
+	comboBoxPtr->SetFont(comboFont);
 	loadSubItemComboBox(comboBoxPtr, strList, nSelItem);
 	subItemComboBoxMap[pair] = comboBoxPtr;
 	changeComboBoxesRect();
@@ -477,35 +521,281 @@ void QListViewCtrl::OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 	
 }
 
-void QListViewCtrl::RemoveItem(int nItem)
+/**
+ * Remove all the subitems by specified iItem.
+ * 
+ * @param iItem - subItem(iItem, iSubItem) iItem
+ */
+void QListViewCtrl::RemoveItem(int iItem)
 {
-	CListViewCtrl::DeleteItem(nItem);
+	// delete comboboxes
+	removeComboBoxes(iItem);
+	removeCheckBoxes(iItem);
+
+	CListViewCtrl::DeleteItem(iItem);
 }
 
-/*
-void QListViewCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+/**
+ * Remove the ComboBoxes by specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::removeComboBoxes(int iItem)
 {
+	// swap the std::map content begin from iItem to last row, then remove the last row's iterators in the std::map
+	auto lastIt = subItemComboBoxMap.begin(); // the last iterator will be deleted
+	int maxRows = GetItemCount();
+	int lastRow = maxRows - 1;
+	for (auto it = subItemComboBoxMap.begin(), ite = subItemComboBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int nextRow = it->first.first + 1;
+		if (nextRow == maxRows) {
+			break;
+		}
 
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh+1 row subitem 
+		auto nextRowSubItemIt = subItemComboBoxMap.end();		
+		for (auto nIter = subItemComboBoxMap.begin(); nIter != subItemComboBoxMap.end(); nIter++) {
+			if (nIter->first.first == nextRow && nIter->first.second == iSubItem) {
+				nextRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (it->first.first >= iItem && nextRowSubItemIt != ite) {
+			std::swap(it->second, nextRowSubItemIt->second);
+		}
+		it++;
+
+	}
+	//2.then remove the last row's iterators in the std::map
+	for (auto it = subItemComboBoxMap.begin(), ite = subItemComboBoxMap.end(); it != ite;) {
+		if (it->first.first != lastRow) {
+			it++;
+			continue;
+		}
+		// release the memory of the ComboBox pointer
+		auto ptr = it->second;
+		if (ptr && ptr->IsWindow()) {
+			ptr->ShowWindow(false);
+			ptr->DestroyWindow();
+			delete ptr;
+			ptr = nullptr;
+		}
+		it = subItemComboBoxMap.erase(it);
+	}
+	
 }
 
-
-void QListViewCtrl::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+/**
+ * Remove the CheckBoxes by the specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::removeCheckBoxes(int iItem)
 {
-	UINT height = lpMeasureItemStruct->itemHeight;
-	lpMeasureItemStruct->itemHeight = 50; 
+	// swap the std::map content begin from nTh(iItem) row to last row, then remove the last row's iterators in the std::map
+	auto lastIt = subItemCheckBoxMap.begin(); // the last iterator will be deleted
+	int maxRows = GetItemCount();
+	int lastRow = maxRows - 1;
+	for (auto it = subItemCheckBoxMap.begin(), ite = subItemCheckBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int nextRow = it->first.first + 1;
+		if (nextRow == maxRows) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh+1 row subitem 
+		auto nextRowSubItemIt = subItemCheckBoxMap.end();		
+		for (auto nIter = subItemCheckBoxMap.begin(); nIter != subItemCheckBoxMap.end(); nIter++) {
+			if (nIter->first.first == nextRow && nIter->first.second == iSubItem) {
+				nextRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (nextRowSubItemIt != ite) {
+			std::swap(it->second, nextRowSubItemIt->second);
+		}
+		it++;
+	}
+	//2.then remove the last row's iterators in the std::map
+	for (auto it = subItemCheckBoxMap.begin(), ite = subItemCheckBoxMap.end(); it != ite;) {
+		if (it->first.first != lastRow) {
+			it++;
+			continue;
+		}
+		// release the memory of the ComboBox pointer
+		auto ptr = it->second;
+		if (ptr && ptr->IsWindow()) {
+			ptr->ShowWindow(false);
+			ptr->DestroyWindow();
+			delete ptr;
+			ptr = nullptr;
+		}
+		it = subItemCheckBoxMap.erase(it);
+	}
 }
 
-void QListViewCtrl::DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct)
+/**
+ * Move up the ComboBoxes by the specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::moveUpComboBoxes(int iItem)
 {
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemComboBoxMap.begin(), ite = subItemComboBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int prevRow = iItem - 1;
+		if (prevRow < 0) {
+			break;
+		}
 
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto prevRowSubItemIt = subItemComboBoxMap.end();		
+		for (auto nIter = subItemComboBoxMap.begin(); nIter != subItemComboBoxMap.end(); nIter++) {
+			if (nIter->first.first == prevRow && nIter->first.second == iSubItem) {
+				prevRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (prevRowSubItemIt != ite) {
+			std::swap(it->second, prevRowSubItemIt->second);
+		}
+		it++;
+	}
 }
 
-
-LRESULT QListViewCtrl::CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct)
+/**
+ * Move down the ComboBoxes by the specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::moveDownComboBoxes(int iItem)
 {
-	return 1;
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemComboBoxMap.begin(), ite = subItemComboBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int nextRow = it->first.first + 1;
+		if (nextRow == maxRows) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto nextRowSubItemIt = subItemComboBoxMap.end();		
+		for (auto nIter = subItemComboBoxMap.begin(); nIter != subItemComboBoxMap.end(); nIter++) {
+			if (nIter->first.first == nextRow && nIter->first.second == iSubItem) {
+				nextRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (nextRowSubItemIt != ite) {
+			std::swap(it->second, nextRowSubItemIt->second);
+		}
+		it++;
+	}
 }
-*/
+
+/**
+ * Move up the CheckBoxes by the specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::moveUpCheckBoxes(int iItem)
+{
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemCheckBoxMap.begin(), ite = subItemCheckBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int prevRow = it->first.first - 1;
+		if (prevRow < 0) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto prevRowSubItemIt = subItemCheckBoxMap.end();		
+		for (auto nIter = subItemCheckBoxMap.begin(); nIter != subItemCheckBoxMap.end(); nIter++) {
+			if (nIter->first.first == prevRow && nIter->first.second == iSubItem) {
+				prevRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (prevRowSubItemIt != ite) {
+			std::swap(it->second, prevRowSubItemIt->second);
+		}
+		it++;
+	}
+}
+
+/**
+ * Move down the CheckBoxes by the specified nTh(iItem) row.
+ * 
+ * @param nItem - Specified nTh(iItem) row
+ */
+void QListViewCtrl::moveDownCheckBoxes(int iItem)
+{
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemCheckBoxMap.begin(), ite = subItemCheckBoxMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+
+		int iSubItem = it->first.second;
+		int nextRow = it->first.first + 1;
+		if (nextRow == maxRows) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto nextRowSubItemIt = subItemCheckBoxMap.end();		
+		for (auto nIter = subItemCheckBoxMap.begin(); nIter != subItemCheckBoxMap.end(); nIter++) {
+			if (nIter->first.first == nextRow && nIter->first.second == iSubItem) {
+				nextRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (nextRowSubItemIt != ite) {
+			std::swap(it->second, nextRowSubItemIt->second);
+		}
+		it++;
+	}
+}
+
 void QListViewCtrl::OnDestroy()
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);

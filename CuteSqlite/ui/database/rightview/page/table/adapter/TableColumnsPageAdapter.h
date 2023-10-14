@@ -45,6 +45,10 @@ public:
 
 	// create/copy a new column row operation
 	void createNewColumn();
+	// delete a column row operation
+	bool deleteSelColumns(bool confirm=true);
+	bool moveUpSelColumns();
+	bool moveDownSelColumns();
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;

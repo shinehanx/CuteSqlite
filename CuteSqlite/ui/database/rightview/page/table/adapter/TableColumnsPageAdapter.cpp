@@ -21,7 +21,7 @@
 #include "TableColumnsPageAdapter.h"
 #include <Strsafe.h>
 #include "core/common/Lang.h"
-
+#include "ui/common/message/QMessageBox.h"
 
 const Columns TableColumnsPageAdapter::headerColumns = { S(L"column-name"), S(L"data-type"), L"Not Null", L"PK", L"Auto Insc", L"Unique", S(L"default"), S(L"check")};
 const std::vector<int> TableColumnsPageAdapter::columnSizes = { 150, 100, 200, 120, 120, 120, 150, 150 };
@@ -204,14 +204,145 @@ void TableColumnsPageAdapter::createNewColumn()
 	int n = static_cast<int>(runtimeDatas.size());
 	dataView->SetItemCount(n);
 
-	// 3.show the editor on first column for the new row 
-	/*
-	dataView->createOrShowEditor(n - 1, 1);// the 1th column
-	CComboBox * comboBoxPtr = dataView->getComboBoxPtr(n - 1, 2);
-	if (comboBoxPtr && comboBoxPtr->IsWindow()) {
-		CRect rect;
-		comboBoxPtr->GetWindowRect(rect);
-		dataView->ScreenToClient(rect);
-		comboBoxPtr->MoveWindow(rect);
-	}*/
+}
+
+bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
+{
+	if (!dataView->GetSelectedCount()) {
+		return false;
+	}
+	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+		return false;
+	}
+		
+	// 1. delete the changeVals from dataView
+	std::vector<int> nSelItems;
+	int nSelItem = -1;
+	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		nSelItems.push_back(nSelItem);
+		dataView->removeChangedValsItems(nSelItem);
+	}
+
+	if (nSelItems.empty()) {
+		return false;
+	}
+
+	// 2.delete from runtimeDatas and database and dataView that the item begin from the last selected item
+	int n = static_cast<int>(nSelItems.size());
+	for (int i = n - 1; i >= 0; i--) {
+		nSelItem = nSelItems.at(i);
+		auto iter = runtimeDatas.begin();
+		for (int j = 0; j < nSelItem; j++) {
+			iter++;
+		}
+		auto & rowItem = (*iter);		
+
+		// 2.1 delete row from runtimeDatas vector 
+		runtimeDatas.erase(iter);
+
+		// 2.2 delete row from dataView
+		dataView->RemoveItem(nSelItem);
+	}
+	// reset the rects of the ComboBoxes and CheckBoxes 
+	dataView->resetChildElemsRect();
+	return true;
+}
+
+bool TableColumnsPageAdapter::moveUpSelColumns()
+{
+	if (!dataView->GetSelectedCount()) {
+		return false;
+	}
+
+	// 1. delete the changeVals from dataView
+	std::vector<int> nSelItems;
+	int nSelItem = -1;
+	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		nSelItems.push_back(nSelItem);
+		dataView->moveUpChangeValsItem(nSelItem);
+	}
+
+	if (nSelItems.empty()) {
+		return false;
+	}
+
+	// 2.delete from runtimeDatas and database and dataView that the item begin from the last selected item
+	int n = static_cast<int>(nSelItems.size());
+	for (int i = n - 1; i >= 0; i--) {
+		nSelItem = nSelItems.at(i);
+		auto iter = runtimeDatas.begin();
+		for (int j = 0; j < nSelItem; j++) {
+			iter++;
+		}
+		auto & rowItem = (*iter);
+		auto prevIter = iter == std::begin(runtimeDatas) ? 
+			runtimeDatas.end() : std::prev(iter);		
+
+		if (prevIter != runtimeDatas.end()) {
+			// 2.1 delete row from runtimeDatas vector 
+			std::swap(rowItem, (*prevIter));
+
+			// 2.2 move up the child elements from dataView
+			dataView->moveUpComboBoxes(nSelItem);
+			dataView->moveUpCheckBoxes(nSelItem);
+
+			if (nSelItem - 1 >= 0 ) {
+				dataView->SelectItem(nSelItem - 1);
+			}
+		}		
+	}
+	// reset the rects of the ComboBoxes and CheckBoxes 
+	dataView->resetChildElemsRect();
+
+	return true;
+}
+
+bool TableColumnsPageAdapter::moveDownSelColumns()
+{
+	if (!dataView->GetSelectedCount()) {
+		return false;
+	}
+
+	// 1. delete the changeVals from dataView
+	std::vector<int> nSelItems;
+	int nSelItem = -1;
+	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
+		nSelItems.push_back(nSelItem);
+		dataView->moveDownChangeValsItem(nSelItem);
+	}
+
+	if (nSelItems.empty()) {
+		return false;
+	}
+
+	int maxRows = dataView->GetItemCount();
+	// 2.delete from runtimeDatas and database and dataView that the item begin from the last selected item
+	int n = static_cast<int>(nSelItems.size());
+	for (int i = n - 1; i >= 0; i--) {
+		nSelItem = nSelItems.at(i);
+		auto iter = runtimeDatas.begin();
+		for (int j = 0; j < nSelItem; j++) {
+			iter++;
+		}
+		auto & rowItem = (*iter);
+		auto nextIter = iter == std::end(runtimeDatas) ? 
+			runtimeDatas.end() : std::next(iter);
+
+		if (nextIter != runtimeDatas.end()) {
+			// 2.1 swap row from runtimeDatas vector 
+			std::swap(rowItem, (*nextIter));
+
+			// 2.2 move down the child elements from dataView
+			dataView->moveDownComboBoxes(nSelItem);
+			dataView->moveDownCheckBoxes(nSelItem);
+
+			if (nSelItem + 1 < maxRows ) {
+				dataView->SelectItem(nSelItem + 1);
+			}
+		}		
+	}
+	// reset the rects of the ComboBoxes and CheckBoxes 
+	dataView->resetChildElemsRect();
+
+	return true;
 }
