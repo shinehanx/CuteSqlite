@@ -26,9 +26,7 @@
 #include <unordered_map>
 #include <map>
 
-
-
-typedef struct _SysInit {
+typedef struct {
 	std::wstring name;
 	std::wstring val;
 } SysInit;
@@ -45,7 +43,7 @@ typedef std::unordered_map<std::wstring, Setting> IniSetting;
 
 
 // databases
-typedef struct _UserDb {
+typedef struct {
 	uint64_t id = 0;
 	std::wstring name;
 	std::wstring path;
@@ -57,7 +55,7 @@ typedef struct _UserDb {
 typedef std::vector<UserDb> UserDbList;
 
 // tables,views,triggers,index
-typedef struct _UserTable {
+typedef struct {
 	std::wstring name;
 	std::wstring sql;
 	std::wstring tblName;
@@ -69,7 +67,7 @@ typedef std::vector<UserTrigger> UserTriggerList;
 typedef std::vector<UserIndex> UserIndexList;
 
 // table fields
-typedef struct _ColumnInfo {
+typedef struct {
 	uint32_t cid = 0;
 	uint8_t notnull = 0; //not null
 	uint8_t pk = 0; // primary key
@@ -83,8 +81,16 @@ typedef struct _ColumnInfo {
 } ColumnInfo;
 typedef std::vector<ColumnInfo> ColumnInfoList;
 
+typedef struct {
+	std::wstring name;
+	std::wstring type;
+	std::wstring colums;
+	std::wstring sql;
+} IndexInfo;
+typedef std::vector<IndexInfo> IndexInfoList;
+
 //Export to CSV params
-typedef struct _ExportCsvParams {
+typedef struct {
 	std::wstring csvFieldTerminatedBy;
 	std::wstring csvFieldEnclosedBy;
 	std::wstring csvFieldEscapedBy;
@@ -93,13 +99,13 @@ typedef struct _ExportCsvParams {
 } ExportCsvParams;
 
 //Export to Excel XML params
-typedef struct _ExportExcelParams {
+typedef struct {
 	int excelComlumnMaxSize = 0;
 	int excelDecimalPlaces = 0;
 } ExportExcelParams;
 
 //Export to sql params
-typedef struct _ExportSqlParams {
+typedef struct {
 	std::wstring sqlSetting;
 } ExportSqlParams, StructAndDataParams;
 
@@ -126,18 +132,18 @@ typedef struct {
 typedef std::vector<SubItemValue> SubItemValues;
 
 //Insert statement params for export as sql 
-typedef struct _InsertStatementParams {
+typedef struct {
 	bool retainColumn = false;
 	bool multiRows = false;
 } InsertStatementParams;
 
 //Insert statement params for export as sql 
-typedef struct _TblStatementParams {
+typedef struct {
 	std::wstring param;
 } TblStatementParams;
 
 // Execute sql result
-typedef struct _ResultInfo {
+typedef struct {
 	int effectRows = 0;
 	std::wstring execTime;
 	std::wstring transferTime;
@@ -147,4 +153,10 @@ typedef struct _ResultInfo {
 	std::wstring msg;
 } ResultInfo;
 #endif
+
+// Support create/modify table
+typedef enum {
+	NEW_TABLE,
+	MOD_TABLE,
+} TblOperateType;
 

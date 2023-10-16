@@ -161,6 +161,19 @@ public:
 		}
 	}
 
+	static void createOrShowListBox(HWND hwnd, CListBox &win, UINT id, CRect & rect, CRect &clientRect, DWORD exStyle = 0) 
+	{
+		if (::IsWindow(hwnd) && !win.IsWindow()) {
+			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | LBS_MULTIPLESEL;
+			if (exStyle) dwStyle = dwStyle | exStyle;
+			win.Create(hwnd, rect, L"",  dwStyle , 0, id);
+			return;
+		} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
+			win.MoveWindow(&rect);
+			win.ShowWindow(SW_SHOW);
+		}
+	}
+
 	static void createOrShowImage(HWND hwnd, QImage &win, UINT id, CRect & rect, CRect & clientRect)
 	{
 		if (::IsWindow(hwnd) && !win.IsWindow()) {

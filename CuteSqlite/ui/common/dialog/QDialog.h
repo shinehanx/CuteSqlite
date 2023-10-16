@@ -108,7 +108,7 @@ protected:
 	void createOrShowFormRadio(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void createOrShowFormGroupBox(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void createOrShowFormButton(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
-	void createOrShowFormListBox(CListBox & win, UINT id, CRect rect, CRect &clientRect, DWORD exStyle = 0);
+	void createOrShowFormListBox(CListBox & win, UINT id, CRect rect, CRect &clientRect, DWORD exStyle = 0, DWORD excludeStyle = 0);
 
 	virtual void paintItem(CDC &dc, CRect &paintRect) {}; //扩展画面内容，子类需要的画就实现它
 
@@ -334,7 +334,7 @@ template <class T>
 void QDialog<T>::createOrShowFormCheckBox(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  |WS_TABSTOP | WS_CLIPSIBLINGS | BS_CHECKBOX ; // 注意 BS_CHECKBOX | BS_OWNERDRAW 才能出发
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  |WS_TABSTOP | WS_CLIPSIBLINGS | BS_CHECKBOX ;
 		if (exStyle) dwStyle = dwStyle | exStyle;
 		win.Create(m_hWnd, rect, text.c_str(), dwStyle , 0, id);
 		win.BringWindowToTop();
@@ -393,11 +393,12 @@ void QDialog<T>::createOrShowFormButton(CButton & win, UINT id, std::wstring tex
 }
 
 template <class T>
-void QDialog<T>::createOrShowFormListBox(CListBox & win, UINT id, CRect rect, CRect &clientRect, DWORD exStyle)
+void QDialog<T>::createOrShowFormListBox(CListBox & win, UINT id, CRect rect, CRect &clientRect, DWORD exStyle, DWORD excludeStyle)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS  | WS_TABSTOP | WS_VSCROLL | LBS_MULTIPLESEL ; // 注意 BS_CHECKBOX | BS_OWNERDRAW 才能出发
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP | WS_VSCROLL | LBS_HASSTRINGS; 
 		if (exStyle) dwStyle = dwStyle | exStyle;
+		if (excludeStyle) dwStyle = dwStyle & ~excludeStyle;
 		win.Create(m_hWnd, rect, L"", dwStyle, WS_EX_CLIENTEDGE, id);
 		win.BringWindowToTop();
 		

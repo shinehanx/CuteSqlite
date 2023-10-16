@@ -193,6 +193,17 @@ UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstr
 	return indexUserRepository->getListByTblName(userDbId, tblName);
 }
 
+IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName);
+
+	// todo...
+
+
+	return IndexInfoList();
+}
+
 std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());

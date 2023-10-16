@@ -58,11 +58,13 @@ public:
 	UserTriggerList getUserTriggers(uint64_t userDbId);
 	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName);
 
-	// user indexes operations
+	// user columns operations
 	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName);
 
 	// user indexes operations
 	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName);
+
+	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName);
 	
 	// get runtime user unique or index columns
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns);

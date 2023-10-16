@@ -11,19 +11,20 @@
 
  * limitations under the License.
 
- * @file   TableColumnsPage.cpp
+ * @file   TableIndexesPage.cpp
  * @brief  
  * 
  * @author Xuehan Qin
  * @date   2023-10-10
  *********************************************************************/
 #include "stdafx.h"
-#include "TableColumnsPage.h"
+#include "TableIndexesPage.h"
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
+#include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
 
-BOOL TableColumnsPage::PreTranslateMessage(MSG* pMsg)
+BOOL TableIndexesPage::PreTranslateMessage(MSG* pMsg)
 {
 	if (listView.IsWindow() && listView.PreTranslateMessage(pMsg)) {
 		return TRUE;
@@ -31,20 +32,15 @@ BOOL TableColumnsPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-
-void TableColumnsPage::setup(uint64_t userDbId, const std::wstring & schema)
+void TableIndexesPage::setup(uint64_t userDbId, const std::wstring & schema /*= L""*/, 
+	TableColumnsPageAdapter * tblColumnsPageAdapter /*= nullpter */)
 {
 	this->userDbId = userDbId;
 	this->schema = schema;
+	this->tblColumnsPageAdapter = tblColumnsPageAdapter;
 }
 
-
-TableColumnsPageAdapter * TableColumnsPage::getAdapter()
-{
-	return adapter;
-}
-
-void TableColumnsPage::createImageList()
+void TableIndexesPage::createImageList()
 {
 	if (!imageList.IsNull()) {
 		return ;
@@ -64,7 +60,7 @@ void TableColumnsPage::createImageList()
 	imageList.Add(checkYesBitmap); //1- Yes Checked image
 }
 
-void TableColumnsPage::createOrShowUI()
+void TableIndexesPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
 
@@ -74,7 +70,7 @@ void TableColumnsPage::createOrShowUI()
 	createOrShowListView(listView, clientRect);
 }
 
-void TableColumnsPage::createOrShowToolBarElems(CRect & clientRect)
+void TableIndexesPage::createOrShowToolBarElems(CRect & clientRect)
 {
 	CRect topbarRect = getTopRect(clientRect);
 	int x = 5, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
@@ -83,65 +79,45 @@ void TableColumnsPage::createOrShowToolBarElems(CRect & clientRect)
 	// create or show button
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	std::wstring normalImagePath, pressedImagePath;
-	if (!newColumnButton.IsWindow()) {
+	if (!newIndexButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\column\\new-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\column\\new-button-pressed.png";
-		newColumnButton.SetIconPath(normalImagePath, pressedImagePath);
-		newColumnButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		newIndexButton.SetIconPath(normalImagePath, pressedImagePath);
+		newIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, newColumnButton, Config::TABLE_NEW_COLUMN_BUTTON_ID, L"", rect, clientRect);
-	newColumnButton.SetToolTip(S(L"insert-new-column"));
+	QWinCreater::createOrShowButton(m_hWnd, newIndexButton, Config::TABLE_NEW_INDEX_BUTTON_ID, L"", rect, clientRect);
+	newIndexButton.SetToolTip(S(L"insert-new-column"));
 
 	rect.OffsetRect(16 + 10, 0);
-	if (!delColumnButton.IsWindow()) {
+	if (!delIndexButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\column\\del-button-normal.png";
 		pressedImagePath = imgDir + L"database\\list\\button\\column\\del-button-pressed.png";
-		delColumnButton.SetIconPath(normalImagePath, pressedImagePath);
-		delColumnButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
+		delIndexButton.SetIconPath(normalImagePath, pressedImagePath);
+		delIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, delColumnButton, Config::TABLE_DEL_COLUMN_BUTTON_ID, L"", rect, clientRect);
-	delColumnButton.SetToolTip(S(L"delete-sel-column"));
-
-	rect.OffsetRect(16 + 10, 0);
-	if (!upColumnButton.IsWindow()) {
-		normalImagePath = imgDir + L"database\\list\\button\\column\\up-button-normal.png";
-		pressedImagePath = imgDir + L"database\\list\\button\\column\\up-button-pressed.png";
-		upColumnButton.SetIconPath(normalImagePath, pressedImagePath);
-		upColumnButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-	}
-	QWinCreater::createOrShowButton(m_hWnd, upColumnButton, Config::TABLE_UP_COLUMN_BUTTON_ID, L"", rect, clientRect);
-	upColumnButton.SetToolTip(S(L"move-up"));
-
-	rect.OffsetRect(16 + 10, 0);
-	if (!downColumnButton.IsWindow()) {
-		normalImagePath = imgDir + L"database\\list\\button\\column\\down-button-normal.png";
-		pressedImagePath = imgDir + L"database\\list\\button\\column\\down-button-pressed.png";
-		downColumnButton.SetIconPath(normalImagePath, pressedImagePath);
-		downColumnButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-	}
-	QWinCreater::createOrShowButton(m_hWnd, downColumnButton, Config::TABLE_DOWN_COLUMN_BUTTON_ID, L"", rect, clientRect);
-	downColumnButton.SetToolTip(S(L"move-down"));
+	QWinCreater::createOrShowButton(m_hWnd, delIndexButton, Config::TABLE_DEL_INDEX_BUTTON_ID, L"", rect, clientRect);
+	delIndexButton.SetToolTip(S(L"delete-sel-column"));
 }
 
-void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
+void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA;
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA ;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
-			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
+			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.SetImageList(imageList, LVSIL_SMALL);
 		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);
-		adapter = new TableColumnsPageAdapter(m_hWnd, &win, NEW_TABLE);
+		adapter = new TableIndexesPageAdapter(m_hWnd, &win, NEW_TABLE);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
 }
 
-void TableColumnsPage::loadWindow()
+void TableIndexesPage::loadWindow()
 {
 	QPage::loadWindow();
 
@@ -152,12 +128,12 @@ void TableColumnsPage::loadWindow()
 	loadListView();
 }
 
-void TableColumnsPage::loadListView()
+void TableIndexesPage::loadListView()
 {
-	rowCount = adapter->loadTblColumnsListView(userDbId, schema);
+	rowCount = adapter->loadTblIndexesListView(userDbId, schema);
 }
 
-int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
@@ -167,15 +143,15 @@ int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return ret;
 }
 
-int TableColumnsPage::OnDestroy()
+int TableIndexesPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
 	if (textFont) ::DeleteObject(textFont);
 
-	if (newColumnButton.IsWindow()) newColumnButton.DestroyWindow();
-	if (delColumnButton.IsWindow()) delColumnButton.DestroyWindow();
-	if (upColumnButton.IsWindow()) upColumnButton.DestroyWindow();
-	if (downColumnButton.IsWindow()) downColumnButton.DestroyWindow();
+	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
+	if (delIndexButton.IsWindow()) delIndexButton.DestroyWindow();
+	if (upIndexButton.IsWindow()) upIndexButton.DestroyWindow();
+	if (downIndexButton.IsWindow()) downIndexButton.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 
@@ -187,19 +163,19 @@ int TableColumnsPage::OnDestroy()
 	return ret;
 }
 
-void TableColumnsPage::paintItem(CDC & dc, CRect & paintRect)
+void TableIndexesPage::paintItem(CDC & dc, CRect & paintRect)
 {
 
 }
 
 
-LRESULT TableColumnsPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	if (aItem->iSubItem >= 2 && aItem->iSubItem <= 6) {
+	if (aItem->iSubItem == 2 || aItem->iSubItem == 3) {
 		return 0;
 	}
 
@@ -208,28 +184,28 @@ LRESULT TableColumnsPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	return 0;
 }
 
-HBRUSH TableColumnsPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
+HBRUSH TableIndexesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
 	return topbarBrush;
 }
 
-HBRUSH TableColumnsPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
+HBRUSH TableIndexesPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-HBRUSH TableColumnsPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
+HBRUSH TableIndexesPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-LRESULT TableColumnsPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableIndexesPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMLVDISPINFO* plvdi = (NMLVDISPINFO*)pnmh;
 	adapter->fillDataInListViewSubItem(plvdi);
@@ -237,13 +213,13 @@ LRESULT TableColumnsPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableIndexesPage::OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto pCachehint = (NMLVCACHEHINT *)pnmh;
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableIndexesPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	LPNMLVFINDITEM  pnmfi = (LPNMLVFINDITEM)pnmh;
 
@@ -258,7 +234,7 @@ LRESULT TableColumnsPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	SubItemValues changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
@@ -268,26 +244,38 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+/**
+ * Will send Config::MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID message to 
+ * parent window when clicking the button in the QListView, wParam=iItem, lParam=iSubItem
+ * 
+ * @param uMsg
+ * @param wParam - QListView iItem
+ * @param lParam - QListView iSubItem
+ * @param bHandled
+ * @return 
+ */
+LRESULT TableIndexesPage::OnClickListViewSelColumnsButton(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	adapter->createNewColumn();
+	int iItem = static_cast<int>(wParam);
+	int iSubItem = static_cast<int>(lParam);
+	CButton  * ptr = listView.getButtonPtr(iItem, iSubItem);
+	CRect btnRect;
+	ptr->GetWindowRect(btnRect);
+
+	TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, btnRect, iItem, iSubItem);
+
+	columnsDialog.DoModal(m_hWnd);
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnClickDelColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->deleteSelColumns();
+	adapter->createNewIndex();
 	return 0;
 }
 
-LRESULT TableColumnsPage::OnClickUpColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableIndexesPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->moveUpSelColumns();
-	return 0;
-}
-
-LRESULT TableColumnsPage::OnClickDownColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
-{
-	adapter->moveDownSelColumns();
+	adapter->deleteSelIndexes();
 	return 0;
 }

@@ -68,8 +68,11 @@ void TableColumnsPageAdapter::loadHeadersForListView()
 
 int TableColumnsPageAdapter::loadEmptyRowsForListView()
 {
+	std::vector<std::wstring> ss = StringUtil::split(L"id,name,type,remark,phone,email,created_at,updated_at",L","); // tmp
 	for (int i = 0; i < NEW_TBL_EMPTY_COLUMN_SIZE; i++) {
-		runtimeDatas.push_back(ColumnInfo());
+		ColumnInfo columnInfo;
+		columnInfo.name = ss.at(i);
+		runtimeDatas.push_back(columnInfo);
 	}
 	dataView->SetItemCount(NEW_TBL_EMPTY_COLUMN_SIZE);
 	return NEW_TBL_EMPTY_COLUMN_SIZE;
@@ -346,3 +349,33 @@ bool TableColumnsPageAdapter::moveDownSelColumns()
 
 	return true;
 }
+
+/**
+ * Get all column names from dataView.
+ * 
+ * @param excludeNames
+ * @return 
+ */
+std::vector<std::wstring> TableColumnsPageAdapter::getAllColumnNames(const std::vector<std::wstring> & excludeNames /*= std::vector<std::wstring>()*/) const
+{
+	std::vector<std::wstring> result;
+
+	int n = static_cast<int>(runtimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		auto data = runtimeDatas.at(i);
+		std::wstring columnName = data.name;
+		if (columnName.empty()) {
+			continue;
+		}
+
+		if (!excludeNames.empty() 
+			&& excludeNames.end() != std::find(excludeNames.begin(), excludeNames.end(), columnName)) {
+			continue;
+		}
+
+		result.push_back(columnName);
+	}
+
+	return result;
+}
+

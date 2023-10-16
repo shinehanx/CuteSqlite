@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   TableColumnsPageAdapter.h
+ * @file   TableIndexesPageAdapter.h
  * @brief  
  * 
  * @author Xuehan Qin
@@ -24,38 +24,35 @@
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
 
-#define NEW_TBL_EMPTY_COLUMN_SIZE 8
+#define NEW_TBL_EMPTY_INDEX_SIZE 6
 
-
-class TableColumnsPageAdapter : public QAdapter<TableColumnsPageAdapter, QListViewCtrl>
+class TableIndexesPageAdapter : public QAdapter<TableIndexesPageAdapter, QListViewCtrl>
 {
 public:
-	TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType resultType = NEW_TABLE);
-	~TableColumnsPageAdapter();
+	TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType resultType = NEW_TABLE);
+	~TableIndexesPageAdapter();
 
-	int loadTblColumnsListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
+	int loadTblIndexesListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
-	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
+	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
 	// create/copy a new column row operation
-	void createNewColumn();
+	void createNewIndex();
 	// delete a column row operation
-	bool deleteSelColumns(bool confirm=true);
-	bool moveUpSelColumns();
-	bool moveDownSelColumns();
+	bool deleteSelIndexes(bool confirm=true);
 
-	// Get all column names from dataview
-	std::vector<std::wstring> getAllColumnNames(const std::vector<std::wstring> & excludeNames = std::vector<std::wstring>()) const ;
+	std::wstring getSubItemString(int iItem, int iSubItem);
+	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;
 	const static std::vector<int> columnFormats;
-	const static std::vector<std::wstring> dataTypeList;
+	const static std::vector<std::wstring> indexTypeList;
 
 	// store the runtime data of the column(s) settings
-	ColumnInfoList runtimeDatas;
+	IndexInfoList runtimeDatas;
 
 	TblOperateType operateType;
 
@@ -63,8 +60,10 @@ private:
 
 	void loadHeadersForListView();
 	int loadEmptyRowsForListView();
-	int loadColumnRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName);
+	int loadIndexRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName);
 
 	bool getIsChecked(int iItem);
-	int getSelDataType(const std::wstring & dataType);
+	int getSelIndexType(const std::wstring & dataType);
+
+	
 };

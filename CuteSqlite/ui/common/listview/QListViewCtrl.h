@@ -42,7 +42,7 @@ struct CompareKeyByPair {
 };
 // template params : std::pair<int - iItem, int - iSubItem>, CComboBox *  - combobox pointer
 typedef std::map<std::pair<int, int>, CComboBox *, CompareKeyByPair> SubItemComboBoxMap;
-typedef std::map<std::pair<int, int>, CButton *, CompareKeyByPair> SubItemCheckBoxMap;
+typedef std::map<std::pair<int, int>, CButton *, CompareKeyByPair> SubItemCheckBoxMap, SubItemButtonMap;
 
 class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
 {
@@ -51,7 +51,6 @@ public:
 	DECLARE_WND_SUPERCLASS(_T("WTL_SortListViewCtrl"), GetWndClassName())
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
-		//MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_SIZE(OnSize)
@@ -60,12 +59,13 @@ public:
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::QLISTVIEWCTRL_CHECKBOX_ID_START, Config::QLISTVIEWCTRL_CHECKBOX_ID_END, BN_CLICKED, OnClickCheckBox)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::QLISTVIEWCTRL_BUTTON_ID_START, Config::QLISTVIEWCTRL_BUTTON_ID_END, BN_CLICKED, OnClickButton)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-
+	
 	// editor
 	void createOrShowEditor(std::pair<int, int> subItemPos);
 	void createOrShowEditor(int iItem, int iSubItem);
@@ -78,6 +78,10 @@ public:
 	//CheckBox
 	void createOrShowCheckBox(int iItem, int iSubItem);
 	CButton * getCheckBoxPtr(int iItem, int iSubItem);
+
+	//button
+	void createOrShowButton(int iItem, int iSubItem, const std::wstring & text);
+	CButton * getButtonPtr(int iItem, int iSubItem);
 	
 
 	SubItemValues getChangedVals();
@@ -98,12 +102,18 @@ public:
 	void moveUpCheckBoxes(int iItem);
 	void moveDownCheckBoxes(int iItem);
 
+	void moveUpButtons(int iItem);
+	void moveDownButtons(int iItem);
+
 	void resetChildElemsRect();
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
+
+	// the row item height
+	int itemHeight = 0;
 
 	CEdit subItemEdit;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
@@ -113,17 +123,20 @@ private:
 	SubItemValues changeVals;
 	SubItemComboBoxMap subItemComboBoxMap;
 	SubItemCheckBoxMap subItemCheckBoxMap;
+	SubItemButtonMap subItemButtonMap;
 	
 	void changeSubItemText();
 	void changeComboBoxesRect();
 	void changeCheckBoxesRect();
+	void changeButtonsRect();
 
 	void removeComboBoxes(int iItem);
 	void removeCheckBoxes(int iItem);
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
-	void createOrShowSubItemComboBox(CRect & subItemRect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
-	void createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, int iSubItem);
+	void createOrShowSubItemComboBox(CRect & rect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
+	void createOrShowSubItemCheckBox(CRect & rect, int iItem, int iSubItem);
+	void createOrShowSubItemButton(CRect & rect, int iItem, int iSubItem, const std::wstring &text);
 	void loadSubItemComboBox(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem);
 	void pressedTabToMoveEditor();
 
@@ -131,7 +144,8 @@ private:
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
-
+	void OnClickButton(UINT uNotifyCode, int nID, HWND hwnd);
+		
 	void OnDestroy();
 	void OnSize(UINT nType, CSize size);
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);	

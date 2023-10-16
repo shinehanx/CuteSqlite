@@ -36,8 +36,7 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 	}
 	else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) {
 		changeSubItemText();
-		changeComboBoxesRect();
-		changeCheckBoxesRect();
+		resetChildElemsRect();
 	}
 
 	return FALSE;
@@ -48,7 +47,6 @@ void QListViewCtrl::createOrShowEditor(std::pair<int, int> subItemPos)
 	if (subItemPos.first < 0 || subItemPos.second < 0) {
 		return;
 	}
-	CRect listRect;
 	this->subItemPos = subItemPos;
 	GetSubItemRect(subItemPos.first, subItemPos.second, LVIR_BOUNDS, subItemRect);
 	
@@ -79,9 +77,11 @@ void QListViewCtrl::createOrShowComboBox(std::pair<int, int> & subItemPosition, 
 	if (subItemPosition.first < 0 || subItemPosition.second < 0) {
 		return;
 	}
-	CRect listRect;
 	GetSubItemRect(subItemPosition.first, subItemPosition.second, LVIR_BOUNDS, subItemRect);
-	CRect rect = subItemRect;
+	CRect rect(subItemRect.left + 1, 
+			subItemRect.top + 1, 
+			subItemRect.right - 2, 
+			subItemRect.bottom -2);	
 	createOrShowSubItemComboBox(rect, subItemPosition.first, subItemPosition.second, strList, nSelItem);
 }
 
@@ -134,6 +134,36 @@ CButton * QListViewCtrl::getCheckBoxPtr(int iItem, int iSubItem)
 	std::pair<int, int> pair(iItem, iSubItem);
 	auto iter = subItemCheckBoxMap.find(pair);
 	if (iter == subItemCheckBoxMap.end()) {
+		return ptr;
+	}
+	ptr = iter->second;
+	return ptr;
+}
+
+
+void QListViewCtrl::createOrShowButton(int iItem, int iSubItem, const std::wstring & text)
+{
+	if (iItem < 0 || iSubItem < 0) {
+		return;
+	}
+
+	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
+	createOrShowSubItemButton(subItemRect, iItem, iSubItem, text);
+}
+
+
+CButton * QListViewCtrl::getButtonPtr(int iItem, int iSubItem)
+{
+	if (iItem < 0 || iSubItem < 0) {
+		return nullptr;
+	}
+	CButton * ptr = nullptr;
+	if (subItemButtonMap.empty()) {
+		return ptr;
+	}
+	std::pair<int, int> pair(iItem, iSubItem);
+	auto iter = subItemButtonMap.find(pair);
+	if (iter == subItemButtonMap.end()) {
 		return ptr;
 	}
 	ptr = iter->second;
@@ -212,7 +242,7 @@ void QListViewCtrl::removeChangedValsItems(int iItem)
 		iter++;
 	}
 
-	// subsctract the iItem index 
+	// subtract the iItem index 
 	for (auto iter = changeVals.begin(); iter != changeVals.end(); iter++) {
 		if ((*iter).iItem > iItem) {
 			(*iter).iItem--;
@@ -305,6 +335,7 @@ void QListViewCtrl::resetChildElemsRect()
 {
 	changeComboBoxesRect();
 	changeCheckBoxesRect();
+	changeButtonsRect();
 }
 
 void QListViewCtrl::changeComboBoxesRect()
@@ -319,14 +350,20 @@ void QListViewCtrl::changeComboBoxesRect()
 		GetSubItemRect(pair.first, pair.second, LVIR_BOUNDS, subItemRect);	
 		
 		if (ptr && ptr->IsWindow()) {
-			CRect rect(subItemRect.left + 2, 
-				subItemRect.top + 2, 
-				subItemRect.right - 4, 
-				subItemRect.bottom);
+			CRect rect(subItemRect.left + 1, 
+				subItemRect.top + 1, 
+				subItemRect.right - 2, 
+				subItemRect.bottom -2);
 			ptr->MoveWindow(rect);
 			if (subItemRect.top >= headRect.Height()) {
 				ptr->ShowWindow(true);
 				ptr->BringWindowToTop();
+
+				// tmp code, will be deleted
+				CRect winRect;
+				ptr->GetWindowRect(winRect);
+				ScreenToClient(winRect);
+				continue;
 			} else {
 				ptr->ShowWindow(false);
 			}
@@ -344,14 +381,31 @@ void QListViewCtrl::changeCheckBoxesRect()
 		if (GetSubItemRect(pair.first, pair.second, LVIR_BOUNDS, subItemRect) == false) {
 			Q_ERROR(L"GetSubItemRect error, iItem={}, iSubItem={}", pair.first, pair.second);
 		}
-		if (subItemRect.top < 0) {
-			Q_ERROR(L"subItemRect.top < 0, iItem={}, iSubItem={}, subItemRect=(r:{}, t:{}, w:{}, h:{})", 
-				pair.first, pair.second, subItemRect.top, subItemRect.top, subItemRect.Width(), subItemRect.Height());
-		}
+		
 		if (ptr && ptr->IsWindow()) {
 			int x = subItemRect.left + (subItemRect.Width() - 100) / 2,
 				y = subItemRect.top + (subItemRect.Height() - 20) / 2,
 				w = 100, h = 20;
+			CRect rect(x, y, x + w, y + h);
+			ptr->MoveWindow(rect);
+		}
+	}
+}
+
+
+void QListViewCtrl::changeButtonsRect()
+{
+	for (auto iter = subItemButtonMap.begin(); iter != subItemButtonMap.end(); iter++) {
+		auto pair = iter->first;
+		auto ptr = iter->second;
+		CRect subItemRect;
+		if (GetSubItemRect(pair.first, pair.second, LVIR_BOUNDS, subItemRect) == false) {
+			Q_ERROR(L"GetSubItemRect error, iItem={}, iSubItem={}", pair.first, pair.second);
+		}
+		if (ptr && ptr->IsWindow()) {
+			int x = subItemRect.right - 31,
+				y = subItemRect.top + (subItemRect.Height() - 20) / 2,
+				w = 30, h = 20;
 			CRect rect(x, y, x + w, y + h);
 			ptr->MoveWindow(rect);
 		}
@@ -400,7 +454,7 @@ void QListViewCtrl::createOrShowSubItemEdit(CEdit & win, std::wstring & text, CR
  * @param strList
  * @param nSelItem
  */
-void QListViewCtrl::createOrShowSubItemComboBox(CRect & subItemRect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem)
+void QListViewCtrl::createOrShowSubItemComboBox(CRect & rect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem)
 {
 	CComboBox * comboBoxPtr = nullptr;
 	std::pair<int, int> pair(iItem, iSubItem);
@@ -413,8 +467,9 @@ void QListViewCtrl::createOrShowSubItemComboBox(CRect & subItemRect, int iItem, 
 	comboBoxPtr = new CComboBox();
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS;
 	UINT nID = Config::QLISTVIEWCTRL_COMBOBOX_ID_START + static_cast<int>(subItemComboBoxMap.size());
-	comboBoxPtr->Create(m_hWnd, subItemRect, L"",  dwStyle , 0, nID);
+	comboBoxPtr->Create(m_hWnd, rect, L"",  dwStyle , 0, nID);
 	comboBoxPtr->SetFont(comboFont);
+	comboBoxPtr->SetItemHeight(-1, rect.Height());
 	loadSubItemComboBox(comboBoxPtr, strList, nSelItem);
 	subItemComboBoxMap[pair] = comboBoxPtr;
 	changeComboBoxesRect();
@@ -442,6 +497,29 @@ void QListViewCtrl::createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, i
 	checkboxPtr->Create(m_hWnd, rect, std::to_wstring(iItem).c_str(), dwStyle , 0, nID);
 	subItemCheckBoxMap[pair] = checkboxPtr;
 	changeCheckBoxesRect();
+}
+
+
+void QListViewCtrl::createOrShowSubItemButton(CRect & subItemRect, int iItem, int iSubItem, const std::wstring &text)
+{
+	CButton * buttonPtr = nullptr;
+	std::pair<int, int> pair(iItem, iSubItem);
+	auto iter = subItemButtonMap.find(pair);
+	int x = subItemRect.right - 31,
+		y = subItemRect.top + (subItemRect.Height() - 20) / 2,
+		w = 30, h = 20;
+	CRect rect(x, y, x + w, y + h);
+	if (iter != subItemButtonMap.end()) {
+		buttonPtr = iter->second;
+		return;
+	}
+	
+	buttonPtr = new CButton();
+	UINT nID = Config::QLISTVIEWCTRL_BUTTON_ID_START + static_cast<int>(subItemButtonMap.size());	
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  |WS_TABSTOP | WS_CLIPSIBLINGS ;
+	buttonPtr->Create(m_hWnd, rect, text.c_str(), dwStyle , 0, nID);
+	subItemButtonMap[pair] = buttonPtr;
+	changeButtonsRect();
 }
 
 void QListViewCtrl::loadSubItemComboBox(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem)
@@ -484,8 +562,8 @@ void QListViewCtrl::pressedTabToMoveEditor()
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {	 
 	changeSubItemText();
-	changeComboBoxesRect();
-	changeCheckBoxesRect();
+	
+	resetChildElemsRect();
 	// The message return to parent class 
 	bHandled = false;
 	return 1;
@@ -494,7 +572,7 @@ LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 LRESULT QListViewCtrl::OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	changeSubItemText();
-
+	resetChildElemsRect();
 	bHandled = false; // The message return to parent class 	
 	return 1;
 }
@@ -522,13 +600,33 @@ void QListViewCtrl::OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 }
 
 /**
- * Remove all the subitems by specified iItem.
+ * Will send Config::MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID message to 
+ * parent window when clicking the button in the QListView, wParam=iItem, lParam=iSubItem
+ * 
+ * @param uNotifyCode
+ * @param nID
+ * @param hwnd
+ */
+void QListViewCtrl::OnClickButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	for (auto iter = subItemButtonMap.begin(); iter != subItemButtonMap.end(); iter++) {
+		if (iter->second && iter->second->IsWindow() && iter->second->m_hWnd == hwnd) {
+			auto pair = iter->first;
+			::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID, 
+				WPARAM(pair.first), LPARAM(pair.second));
+			break;
+		}
+	}	
+}
+
+/**
+ * Remove all the subItems by specified iItem.
  * 
  * @param iItem - subItem(iItem, iSubItem) iItem
  */
 void QListViewCtrl::RemoveItem(int iItem)
 {
-	// delete comboboxes
+	// delete ComboBoxes
 	removeComboBoxes(iItem);
 	removeCheckBoxes(iItem);
 
@@ -796,6 +894,73 @@ void QListViewCtrl::moveDownCheckBoxes(int iItem)
 	}
 }
 
+
+void QListViewCtrl::moveUpButtons(int iItem)
+{
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemButtonMap.begin(), ite = subItemButtonMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+		int iSubItem = it->first.second;
+		int prevRow = it->first.first - 1;
+		if (prevRow < 0) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto prevRowSubItemIt = subItemButtonMap.end();		
+		for (auto nIter = subItemButtonMap.begin(); nIter != subItemButtonMap.end(); nIter++) {
+			if (nIter->first.first == prevRow && nIter->first.second == iSubItem) {
+				prevRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (prevRowSubItemIt != ite) {
+			std::swap(it->second, prevRowSubItemIt->second);
+		}
+		it++;
+	}
+}
+
+
+void QListViewCtrl::moveDownButtons(int iItem)
+{
+	// swap the std::map content
+	int maxRows = GetItemCount();
+	for (auto it = subItemButtonMap.begin(), ite = subItemButtonMap.end(); it != ite;) {
+		if (it->first.first != iItem) {
+			it++;
+			continue;
+		}
+
+		int iSubItem = it->first.second;
+		int nextRow = it->first.first + 1;
+		if (nextRow == maxRows) {
+			break;
+		}
+
+		// find the next row subitem, will be swap the value in the nTh row subitem and the nTh-1 row subitem 
+		auto nextRowSubItemIt = subItemButtonMap.end();		
+		for (auto nIter = subItemButtonMap.begin(); nIter != subItemButtonMap.end(); nIter++) {
+			if (nIter->first.first == nextRow && nIter->first.second == iSubItem) {
+				nextRowSubItemIt = nIter;
+				break;
+			}
+		}
+			
+		// swap the std::map value begin from nItem to end
+		if (nextRowSubItemIt != ite) {
+			std::swap(it->second, nextRowSubItemIt->second);
+		}
+		it++;
+	}
+}
+
 void QListViewCtrl::OnDestroy()
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);
@@ -831,6 +996,20 @@ void QListViewCtrl::OnDestroy()
 		iter2++;
 	}
 	subItemCheckBoxMap.clear();
+
+	// release subItemButtonMap
+	auto iter3 = subItemButtonMap.begin();
+	while (iter3 != subItemButtonMap.end()) {
+		auto ptr = iter3->second;
+		if (!ptr || !ptr->IsWindow()) {
+			continue;
+		}
+		ptr->DestroyWindow();
+		delete ptr;
+		ptr = nullptr;
+		iter3++;
+	}
+	subItemButtonMap.clear();
 }
 
 void QListViewCtrl::OnSize(UINT nType, CSize size)

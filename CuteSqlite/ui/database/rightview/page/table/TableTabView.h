@@ -24,6 +24,7 @@
 #include "common/Config.h"
 #include "ui/common/tabview/QTabView.h"
 #include "ui/database/rightview/page/table/TableColumnsPage.h"
+#include "ui/database/rightview/page/table/TableIndexesPage.h"
 
 class TableTabView : public CWindowImpl<TableTabView>
 {
@@ -54,6 +55,7 @@ private:
 
 	QTabView tabView;
 	TableColumnsPage tableColumnsPage;
+	TableIndexesPage tableIndexesPage;
 
 	CImageList imageList;
 	HBITMAP columnBitmap = nullptr;
@@ -67,6 +69,7 @@ private:
 	void createOrShowUI();
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowTableColumnsPage(TableColumnsPage & win, CRect &clientRect);
+	void createOrShowTableIndexesPage(TableIndexesPage & win, CRect &clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();

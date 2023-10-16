@@ -29,6 +29,10 @@ BOOL TableTabView::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	}
 
+	if (tableIndexesPage.IsWindow() && tableIndexesPage.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
 	return false;
 }
 
@@ -72,6 +76,7 @@ void TableTabView::createOrShowUI()
 	GetClientRect(clientRect);
 	createOrShowTabView(tabView, clientRect);
 	createOrShowTableColumnsPage(tableColumnsPage, clientRect);
+	createOrShowTableIndexesPage(tableIndexesPage, clientRect);
 }
 
 
@@ -103,6 +108,24 @@ void TableTabView::createOrShowTableColumnsPage(TableColumnsPage & win, CRect &c
 	}
 }
 
+
+void TableTabView::createOrShowTableIndexesPage(TableIndexesPage & win, CRect &clientRect)
+{
+	CRect pageRect = getPageRect(clientRect);
+	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (IsWindow() && !win.IsWindow()) {
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
+		win.setup(userDbId, schema, tableColumnsPage.getAdapter());
+	} else if (IsWindow() && tabView.IsWindow()) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+		if (win.getTblColumnsPageAdapter() == nullptr) {
+			win.setTblColumnsPageAdapter(tableColumnsPage.getAdapter());
+		}
+	}
+}
+
 void TableTabView::loadWindow()
 {
 	if (!isNeedReload) {
@@ -117,7 +140,7 @@ void TableTabView::loadWindow()
 void TableTabView::loadTabViewPages()
 {
 	tabView.AddPage(tableColumnsPage.m_hWnd, S(L"table-columns").c_str(), 0, &tableColumnsPage);
-	//tabView.AddPage(tableIndexesPage.m_hWnd, S(L"index-columns").c_str(), 1, &tableIndexesPage);
+	tabView.AddPage(tableIndexesPage.m_hWnd, S(L"table-indexes").c_str(), 1, &tableIndexesPage);
 	tabView.SetActivePage(0);
 }
 
@@ -136,6 +159,7 @@ int TableTabView::OnDestroy()
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (tableColumnsPage.IsWindow()) tableColumnsPage.DestroyWindow();
+	if (tableIndexesPage.IsWindow()) tableIndexesPage.DestroyWindow();
 
 	if (columnBitmap) ::DeleteObject(columnBitmap);
 	if (indexBitmap) ::DeleteObject(indexBitmap);	
