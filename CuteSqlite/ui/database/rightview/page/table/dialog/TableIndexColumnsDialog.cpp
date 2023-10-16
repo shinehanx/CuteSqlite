@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "TableIndexColumnsDialog.h"
+#include "ui/common/message/QPopAnimate.h"
 
 TableIndexColumnsDialog::TableIndexColumnsDialog(
 	HWND parentHwnd, TableColumnsPageAdapter * columnPageAdapter, 
@@ -270,7 +271,7 @@ void TableIndexColumnsDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND h
 	
 	int nItemCount = rightListBox.GetCount();
 	if (!nItemCount) {
-		Q_ERROR(S(L"no-columns-selected"));
+		QPopAnimate::error(m_hWnd, S(L"no-columns-selected"));
 		rightListBox.SetFocus();
 		return;
 	}
