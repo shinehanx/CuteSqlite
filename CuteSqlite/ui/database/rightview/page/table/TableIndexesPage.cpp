@@ -40,26 +40,6 @@ void TableIndexesPage::setup(uint64_t userDbId, const std::wstring & schema /*= 
 	this->tblColumnsPageAdapter = tblColumnsPageAdapter;
 }
 
-void TableIndexesPage::createImageList()
-{
-	if (!imageList.IsNull()) {
-		return ;
-	}
-	std::wstring imgDir = ResourceUtil::getProductImagesDir();
-	std::wstring checkNoPath = imgDir + L"database\\list\\check-no.png";
-	std::wstring checkYesPath = imgDir + L"database\\list\\check-yes.png";
-	Gdiplus::Bitmap  checkNoImage(checkNoPath.c_str());
-	Gdiplus::Bitmap  checkYesImage(checkYesPath.c_str());
-	Gdiplus::Color color(RGB(0xff, 0xff, 0xff));
-
-	checkNoImage.GetHBITMAP(color, &checkNoBitmap);	
-	checkYesImage.GetHBITMAP(color, &checkYesBitmap);
-
-	imageList.Create(checkNoImage.GetWidth(),checkNoImage.GetHeight(), ILC_COLOR32, 0, 2);
-	imageList.Add(checkNoBitmap); //0- No Checked image 
-	imageList.Add(checkYesBitmap); //1- Yes Checked image
-}
-
 void TableIndexesPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
@@ -107,9 +87,7 @@ void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
-		win.SetImageList(imageList, LVSIL_SMALL);
-		CHeaderCtrl header = win.GetHeader();
-		header.SetImageList(imageList);
+		win.setItemHeight(25);
 		adapter = new TableIndexesPageAdapter(m_hWnd, &win, NEW_TABLE);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
@@ -138,8 +116,6 @@ int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
 	textFont = FT(L"form-text-size");
-	createImageList();
-
 	return ret;
 }
 
@@ -154,11 +130,6 @@ int TableIndexesPage::OnDestroy()
 	if (downIndexButton.IsWindow()) downIndexButton.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
-
-	if (imageList.IsNull()) imageList.Destroy();
-	if (checkNoBitmap) ::DeleteObject(checkNoBitmap);
-	if (checkYesBitmap) ::DeleteObject(checkYesBitmap);
-
 	if (adapter) delete adapter;
 	return ret;
 }
@@ -169,13 +140,32 @@ void TableIndexesPage::paintItem(CDC & dc, CRect & paintRect)
 }
 
 
+LRESULT TableIndexesPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	LPNMLISTVIEW nvListViewPtr = reinterpret_cast<LPNMLISTVIEW>(pnmh);
+	if (nvListViewPtr->uOldState == 0 && nvListViewPtr->uNewState == 0) 
+		return 0;         // No change 
+	//   Old   check   box   state 
+	BOOL bPrevState = (BOOL)(((nvListViewPtr->uOldState & LVIS_STATEIMAGEMASK) >> 12) - 1);     
+	if (bPrevState < 0)         //   On   startup   there 's   no   previous   state   
+		bPrevState = 0;   //   so   assign   as   false   (unchecked) 
+	//   New   check   box   state 
+	BOOL bChecked = (BOOL)(((nvListViewPtr->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1);       
+	if (bChecked < 0)   //   On   non-checkbox   notifications   assume   false 
+		bChecked = 0;   
+	if (bPrevState == bChecked)   //   No   change   in   check   box 
+		return 0; 
+	
+	return 0;
+}
+
 LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	if (aItem->iSubItem == 2 || aItem->iSubItem == 3) {
+	if (aItem->iSubItem == 0 || aItem->iSubItem == 2 || aItem->iSubItem == 3) {
 		return 0;
 	}
 

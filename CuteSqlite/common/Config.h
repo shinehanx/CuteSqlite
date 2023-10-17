@@ -290,8 +290,8 @@ typedef enum {
 
 typedef enum {
 	//list combobox id rank
-	QLISTVIEWCTRL_COMBOBOX_ID_START = WM_USER + 1801,
-	QLISTVIEWCTRL_COMBOBOX_ID_END = WM_USER + 3800,
+	QLISTVIEWCTRL_COMBOBOX_BTN_ID_START = WM_USER + 1801,
+	QLISTVIEWCTRL_COMBOBOX_BTN_ID_END = WM_USER + 3800,
 } ListViweComboBoxIdRank;
 
 typedef enum {

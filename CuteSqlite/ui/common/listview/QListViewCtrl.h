@@ -20,11 +20,11 @@
 #pragma once
 #include <utility>
 #include <string>
+#include <map>
 #include <atlwin.h>
 #include <atlctrlx.h>
 #include <atlcrack.h>
 #include <atltypes.h>
-#include <map>
 #include "common/Config.h"
 #include "core/entity/Entity.h"
 
@@ -44,11 +44,12 @@ struct CompareKeyByPair {
 typedef std::map<std::pair<int, int>, CComboBox *, CompareKeyByPair> SubItemComboBoxMap;
 typedef std::map<std::pair<int, int>, CButton *, CompareKeyByPair> SubItemCheckBoxMap, SubItemButtonMap;
 
-class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
+class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>,
+	public COwnerDraw<QListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
-	DECLARE_WND_SUPERCLASS(_T("WTL_SortListViewCtrl"), GetWndClassName())
+	DECLARE_WND_SUPERCLASS(_T("WTL_CheckListViewCtrl"), GetWndClassName())
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
 		MSG_WM_DESTROY(OnDestroy)
@@ -63,7 +64,8 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
-		REFLECT_NOTIFICATIONS()
+		CHAIN_MSG_MAP_ALT(COwnerDraw<QListViewCtrl>, 1)
+		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 	
 	// editor
@@ -71,9 +73,9 @@ public:
 	void createOrShowEditor(int iItem, int iSubItem);
 
 	// combobox
-	void createOrShowComboBox(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> &strList, int nSelItem = 0);
-	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
-	CComboBox * getComboBoxPtr(int iItem, int iSubItem);
+	void createOrShowComboBoxBtn(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> &strList, int nSelItem = 0);
+	void createOrShowComboBoxBtn(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
+	CButton * getComboBoxBtnPtr(int iItem, int iSubItem);
 	
 	//CheckBox
 	void createOrShowCheckBox(int iItem, int iSubItem);
@@ -106,14 +108,28 @@ public:
 	void moveDownButtons(int iItem);
 
 	void resetChildElemsRect();
+
+	void setItemHeight(int height);
+public:
+	// owner draw, must set the ListView style with LVS_OWNERDRAWFIXED
+	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+	int CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct);
+	void DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct);
+
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
+	HFONT normalFont = nullptr;
 
 	// the row item height
-	int itemHeight = 0;
+	int itemHeight = 21;
+
+	// horizontal offset and size
+	int hOffset = 0;
+	int hSize = 0;
 
 	CEdit subItemEdit;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
@@ -121,12 +137,12 @@ private:
 	bool isVisibleEdit = false;
 
 	SubItemValues changeVals;
-	SubItemComboBoxMap subItemComboBoxMap;
+	SubItemButtonMap subItemComboBoxBtnMap;
 	SubItemCheckBoxMap subItemCheckBoxMap;
 	SubItemButtonMap subItemButtonMap;
 	
 	void changeSubItemText();
-	void changeComboBoxesRect();
+	void changeComboBoxBtnsRect();
 	void changeCheckBoxesRect();
 	void changeButtonsRect();
 
@@ -134,10 +150,10 @@ private:
 	void removeCheckBoxes(int iItem);
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
-	void createOrShowSubItemComboBox(CRect & rect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
+	void createOrShowSubItemComboBoxBtn(CRect & rect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
 	void createOrShowSubItemCheckBox(CRect & rect, int iItem, int iSubItem);
 	void createOrShowSubItemButton(CRect & rect, int iItem, int iSubItem, const std::wstring &text);
-	void loadSubItemComboBox(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem);
+	void loadSubItemComboBoxBtn(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem);
 	void pressedTabToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -148,10 +164,19 @@ private:
 		
 	void OnDestroy();
 	void OnSize(UINT nType, CSize size);
-	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);	
+
+	void createImageList();
+
+	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
+
+	// draw every subItems, must set the ListView style with LVS_OWNERDRAWFIXED
+	void drawSubItems(CDC & memDc, LPDRAWITEMSTRUCT lpDrawItemStruct);
+	CBitmap checkYesBitmap;
+	CBitmap checkNoBitmap;
+	CImageList imageList;
 };

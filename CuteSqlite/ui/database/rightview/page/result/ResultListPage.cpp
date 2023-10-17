@@ -262,9 +262,7 @@ void ResultListPage::createOrShowListView(QListViewCtrl & win, CRect & clientRec
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
-		win.SetImageList(imageList, LVSIL_SMALL);
-		CHeaderCtrl header = win.GetHeader();
-		header.SetImageList(imageList);
+		win.setItemHeight(22);
 		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_RESULT);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
@@ -446,32 +444,11 @@ void ResultListPage::changeFilterButtonStatus(bool hasRedIcon)
 	}
 }
 
-void ResultListPage::createImageList()
-{
-	if (!imageList.IsNull()) {
-		return ;
-	}
-	std::wstring imgDir = ResourceUtil::getProductImagesDir();
-	std::wstring checkNoPath = imgDir + L"database\\list\\check-no.png";
-	std::wstring checkYesPath = imgDir + L"database\\list\\check-yes.png";
-	Gdiplus::Bitmap  checkNoImage(checkNoPath.c_str());
-	Gdiplus::Bitmap  checkYesImage(checkYesPath.c_str());
-	Gdiplus::Color color(RGB(0xff, 0xff, 0xff));
-
-	checkNoImage.GetHBITMAP(color, &checkNoBitmap);	
-	checkYesImage.GetHBITMAP(color, &checkYesBitmap);
-
-	imageList.Create(checkNoImage.GetWidth(),checkNoImage.GetHeight(), ILC_COLOR32, 0, 2);
-	imageList.Add(checkNoBitmap); //0- No Checked image 
-	imageList.Add(checkYesBitmap); //1- Yes Checked image
-}
-
 int ResultListPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
 	textFont = FT(L"form-text-size");
-	createImageList();
 	createCopyMenu();
 	return ret;
 }
@@ -502,9 +479,6 @@ int ResultListPage::OnDestroy()
 		delete adapter;
 	}
 
-	if (imageList.IsNull()) imageList.Destroy();
-	if (checkNoBitmap) ::DeleteObject(checkNoBitmap);
-	if (checkYesBitmap) ::DeleteObject(checkYesBitmap);
 	return ret;
 }
 

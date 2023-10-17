@@ -24,7 +24,7 @@
 #include "ui/common/message/QMessageBox.h"
 
 const Columns TableColumnsPageAdapter::headerColumns = { S(L"column-name"), S(L"data-type"), L"Not Null", L"PK", L"Auto Insc", L"Unique", S(L"default"), S(L"check")};
-const std::vector<int> TableColumnsPageAdapter::columnSizes = { 150, 100, 200, 120, 120, 120, 150, 150 };
+const std::vector<int> TableColumnsPageAdapter::columnSizes = { 150, 100, 70, 70, 70, 70, 150, 100 };
 const std::vector<int> TableColumnsPageAdapter::columnFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_LEFT, LVCFMT_LEFT };
 const std::vector<std::wstring> TableColumnsPageAdapter::dataTypeList = { L"INTEGER", L"TEXT", L"BLOB", L"REAL", L"NUMERIC"};
 
@@ -75,6 +75,7 @@ int TableColumnsPageAdapter::loadEmptyRowsForListView()
 		runtimeDatas.push_back(columnInfo);
 	}
 	dataView->SetItemCount(NEW_TBL_EMPTY_COLUMN_SIZE);
+	dataView->Invalidate(true);
 	return NEW_TBL_EMPTY_COLUMN_SIZE;
 }
 
@@ -149,12 +150,11 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		} else {
 			pLvdi->item.iImage = 0;
 		}
-		
 		return 0;
 	} else  if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
 		ColumnInfo columnInfo = runtimeDatas.at(pLvdi->item.iItem);
 		int nSelItem = getSelDataType(columnInfo.type);
-		dataView->createOrShowComboBox(iItem, pLvdi->item.iSubItem, dataTypeList, nSelItem);
+		dataView->createOrShowComboBoxBtn(iItem, pLvdi->item.iSubItem, dataTypeList, nSelItem);
 		return 0;
 	} else if (pLvdi->item.iSubItem >= 3 && pLvdi->item.iSubItem <= 6 && (pLvdi->item.mask & LVIF_TEXT)) {
 		if (pLvdi->item.iItem == 6 && pLvdi->item.iSubItem == 3) {

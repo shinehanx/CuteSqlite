@@ -44,26 +44,6 @@ TableColumnsPageAdapter * TableColumnsPage::getAdapter()
 	return adapter;
 }
 
-void TableColumnsPage::createImageList()
-{
-	if (!imageList.IsNull()) {
-		return ;
-	}
-	std::wstring imgDir = ResourceUtil::getProductImagesDir();
-	std::wstring checkNoPath = imgDir + L"database\\list\\check-no.png";
-	std::wstring checkYesPath = imgDir + L"database\\list\\check-yes.png";
-	Gdiplus::Bitmap  checkNoImage(checkNoPath.c_str());
-	Gdiplus::Bitmap  checkYesImage(checkYesPath.c_str());
-	Gdiplus::Color color(RGB(0xff, 0xff, 0xff));
-
-	checkNoImage.GetHBITMAP(color, &checkNoBitmap);	
-	checkYesImage.GetHBITMAP(color, &checkYesBitmap);
-
-	imageList.Create(checkNoImage.GetWidth(),checkNoImage.GetHeight(), ILC_COLOR32, 0, 2);
-	imageList.Add(checkNoBitmap); //0- No Checked image 
-	imageList.Add(checkYesBitmap); //1- Yes Checked image
-}
-
 void TableColumnsPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
@@ -127,11 +107,13 @@ void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA;
-		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
+		// Specify LVS_OWNERDATA style will be enabled virtual data list
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
+		DWORD dwExStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_BORDERSELECT ;
+		win.Create(m_hWnd, rect,NULL,dwStyle , 
 			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
-		win.SetImageList(imageList, LVSIL_SMALL);
+		win.SetExtendedListViewStyle(dwExStyle);
+		win.setItemHeight(25);
 		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);
 		adapter = new TableColumnsPageAdapter(m_hWnd, &win, NEW_TABLE);
@@ -162,7 +144,6 @@ int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
 	textFont = FT(L"form-text-size");
-	createImageList();
 
 	return ret;
 }
@@ -180,8 +161,6 @@ int TableColumnsPage::OnDestroy()
 	if (listView.IsWindow()) listView.DestroyWindow();
 
 	if (imageList.IsNull()) imageList.Destroy();
-	if (checkNoBitmap) ::DeleteObject(checkNoBitmap);
-	if (checkYesBitmap) ::DeleteObject(checkYesBitmap);
 
 	if (adapter) delete adapter;
 	return ret;
@@ -199,7 +178,7 @@ LRESULT TableColumnsPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	if (aItem->iSubItem >= 2 && aItem->iSubItem <= 6) {
+	if (aItem->iSubItem == 0 || (aItem->iSubItem >= 2 && aItem->iSubItem <= 6)) {
 		return 0;
 	}
 

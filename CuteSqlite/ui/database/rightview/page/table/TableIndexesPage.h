@@ -42,6 +42,7 @@ public:
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChanged)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
@@ -64,10 +65,6 @@ private:
 	COLORREF buttonColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;
 
-	CImageList imageList;
-	HBITMAP checkNoBitmap = nullptr;
-	HBITMAP checkYesBitmap = nullptr;
-
 	// toolbar button
 	QImageButton newIndexButton;
 	QImageButton delIndexButton;
@@ -81,8 +78,6 @@ private:
 	TableColumnsPageAdapter * tblColumnsPageAdapter = nullptr;
 	TableIndexesPageAdapter * adapter = nullptr;
 	
-	void createImageList();
-
 	virtual void createOrShowUI();
 	virtual void createOrShowToolBarElems(CRect & clientRect);
 	virtual void createOrShowListView(QListViewCtrl & win, CRect & clientRect);
@@ -95,6 +90,7 @@ private:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
+	LRESULT OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);

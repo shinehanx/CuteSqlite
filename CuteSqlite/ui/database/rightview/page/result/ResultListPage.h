@@ -76,9 +76,6 @@ protected:
 	COLORREF buttonColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;
 
-	CImageList imageList;
-	HBITMAP checkNoBitmap = nullptr;
-	HBITMAP checkYesBitmap = nullptr;
 
 	// toolbar button
 	QImageButton exportButton;
@@ -110,8 +107,6 @@ protected:
 	CRect getLeftListRect(CRect & clientRect);
 	CRect getRightFormRect(CRect & clientRect);
 	CRect getBottomStatusRect(CRect & clientRect);
-
-	void createImageList();
 
 	virtual void createOrShowToolBarElems(CRect & clientRect);
 	virtual void doCreateOrShowToolBarFirstPaneElems(CRect &rect, CRect & clientRect);

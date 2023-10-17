@@ -65,8 +65,6 @@ private:
 	HFONT textFont = nullptr;
 
 	CImageList imageList;
-	HBITMAP checkNoBitmap = nullptr;
-	HBITMAP checkYesBitmap = nullptr;
 
 	// toolbar button
 	QImageButton newColumnButton;
@@ -80,8 +78,6 @@ private:
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	TableColumnsPageAdapter * adapter = nullptr;
 	
-	void createImageList();
-
 	virtual void createOrShowUI();
 	virtual void createOrShowToolBarElems(CRect & clientRect);
 	virtual void createOrShowListView(QListViewCtrl & win, CRect & clientRect);
