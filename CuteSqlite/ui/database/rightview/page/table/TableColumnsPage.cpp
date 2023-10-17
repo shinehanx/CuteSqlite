@@ -127,10 +127,12 @@ void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
+		// Specify LVS_OWNERDATA style will be enabled virtual data list
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA;
-		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
+		DWORD dwExStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_BORDERSELECT ;
+		win.Create(m_hWnd, rect,NULL,dwStyle , 
 			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
+		win.SetExtendedListViewStyle(dwExStyle);
 		win.SetImageList(imageList, LVSIL_SMALL);
 		CHeaderCtrl header = win.GetHeader();
 		header.SetImageList(imageList);

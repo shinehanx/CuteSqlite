@@ -48,7 +48,7 @@ class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
-	DECLARE_WND_SUPERCLASS(_T("WTL_SortListViewCtrl"), GetWndClassName())
+	DECLARE_WND_SUPERCLASS(_T("WTL_CheckListViewCtrl"), GetWndClassName())
  
 	BEGIN_MSG_MAP_EX(QListViewCtrl)
 		MSG_WM_DESTROY(OnDestroy)

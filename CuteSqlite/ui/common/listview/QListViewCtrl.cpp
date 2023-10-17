@@ -383,11 +383,12 @@ void QListViewCtrl::changeCheckBoxesRect()
 		}
 		
 		if (ptr && ptr->IsWindow()) {
-			int x = subItemRect.left + (subItemRect.Width() - 100) / 2,
+			int x = subItemRect.left + (subItemRect.Width() - 20) / 2,
 				y = subItemRect.top + (subItemRect.Height() - 20) / 2,
-				w = 100, h = 20;
+				w = 20, h = 20;
 			CRect rect(x, y, x + w, y + h);
 			ptr->MoveWindow(rect);
+			ptr->BringWindowToTop();
 		}
 	}
 }
@@ -481,9 +482,9 @@ void QListViewCtrl::createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, i
 	CButton * checkboxPtr = nullptr;
 	std::pair<int, int> pair(iItem, iSubItem);
 	auto iter = subItemCheckBoxMap.find(pair);
-	int x = subItemRect.left + (subItemRect.Width() - 100) / 2,
+	int x = subItemRect.left + (subItemRect.Width() - 20) / 2,
 		y = subItemRect.top + (subItemRect.Height() - 20) / 2,
-		w = 100, h = 20;
+		w = 20, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	if (iter != subItemCheckBoxMap.end()) {
 		checkboxPtr = iter->second;
@@ -493,8 +494,8 @@ void QListViewCtrl::createOrShowSubItemCheckBox(CRect &subItemRect, int iItem, i
 	checkboxPtr = new CButton();
 	UINT nID = Config::QLISTVIEWCTRL_CHECKBOX_ID_START + static_cast<int>(subItemCheckBoxMap.size());	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  |WS_TABSTOP | WS_CLIPSIBLINGS | BS_CHECKBOX ;
-	//checkboxPtr->Create(m_hWnd, rect, L"", dwStyle , 0, nID);
-	checkboxPtr->Create(m_hWnd, rect, std::to_wstring(iItem).c_str(), dwStyle , 0, nID);
+	checkboxPtr->Create(m_hWnd, rect, L"", dwStyle , 0, nID);
+	//checkboxPtr->Create(m_hWnd, rect, std::to_wstring(iItem).c_str(), dwStyle , 0, nID);
 	subItemCheckBoxMap[pair] = checkboxPtr;
 	changeCheckBoxesRect();
 }
@@ -573,6 +574,7 @@ LRESULT QListViewCtrl::OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 {
 	changeSubItemText();
 	resetChildElemsRect();
+
 	bHandled = false; // The message return to parent class 	
 	return 1;
 }
@@ -1019,8 +1021,7 @@ void QListViewCtrl::OnSize(UINT nType, CSize size)
 	if (!comboFont) comboFont = FTB(L"list-combobox-size", true);
 
 	changeSubItemText();
-	//changeComboBoxesRect();
-	//changeCheckBoxesRect();
+	resetChildElemsRect();
 }
 
 LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)

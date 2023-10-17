@@ -250,7 +250,7 @@ void ExportResultDialog::createOrShowSelectFieldsElems(CRect & clientRect)
 {
 	int x = 450, y = 120, w = 180, h = 150;
 	CRect rect(x, y, x + w, y + h);
-	createOrShowFormListBox(selectFieldsListBox, Config::EXPORT_SELECT_FIELDS_LISTBOX_ID, rect, clientRect);
+	createOrShowFormListBox(selectFieldsListBox, Config::EXPORT_SELECT_FIELDS_LISTBOX_ID, rect, clientRect, LBS_EXTENDEDSEL);
 
 	y += h + 10, w = 85, h = 30;
 	rect = { x, y, x + w, y + h };

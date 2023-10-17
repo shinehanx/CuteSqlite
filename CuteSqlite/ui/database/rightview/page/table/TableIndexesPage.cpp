@@ -169,6 +169,25 @@ void TableIndexesPage::paintItem(CDC & dc, CRect & paintRect)
 }
 
 
+LRESULT TableIndexesPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	LPNMLISTVIEW nvListViewPtr = reinterpret_cast<LPNMLISTVIEW>(pnmh);
+	if (nvListViewPtr->uOldState == 0 && nvListViewPtr->uNewState == 0) 
+		return 0;         // No change 
+	//   Old   check   box   state 
+	BOOL bPrevState = (BOOL)(((nvListViewPtr->uOldState & LVIS_STATEIMAGEMASK) >> 12) - 1);     
+	if (bPrevState < 0)         //   On   startup   there 's   no   previous   state   
+		bPrevState = 0;   //   so   assign   as   false   (unchecked) 
+	//   New   check   box   state 
+	BOOL bChecked = (BOOL)(((nvListViewPtr->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1);       
+	if (bChecked < 0)   //   On   non-checkbox   notifications   assume   false 
+		bChecked = 0;   
+	if (bPrevState == bChecked)   //   No   change   in   check   box 
+		return 0; 
+	
+	return 0;
+}
+
 LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
