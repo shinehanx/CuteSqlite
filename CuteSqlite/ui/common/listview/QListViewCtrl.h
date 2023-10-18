@@ -23,7 +23,7 @@
 #include <map>
 #include <atlwin.h>
 #include <atlctrlx.h>
-#include <atlcrack.h>
+#include <atlcrack.h> 
 #include <atltypes.h>
 #include "common/Config.h"
 #include "core/entity/Entity.h"
