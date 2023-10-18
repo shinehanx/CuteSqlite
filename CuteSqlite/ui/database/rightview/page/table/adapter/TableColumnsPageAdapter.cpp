@@ -152,15 +152,22 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		}
 		return 0;
 	} else  if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
-		ColumnInfo columnInfo = runtimeDatas.at(pLvdi->item.iItem);
-		int nSelItem = getSelDataType(columnInfo.type);
-		dataView->createOrShowComboBoxBtn(iItem, pLvdi->item.iSubItem, dataTypeList, nSelItem);
+		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).type;
+		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		return 0;
 	} else if (pLvdi->item.iSubItem >= 3 && pLvdi->item.iSubItem <= 6 && (pLvdi->item.mask & LVIF_TEXT)) {
-		if (pLvdi->item.iItem == 6 && pLvdi->item.iSubItem == 3) {
-			Q_DEBUG(L"item.iItem:{}, item.iSubItem:{}", pLvdi->item.iItem, pLvdi->item.iSubItem);
+		uint8_t val = 0;
+		if (pLvdi->item.iSubItem == 3) {
+			val = runtimeDatas.at(pLvdi->item.iItem).notnull;
+		} else if (pLvdi->item.iSubItem == 4) {
+			val = runtimeDatas.at(pLvdi->item.iItem).pk;
+		} else if (pLvdi->item.iSubItem == 5) {
+			val = runtimeDatas.at(pLvdi->item.iItem).ai;
+		} else if (pLvdi->item.iSubItem == 6) {
+			val = runtimeDatas.at(pLvdi->item.iItem).un;
 		}
-		dataView->createOrShowCheckBox(iItem, pLvdi->item.iSubItem);
+		dataView->createCheckBox(iItem, pLvdi->item.iSubItem, val);
 		return 0;
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).name;	
@@ -178,11 +185,25 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 
 void TableColumnsPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText)
 {
-	ATLASSERT(iItem >= 0 && iSubItem > 0 && (iSubItem < 2 || iSubItem > 6));
+	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
 	if (iSubItem == 1) { // column name
 		runtimeDatas[iItem].name = newText;
-	} else if (iSubItem == 7) { // default value
+	} else if (iSubItem == 2) { // column name
+		runtimeDatas[iItem].type = newText;
+	} else if (iSubItem == 3) { // not null
+		runtimeDatas[iItem].notnull = newText.empty() ? 0 
+			: static_cast<uint8_t>(std::stoi(newText));
+	} else if (iSubItem == 4) { // pk : primary key
+		runtimeDatas[iItem].pk = newText.empty() ? 0 
+			: static_cast<uint8_t>(std::stoi(newText));
+	} else if (iSubItem == 5) { // ai : auto increment
+		runtimeDatas[iItem].ai = newText.empty() ? 0 
+			: static_cast<uint8_t>(std::stoi(newText));
+	} else if (iSubItem == 6) { // un : unique
+		runtimeDatas[iItem].un = newText.empty() ? 0 
+			: static_cast<uint8_t>(std::stoi(newText));
+	}  else if (iSubItem == 7) { // default value
 		runtimeDatas[iItem].defVal = newText;
 	} else if (iSubItem == 8) { // check 
 		runtimeDatas[iItem].checks = newText;
@@ -246,8 +267,7 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 		// 2.2 delete row from dataView
 		dataView->RemoveItem(nSelItem);
 	}
-	// reset the rects of the ComboBoxes and CheckBoxes 
-	dataView->resetChildElemsRect();
+	
 	return true;
 }
 
@@ -294,8 +314,6 @@ bool TableColumnsPageAdapter::moveUpSelColumns()
 			}
 		}		
 	}
-	// reset the rects of the ComboBoxes and CheckBoxes 
-	dataView->resetChildElemsRect();
 
 	return true;
 }
@@ -344,10 +362,30 @@ bool TableColumnsPageAdapter::moveDownSelColumns()
 			}
 		}		
 	}
-	// reset the rects of the ComboBoxes and CheckBoxes 
-	dataView->resetChildElemsRect();
 
 	return true;
+}
+
+
+void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
+{
+	if (clickItem->iSubItem == 0 || (clickItem->iSubItem >= 2 && clickItem->iSubItem <= 6)) {
+		if (clickItem->iSubItem == 2) {
+			dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, dataTypeList, true);
+		} else if (clickItem->iSubItem >= 3 && clickItem->iSubItem <= 6) {
+			bool isChecked = dataView->getCheckBoxIsChecked(clickItem->iItem, clickItem->iSubItem);
+			dataView->setCheckBoxIsChecked(clickItem->iItem, clickItem->iSubItem, !isChecked);
+			std::wstring origVal = std::to_wstring((int)isChecked);
+			std::wstring newVal = std::to_wstring((int)!isChecked);
+			changeRuntimeDatasItem(clickItem->iItem, clickItem->iSubItem, origVal, newVal);
+			invalidateSubItem(clickItem->iItem, clickItem->iSubItem);
+		}
+		
+		return ;
+	}
+
+	// show the editor
+	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 
 /**

@@ -83,7 +83,7 @@ void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA ;
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
@@ -174,6 +174,30 @@ LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	return 0;
 }
 
+
+LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	NMITEMACTIVATE * clickItem = (NMITEMACTIVATE *)pnmh; 
+	if (clickItem->iSubItem == 2) { // button
+		int iItem = clickItem->iItem;
+		int iSubItem = clickItem->iSubItem;
+	
+		CRect subItemRect, listWinRect;
+		listView.GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
+		listView.GetWindowRect(listWinRect);
+		int x = listWinRect.left + subItemRect.left, y = listWinRect.top + subItemRect.top,
+			w = 20, h = subItemRect.Height() - 2;
+		CRect rect(x, y, x + w, y + h);
+		subItemRect.left = listWinRect.left + subItemRect.left;
+		TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
+
+		columnsDialog.DoModal(m_hWnd);
+		return 0;
+	}
+	adapter->clickListViewSubItem(clickItem);
+	return 0;
+}
+
 HBRUSH TableIndexesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
@@ -234,29 +258,6 @@ LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 	return 0;
 }
 
-/**
- * Will send Config::MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID message to 
- * parent window when clicking the button in the QListView, wParam=iItem, lParam=iSubItem
- * 
- * @param uMsg
- * @param wParam - QListView iItem
- * @param lParam - QListView iSubItem
- * @param bHandled
- * @return 
- */
-LRESULT TableIndexesPage::OnClickListViewSelColumnsButton(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	int iItem = static_cast<int>(wParam);
-	int iSubItem = static_cast<int>(lParam);
-	CButton  * ptr = listView.getButtonPtr(iItem, iSubItem);
-	CRect btnRect;
-	ptr->GetWindowRect(btnRect);
-
-	TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, btnRect, iItem, iSubItem);
-
-	columnsDialog.DoModal(m_hWnd);
-	return 0;
-}
 
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {

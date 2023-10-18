@@ -38,11 +38,14 @@ struct CompareKeyByPair {
 			return true;
 		}
 		return false;
-	}  
+	} 
+
 };
-// template params : std::pair<int - iItem, int - iSubItem>, CComboBox *  - combobox pointer
-typedef std::map<std::pair<int, int>, CComboBox *, CompareKeyByPair> SubItemComboBoxMap;
-typedef std::map<std::pair<int, int>, CButton *, CompareKeyByPair> SubItemCheckBoxMap, SubItemButtonMap;
+// template params : std::pair<int - iItem, int - iSubItem>,std::wstring  - combobox selected string
+typedef std::map<std::pair<int, int>, std::wstring, CompareKeyByPair> SubItemComboBoxMap, SubItemButtonMap;
+
+// template params : std::pair<int - iItem, int - iSubItem>, int  - Checkbox checked
+typedef std::map<std::pair<int, int>, int, CompareKeyByPair> SubItemCheckBoxMap;
 
 class QListViewCtrl : public CWindowImpl<QListViewCtrl, CListViewCtrl>,
 	public COwnerDraw<QListViewCtrl>
@@ -59,8 +62,7 @@ public:
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
-		COMMAND_RANGE_CODE_HANDLER_EX(Config::QLISTVIEWCTRL_CHECKBOX_ID_START, Config::QLISTVIEWCTRL_CHECKBOX_ID_END, BN_CLICKED, OnClickCheckBox)
-		COMMAND_RANGE_CODE_HANDLER_EX(Config::QLISTVIEWCTRL_BUTTON_ID_START, Config::QLISTVIEWCTRL_BUTTON_ID_END, BN_CLICKED, OnClickButton)
+		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID, CBN_KILLFOCUS, OnSubItemComboBoxKillFocus)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -73,17 +75,17 @@ public:
 	void createOrShowEditor(int iItem, int iSubItem);
 
 	// combobox
-	void createOrShowComboBoxBtn(std::pair<int, int> & subItemPosition, const std::vector<std::wstring> &strList, int nSelItem = 0);
-	void createOrShowComboBoxBtn(int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem = 0);
-	CButton * getComboBoxBtnPtr(int iItem, int iSubItem);
+	void createComboBox(int iItem, int iSubItem, const std::wstring & val = std::wstring(L""));
+	void showComboBox(int iItem, int iSubItem, const std::vector<std::wstring> & strList, bool allowEdit = false);
+	std::wstring getComboBoxString(int iItem, int iSubItem);
 	
 	//CheckBox
-	void createOrShowCheckBox(int iItem, int iSubItem);
-	CButton * getCheckBoxPtr(int iItem, int iSubItem);
+	void createCheckBox(int iItem, int iSubItem, int isChecked);
+	void setCheckBoxIsChecked(int iItem, int iSubItem, int isChecked);
+	int getCheckBoxIsChecked(int iItem, int iSubItem);
 
 	//button
-	void createOrShowButton(int iItem, int iSubItem, const std::wstring & text);
-	CButton * getButtonPtr(int iItem, int iSubItem);
+	void createButton(int iItem, int iSubItem, const std::wstring & text);
 	
 
 	SubItemValues getChangedVals();
@@ -107,8 +109,6 @@ public:
 	void moveUpButtons(int iItem);
 	void moveDownButtons(int iItem);
 
-	void resetChildElemsRect();
-
 	void setItemHeight(int height);
 public:
 	// owner draw, must set the ListView style with LVS_OWNERDRAWFIXED
@@ -119,10 +119,20 @@ public:
 
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
+	COLORREF btnBorderColor = RGB(160, 160, 160);
+	COLORREF chkBorderColor = RGB(0, 0, 0);
+	COLORREF chkColor = RGB(0, 0, 0);
+	COLORREF btnDownColor = RGB(0, 0, 0);
+	COLORREF btnColor = RGB(238, 238, 238);
 	HBRUSH bkgBrush = nullptr;
+	HBRUSH btnBrush = nullptr;	
+	HBRUSH btnDownBrush = nullptr;
+	HBRUSH chkBrush = nullptr;
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
 	HFONT normalFont = nullptr;
+	CPen btnBorderPen;
+	CPen chkBorderPen;
 
 	// the row item height
 	int itemHeight = 21;
@@ -130,44 +140,47 @@ private:
 	// horizontal offset and size
 	int hOffset = 0;
 	int hSize = 0;
+	int leftMargin = 2;
 
 	CEdit subItemEdit;
+	CComboBox subItemComboBox;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
 	CRect subItemRect;
 	bool isVisibleEdit = false;
+	bool isVisibleComboBox = false;
 
 	SubItemValues changeVals;
-	SubItemButtonMap subItemComboBoxBtnMap;
+	SubItemComboBoxMap subItemComboBoxMap;
 	SubItemCheckBoxMap subItemCheckBoxMap;
 	SubItemButtonMap subItemButtonMap;
+
+	CBitmap checkYesBitmap;
+	CBitmap checkNoBitmap;
+	CImageList imageList;
 	
 	void changeSubItemText();
-	void changeComboBoxBtnsRect();
-	void changeCheckBoxesRect();
-	void changeButtonsRect();
 
 	void removeComboBoxes(int iItem);
 	void removeCheckBoxes(int iItem);
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
-	void createOrShowSubItemComboBoxBtn(CRect & rect, int iItem, int iSubItem, const std::vector<std::wstring> &strList, int nSelItem);
-	void createOrShowSubItemCheckBox(CRect & rect, int iItem, int iSubItem);
-	void createOrShowSubItemButton(CRect & rect, int iItem, int iSubItem, const std::wstring &text);
-	void loadSubItemComboBoxBtn(CComboBox * comboBoxPtr, const std::vector<std::wstring> &strList, int nSelItem);
 	void pressedTabToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnSubItemComboBoxKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
 		
 	void OnDestroy();
 	void OnSize(UINT nType, CSize size);
 
 	void createImageList();
+	void destroyComboBox();
+	void destroyEditor();
+	void destroySubItemElems();
 
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
+
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
@@ -176,7 +189,12 @@ private:
 
 	// draw every subItems, must set the ListView style with LVS_OWNERDRAWFIXED
 	void drawSubItems(CDC & memDc, LPDRAWITEMSTRUCT lpDrawItemStruct);
-	CBitmap checkYesBitmap;
-	CBitmap checkNoBitmap;
-	CImageList imageList;
+	void drawFirstSubItem(CDC &mdc, int iItem, CRect &rcSubItem, CRect &rctext);
+	void drawTextInSubItem(CDC & mdc, int iItem, int iSubItem, CRect rcText, std::wstring & text = std::wstring());
+	void drawComboBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemStruct, SubItemComboBoxMap::iterator & comboBoxIter, CRect &rcText);
+	void drawCheckBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemStruct, SubItemCheckBoxMap::iterator & checkBoxIter, CRect & rcText);
+	void drawButtonInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemStruct, SubItemButtonMap::iterator & buttonIter, CRect & rcText);
+	
+	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> & strList, bool allowEdit = false);	
+	void createOrShowSubItemComboBox(CComboBox & win, CRect & rect, bool allowEdit = false);
 };

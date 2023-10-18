@@ -187,6 +187,14 @@ LRESULT TableColumnsPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	return 0;
 }
 
+
+LRESULT TableColumnsPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
+	adapter->clickListViewSubItem(aItem);
+	return 0;
+}
+
 HBRUSH TableColumnsPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
@@ -237,6 +245,16 @@ LRESULT TableColumnsPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 	return 0;
 }
 
+/**
+ * This message handler function only provide to ComboBox text changed and editor text changed in the ListView,
+ * not support checkBox
+ * 
+ * @param uMsg
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
 LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	SubItemValues changedVals = listView.getChangedVals();

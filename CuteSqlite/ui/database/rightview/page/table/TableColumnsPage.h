@@ -41,6 +41,7 @@ public:
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, NM_CLICK, OnClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
@@ -91,6 +92,7 @@ private:
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);

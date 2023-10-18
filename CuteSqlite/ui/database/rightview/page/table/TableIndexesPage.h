@@ -42,12 +42,12 @@ public:
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, NM_CLICK, OnClickListView)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChanged)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
-		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID, OnClickListViewSelColumnsButton)
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_INDEX_BUTTON_ID, BN_CLICKED, OnClickNewIndexButton)
 		COMMAND_HANDLER_EX(Config::TABLE_DEL_INDEX_BUTTON_ID, BN_CLICKED, OnClickDelIndexButton)
 		CHAIN_MSG_MAP(QPage)
@@ -92,6 +92,7 @@ private:
 
 	LRESULT OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
@@ -102,7 +103,6 @@ private:
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnClickListViewSelColumnsButton(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

@@ -45,6 +45,7 @@ public:
 
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
+	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;

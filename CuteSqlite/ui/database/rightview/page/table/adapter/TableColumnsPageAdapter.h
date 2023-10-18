@@ -46,6 +46,9 @@ public:
 	bool moveUpSelColumns();
 	bool moveDownSelColumns();
 
+	// click the subitem
+	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
+
 	// Get all column names from dataview
 	std::vector<std::wstring> getAllColumnNames(const std::vector<std::wstring> & excludeNames = std::vector<std::wstring>()) const ;
 private:

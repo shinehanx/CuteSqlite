@@ -22,6 +22,7 @@
 #include <Strsafe.h>
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
+#include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
 
 const Columns TableIndexesPageAdapter::headerColumns = { S(L"index-name"), S(L"columns"), S(L"index-type"), L"SQL"};
 const std::vector<int> TableIndexesPageAdapter::columnSizes = { 150, 150, 150, 200 };
@@ -155,9 +156,9 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		
 		return 0;
 	} else  if (pLvdi->item.iSubItem == 3 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
-		IndexInfo indexInfo = runtimeDatas.at(pLvdi->item.iItem);
-		int nSelItem = getSelIndexType(indexInfo.type);
-		dataView->createOrShowComboBoxBtn(iItem, pLvdi->item.iSubItem, indexTypeList, nSelItem);
+		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).type;
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);		
 		return 0;
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).name;	
@@ -165,7 +166,7 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	} else if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT){ // default value
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).colums;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-		dataView->createOrShowButton(iItem, pLvdi->item.iSubItem, L"...");
+		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
 	} else if (pLvdi->item.iSubItem == 4 && pLvdi->item.mask & LVIF_TEXT){ // check 
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).sql;
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
@@ -254,8 +255,7 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 		// 2.2 delete row from dataView
 		dataView->RemoveItem(nSelItem);
 	}
-	// reset the rects of the ComboBoxes and CheckBoxes 
-	dataView->resetChildElemsRect();
+	
 	return true;
 }
 
@@ -284,5 +284,20 @@ void TableIndexesPageAdapter::changeColumnText(int iItem, int iSubItem, const st
 	std::wstring origText = getSubItemString(iItem, iSubItem);
 	changeRuntimeDatasItem(iItem, iSubItem, origText, text);
 	invalidateSubItem(iItem, iSubItem);
+}
+
+void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
+{
+	if (clickItem->iSubItem == 0) {
+		return ;
+	} else if (clickItem->iSubItem == 2) { // button
+		return ;
+	} else if (clickItem->iSubItem == 3) {
+		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, indexTypeList, false);
+		return ;	
+	}
+
+	// show the editor
+	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 

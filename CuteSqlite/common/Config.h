@@ -119,6 +119,9 @@ typedef enum {
 	//NEW TABLE 
 	NEW_TABLE_DATABASE_COMBOBOX_ID,
 	NEW_TABLE_SCHEMA_COMBOBOX_ID,
+
+	// QLIST VIEW COMBOBOX
+	QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID,
 } ComboBoxId;
 
 
@@ -209,6 +212,7 @@ typedef enum {
 	EXPORT_AS_SQL_STRUCTURE_AND_DATA_GROUPBOX_ID,
 	EXPORT_AS_SQL_INSERT_STATEMENT_GROUPBOX_ID,
 	EXPORT_AS_SQL_TBL_STATEMENT_GROUPBOX_ID,
+
 } GroupBoxId;
 
 typedef enum {
@@ -217,6 +221,7 @@ typedef enum {
 	//TABLE INDEX SEL COLUMNS
 	TABLE_INDEX_TO_BE_SELECTED_COLUMNS_LISTBOX_ID,
 	TABLE_INDEX_SELECTED_COLUMNS_LISTBOX_ID,
+
 } ListBoxId;
 
 typedef enum {
@@ -264,7 +269,6 @@ typedef enum {
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_NEW_TABLE_ID, // Will send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
-	MSG_QLISTVIEW_SUBITEM_BUTTON_CLICK_ID, // Will send this message to parent window when clicking the button in the QListView,   wParam=iItem, lParam=iSubItem
 }MessageId;
 
 typedef enum {
@@ -287,22 +291,4 @@ typedef enum {
 	FORMVIEW_EDIT_ID_START = WM_USER + 1200,
 	FORMVIEW_EDIT_ID_END = WM_USER + 1712,
 } EditIdRank;
-
-typedef enum {
-	//list combobox id rank
-	QLISTVIEWCTRL_COMBOBOX_BTN_ID_START = WM_USER + 1801,
-	QLISTVIEWCTRL_COMBOBOX_BTN_ID_END = WM_USER + 3800,
-} ListViweComboBoxIdRank;
-
-typedef enum {
-	//list checkbox id rank
-	QLISTVIEWCTRL_CHECKBOX_ID_START = WM_USER + 3801,
-	QLISTVIEWCTRL_CHECKBOX_ID_END = WM_USER + 8800,
-} ListViweCheckBoxIdRank;
-
-typedef enum {
-	//list button id rank
-	QLISTVIEWCTRL_BUTTON_ID_START = WM_USER + 8801,
-	QLISTVIEWCTRL_BUTTON_ID_END = WM_USER + 13800,
-} ListViweButtonIdRank;
 };
