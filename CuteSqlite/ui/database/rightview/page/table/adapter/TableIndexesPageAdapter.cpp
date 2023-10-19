@@ -301,3 +301,37 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 
+std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause()
+{
+	std::wostringstream ss;
+	int n = static_cast<int>(runtimeDatas.size());
+	wchar_t blk[5] = { 0 };
+	wmemset(blk, 0x20, 4); // 4 blank chars
+	for (int i = 0; i < n; i++) {
+		if (i > 0) {
+			ss << L',' << std::endl;
+		}
+		auto item = runtimeDatas.at(i);
+		ss << blk;
+		if (!item.name.empty()) {
+			ss << L"CONSTRAINT \"" << item.name << L"\"" << blk[0];
+		}
+		
+		if (!item.type.empty()) {
+			ss <<  item.type << L"(";
+		}
+		
+		if (!item.colums.empty()) {
+			ss  <<  item.colums ;
+		}
+
+		if (item.ai) {
+			ss <<  L" AUTOINCREMENT" ;
+		}
+
+		if (!item.type.empty()) {
+			ss << L")";
+		}
+	}
+	return ss.str();
+}

@@ -44,6 +44,9 @@ public:
 	END_MSG_MAP()
 
 	void setup(uint64_t userDbId, const std::wstring & schema = L"");
+
+	TableColumnsPage & getTableColumnsPage();
+	TableIndexesPage & getTableIndexesPage();
 private:
 	bool isNeedReload = true;
 

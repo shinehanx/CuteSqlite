@@ -46,6 +46,7 @@ public:
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
+	std::wstring genderateIndexesSqlClause();
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;
@@ -66,5 +67,4 @@ private:
 	bool getIsChecked(int iItem);
 	int getSelIndexType(const std::wstring & dataType);
 
-	
 };

@@ -48,6 +48,11 @@ std::wstring QHelpEdit::getText()
 	return editor.getText();
 }
 
+void QHelpEdit::setText(const std::wstring & text)
+{
+	editor.setText(text);
+}
+
 void QHelpEdit::focus()
 {
 	editor.SetFocus();

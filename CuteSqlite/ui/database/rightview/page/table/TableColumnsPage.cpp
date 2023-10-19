@@ -41,6 +41,7 @@ void TableColumnsPage::setup(uint64_t userDbId, const std::wstring & schema)
 
 TableColumnsPageAdapter * TableColumnsPage::getAdapter()
 {
+	ATLASSERT(adapter != nullptr);
 	return adapter;
 }
 

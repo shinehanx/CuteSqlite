@@ -85,6 +85,7 @@ typedef struct {
 	std::wstring name;
 	std::wstring type;
 	std::wstring colums;
+	uint8_t ai = 0;
 	std::wstring sql;
 } IndexInfo;
 typedef std::vector<IndexInfo> IndexInfoList;

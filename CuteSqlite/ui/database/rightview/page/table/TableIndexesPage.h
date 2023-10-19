@@ -56,6 +56,7 @@ public:
 	void setup(uint64_t userDbId,  const std::wstring & schema = L"", TableColumnsPageAdapter * tblColumnsPageAdapter = nullptr);
 	TableColumnsPageAdapter * getTblColumnsPageAdapter() const { return tblColumnsPageAdapter; }
 	void setTblColumnsPageAdapter(TableColumnsPageAdapter * val) { tblColumnsPageAdapter = val; }
+	TableIndexesPageAdapter * getAdapter();
 private:
 	bool isNeedReload = true;
 	uint64_t userDbId = 0;

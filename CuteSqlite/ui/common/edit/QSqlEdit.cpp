@@ -277,6 +277,14 @@ void QSqlEdit::replaceSelText(std::wstring & text)
 {
 	char * utf8Str = StringUtil::unicodeToUtf8(text);
 	long charWidth = static_cast<long>(SendMessage(SCI_REPLACESEL, NULL, (LPARAM)utf8Str));
+	::free(utf8Str);
+}
+
+void QSqlEdit::setText(const std::wstring & text)
+{
+	char * utf8Str = StringUtil::unicodeToUtf8(text);
+	long charWidth = static_cast<long>(SendMessage(SCI_SETTEXT, NULL, (LPARAM)utf8Str));
+	::free(utf8Str);
 }
 
 long QSqlEdit::lineFromPosition(long pos)

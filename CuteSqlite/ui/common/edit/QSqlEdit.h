@@ -53,7 +53,7 @@ public:
 
 	// replace selected text to editor
 	void replaceSelText(std::wstring & text);
-	
+	void setText(const std::wstring & text);
 protected:
 
 	COLORREF bkgColor = RGB(255, 255, 255);

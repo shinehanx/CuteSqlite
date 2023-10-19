@@ -40,6 +40,13 @@ void TableIndexesPage::setup(uint64_t userDbId, const std::wstring & schema /*= 
 	this->tblColumnsPageAdapter = tblColumnsPageAdapter;
 }
 
+
+TableIndexesPageAdapter * TableIndexesPage::getAdapter()
+{
+	ATLASSERT(adapter != nullptr);
+	return adapter;
+}
+
 void TableIndexesPage::createOrShowUI()
 {
 	QPage::createOrShowUI();

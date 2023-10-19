@@ -43,6 +43,20 @@ void TableTabView::setup(uint64_t userDbId, const std::wstring & schema)
 	this->schema = schema;
 }
 
+
+TableColumnsPage & TableTabView::getTableColumnsPage()
+{
+	ATLASSERT(tableColumnsPage.IsWindow());
+	return tableColumnsPage;
+}
+
+
+TableIndexesPage & TableTabView::getTableIndexesPage()
+{
+	ATLASSERT(tableIndexesPage.IsWindow());
+	return tableIndexesPage;
+}
+
 void TableTabView::createImageList()
 {
 	if (!imageList.IsNull()) {

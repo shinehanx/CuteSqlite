@@ -19,11 +19,16 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "TableStructurePage.h"
+#include <sstream>
 #include <Scintilla/Scintilla.h>
 #include <Scintilla/SciLexer.h>
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
+#include "ui/database/rightview/page/table/TableColumnsPage.h"
+#include "ui/database/rightview/page/table/TableIndexesPage.h"
+#include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
+#include "ui/database/rightview/page/table/adapter/TableIndexesPageAdapter.h"
 
 /**
  * Call the PreTranslateMessage(pMsg) function of sub element(s) class .
@@ -42,6 +47,13 @@ BOOL TableStructurePage::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+
+CRect TableStructurePage::getEditorRect(CRect & clientRect)
+{
+	int x = 20, y = clientRect.bottom - 70 - 200, w = clientRect.Width() - 40, h = 200;
+	return { x, y, x + w, y + h };
 }
 
 void TableStructurePage::createOrShowUI()
@@ -99,7 +111,8 @@ void TableStructurePage::createOrShowSchemaElems(CRect & clientRect)
 
 void TableStructurePage::createOrShowTableTabView(TableTabView & win, CRect & clientRect)
 {
-	int x = 20, y = 20 + 20 + 15 + 20 + 20, w = clientRect.Width() - 2 - 250 - 40, h = clientRect.Height() - y - 90;
+	CRect editorRect = getEditorRect(clientRect);
+	int x = 20, y = 20 + 20 + 15 + 20 + 20, w = clientRect.Width() - 40, h = clientRect.Height() - y - 70 - editorRect.Height() - 5;
 	CRect rect(x, y, x + w, y + h);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
@@ -121,13 +134,8 @@ void TableStructurePage::createOrShowTableTabView(TableTabView & win, CRect & cl
 
 void TableStructurePage::createOrShowSqlPreviewElems(CRect & clientRect)
 {
-	int x = clientRect.right - 20 - 250, y = 20 + 20 + 15 + 20 + 20,
-		w = 250, h = 25;
-	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowLabel(m_hWnd, sqlPreviewLabel, S(L"sql-preview"), rect, clientRect, SS_CENTERIMAGE);
-
-	rect.OffsetRect(0, h + 1);
-	rect.bottom = clientRect.bottom - 90;
+	CRect rect = getEditorRect(clientRect);
+	rect.DeflateRect(2, 2, 2, 2);
 	createOrShowSqlEditor(sqlPreviewEdit, Config::TABLE_SQL_PREVIEW_EDIT_ID, rect, clientRect);
 }
 
@@ -194,6 +202,7 @@ int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	textFont = FT(L"form-text-size");
 	comboFont = FTB(L"combobox-size", true);
 	btnFont = GDI_PLUS_FT(L"setting-button-size");
+	editorBkgBrush = ::CreateSolidBrush(editorBkgColor); 
 
 	saveButton.SetFontColors(RGB(0,0,0), RGB(0x12,0x96,0xdb), RGB(153,153,153));
 	saveButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
@@ -210,6 +219,7 @@ int TableStructurePage::OnDestroy()
 	if (textFont) ::DeleteObject(textFont);
 	if (comboFont) ::DeleteObject(comboFont);
 	if (btnFont) ::DeleteObject(btnFont);
+	if (editorBkgBrush) ::DeleteObject(editorBkgBrush);
 
 	if (tblNameLabel.IsWindow()) tblNameLabel.DestroyWindow();
 	if (tblNameEdit.IsWindow()) tblNameEdit.DestroyWindow();
@@ -220,6 +230,7 @@ int TableStructurePage::OnDestroy()
 	if (tableTabView.IsWindow()) tableTabView.DestroyWindow();
 	if (saveButton.IsWindow()) saveButton.DestroyWindow();
 	if (revertButton.IsWindow()) revertButton.DestroyWindow();
+	if (sqlPreviewEdit.IsWindow()) sqlPreviewEdit.DestroyWindow();
 
 	return ret;
 }
@@ -228,20 +239,26 @@ int TableStructurePage::OnDestroy()
 void TableStructurePage::paintItem(CDC & dc, CRect & paintRect)
 {
 	dc.FillRect(paintRect, bkgBrush);
+
+	CRect editorRect = getEditorRect(paintRect);
+	dc.FillRect(editorRect, editorBkgBrush);
+}
+
+
+void TableStructurePage::OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (!sqlPreviewEdit.IsWindow()) {
+		return;
+	}
+	previewRuntimeSql();
+
 }
 
 HBRUSH TableStructurePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
-	if (hwnd == sqlPreviewLabel.m_hWnd) {
-		::SetBkColor(hdc, topbarColor);
-		::SelectObject(hdc, textFont); 
-		return topbarBrush;
-	} else {
-		::SetBkColor(hdc, bkgColor);
-		::SelectObject(hdc, textFont);
-		return bkgBrush;
-	}
-	
+	::SetBkColor(hdc, bkgColor);
+	::SelectObject(hdc, textFont);
+	return bkgBrush;
 }
 
 HBRUSH TableStructurePage::OnCtlColorEdit(HDC hdc, HWND hwnd)
@@ -262,11 +279,59 @@ HBRUSH TableStructurePage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 void TableStructurePage::createOrShowSqlEditor(QHelpEdit & win, UINT id, CRect & rect, CRect & clientRect, DWORD exStyle)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.setup(S(L"sql-statement-for-table"), std::wstring(L""));
+		win.setup(S(L"sql-preview"), std::wstring(L""));
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::TABLE_SQL_PREVIEW_EDIT_ID);		
 		return;
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
 		win.ShowWindow(SW_SHOW);
 	}
+}
+
+void TableStructurePage::previewRuntimeSql()
+{
+	CString str;
+	tblNameEdit.GetWindowText(str);
+	std::wstring tblName(str.GetString());
+	schemaComboBox.GetWindowText(str);
+	std::wstring schema(str.GetString());
+
+	// Generate "CREATE TABLE schema.table_name"
+	std::wostringstream runtimeSql;
+	runtimeSql << L"CREATE TABLE \"";
+	if (schema.empty() || schema == L"main") {
+		runtimeSql << tblName;
+	} else {
+		runtimeSql << schema << L"\".\"" << tblName;
+	}
+	runtimeSql << "\" (" << std::endl;
+
+	std::wstring columnsSqlClause = generateColumnsClause();
+	if (!columnsSqlClause.empty()) {
+		runtimeSql << columnsSqlClause;
+	}
+	std::wstring indexesSqlClause = generateIndexesClause();
+	if (!indexesSqlClause.empty()) {
+		runtimeSql << L',' << std::endl << indexesSqlClause;
+	}
+	runtimeSql << std::endl << L"); " << std::endl;
+
+	sqlPreviewEdit.setText(runtimeSql.str());
+}
+
+/**
+ * Generate the columns clause for create table,
+ * 
+ * @return 
+ */
+std::wstring TableStructurePage::generateColumnsClause()
+{
+	ATLASSERT(tableTabView.IsWindow());
+	return tableTabView.getTableColumnsPage().getAdapter()->genderateColumnsSqlClause();
+}
+
+std::wstring TableStructurePage::generateIndexesClause()
+{
+	ATLASSERT(tableTabView.IsWindow());
+	return tableTabView.getTableIndexesPage().getAdapter()->genderateIndexesSqlClause();
 }

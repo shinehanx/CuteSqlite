@@ -53,6 +53,8 @@ public:
 	std::vector<std::wstring> getAllColumnNames(const std::vector<std::wstring> & excludeNames = std::vector<std::wstring>()) const ;
 
 	ColumnInfo getRuntimeData(int nItem) const;
+
+	std::wstring genderateColumnsSqlClause() const;
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;

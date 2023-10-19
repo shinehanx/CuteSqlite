@@ -34,6 +34,7 @@ public:
 	BEGIN_MSG_MAP_EX(TableStructurePage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
+		COMMAND_HANDLER_EX(Config::TABLE_TBL_NAME_EDIT_ID, EN_CHANGE, OnChangeTblNameEdit)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -41,9 +42,11 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
+	COLORREF editorBkgColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
 	Gdiplus::Font * btnFont = nullptr;
+	HBRUSH editorBkgBrush = nullptr;
 
 	CStatic tblNameLabel;
 	CEdit tblNameEdit;
@@ -59,12 +62,13 @@ private:
 	QImageButton saveButton;
 	QImageButton revertButton;
 
-	CStatic sqlPreviewLabel;
 	QHelpEdit sqlPreviewEdit;
 
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	
+	CRect getEditorRect(CRect & clientRect);
+
 	virtual void createOrShowUI();
 	void createOrShowTblNameElems(CRect & clientRect);
 	void createOrShowDatabaseElems(CRect & clientRect);
@@ -81,9 +85,13 @@ private:
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
+	void OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwnd);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 	
+	void previewRuntimeSql();
+	std::wstring generateColumnsClause();
+	std::wstring generateIndexesClause();
 };

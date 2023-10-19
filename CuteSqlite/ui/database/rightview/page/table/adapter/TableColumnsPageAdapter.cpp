@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "TableColumnsPageAdapter.h"
+#include <sstream>
 #include <Strsafe.h>
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
@@ -130,6 +131,35 @@ ColumnInfo TableColumnsPageAdapter::getRuntimeData(int nItem) const
 {
 	ATLASSERT(nItem < static_cast<int>(runtimeDatas.size()));
 	return runtimeDatas.at(nItem);
+}
+
+
+std::wstring TableColumnsPageAdapter::genderateColumnsSqlClause() const
+{
+	std::wostringstream ss;
+	int n = static_cast<int>(runtimeDatas.size());
+	wchar_t blk[5] = { 0 };
+	wmemset(blk, 0x20, 4); // 4 blank chars
+	for (int i = 0; i < n; i++) {
+		if (i > 0) {
+			ss << L',' << std::endl;
+		}
+		auto item = runtimeDatas.at(i);
+		ss << blk << L"\"" << item.name << L"\"" << blk[0] << item.type ;
+		if (item.notnull) {
+			ss <<  blk[0] << L"NOT NULL";
+		}
+		if (!item.defVal.empty()) {
+			ss << blk[0] << L"DEFAULT" << blk[0] << L'(' << item.defVal << L')';
+		}
+		if (item.un) {
+			ss << blk[0] << L"UNIQUE";
+		}
+		if (!item.checks.empty()) {
+			ss << blk[0] << L"CHECK(" << item.checks << L')';
+		}
+	}
+	return ss.str();
 }
 
 /**
