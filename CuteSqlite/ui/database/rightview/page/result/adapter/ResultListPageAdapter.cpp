@@ -179,7 +179,7 @@ void ResultListPageAdapter::loadRuntimeTables(uint64_t userDbId, std::wstring & 
 
 void ResultListPageAdapter::loadRuntimeHeader(QSqlStatement & query)
 {
-	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
+	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 26, -1, 0);
 	int n = query.getColumnCount();
 	for (int i = 0; i < n; i++) {
 		std::wstring columnName = query.getColumnName(i);

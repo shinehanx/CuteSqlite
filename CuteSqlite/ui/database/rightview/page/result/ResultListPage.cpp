@@ -258,7 +258,7 @@ void ResultListPage::createOrShowListView(QListViewCtrl & win, CRect & clientRec
 {
 	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA;
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );

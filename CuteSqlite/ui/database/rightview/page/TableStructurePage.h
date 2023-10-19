@@ -25,13 +25,13 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/table/TableTabView.h"
 
-class NewTablePage : public QPage {
+class TableStructurePage : public QPage {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 
 	DECLARE_WND_CLASS(NULL)
 
-	BEGIN_MSG_MAP_EX(NewTablePage)
+	BEGIN_MSG_MAP_EX(TableStructurePage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
@@ -59,25 +59,31 @@ private:
 	QImageButton saveButton;
 	QImageButton revertButton;
 
+	CStatic sqlPreviewLabel;
+	QHelpEdit sqlPreviewEdit;
+
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	
 	virtual void createOrShowUI();
-	void createTblNameElems(CRect & clientRect);
-	void createDatabaseElems(CRect & clientRect);
-	void createSchemaElems(CRect & clientRect);
+	void createOrShowTblNameElems(CRect & clientRect);
+	void createOrShowDatabaseElems(CRect & clientRect);
+	void createOrShowSchemaElems(CRect & clientRect);
 	void createOrShowTableTabView(TableTabView & win, CRect & clientRect);
+	void createOrShowSqlPreviewElems(CRect & clientRect);
 	void createOrShowButtons(CRect & clientRect);
+	void createOrShowSqlEditor(QHelpEdit & win, UINT id, CRect & rect, CRect & clientRect, DWORD exStyle = 0);
 
 	virtual void loadWindow();
 	void loadDatabaseComboBox();
 	void loadSchemaComboBox();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	virtual int OnDestroy();	
+	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
+	
 };

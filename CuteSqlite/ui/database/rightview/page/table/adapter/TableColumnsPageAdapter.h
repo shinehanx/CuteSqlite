@@ -36,7 +36,7 @@ public:
 	int loadTblColumnsListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
-	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText);
+	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
 	// create/copy a new column row operation
@@ -51,6 +51,8 @@ public:
 
 	// Get all column names from dataview
 	std::vector<std::wstring> getAllColumnNames(const std::vector<std::wstring> & excludeNames = std::vector<std::wstring>()) const ;
+
+	ColumnInfo getRuntimeData(int nItem) const;
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;

@@ -54,7 +54,7 @@ int TableColumnsPageAdapter::loadTblColumnsListView(uint64_t userDbId, const std
 
 void TableColumnsPageAdapter::loadHeadersForListView()
 {
-	dataView->InsertColumn(0, L"", LVCFMT_CENTER, 24, -1, 0);
+	dataView->InsertColumn(0, L"", LVCFMT_CENTER, 26, -1, 0);
 	
 	int n = static_cast<int>(headerColumns.size());
 	for (int i = 0; i < n; i++) {
@@ -125,6 +125,13 @@ int TableColumnsPageAdapter::getSelDataType(const std::wstring & dataType)
 	return nSelItem;
 }
 
+
+ColumnInfo TableColumnsPageAdapter::getRuntimeData(int nItem) const 
+{
+	ATLASSERT(nItem < static_cast<int>(runtimeDatas.size()));
+	return runtimeDatas.at(nItem);
+}
+
 /**
  * Fill the item and subitem data value of list view .
  * 
@@ -183,7 +190,7 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	return 0;
 }
 
-void TableColumnsPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, std::wstring & newText)
+void TableColumnsPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & newText)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
@@ -377,7 +384,7 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 			dataView->setCheckBoxIsChecked(clickItem->iItem, clickItem->iSubItem, !isChecked);
 			std::wstring origVal = std::to_wstring((int)isChecked);
 			std::wstring newVal = std::to_wstring((int)!isChecked);
-			changeRuntimeDatasItem(clickItem->iItem, clickItem->iSubItem, origVal, newVal);
+			changeRuntimeDatasItem(clickItem->iItem, clickItem->iSubItem, newVal);
 			invalidateSubItem(clickItem->iItem, clickItem->iSubItem);
 		}
 		

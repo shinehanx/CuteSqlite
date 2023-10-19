@@ -55,7 +55,7 @@ int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId, const std
 
 void TableIndexesPageAdapter::loadHeadersForListView()
 {
-	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 24, -1, 0);
+	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 26, -1, 0);
 	
 	int n = static_cast<int>(headerColumns.size());
 	for (int i = 0; i < n; i++) {

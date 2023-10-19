@@ -87,7 +87,7 @@ void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
-		win.setItemHeight(25);
+		win.setItemHeight(22);
 		adapter = new TableIndexesPageAdapter(m_hWnd, &win, NEW_TABLE);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
@@ -145,15 +145,15 @@ LRESULT TableIndexesPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &
 	LPNMLISTVIEW nvListViewPtr = reinterpret_cast<LPNMLISTVIEW>(pnmh);
 	if (nvListViewPtr->uOldState == 0 && nvListViewPtr->uNewState == 0) 
 		return 0;         // No change 
-	//   Old   check   box   state 
+	// Old check box state 
 	BOOL bPrevState = (BOOL)(((nvListViewPtr->uOldState & LVIS_STATEIMAGEMASK) >> 12) - 1);     
-	if (bPrevState < 0)         //   On   startup   there 's   no   previous   state   
-		bPrevState = 0;   //   so   assign   as   false   (unchecked) 
-	//   New   check   box   state 
+	if (bPrevState < 0)   // On startup there 's no previous state   
+		bPrevState = 0;   // so assign as false (unchecked) 
+	// New check box state 
 	BOOL bChecked = (BOOL)(((nvListViewPtr->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1);       
-	if (bChecked < 0)   //   On   non-checkbox   notifications   assume   false 
+	if (bChecked < 0)   // On non-checkbox notifications assume false 
 		bChecked = 0;   
-	if (bPrevState == bChecked)   //   No   change   in   check   box 
+	if (bPrevState == bChecked)   // No change in check box 
 		return 0; 
 	
 	return 0;

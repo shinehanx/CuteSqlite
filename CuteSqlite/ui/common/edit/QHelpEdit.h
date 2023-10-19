@@ -40,7 +40,7 @@ public:
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MESSAGE_HANDLER(WM_NOTIFY, OnNotify)
 		CHAIN_MSG_MAP(QHelpPage)
-		// REFLECT_NOTIFICATIONS()
+		// REFLECT_NOTIFICATIONS() 
 	END_MSG_MAP()
 
 	void setup(std::wstring & helpText, std::wstring & content);

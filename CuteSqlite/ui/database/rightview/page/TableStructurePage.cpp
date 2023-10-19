@@ -18,7 +18,9 @@
  * @date   2023-10-09
  *********************************************************************/
 #include "stdafx.h"
-#include "NewTablePage.h"
+#include "TableStructurePage.h"
+#include <Scintilla/Scintilla.h>
+#include <Scintilla/SciLexer.h>
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
@@ -29,16 +31,20 @@
  * @param pMsg
  * @return 
  */
-BOOL NewTablePage::PreTranslateMessage(MSG* pMsg)
+BOOL TableStructurePage::PreTranslateMessage(MSG* pMsg)
 {
 	BOOL result = FALSE;
+	if (sqlPreviewEdit.IsWindow() && sqlPreviewEdit.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
 	if (tableTabView.IsWindow() && tableTabView.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
 	return FALSE;
 }
 
-void NewTablePage::createOrShowUI()
+void TableStructurePage::createOrShowUI()
 {
 	QPage::createOrShowUI();
 
@@ -46,15 +52,16 @@ void NewTablePage::createOrShowUI()
 	GetClientRect(clientRect);
 
 	// Create sub elements
-	createTblNameElems(clientRect);
-	createDatabaseElems(clientRect);
-	createSchemaElems(clientRect);
+	createOrShowTblNameElems(clientRect);
+	createOrShowDatabaseElems(clientRect);
+	createOrShowSchemaElems(clientRect);
 	createOrShowTableTabView(tableTabView, clientRect);
+	createOrShowSqlPreviewElems(clientRect);
 	createOrShowButtons(clientRect);
 }
 
 
-void NewTablePage::createTblNameElems(CRect & clientRect)
+void TableStructurePage::createOrShowTblNameElems(CRect & clientRect)
 {
 	int x = 20, y = 20, w = 80, h = 20;
 	CRect rect(x, y, x + w, y + h);
@@ -62,11 +69,11 @@ void NewTablePage::createTblNameElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, 0);
 	rect.right += 120;
-	QWinCreater::createOrShowEdit(m_hWnd, tblNameEdit, Config::NEW_TABLE_TBL_NAME_EDIT_ID, L"", rect, clientRect, WS_CLIPCHILDREN | WS_CLIPSIBLINGS, false);
+	QWinCreater::createOrShowEdit(m_hWnd, tblNameEdit, Config::TABLE_TBL_NAME_EDIT_ID, L"", rect, clientRect, WS_CLIPCHILDREN | WS_CLIPSIBLINGS, false);
 }
 
 
-void NewTablePage::createDatabaseElems(CRect & clientRect)
+void TableStructurePage::createOrShowDatabaseElems(CRect & clientRect)
 {
 	int x = 20, y = 20 + 20 + 15, w = 80, h = 20;
 	CRect rect(x, y, x + w, y + h);
@@ -74,11 +81,11 @@ void NewTablePage::createDatabaseElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, -5);
 	rect.right += 120;
-	QWinCreater::createOrShowComboBox(m_hWnd, databaseComboBox, Config::NEW_TABLE_DATABASE_COMBOBOX_ID, rect, clientRect);
+	QWinCreater::createOrShowComboBox(m_hWnd, databaseComboBox, Config::TABLE_DATABASE_COMBOBOX_ID, rect, clientRect);
 }
 
 
-void NewTablePage::createSchemaElems(CRect & clientRect)
+void TableStructurePage::createOrShowSchemaElems(CRect & clientRect)
 {
 	int x = 20 + 80 + 5 + 200 + 20, y = 20 + 20 + 15, w = 80, h = 20;
 	CRect rect(x, y, x + w, y + h);
@@ -86,13 +93,13 @@ void NewTablePage::createSchemaElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, -5);
 	rect.right += 120;
-	QWinCreater::createOrShowComboBox(m_hWnd, schemaComboBox, Config::NEW_TABLE_SCHEMA_COMBOBOX_ID, rect, clientRect);
+	QWinCreater::createOrShowComboBox(m_hWnd, schemaComboBox, Config::TABLE_SCHEMA_COMBOBOX_ID, rect, clientRect);
 }
 
 
-void NewTablePage::createOrShowTableTabView(TableTabView & win, CRect & clientRect)
+void TableStructurePage::createOrShowTableTabView(TableTabView & win, CRect & clientRect)
 {
-	int x = 20, y = 20 + 20 + 15 + 20 + 20, w = clientRect.Width() - 40, h = clientRect.Height() - y - 90;
+	int x = 20, y = 20 + 20 + 15 + 20 + 20, w = clientRect.Width() - 2 - 250 - 40, h = clientRect.Height() - y - 90;
 	CRect rect(x, y, x + w, y + h);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
@@ -112,7 +119,19 @@ void NewTablePage::createOrShowTableTabView(TableTabView & win, CRect & clientRe
 }
 
 
-void NewTablePage::createOrShowButtons(CRect & clientRect)
+void TableStructurePage::createOrShowSqlPreviewElems(CRect & clientRect)
+{
+	int x = clientRect.right - 20 - 250, y = 20 + 20 + 15 + 20 + 20,
+		w = 250, h = 25;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, sqlPreviewLabel, S(L"sql-preview"), rect, clientRect, SS_CENTERIMAGE);
+
+	rect.OffsetRect(0, h + 1);
+	rect.bottom = clientRect.bottom - 90;
+	createOrShowSqlEditor(sqlPreviewEdit, Config::TABLE_SQL_PREVIEW_EDIT_ID, rect, clientRect);
+}
+
+void TableStructurePage::createOrShowButtons(CRect & clientRect)
 {
 	int x = clientRect.right - (20 + 120) * 2, y = clientRect.bottom - 50, w = 120, h = 30;
 	CRect rect(x, y, x + w, y + h);
@@ -122,7 +141,7 @@ void NewTablePage::createOrShowButtons(CRect & clientRect)
 	QWinCreater::createOrShowButton(m_hWnd, revertButton, Config::TABLE_REVERT_BUTTON_ID, S(L"revert"), rect, clientRect);
 }
 
-void NewTablePage::loadWindow()
+void TableStructurePage::loadWindow()
 {
 	if (!isNeedReload) {
 		return;
@@ -134,7 +153,7 @@ void NewTablePage::loadWindow()
 }
 
 
-void NewTablePage::loadDatabaseComboBox()
+void TableStructurePage::loadDatabaseComboBox()
 {
 	// db list
 	UserDbList dbs = databaseService->getAllUserDbs();
@@ -153,7 +172,7 @@ void NewTablePage::loadDatabaseComboBox()
 }
 
 
-void NewTablePage::loadSchemaComboBox()
+void TableStructurePage::loadSchemaComboBox()
 {
 	std::vector<std::wstring> schemas;
 	schemas.push_back(L"main");
@@ -169,7 +188,7 @@ void NewTablePage::loadSchemaComboBox()
 	schemaComboBox.SetCurSel(nSelItem);
 }
 
-int NewTablePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 	textFont = FT(L"form-text-size");
@@ -185,7 +204,7 @@ int NewTablePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return ret;
 }
 
-int NewTablePage::OnDestroy()
+int TableStructurePage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
 	if (textFont) ::DeleteObject(textFont);
@@ -205,29 +224,49 @@ int NewTablePage::OnDestroy()
 	return ret;
 }
 
-void NewTablePage::paintItem(CDC & dc, CRect & paintRect)
+
+void TableStructurePage::paintItem(CDC & dc, CRect & paintRect)
 {
 	dc.FillRect(paintRect, bkgBrush);
 }
 
-HBRUSH NewTablePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
+HBRUSH TableStructurePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
-	::SetBkColor(hdc, bkgColor);
-	::SelectObject(hdc, textFont);
-	return bkgBrush;
+	if (hwnd == sqlPreviewLabel.m_hWnd) {
+		::SetBkColor(hdc, topbarColor);
+		::SelectObject(hdc, textFont); 
+		return topbarBrush;
+	} else {
+		::SetBkColor(hdc, bkgColor);
+		::SelectObject(hdc, textFont);
+		return bkgBrush;
+	}
+	
 }
 
-HBRUSH NewTablePage::OnCtlColorEdit(HDC hdc, HWND hwnd)
+HBRUSH TableStructurePage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {	
 	::SetBkColor(hdc, bkgColor);	
 	::SelectObject(hdc, textFont);
 	return bkgBrush;
 }
 
-HBRUSH NewTablePage::OnCtlColorListBox(HDC hdc, HWND hwnd)
+HBRUSH TableStructurePage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 {
 	::SetTextColor(hdc, RGB(0, 0, 0)); // Text area foreground color
 	::SetBkColor(hdc, RGB(153, 153, 153)); // Text area background color
 	::SelectObject(hdc, comboFont);
-	return AtlGetStockBrush(WHITE_BRUSH);
+	return AtlGetStockBrush(WHITE_BRUSH); 
+}
+
+void TableStructurePage::createOrShowSqlEditor(QHelpEdit & win, UINT id, CRect & rect, CRect & clientRect, DWORD exStyle)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		win.setup(S(L"sql-statement-for-table"), std::wstring(L""));
+		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::TABLE_SQL_PREVIEW_EDIT_ID);		
+		return;
+	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
 }

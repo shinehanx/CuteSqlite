@@ -46,6 +46,7 @@ public:
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
+		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_CHECKBOX_CHANGE_ID, OnListViewSubItemCheckBoxChange)
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_COLUMN_BUTTON_ID, BN_CLICKED, OnClickNewColumnButton)
 		COMMAND_HANDLER_EX(Config::TABLE_DEL_COLUMN_BUTTON_ID, BN_CLICKED, OnClickDelColumnButton)
 		COMMAND_HANDLER_EX(Config::TABLE_UP_COLUMN_BUTTON_ID, BN_CLICKED, OnClickUpColumnButton)
@@ -103,6 +104,7 @@ private:
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickUpColumnButton(UINT uNotifyCode, int nID, HWND wndCtl);

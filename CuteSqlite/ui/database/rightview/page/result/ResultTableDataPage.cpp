@@ -83,7 +83,7 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 	CRect & rect = getLeftListRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
 		// virtual listview must be have LVS_OWNERDATA style
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA; 
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA | LVS_OWNERDRAWFIXED; 
 
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );

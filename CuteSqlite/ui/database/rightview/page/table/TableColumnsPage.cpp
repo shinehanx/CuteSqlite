@@ -109,13 +109,11 @@ void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 	if (IsWindow() && !win.IsWindow()) {
 		// Specify LVS_OWNERDATA style will be enabled virtual data list
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
-		DWORD dwExStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_BORDERSELECT ;
+		DWORD dwExStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER  ;
 		win.Create(m_hWnd, rect,NULL,dwStyle , 
 			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(dwExStyle);
-		win.setItemHeight(25);
-		CHeaderCtrl header = win.GetHeader();
-		header.SetImageList(imageList);
+		win.setItemHeight(22);
 		adapter = new TableColumnsPageAdapter(m_hWnd, &win, NEW_TABLE);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
@@ -259,9 +257,32 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 {
 	SubItemValues changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
-		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
+		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
 	}
+	return 0;
+}
+
+LRESULT TableColumnsPage::OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	if (wParam < 0 || lParam < 3 || lParam > 6) {
+		return 0;
+	}
+	int iItem = static_cast<int>(wParam);
+	int iSubItem = static_cast<int>(lParam);
+	const ColumnInfo columnInfo = adapter->getRuntimeData(iItem);
+	std::wstring newVal;
+	if (iSubItem == 3) {
+		newVal = std::to_wstring((int)!columnInfo.notnull);
+	} else if (iSubItem == 4) {
+		newVal = std::to_wstring((int)!columnInfo.pk);
+	} else if (iSubItem == 5) {
+		newVal = std::to_wstring((int)!columnInfo.ai);
+	} else if (iSubItem == 6) {
+		newVal = std::to_wstring((int)!columnInfo.un);
+	}
+	adapter->changeRuntimeDatasItem(iItem, iSubItem, newVal);
+	adapter->invalidateSubItem(iItem, iSubItem);
 	return 0;
 }
 

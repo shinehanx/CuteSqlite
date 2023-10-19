@@ -150,7 +150,7 @@ void RightWorkView::createOrShowQueryPage(QueryPage &win, CRect & clientRect)
 	}
 }
 
-void RightWorkView::createOrShowNewTablePage(NewTablePage &win, CRect & clientRect)
+void RightWorkView::createOrShowTableStructurePage(TableStructurePage &win, CRect & clientRect)
 {
 	CRect tabRect = getTabRect(clientRect);
 	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
@@ -292,8 +292,8 @@ void RightWorkView::doAddNewTable()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
-	NewTablePage * newTablePage = new NewTablePage();
-	createOrShowNewTablePage(*newTablePage, clientRect);
+	TableStructurePage * newTablePage = new TableStructurePage();
+	createOrShowTableStructurePage(*newTablePage, clientRect);
 	newTablePagePtrs.push_back(newTablePage);
 
 	// nImage = 2 : table 

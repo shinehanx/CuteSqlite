@@ -119,7 +119,9 @@ public:
 
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
+	COLORREF borderColor = RGB(220, 220, 220);
 	COLORREF btnBorderColor = RGB(160, 160, 160);
+	COLORREF selSubItemBorderColor = RGB(59, 125, 187);
 	COLORREF chkBorderColor = RGB(0, 0, 0);
 	COLORREF chkColor = RGB(0, 0, 0);
 	COLORREF btnDownColor = RGB(0, 0, 0);
@@ -128,11 +130,14 @@ private:
 	HBRUSH btnBrush = nullptr;	
 	HBRUSH btnDownBrush = nullptr;
 	HBRUSH chkBrush = nullptr;
+	HBRUSH selSubItemBorderBrush = nullptr;
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
 	HFONT normalFont = nullptr;
+	CPen borderPen;
 	CPen btnBorderPen;
 	CPen chkBorderPen;
+	CPen selSubItemBorderPen;
 
 	// the row item height
 	int itemHeight = 21;
@@ -144,8 +149,8 @@ private:
 
 	CEdit subItemEdit;
 	CComboBox subItemComboBox;
-	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
-	CRect subItemRect;
+	std::pair<int, int> oldSubItemPos, activeSubItemPos; // active subitem position, pair.first - iItem, pair.second - iSubItem
+	CRect oldSubItemRect, activeSubItemRect; 
 	bool isVisibleEdit = false;
 	bool isVisibleComboBox = false;
 
@@ -165,6 +170,8 @@ private:
 
 	void createOrShowSubItemEdit(CEdit & win, std::wstring & text, CRect & rect);
 	void pressedTabToMoveEditor();
+	void pressedShiftTabToMoveEditor();
+	void pressedSpaceToCheckbox();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -189,7 +196,7 @@ private:
 
 	// draw every subItems, must set the ListView style with LVS_OWNERDRAWFIXED
 	void drawSubItems(CDC & memDc, LPDRAWITEMSTRUCT lpDrawItemStruct);
-	void drawFirstSubItem(CDC &mdc, int iItem, CRect &rcSubItem, CRect &rctext);
+	void drawFirstSubItem(CDC &mdc, int iItem, bool checked, CRect &rcSubItem, CRect &rctext);
 	void drawTextInSubItem(CDC & mdc, int iItem, int iSubItem, CRect rcText, std::wstring & text = std::wstring());
 	void drawComboBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemStruct, SubItemComboBoxMap::iterator & comboBoxIter, CRect &rcText);
 	void drawCheckBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemStruct, SubItemCheckBoxMap::iterator & checkBoxIter, CRect & rcText);
@@ -197,4 +204,5 @@ private:
 	
 	void createOrShowComboBox(int iItem, int iSubItem, const std::vector<std::wstring> & strList, bool allowEdit = false);	
 	void createOrShowSubItemComboBox(CComboBox & win, CRect & rect, bool allowEdit = false);
+	
 };

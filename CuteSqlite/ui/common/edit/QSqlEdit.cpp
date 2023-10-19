@@ -286,7 +286,7 @@ long QSqlEdit::lineFromPosition(long pos)
 }
 
 
-void QSqlEdit::setCppSyntax()
+void QSqlEdit::setSqlSyntax()
 {
 	SendMessage(SCI_SETLEXER, SCLEX_SQL);
 	SendMessage(SCI_SETKEYWORDS, 0, (LPARAM)sqlKeyWords);
@@ -308,20 +308,20 @@ void QSqlEdit::createOrShowUI()
 	//crateOrShowEditor(clientRect);
 }
 
-HWND QSqlEdit::Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle)
+HWND QSqlEdit::Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle, UINT nID /* = 0*/)
 {
 	bkgBrush = ::CreateSolidBrush(bkgColor);
 
 	HMODULE hmod2 = ::LoadLibrary(L"SciLexer.dll");
 
-	m_hWnd = CWindow::Create(_T("Scintilla"), hWndParent, rect, _T(""), WS_CHILD | WS_VISIBLE, dwExStyle);
+	m_hWnd = CWindow::Create(_T("Scintilla"), hWndParent, rect, _T(""), WS_CHILD | WS_VISIBLE, dwExStyle, nID);
 	return m_hWnd;
 }
 
 
 void QSqlEdit::initEdit(int nSize, const TCHAR* face)
 {
-	setCppSyntax();
+	setSqlSyntax();
 	init();
 	setDefaultColorFont(nSize, face);
 	updateLineNumberWidth();

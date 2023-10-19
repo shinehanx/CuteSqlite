@@ -39,7 +39,7 @@ public:
 		// REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	HWND Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle = 0);
+	HWND Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle = 0, UINT nID = 0);
 
 	void initEdit(int nSize, const TCHAR* face);
 	int getMarginWidthN(int margin);
@@ -64,7 +64,7 @@ protected:
 	//×Ô¶¯Fold
 	void setFold(BOOL bFold = TRUE);
 	
-	void setCppSyntax();
+	void setSqlSyntax();
 	void createOrShowUI();	
 	void crateOrShowEditor(CRect &clientRect);
 

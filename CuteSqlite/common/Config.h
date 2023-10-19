@@ -117,8 +117,8 @@ typedef enum {
 	IMPORT_DB_FROM_SQL_SELECT_DB_COMBOBOX_ID,
 
 	//NEW TABLE 
-	NEW_TABLE_DATABASE_COMBOBOX_ID,
-	NEW_TABLE_SCHEMA_COMBOBOX_ID,
+	TABLE_DATABASE_COMBOBOX_ID,
+	TABLE_SCHEMA_COMBOBOX_ID,
 
 	// QLIST VIEW COMBOBOX
 	QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID,
@@ -154,7 +154,8 @@ typedef enum {
 	IMPORT_DB_FROM_SQL_PATH_EDIT_ID,
 
 	// NEW TABLE
-	NEW_TABLE_TBL_NAME_EDIT_ID,
+	TABLE_TBL_NAME_EDIT_ID,
+	TABLE_SQL_PREVIEW_EDIT_ID
 } EditorId;
 
 typedef enum {
@@ -264,6 +265,7 @@ typedef enum {
 	MSG_TREEVIEW_CLICK_ID, // 单击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	MSG_TREEVIEW_DBCLICK_ID, // 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, // QListViewCtrl的子项（subItem）的文本发生改变时，向父窗口发送该消息,wParam=iItem, lParam=iSubItem
+	MSG_QLISTVIEW_SUBITEM_CHECKBOX_CHANGE_ID, // QListViewCtrl的子项（subItem）的CheckBox发生改变时，向父窗口发送该消息,wParam=iItem, lParam=iSubItem
 	MSG_QLISTVIEW_COLUMN_CLICK_ID, // QListViewCtrl的Column被点击时，向父窗口发送该消息,wParam=iItem, lParam=(LPNMHEADER)lParam
 	MSG_EXEC_SQL_RESULT_MESSAGE_ID, // 执行SQL语句后，返回的消息，wParam- NULL，lParam - point of adapter.runtimeResultInfo
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比

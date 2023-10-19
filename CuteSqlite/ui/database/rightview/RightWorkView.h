@@ -40,7 +40,7 @@
 #include "ui/common/button/QImageButton.h"
 #include "ui/database/rightview/page/QueryPage.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
-#include "ui/database/rightview/page/NewTablePage.h"
+#include "ui/database/rightview/page/TableStructurePage.h"
 
 class RightWorkView : public CWindowImpl<RightWorkView>
 {
@@ -76,7 +76,7 @@ private:
 	QTabView tabView;
 	CEdit historyPage;
 	QueryPage queryPage;
-	std::vector<NewTablePage *> newTablePagePtrs; // The pointers of dynamically created page
+	std::vector<TableStructurePage *> newTablePagePtrs; // The pointers of dynamically created page
 	CImageList imageList;
 
 	HBITMAP queryBitmap = nullptr;
@@ -96,7 +96,7 @@ private:
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowHistoryPage(CEdit &win, CRect & clientRect);
 	void createOrShowQueryPage(QueryPage &win, CRect & clientRect);
-	void createOrShowNewTablePage(NewTablePage &win, CRect & clientRect);
+	void createOrShowTableStructurePage(TableStructurePage &win, CRect & clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();
