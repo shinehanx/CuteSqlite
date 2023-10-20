@@ -60,11 +60,7 @@ void QListViewCtrl::createOrShowEditor(std::pair<int, int> subItemPos)
 	if (isVisibleComboBox && subItemComboBox.IsWindow()) {
 		subItemComboBox.DestroyWindow();
 	}
-	this->oldSubItemPos = this->activeSubItemPos;
-	this->activeSubItemPos = subItemPos;
-	GetSubItemRect(oldSubItemPos.first, oldSubItemPos.second, LVIR_BOUNDS, oldSubItemRect);
-	InvalidateRect(oldSubItemRect);
-	GetSubItemRect(subItemPos.first, subItemPos.second, LVIR_BOUNDS, activeSubItemRect);
+	activeSubItem(subItemPos.first, subItemPos.second);
 	
 
 	wchar_t * cch = nullptr;
@@ -113,12 +109,8 @@ void QListViewCtrl::showComboBox(int iItem, int iSubItem, const std::vector<std:
 		return;
 	}
 	createOrShowComboBox(iItem, iSubItem, strList, allowEdit);
-	// redraw old subitem rect
-	this->oldSubItemPos = this->activeSubItemPos;
-	GetSubItemRect(oldSubItemPos.first, oldSubItemPos.second, LVIR_BOUNDS, oldSubItemRect);
-	InvalidateRect(oldSubItemRect);
-	// active new subitem
-	this->activeSubItemPos = {iItem, iSubItem};
+	
+	activeSubItem(iItem, iSubItem);
 	this->isVisibleComboBox = true;
 }
 
@@ -383,6 +375,18 @@ void QListViewCtrl::setItemHeight(int height)
     SendMessage(WM_WINDOWPOSCHANGED, 0, (LPARAM)&wp);
 }
 
+void QListViewCtrl::activeSubItem(int iItem, int iSubItem)
+{
+	ATLASSERT(iItem >= 0 && iSubItem > 0);
+	oldSubItemPos = activeSubItemPos;
+	activeSubItemPos.first = iItem;
+	activeSubItemPos.second = iSubItem;
+	GetSubItemRect(oldSubItemPos.first, oldSubItemPos.second, LVIR_BOUNDS, oldSubItemRect);
+	GetSubItemRect(activeSubItemPos.first, activeSubItemPos.second, LVIR_BOUNDS, activeSubItemRect);
+	InvalidateRect(oldSubItemRect);
+	InvalidateRect(activeSubItemRect);
+}
+
 void QListViewCtrl::setChangeVal(SubItemValue &subItemVal)
 {
 	// change the newVal in exists item in changeVals vector
@@ -442,18 +446,12 @@ void QListViewCtrl::pressedTabToMoveEditor()
 	SubItemComboBoxMap::iterator comboBoxIter;
 	SubItemCheckBoxMap::iterator checkBoxIter;
 	SubItemButtonMap::iterator buttonIter;
-	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
+	
 	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
 		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
 		oldSubItemPos = activeSubItemPos;
-		GetSubItemRect(oldSubItemPos.first, oldSubItemPos.second, LVIR_BOUNDS, oldSubItemRect);
-
-		//new 
-		activeSubItemPos.first = iItem;
-		activeSubItemPos.second = iSubItem;
-		InvalidateRect(oldSubItemRect);
-		InvalidateRect(activeSubItemRect);
+		activeSubItem(iItem, iSubItem);
 		return ;
 	} 
 	createOrShowEditor(iItem, iSubItem);
@@ -468,7 +466,7 @@ void QListViewCtrl::pressedShiftTabToMoveEditor()
 		return;
 	}
 
-	// iSubItem == 0 is the first checkbox column, so iSubItem is from 1th
+	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
 	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
 	if (activeSubItemPos.first > 0 && activeSubItemPos.second == 1) {
 		iItem = activeSubItemPos.first - 1;
@@ -490,14 +488,7 @@ void QListViewCtrl::pressedShiftTabToMoveEditor()
 	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
 		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
-		oldSubItemPos = activeSubItemPos;
-		GetSubItemRect(oldSubItemPos.first, oldSubItemPos.second, LVIR_BOUNDS, oldSubItemRect);
-
-		//new 
-		activeSubItemPos.first = iItem;
-		activeSubItemPos.second = iSubItem;
-		InvalidateRect(oldSubItemRect);
-		InvalidateRect(activeSubItemRect);
+		activeSubItem(iItem, iSubItem);
 		return ;
 	} 
 	createOrShowEditor(iItem, iSubItem);
@@ -505,14 +496,6 @@ void QListViewCtrl::pressedShiftTabToMoveEditor()
 
 void QListViewCtrl::pressedSpaceToCheckbox()
 {
-	std::pair<int, int> findPair({activeSubItemPos.first, activeSubItemPos.second });
-	SubItemCheckBoxMap::iterator checkBoxIter;
-	if ((checkBoxIter = subItemCheckBoxMap.find(findPair)) == subItemCheckBoxMap.end()) {
-		return ;
-	}
-	bool isCheck = getCheckBoxIsChecked(activeSubItemPos.first, activeSubItemPos.second);
-	setCheckBoxIsChecked(activeSubItemPos.first, activeSubItemPos.second, (int)!isCheck);
-	
 	::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_CHECKBOX_CHANGE_ID, 
 		WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 }
@@ -555,6 +538,7 @@ void QListViewCtrl::RemoveItem(int iItem)
 	// delete ComboBoxes
 	removeComboBoxes(iItem);
 	removeCheckBoxes(iItem);
+	removeChangedValsItems(iItem);
 
 	CListViewCtrl::DeleteItem(iItem);
 }
@@ -927,7 +911,7 @@ void QListViewCtrl::OnSize(UINT nType, CSize size)
 	if (borderPen.IsNull()) borderPen.CreatePen(PS_SOLID, 1, borderColor);
 	if (btnBorderPen.IsNull()) btnBorderPen.CreatePen(PS_SOLID, 1, btnBorderColor);
 	if (chkBorderPen.IsNull()) chkBorderPen.CreatePen(PS_SOLID, 2, chkBorderColor); 
-	if (selSubItemBorderPen.IsNull()) selSubItemBorderPen.CreatePen(PS_SOLID, 3, selSubItemBorderColor); 
+	if (selSubItemBorderPen.IsNull()) selSubItemBorderPen.CreatePen(PS_SOLID, 1, selSubItemBorderColor); 
 
 	createImageList();
 	changeSubItemText();

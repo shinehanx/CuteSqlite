@@ -94,7 +94,6 @@ public:
 	void setChangedVals(SubItemValues & changeVals);
 	void setChangeVal(SubItemValue &subItemVal);
 	void clearChangeVals();
-	void removeChangedValsItems(int iItem);
 	void moveUpChangeValsItem(int iItem);
 	void moveDownChangeValsItem(int iItem);
 	void RemoveItem(int iItem);
@@ -110,6 +109,7 @@ public:
 	void moveDownButtons(int iItem);
 
 	void setItemHeight(int height);
+	void activeSubItem(int iItem, int iSubItem);
 public:
 	// owner draw, must set the ListView style with LVS_OWNERDRAWFIXED
 	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
@@ -165,6 +165,7 @@ private:
 	
 	void changeSubItemText();
 
+	void removeChangedValsItems(int iItem);
 	void removeComboBoxes(int iItem);
 	void removeCheckBoxes(int iItem);
 

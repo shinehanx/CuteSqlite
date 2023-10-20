@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "TableColumnsPage.h"
+#include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
@@ -259,8 +260,11 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 	SubItemValues changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.newVal);
-		adapter->invalidateSubItem(val.iItem, val.iSubItem);
+		adapter->invalidateSubItem(val.iItem, val.iSubItem); 
 	}
+
+	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView->TableTabView->TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
 	return 0;
 }
 
@@ -271,6 +275,7 @@ LRESULT TableColumnsPage::OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wPar
 	}
 	int iItem = static_cast<int>(wParam);
 	int iSubItem = static_cast<int>(lParam);
+	/*
 	const ColumnInfo columnInfo = adapter->getRuntimeData(iItem);
 	std::wstring newVal;
 	if (iSubItem == 3) {
@@ -283,7 +288,11 @@ LRESULT TableColumnsPage::OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wPar
 		newVal = std::to_wstring((int)!columnInfo.un);
 	}
 	adapter->changeRuntimeDatasItem(iItem, iSubItem, newVal);
-	adapter->invalidateSubItem(iItem, iSubItem);
+	adapter->invalidateSubItem(iItem, iSubItem);*/
+
+	adapter->changeListViewCheckBox(iItem, iSubItem);
+	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView->TableTabView->TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
 	return 0;
 }
 

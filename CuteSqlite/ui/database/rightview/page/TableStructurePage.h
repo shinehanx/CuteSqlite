@@ -35,6 +35,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		COMMAND_HANDLER_EX(Config::TABLE_TBL_NAME_EDIT_ID, EN_CHANGE, OnChangeTblNameEdit)
+		MESSAGE_HANDLER(Config::MSG_TABLE_PREVIEW_SQL_ID, OnPreviewSql);
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -86,6 +87,7 @@ private:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 	void OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnPreviewSql(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);

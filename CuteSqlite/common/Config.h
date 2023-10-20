@@ -270,7 +270,9 @@ typedef enum {
 	MSG_EXEC_SQL_RESULT_MESSAGE_ID, // 执行SQL语句后，返回的消息，wParam- NULL，lParam - point of adapter.runtimeResultInfo
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
-	MSG_NEW_TABLE_ID, // Will send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, // Send this msg when changing table columns index from the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
+	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
 }MessageId;
 
 typedef enum {

@@ -888,7 +888,6 @@ bool ResultListPageAdapter::remove(bool confirm)
 	int nSelItem = -1;
 	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
 		nSelItems.push_back(nSelItem);
-		dataView->removeChangedValsItems(nSelItem);
 	}
 
 	if (nSelItems.empty()) {

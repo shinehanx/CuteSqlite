@@ -128,6 +128,51 @@ int TableIndexesPageAdapter::getSelIndexType(const std::wstring & dataType)
 	return nSelItem;
 }
 
+
+void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
+{
+	int n = static_cast<int>(runtimeDatas.size());
+	std::vector<int> nSelItems;
+	for (int i = 0; i < n; i++) {
+		auto item = runtimeDatas.at(i);
+		if (item.type == indexTypeList.at(1)) { // indexTypeList[1] : primary key
+			nSelItems.push_back(i);
+		}
+	}
+
+	if (pkColumns.empty()) {		
+		n = static_cast<int>(nSelItems.size());
+		for (int i = n - 1; i >= 0; i--) {
+			removeSelectedItem(i);
+		}
+		return;
+	}
+
+	// Generate columns string, such as "id,name,..."
+	IndexInfo row;
+	row.type = indexTypeList.at(1);// indexTypeList[1] : primary key
+	int nCols = static_cast<int>(pkColumns.size());
+	for (int i = 0; i < nCols; i++) {
+		if (i > 0) {
+			row.colums.append(L",");
+		}
+		auto item = pkColumns.at(i);
+		row.colums.append(item.name);
+	}
+
+	// insert/or modify the primary key row to ListView
+	if (nSelItems.empty()) {
+		runtimeDatas.insert(runtimeDatas.begin(), row); // insert to the first
+	} else {
+		runtimeDatas.at(nSelItems.at(0)).colums = row.colums; // modify colums string
+		invalidateSubItem(nSelItems.at(0), 1); // 2th param = 1 - primary key
+	}
+
+	// update the item count and selected the new row	
+	n = static_cast<int>(runtimeDatas.size());
+	dataView->SetItemCount(n);
+}
+
 /**
  * Fill the item and subitem data value of list view .
  * 
@@ -209,7 +254,7 @@ void TableIndexesPageAdapter::createNewIndex()
 {
 	// 1.create a empty row and push it to runtimeDatas list
 	IndexInfo row;
-	row.name = L"New Index";
+	row.name = L"";
 	runtimeDatas.push_back(row);
 
 	// 2.update the item count and selected the new row	
@@ -232,7 +277,6 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 	int nSelItem = -1;
 	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
 		nSelItems.push_back(nSelItem);
-		dataView->removeChangedValsItems(nSelItem);
 	}
 
 	if (nSelItems.empty()) {
@@ -247,7 +291,6 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 		for (int j = 0; j < nSelItem; j++) {
 			iter++;
 		}
-		auto & rowItem = (*iter);		
 
 		// 2.1 delete row from runtimeDatas vector 
 		runtimeDatas.erase(iter);
@@ -259,6 +302,20 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 	return true;
 }
 
+
+void TableIndexesPageAdapter::removeSelectedItem(int nSelItem)
+{
+	auto iter = runtimeDatas.begin();
+	for (int j = 0; j < nSelItem; j++) {
+		iter++;
+	}
+
+	// 1 delete row from runtimeDatas vector 
+	runtimeDatas.erase(iter);
+
+	// 2 delete row from dataView
+	dataView->RemoveItem(nSelItem);
+}
 
 std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 {
@@ -291,6 +348,7 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	if (clickItem->iSubItem == 0) {
 		return ;
 	} else if (clickItem->iSubItem == 2) { // button
+		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 		return ;
 	} else if (clickItem->iSubItem == 3) {
 		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, indexTypeList, false);
@@ -301,7 +359,7 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 
-std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause()
+std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause(bool hasAutoIncrement)
 {
 	std::wostringstream ss;
 	int n = static_cast<int>(runtimeDatas.size());
@@ -316,17 +374,15 @@ std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause()
 		if (!item.name.empty()) {
 			ss << L"CONSTRAINT \"" << item.name << L"\"" << blk[0];
 		}
-		
 		if (!item.type.empty()) {
-			ss <<  item.type << L"(";
+			ss <<  StringUtil::toupper(item.type) << L"(";
 		}
-		
 		if (!item.colums.empty()) {
 			ss  <<  item.colums ;
 		}
 
-		if (item.ai) {
-			ss <<  L" AUTOINCREMENT" ;
+		if (hasAutoIncrement && item.type == indexTypeList[1]) {// indexTypeList[1] - Primary key
+			ss << L" AUTOINCREMENT";
 		}
 
 		if (!item.type.empty()) {

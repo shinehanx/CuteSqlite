@@ -21,6 +21,7 @@
 #include "TableColumnsPageAdapter.h"
 #include <sstream>
 #include <Strsafe.h>
+#include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
 
@@ -126,6 +127,117 @@ int TableColumnsPageAdapter::getSelDataType(const std::wstring & dataType)
 	return nSelItem;
 }
 
+/**
+ * Verify the auto increment has exists that item.ai has checked through search the runtimeDatas.
+ * 
+ * @param iItem
+ * @return iItem that other row index, -1 is not found
+ */
+int TableColumnsPageAdapter::verifyExistsOtherAutoIncrement(int iItem)
+{
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
+	int n = static_cast<int>(runtimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		if (i == iItem) {
+			continue;
+		}
+		auto item = runtimeDatas.at(i);
+		if (item.ai) { // The other item that it's ai state is checked will be forbidden 
+			return i;
+		}
+		
+	}
+	return -1; // not found
+}
+
+/**
+ * Verify the data type is allow auto increment in the same row.
+ * The data type must be INTEGER
+ * 
+ * @param iItem
+ * @return true - allow auto increment, otherwise not allowed
+ */
+bool TableColumnsPageAdapter::verifyDataTypeAllowAutoIncrement(int iItem)
+{
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
+	auto item = runtimeDatas.at(iItem);
+	if (item.type == dataTypeList.at(0)) { // datatypeList[0] - INTEGER;
+		return true; // 3 - Primary key's iSubItem
+	}
+	return false; // not found
+}
+
+/**
+ * Verify the primary key has checked in the same row.
+ * 
+ * @param iItem
+ * @return if found return iSubItem = 3, then return -1 that be not found
+ */
+int TableColumnsPageAdapter::verifyExistsPrimaryKeyInSameRow(int iItem)
+{
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
+	auto item = runtimeDatas.at(iItem);
+	if (item.pk) {
+		return 4; // 4 - Primary key's iSubItem
+	}
+	return -1; // not found
+}
+
+/**
+ * Valid primary key in same row .
+ * 
+ * @param iItem
+ */
+void TableColumnsPageAdapter::validPrimaryKeyInSameRow(int iItem)
+{
+	int pkSubItem = -1;
+	if ((pkSubItem = verifyExistsPrimaryKeyInSameRow(iItem)) == -1) {
+		pkSubItem = 4; // 4 - The subitem index of Primary key
+		dataView->setCheckBoxIsChecked(iItem, pkSubItem, true);
+		changeRuntimeDatasItem(iItem, pkSubItem, std::wstring(L"1"));
+		invalidateSubItem(iItem, pkSubItem);// set the ai column be checked
+	}
+}
+
+/**
+ * Invalid exists primary key in other row .
+ * 
+ * @param iItem
+ */
+void TableColumnsPageAdapter::invalidExistsPrimaryKeyInOtherRow(int iItem)
+{
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
+	int n = static_cast<int>(runtimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		if (i == iItem) {
+			continue;
+		}
+		ColumnInfo & item = runtimeDatas.at(i);
+		if (item.pk) { // The other item that it's ai state is checked will be forbidden 
+			item.pk = 0;
+			dataView->setCheckBoxIsChecked(i, 4, 0); //iSubItem = 4 - primary key
+			invalidateSubItem(i, 4);
+		}
+		
+	}
+}
+
+/**
+ * Invalid exists primary key in other row .
+ * The function for invalid primary key in same row
+ * 
+ * @param iItem
+ */
+void TableColumnsPageAdapter::invalidExistsAutoIncrementInSameRow(int iItem)
+{
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
+	ColumnInfo & item = runtimeDatas.at(iItem);
+	if (item.ai) { 
+		item.ai = 0;
+		dataView->setCheckBoxIsChecked(iItem, 5, 0); //iSubItem = 5 - auto increment
+		invalidateSubItem(iItem, 5);
+	}
+}
 
 ColumnInfo TableColumnsPageAdapter::getRuntimeData(int nItem) const 
 {
@@ -155,11 +267,46 @@ std::wstring TableColumnsPageAdapter::genderateColumnsSqlClause() const
 		if (item.un) {
 			ss << blk[0] << L"UNIQUE";
 		}
+
 		if (!item.checks.empty()) {
 			ss << blk[0] << L"CHECK(" << item.checks << L')';
 		}
 	}
 	return ss.str();
+}
+
+
+ColumnInfoList TableColumnsPageAdapter::getPrimaryKeyColumnInfoList()
+{
+	ColumnInfoList result;
+	if (runtimeDatas.empty()) {
+		return result;
+	}
+
+	for (auto item : runtimeDatas) {
+		if (item.pk) {
+			result.push_back(item);
+		}
+	}
+
+	return result;
+}
+
+
+bool TableColumnsPageAdapter::verifyExistsAutoIncrement()
+{
+	ColumnInfoList result;
+	if (runtimeDatas.empty()) {
+		return false;
+	}
+
+	for (auto item : runtimeDatas) {
+		if (item.ai) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -281,7 +428,6 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 	int nSelItem = -1;
 	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
 		nSelItems.push_back(nSelItem);
-		dataView->removeChangedValsItems(nSelItem);
 	}
 
 	if (nSelItems.empty()) {
@@ -410,12 +556,10 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 		if (clickItem->iSubItem == 2) {
 			dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, dataTypeList, true);
 		} else if (clickItem->iSubItem >= 3 && clickItem->iSubItem <= 6) {
-			bool isChecked = dataView->getCheckBoxIsChecked(clickItem->iItem, clickItem->iSubItem);
-			dataView->setCheckBoxIsChecked(clickItem->iItem, clickItem->iSubItem, !isChecked);
-			std::wstring origVal = std::to_wstring((int)isChecked);
-			std::wstring newVal = std::to_wstring((int)!isChecked);
-			changeRuntimeDatasItem(clickItem->iItem, clickItem->iSubItem, newVal);
-			invalidateSubItem(clickItem->iItem, clickItem->iSubItem);
+			dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
+			if (!changeListViewCheckBox(clickItem->iItem, clickItem->iSubItem)) {
+				return;
+			}
 		}
 		
 		return ;
@@ -423,6 +567,55 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 
 	// show the editor
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+}
+
+/**
+ * Check/uncheck the checkbox in ListView.
+ * 
+ * @param iItem
+ * @param iSubItem
+ * @return 
+ */
+bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
+{
+	bool isChecked = dataView->getCheckBoxIsChecked(iItem, iSubItem);
+
+	// verify if there is auto increment in other row
+	if (iSubItem == 4 && !isChecked) {
+		if (verifyExistsOtherAutoIncrement(iItem) != -1) {
+			return false;
+		}
+	} else if (iSubItem == 4 && isChecked) {
+		invalidExistsAutoIncrementInSameRow(iItem);
+	}
+
+	// check other row has auto increment
+	if (iSubItem == 5 && !isChecked) {
+		if (verifyExistsOtherAutoIncrement(iItem) != -1) {
+			return false;
+		}
+		// data type must INTEGER
+		if (!verifyDataTypeAllowAutoIncrement(iItem)) {
+			return false;
+		}
+		// valid primary key in same row
+		validPrimaryKeyInSameRow(iItem);
+		// invalid primary key in other row
+		invalidExistsPrimaryKeyInOtherRow(iItem);
+	}
+	dataView->setCheckBoxIsChecked(iItem, iSubItem, !isChecked);
+	std::wstring origVal = std::to_wstring((int)isChecked);
+	std::wstring newVal = std::to_wstring((int)!isChecked);
+	changeRuntimeDatasItem(iItem, iSubItem, newVal);
+	invalidateSubItem(iItem, iSubItem);
+
+	// Send this msg when changing the table index in the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
+	if (iSubItem == 4 || iSubItem == 5) {
+		AppContext::getInstance()->dispatch(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, NULL, NULL);
+	}
+	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+
+	return true;
 }
 
 /**

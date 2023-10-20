@@ -198,6 +198,7 @@ void TableStructurePage::loadSchemaComboBox()
 
 int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PREVIEW_SQL_ID);
 	bool ret = QPage::OnCreate(lpCreateStruct);
 	textFont = FT(L"form-text-size");
 	comboFont = FTB(L"combobox-size", true);
@@ -232,6 +233,7 @@ int TableStructurePage::OnDestroy()
 	if (revertButton.IsWindow()) revertButton.DestroyWindow();
 	if (sqlPreviewEdit.IsWindow()) sqlPreviewEdit.DestroyWindow();
 
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PREVIEW_SQL_ID);
 	return ret;
 }
 
@@ -251,7 +253,13 @@ void TableStructurePage::OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwn
 		return;
 	}
 	previewRuntimeSql();
+}
 
+
+LRESULT TableStructurePage::OnPreviewSql(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	previewRuntimeSql();
+	return 0;
 }
 
 HBRUSH TableStructurePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
@@ -310,6 +318,7 @@ void TableStructurePage::previewRuntimeSql()
 	if (!columnsSqlClause.empty()) {
 		runtimeSql << columnsSqlClause;
 	}
+
 	std::wstring indexesSqlClause = generateIndexesClause();
 	if (!indexesSqlClause.empty()) {
 		runtimeSql << L',' << std::endl << indexesSqlClause;
@@ -333,5 +342,6 @@ std::wstring TableStructurePage::generateColumnsClause()
 std::wstring TableStructurePage::generateIndexesClause()
 {
 	ATLASSERT(tableTabView.IsWindow());
-	return tableTabView.getTableIndexesPage().getAdapter()->genderateIndexesSqlClause();
+	bool hasAutoIncrement = tableTabView.getTableColumnsPage().getAdapter()->verifyExistsAutoIncrement();
+	return tableTabView.getTableIndexesPage().getAdapter()->genderateIndexesSqlClause(hasAutoIncrement);
 }

@@ -55,6 +55,10 @@ public:
 	ColumnInfo getRuntimeData(int nItem) const;
 
 	std::wstring genderateColumnsSqlClause() const;
+	ColumnInfoList getPrimaryKeyColumnInfoList();
+	bool verifyExistsAutoIncrement();
+
+	bool changeListViewCheckBox(int iItem, int iSubItem);
 private:
 	const static Columns headerColumns;
 	const static std::vector<int> columnSizes;
@@ -74,4 +78,14 @@ private:
 
 	bool getIsChecked(int iItem);
 	int getSelDataType(const std::wstring & dataType);
+
+	// functions for verify the primary key and auto increment 
+	int verifyExistsOtherAutoIncrement(int iItem);
+	bool verifyDataTypeAllowAutoIncrement(int iItem);
+	int verifyExistsPrimaryKeyInSameRow(int iItem);	
+	void validPrimaryKeyInSameRow(int iItem);
+	void invalidExistsPrimaryKeyInOtherRow(int iItem);
+	void invalidExistsAutoIncrementInSameRow(int iItem);
+
+	
 };

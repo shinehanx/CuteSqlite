@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "TableIndexesPage.h"
+#include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
@@ -119,9 +120,9 @@ void TableIndexesPage::loadListView()
 }
 
 int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
-	bool ret = QPage::OnCreate(lpCreateStruct);
-
+{	
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID);
+	bool ret = QPage::OnCreate(lpCreateStruct);	
 	textFont = FT(L"form-text-size");
 	return ret;
 }
@@ -138,6 +139,8 @@ int TableIndexesPage::OnDestroy()
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (adapter) delete adapter;
+
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID);
 	return ret;
 }
 
@@ -262,9 +265,18 @@ LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
 	}
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView->TableTabView->TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
 	return 0;
 }
 
+
+LRESULT TableIndexesPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	ColumnInfoList pkColumns = tblColumnsPageAdapter->getPrimaryKeyColumnInfoList();
+	adapter->changePrimaryKey(pkColumns);
+	return 0;
+}
 
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
