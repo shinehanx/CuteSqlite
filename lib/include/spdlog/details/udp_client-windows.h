@@ -15,11 +15,9 @@
 #include <stdio.h>
 #include <string>
 
-#if defined(_MSC_VER)
-#    pragma comment(lib, "Ws2_32.lib")
-#    pragma comment(lib, "Mswsock.lib")
-#    pragma comment(lib, "AdvApi32.lib")
-#endif
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
+#pragma comment(lib, "AdvApi32.lib")
 
 namespace spdlog {
 namespace details {
@@ -27,7 +25,7 @@ class udp_client
 {
     static constexpr int TX_BUFFER_SIZE = 1024 * 10;
     SOCKET socket_ = INVALID_SOCKET;
-    sockaddr_in addr_ = {};
+    sockaddr_in addr_ = {0};
 
     static void init_winsock_()
     {

@@ -315,26 +315,6 @@ std::wstring ResultListPageAdapter::buildRungtimeSqlWithFilters()
 	return newSql;
 }
 
-
-
-void ResultListPageAdapter::changeSelectAllItems()
-{
-	CHeaderCtrl headerCtrl = dataView->GetHeader();
-
-	HDITEM headerItem;
-	headerItem.mask = HDI_IMAGE;
-	headerCtrl.GetItem(0, &headerItem);
-	if (headerItem.iImage == 1) {
-		headerItem.iImage = 0;
-		dataView->SelectAllItems(false);
-	} else {
-		headerItem.iImage = 1;
-		dataView->SelectAllItems(true);
-	}
-	headerItem.fmt = HDF_LEFT;
-	headerCtrl.SetItem(0, &headerItem);
-}
-
 RowItem ResultListPageAdapter::getFirstSelectdRowItem()
 {
 	if (!dataView->GetSelectedCount()) {

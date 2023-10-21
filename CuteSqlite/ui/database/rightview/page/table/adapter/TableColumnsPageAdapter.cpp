@@ -326,7 +326,7 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		return 0;
 
 	// set checked/unchecked image in the first column	
-	if (pLvdi->item.iSubItem == 0 && pLvdi->item.mask & LVIF_TEXT) {
+	if (pLvdi->item.iSubItem == 0 && pLvdi->item.mask & LVIF_TEXT) { // row checkBox - 0
 		pLvdi->item.mask = LVIF_IMAGE;
 		pLvdi->item.iIndent = 1;
 		if (getIsChecked(pLvdi->item.iItem)) { 
@@ -342,24 +342,24 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		return 0;
 	} else if (pLvdi->item.iSubItem >= 3 && pLvdi->item.iSubItem <= 6 && (pLvdi->item.mask & LVIF_TEXT)) {
 		uint8_t val = 0;
-		if (pLvdi->item.iSubItem == 3) {
+		if (pLvdi->item.iSubItem == 3) { // notnull - 3
 			val = runtimeDatas.at(pLvdi->item.iItem).notnull;
-		} else if (pLvdi->item.iSubItem == 4) {
+		} else if (pLvdi->item.iSubItem == 4) { // primary key - 4
 			val = runtimeDatas.at(pLvdi->item.iItem).pk;
-		} else if (pLvdi->item.iSubItem == 5) {
+		} else if (pLvdi->item.iSubItem == 5) { // auto increment - 5
 			val = runtimeDatas.at(pLvdi->item.iItem).ai;
-		} else if (pLvdi->item.iSubItem == 6) {
+		} else if (pLvdi->item.iSubItem == 6) { // unique - 6
 			val = runtimeDatas.at(pLvdi->item.iItem).un;
 		}
 		dataView->createCheckBox(iItem, pLvdi->item.iSubItem, val);
 		return 0;
-	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name
+	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name - 1
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-	} else if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT){ // default value
+	} else if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT){ // default value - 7
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).defVal;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-	} else if (pLvdi->item.iSubItem == 8 && pLvdi->item.mask & LVIF_TEXT){ // check 
+	} else if (pLvdi->item.iSubItem == 8 && pLvdi->item.mask & LVIF_TEXT){ // check - 8
 		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).checks;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
@@ -586,6 +586,7 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
 			return false;
 		}
 	} else if (iSubItem == 4 && isChecked) {
+		// invalid auto increment in same row
 		invalidExistsAutoIncrementInSameRow(iItem);
 	}
 

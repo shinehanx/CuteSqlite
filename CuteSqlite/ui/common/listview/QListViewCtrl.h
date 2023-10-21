@@ -62,7 +62,10 @@ public:
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
+		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_CHANGE, OnSubItemEditChange)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID, CBN_KILLFOCUS, OnSubItemComboBoxKillFocus)
+		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID, CBN_EDITCHANGE, OnSubItemComboBoxEditChange)
+		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID, CBN_SELCHANGE, OnSubItemComboBoxSelChange)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -110,7 +113,9 @@ public:
 
 	void setItemHeight(int height);
 	void activeSubItem(int iItem, int iSubItem);
-public:
+
+	void changeAllItemsCheckState();
+
 	// owner draw, must set the ListView style with LVS_OWNERDRAWFIXED
 	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
@@ -173,11 +178,16 @@ private:
 	void pressedTabToMoveEditor();
 	void pressedShiftTabToMoveEditor();
 	void pressedSpaceToCheckbox();
+	void pressedUpToMoveEditor();
+	void pressedDownToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnSubItemEditChange(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnSubItemComboBoxKillFocus(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnSubItemComboBoxEditChange(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnSubItemComboBoxSelChange(UINT uNotifyCode, int nID, HWND hwnd);
 		
 	void OnDestroy();
 	void OnSize(UINT nType, CSize size);
@@ -186,9 +196,9 @@ private:
 	void destroyComboBox();
 	void destroyEditor();
 	void destroySubItemElems();
+	void checkedAllItems();
 
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
-
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);

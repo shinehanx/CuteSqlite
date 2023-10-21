@@ -156,7 +156,7 @@ struct formatter<spdlog::details::dump_info<T>, char>
 
     // format the given bytes range as hex
     template<typename FormatContext, typename Container>
-    auto format(const spdlog::details::dump_info<Container> &the_range, FormatContext &ctx) const -> decltype(ctx.out())
+    auto format(const spdlog::details::dump_info<Container> &the_range, FormatContext &ctx) -> decltype(ctx.out())
     {
         SPDLOG_CONSTEXPR const char *hex_upper = "0123456789ABCDEF";
         SPDLOG_CONSTEXPR const char *hex_lower = "0123456789abcdef";
@@ -196,7 +196,7 @@ struct formatter<spdlog::details::dump_info<T>, char>
                 continue;
             }
 
-            if (put_delimiters && i != the_range.get_begin())
+            if (put_delimiters)
             {
                 *inserter++ = delimiter;
             }
@@ -232,7 +232,7 @@ struct formatter<spdlog::details::dump_info<T>, char>
 
     // put newline(and position header)
     template<typename It>
-    void put_newline(It inserter, std::size_t pos) const
+    void put_newline(It inserter, std::size_t pos)
     {
 #ifdef _WIN32
         *inserter++ = '\r';

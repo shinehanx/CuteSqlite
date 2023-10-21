@@ -41,7 +41,24 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 		} else { 
 			pressedTabToMoveEditor(); // no press shift
 		}		
-	} else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_SPACE) { // press space on ListView  
+	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemEdit  
+		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemComboBox  
+		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) ) { // press up on ListView  		
+		pressedUpToMoveEditor();		
+	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemEdit  
+		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemComboBox  
+		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) ) { // press down on ListView  		
+		pressedDownToMoveEditor();
+		
+	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemEdit  
+		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemComboBox  
+		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) ) { // press left on ListView  		
+		pressedShiftTabToMoveEditor();	// left == shift + tab	
+	}else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) // press right on subItemEdit  
+		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) // press right on subItemComboBox  
+		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) ) { // press right on ListView  		
+		pressedTabToMoveEditor();	// left == shift + tab	
+	}  else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_SPACE) { // press space on ListView  
 		pressedSpaceToCheckbox();
 	} else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) { // mouse wheel
 		changeSubItemText();
@@ -335,6 +352,7 @@ void QListViewCtrl::changeSubItemText()
 
 		subItemEdit.DestroyWindow();
 		isVisibleEdit = false;
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 	} else if (isVisibleComboBox && subItemComboBox.IsWindow()) {
 		CString text;
 		subItemComboBox.GetWindowText(text);
@@ -358,9 +376,8 @@ void QListViewCtrl::changeSubItemText()
 		setChangeVal(subItemVal);
 		subItemComboBox.DestroyWindow();
 		isVisibleComboBox = false;
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 	}
-
-	::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 }
 void QListViewCtrl::setItemHeight(int height)
 {
@@ -385,6 +402,40 @@ void QListViewCtrl::activeSubItem(int iItem, int iSubItem)
 	GetSubItemRect(activeSubItemPos.first, activeSubItemPos.second, LVIR_BOUNDS, activeSubItemRect);
 	InvalidateRect(oldSubItemRect);
 	InvalidateRect(activeSubItemRect);
+}
+
+/**
+ * Set all item checked state in the header first column.
+ * if selected all then set image = 1(checked), otherwise set image=0(unchecked).
+ * 
+ */
+void QListViewCtrl::changeAllItemsCheckState()
+{
+	CHeaderCtrl headerCtrl = GetHeader();
+	HDITEM headerItem;
+	headerItem.mask = HDI_IMAGE;
+	headerCtrl.GetItem(0, &headerItem);
+
+	// rows count equal selected rows count
+	bool checkAll = GetItemCount() == GetSelectedCount();
+
+	if (checkAll) {		
+		if (headerItem.iImage == 1) {
+			return ;
+		}
+		headerItem.iImage = 1;
+	} else {
+		if (headerItem.iImage == 0) {
+			return ;
+		}
+		headerItem.iImage = 0;
+	}
+
+	headerItem.fmt = HDF_LEFT | HDF_IMAGE;
+	bool ret = headerCtrl.SetItem(0, &headerItem);
+	CRect rect;
+	headerCtrl.GetItemRect(0, rect);
+	headerCtrl.InvalidateRect(rect, true);
 }
 
 void QListViewCtrl::setChangeVal(SubItemValue &subItemVal)
@@ -420,6 +471,10 @@ void QListViewCtrl::createOrShowSubItemEdit(CEdit & win, std::wstring & text, CR
 	win.SetFocus();
 }
 
+/**
+ * Press Tab key will be active next subitem.
+ * 
+ */
 void QListViewCtrl::pressedTabToMoveEditor()
 {
 	changeSubItemText();
@@ -434,6 +489,7 @@ void QListViewCtrl::pressedTabToMoveEditor()
 		iItem = activeSubItemPos.first + 1;
 		iSubItem = 1;
 		SelectItem(iItem);
+		changeAllItemsCheckState();
 		createOrShowEditor(iItem, iSubItem);
 		return;
 	}
@@ -457,6 +513,10 @@ void QListViewCtrl::pressedTabToMoveEditor()
 	createOrShowEditor(iItem, iSubItem);
 }
 
+/**
+ * Press Shift + Tab will be active prev subitem.
+ * 
+ */
 void QListViewCtrl::pressedShiftTabToMoveEditor()
 {
 	changeSubItemText();
@@ -500,6 +560,64 @@ void QListViewCtrl::pressedSpaceToCheckbox()
 		WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 }
 
+void QListViewCtrl::pressedUpToMoveEditor()
+{
+	changeSubItemText();
+	int columnCount = GetHeader().GetItemCount();
+	int rowCount = GetItemCount();
+	if (activeSubItemPos.first <= 0 && activeSubItemPos.second <= 0) {
+		return;
+	}
+
+	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
+	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
+	if (iItem >= 0 && iSubItem > 0) {
+		iItem--;
+	}
+	
+	std::pair<int, int> findPair({ iItem, iSubItem });
+	SubItemComboBoxMap::iterator comboBoxIter;
+	SubItemCheckBoxMap::iterator checkBoxIter;
+	SubItemButtonMap::iterator buttonIter;
+	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
+	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
+		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
+		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
+		activeSubItem(iItem, iSubItem);
+		return ;
+	} 
+	createOrShowEditor(iItem, iSubItem);
+}
+
+void QListViewCtrl::pressedDownToMoveEditor()
+{
+	changeSubItemText();
+	int columnCount = GetHeader().GetItemCount();
+	int rowCount = GetItemCount();
+	if (activeSubItemPos.first >= rowCount - 1 || activeSubItemPos.second <= 0) {
+		return;
+	}
+
+	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
+	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
+	if (iItem >= 0 && iItem < rowCount - 1 && iSubItem > 0) {
+		iItem++;
+	}
+	
+	std::pair<int, int> findPair({ iItem, iSubItem });
+	SubItemComboBoxMap::iterator comboBoxIter;
+	SubItemCheckBoxMap::iterator checkBoxIter;
+	SubItemButtonMap::iterator buttonIter;
+	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
+	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
+		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
+		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
+		activeSubItem(iItem, iSubItem);
+		return ;
+	} 
+	createOrShowEditor(iItem, iSubItem);
+}
+
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {	 
 	changeSubItemText();	
@@ -522,9 +640,95 @@ LRESULT QListViewCtrl::OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hw
 }
 
 
+LRESULT QListViewCtrl::OnSubItemEditChange(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (isVisibleEdit && subItemEdit.IsWindow()) {	
+		SubItemValue subItemVal;
+		CString text;
+		subItemEdit.GetWindowText(text);		
+		wchar_t * cch = nullptr;
+		GetItemText(activeSubItemPos.first, activeSubItemPos.second, cch);
+		subItemVal.iItem = activeSubItemPos.first;
+		subItemVal.iSubItem = activeSubItemPos.second;
+		if (cch) {
+			subItemVal.origVal.assign(cch);
+			::SysFreeString(cch);
+		}
+		subItemVal.newVal = text;
+		// it will be return when original text equals new text
+		if (subItemVal.origVal == subItemVal.newVal) {
+			return 0;
+		}
+
+		setChangeVal(subItemVal);
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
+	}
+	return 0; 
+}
+
 LRESULT QListViewCtrl::OnSubItemComboBoxKillFocus(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	changeSubItemText();
+	return 0;
+}
+
+LRESULT QListViewCtrl::OnSubItemComboBoxEditChange(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	SubItemValue subItemVal;
+	if (isVisibleComboBox && subItemComboBox.IsWindow()) {
+		CString text;
+		subItemComboBox.GetWindowText(text);
+		wchar_t * cch = nullptr;
+		GetItemText(activeSubItemPos.first, activeSubItemPos.second, cch);
+		
+		subItemVal.iItem = activeSubItemPos.first;
+		subItemVal.iSubItem = activeSubItemPos.second;
+		if (cch) {
+			subItemVal.origVal.assign(cch);
+			::SysFreeString(cch);
+		}
+		subItemVal.newVal = text;
+		// it will be return when original text equals new text
+		if (subItemVal.origVal == subItemVal.newVal) {
+			return 0;
+		}
+
+		setChangeVal(subItemVal);
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
+	}
+	return 0;
+}
+
+LRESULT QListViewCtrl::OnSubItemComboBoxSelChange(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	SubItemValue subItemVal;
+	if (isVisibleComboBox && subItemComboBox.IsWindow()) {
+		wchar_t * cch = nullptr;
+		GetItemText(activeSubItemPos.first, activeSubItemPos.second, cch);
+		
+		subItemVal.iItem = activeSubItemPos.first;
+		subItemVal.iSubItem = activeSubItemPos.second;
+		if (cch) {
+			subItemVal.origVal.assign(cch);
+			::SysFreeString(cch);
+		}
+		subItemVal.iItem = activeSubItemPos.first;
+		subItemVal.iSubItem = activeSubItemPos.second;
+		int nSelItem = subItemComboBox.GetCurSel();
+		cch = nullptr;
+		bool ret = subItemComboBox.GetLBTextBSTR(nSelItem,cch);
+		if (ret && cch) {
+			subItemVal.newVal.assign(cch);
+			::SysFreeString(cch);
+		}
+		// it will be return when original text equals new text
+		if (subItemVal.origVal == subItemVal.newVal) {
+			return 0;
+		}
+
+		setChangeVal(subItemVal);
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
+	}
 	return 0;
 }
 
@@ -958,6 +1162,9 @@ LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)
 
 		NMHEADER * pNMHeader = (NMHEADER *)pnmh;
 		if (pNMHeader->iItem >= 0) {
+			if (pNMHeader->iItem == 0) { // SELECT ALL
+				checkedAllItems();
+			}
 			::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_COLUMN_CLICK_ID, WPARAM(pNMHeader->iItem), LPARAM(pNMHeader));
 			return 0;
 		}
@@ -966,6 +1173,25 @@ LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)
 	return 0;
 }
 
+
+void QListViewCtrl::checkedAllItems()
+{
+	CHeaderCtrl headerCtrl = GetHeader();
+
+	HDITEM headerItem;
+	headerItem.mask = HDI_IMAGE;
+	headerCtrl.GetItem(0, &headerItem);
+	if (headerItem.iImage == 1) {
+		headerItem.iImage = 0;
+		SelectAllItems(false);
+	}
+	else {
+		headerItem.iImage = 1;
+		SelectAllItems(true);
+	}
+	headerItem.fmt = HDF_LEFT;
+	headerCtrl.SetItem(0, &headerItem);
+}
 
 void QListViewCtrl::destroyComboBox()
 {
@@ -1157,7 +1383,7 @@ void QListViewCtrl::drawSubItems(CDC & mdc,  LPDRAWITEMSTRUCT lpDrawItemStruct)
 		lvi.iSubItem = iSubItem; // lvi.iItem：指定行数，lvi.iSubItem指定列数
 		GetItem(&lvi); // 把原始的格子的结构体数据提取出来，参数指定第几行
 
-		CRect rcText(rcSubItem.left - hOffset, 0, rcSubItem.right - hOffset, rcSubItem.Height());  //相对于内存dc的item rect
+		CRect rcText(rcSubItem.left - hOffset + 1, 0, rcSubItem.right - hOffset, rcSubItem.Height() - 1);  //相对于内存dc的item rect
 		
 
 		// draw the CheckBox of first column
@@ -1229,7 +1455,9 @@ void QListViewCtrl::drawTextInSubItem(CDC & mdc, int iItem, int iSubItem,  CRect
 	
 	if (iSubItem > 0 && activeSubItemPos.first == iItem && activeSubItemPos.second == iSubItem) {
 		HPEN oldPen = mdc.SelectPen(selSubItemBorderPen);
+		HBRUSH oldBrush = mdc.SelectStockBrush(WHITE_BRUSH);
 		mdc.Rectangle(rcText);
+		mdc.SelectBrush(oldBrush);
 		mdc.SelectPen(oldPen);
 	}
 
@@ -1280,21 +1508,24 @@ void QListViewCtrl::drawCheckBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItem
 		return;
 	}
 
+	CRect borderRect = { rcText.left, rcText.top , rcText.right , rcText.bottom  };
+	if (activeSubItemPos.first == checkBoxIter->first.first && activeSubItemPos.second == checkBoxIter->first.second) {
+		HPEN oldPen = mdc.SelectPen(selSubItemBorderPen);
+		HBRUSH oldBrush  = mdc.SelectStockBrush(WHITE_BRUSH);		
+		mdc.Rectangle(borderRect);
+		mdc.SelectBrush(oldBrush);
+		mdc.SelectPen(oldPen);
+	}
+
 	int x = rcText.left + (rcText.Width() - 14) / 2, y = rcText.top + (rcText.Height() - 14) / 2,
 		w = 14, h = 14;
 	CRect rect(x, y, x + w, y + h);	
 	
 	// 画方框
 	rect.DeflateRect(1, 1, 1, 1); //减一像素
-	mdc.FillRect(rect, bkgBrush);
-
+	mdc.FillRect(rect, bkgBrush); // 用背景色画刷先涂抹掉原来的画面
 	rect.InflateRect(1, 1, 1, 1);//增一像素
-	if (activeSubItemPos.first == checkBoxIter->first.first && activeSubItemPos.second == checkBoxIter->first.second) {
-		HPEN oldPen = mdc.SelectPen(selSubItemBorderPen);
-		CRect borderRect = { rcText.left - 1, rcText.top - 1, rcText.right - 1, rcText.bottom - 1 };
-		mdc.Rectangle(borderRect);
-		mdc.SelectPen(oldPen);
-	}
+	
 	HPEN oldPen = mdc.SelectPen(chkBorderPen);
 	mdc.FrameRect(rect, chkBrush); // 外框
 
@@ -1375,13 +1606,14 @@ void QListViewCtrl::createOrShowComboBox(int iItem, int iSubItem, const std::vec
 void QListViewCtrl::createOrShowSubItemComboBox(CComboBox & win, CRect & rect, bool allowEdit)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS ; 
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS | CBS_AUTOHSCROLL; 
 		if (allowEdit) {
 			dwStyle = dwStyle | CBS_DROPDOWN;
 		} else {
 			dwStyle = dwStyle | CBS_DROPDOWNLIST;
 		}
 		win.Create(m_hWnd, rect, L"", dwStyle , WS_EX_CLIENTEDGE, Config::QLISTVIEWCTRL_SUBITEM_COMBOBOX_ID);
+		
 		win.BringWindowToTop();
 	} else if (::IsWindow(m_hWnd) && win.IsWindow()) {
 		win.MoveWindow(&rect);

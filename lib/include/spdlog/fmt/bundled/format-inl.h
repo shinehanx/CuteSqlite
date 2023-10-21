@@ -1151,7 +1151,7 @@ bool is_left_endpoint_integer_shorter_interval(int exponent) noexcept {
 FMT_INLINE int remove_trailing_zeros(uint32_t& n) noexcept {
   FMT_ASSERT(n != 0, "");
   const uint32_t mod_inv_5 = 0xcccccccd;
-  const uint32_t mod_inv_25 = mod_inv_5 * mod_inv_5;
+  const uint32_t mod_inv_25 =  uint32_t(uint64_t(mod_inv_5) * mod_inv_5);
 
   int s = 0;
   while (true) {
@@ -1183,7 +1183,7 @@ FMT_INLINE int remove_trailing_zeros(uint64_t& n) noexcept {
     auto n32 = static_cast<uint32_t>(nm.high() >> (90 - 64));
 
     const uint32_t mod_inv_5 = 0xcccccccd;
-    const uint32_t mod_inv_25 = mod_inv_5 * mod_inv_5;
+    const uint32_t mod_inv_25 =  uint32_t(uint64_t(mod_inv_5) * mod_inv_5);
 
     int s = 8;
     while (true) {
@@ -1204,7 +1204,7 @@ FMT_INLINE int remove_trailing_zeros(uint64_t& n) noexcept {
 
   // If n is not divisible by 10^8, work with n itself.
   const uint64_t mod_inv_5 = 0xcccccccccccccccd;
-  const uint64_t mod_inv_25 = mod_inv_5 * mod_inv_5;
+  const uint64_t mod_inv_25 =  static_cast<uint64_t>(static_cast<uint64_t>(mod_inv_5) * mod_inv_5);
 
   int s = 0;
   while (true) {

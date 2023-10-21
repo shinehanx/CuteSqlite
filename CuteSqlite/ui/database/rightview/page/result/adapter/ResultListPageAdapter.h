@@ -58,8 +58,6 @@ public:
 	// virtual list data load
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
-	void changeSelectAllItems();
-
 	RowItem getFirstSelectdRowItem();
 	int getFirstSelectdIndex();
 	DataList getSelectedDatas();

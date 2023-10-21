@@ -485,11 +485,12 @@ int ResultListPage::OnDestroy()
 LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto ptr = (LPNMITEMACTIVATE)pnmh;
-	bool checked = isShowFormView();
-	if (checked) {
+	bool checkedFormView = isShowFormView();
+	if (checkedFormView) {
 		formView.loadFormData(formViewReadOnly);
 	}
-
+	
+	listView.changeAllItemsCheckState();
 	return 0;
 }
 
@@ -551,8 +552,7 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
 	// Refrence url:https://learn.microsoft.com/zh-cn/windows/win32/controls/lvn-columnclick
 	if (headerPtr->iSubItem  != 0) {
 		return 0;
-	}
-	adapter->changeSelectAllItems();	
+	}	
 	return 0;
 }
 
@@ -567,10 +567,6 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
  */
 LRESULT ResultListPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (wParam == 0) {
-		adapter->changeSelectAllItems();
-	}
-	
 	return 0;
 }
 /**

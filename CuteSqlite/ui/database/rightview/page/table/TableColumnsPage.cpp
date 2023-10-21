@@ -192,6 +192,7 @@ LRESULT TableColumnsPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	adapter->clickListViewSubItem(aItem);
+	listView.changeAllItemsCheckState();
 	return 0;
 }
 

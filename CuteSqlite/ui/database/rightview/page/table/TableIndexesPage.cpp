@@ -205,6 +205,7 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 		return 0;
 	}
 	adapter->clickListViewSubItem(clickItem);
+	listView.changeAllItemsCheckState();
 	return 0;
 }
 

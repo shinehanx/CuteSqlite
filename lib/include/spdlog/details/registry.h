@@ -91,8 +91,6 @@ public:
 
     static registry &instance();
 
-    void apply_logger_env_levels(std::shared_ptr<logger> new_logger);
-
 private:
     registry();
     ~registry();
