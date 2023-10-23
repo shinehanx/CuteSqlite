@@ -20,20 +20,17 @@
 #include "stdafx.h"
 #include "TableIndexesPageAdapter.h"
 #include <Strsafe.h>
+#include <stack>
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
 #include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
 
-const Columns TableIndexesPageAdapter::headerColumns = { S(L"index-name"), S(L"columns"), S(L"index-type"), L"SQL"};
-const std::vector<int> TableIndexesPageAdapter::columnSizes = { 150, 150, 150, 200 };
-const std::vector<int> TableIndexesPageAdapter::columnFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT };
-const std::vector<std::wstring> TableIndexesPageAdapter::indexTypeList = {L"Unique", L"Primary Key", L"Foreign Key",  L"Check"};
-
-TableIndexesPageAdapter::TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType operateType /*= NEW_TABLE*/)
+TableIndexesPageAdapter::TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
+	ATLASSERT(parentHwnd && listView && supplier);
 	this->parentHwnd = parentHwnd;
 	this->dataView = listView;
-	this->operateType = operateType;
+	this->supplier = supplier;
 }
 
 TableIndexesPageAdapter::~TableIndexesPageAdapter()
@@ -57,11 +54,11 @@ void TableIndexesPageAdapter::loadHeadersForListView()
 {
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 26, -1, 0);
 	
-	int n = static_cast<int>(headerColumns.size());
+	int n = static_cast<int>(TableStructureSupplier::idxHeadColumns.size());
 	for (int i = 0; i < n; i++) {
-		auto column = headerColumns.at(i);
-		auto size = columnSizes.at(i);
-		auto format = columnFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
+		auto column = TableStructureSupplier::idxHeadColumns.at(i);
+		auto size = TableStructureSupplier::idxHeadSizes.at(i);
+		auto format = TableStructureSupplier::idxHeadFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
 
 		dataView->InsertColumn(i+1, column.c_str(), format, size);
 	}
@@ -72,11 +69,13 @@ int TableIndexesPageAdapter::loadEmptyRowsForListView()
 	
 		IndexInfo index1, index2;
 		index1.colums = L"id"; // todo..., remove debug 
-		index1.type = indexTypeList.at(1); //type : Primary
-		runtimeDatas.push_back(index1);
+		index1.type = TableStructureSupplier::idxTypeList.at(1); //type : Primary
+		index1.seq = std::chrono::system_clock::now(); // seq = current time 
+		supplier->getIdxRuntimeDatas().push_back(index1);
 		index2.colums = L"id,name,created_at,updated_at"; //type : Unique
-		index2.type = indexTypeList.at(0); //type : Unique
-		runtimeDatas.push_back(index2);
+		index2.type = TableStructureSupplier::idxTypeList.at(0); //type : Unique
+		index2.seq = std::chrono::system_clock::now(); // seq = current time 
+		supplier->getIdxRuntimeDatas().push_back(index2);
 	
 	dataView->SetItemCount(2);
 	return 1;
@@ -85,8 +84,8 @@ int TableIndexesPageAdapter::loadEmptyRowsForListView()
 
 int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
 {
-	runtimeDatas = databaseService->getIndexInfoList(userDbId, tblName);
-	int n = static_cast<int>(runtimeDatas.size());
+	supplier->setIdxRuntimeDatas(databaseService->getIndexInfoList(userDbId, tblName));
+	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
 }
@@ -118,9 +117,9 @@ bool TableIndexesPageAdapter::getIsChecked(int iItem)
 int TableIndexesPageAdapter::getSelIndexType(const std::wstring & dataType)
 {
 	int nSelItem = 0;
-	int n = static_cast<int>(indexTypeList.size());
+	int n = static_cast<int>(TableStructureSupplier::idxTypeList.size());
 	for (int i = 0; i < n; i++) {
-		if (dataType == indexTypeList.at(i)) {
+		if (dataType == TableStructureSupplier::idxTypeList.at(i)) {
 			nSelItem = i;
 			break;
 		}
@@ -131,11 +130,11 @@ int TableIndexesPageAdapter::getSelIndexType(const std::wstring & dataType)
 
 void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 {
-	int n = static_cast<int>(runtimeDatas.size());
+	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	std::vector<int> nSelItems;
 	for (int i = 0; i < n; i++) {
-		auto item = runtimeDatas.at(i);
-		if (item.type == indexTypeList.at(1)) { // indexTypeList[1] : primary key
+		auto item = supplier->getIdxRuntimeDatas().at(i);
+		if (item.type == TableStructureSupplier::idxTypeList.at(1)) { // indexTypeList[1] : primary key
 			nSelItems.push_back(i);
 		}
 	}
@@ -150,7 +149,7 @@ void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 
 	// Generate columns string, such as "id,name,..."
 	IndexInfo row;
-	row.type = indexTypeList.at(1);// indexTypeList[1] : primary key
+	row.type = TableStructureSupplier::idxTypeList.at(1);// indexTypeList[1] : primary key
 	int nCols = static_cast<int>(pkColumns.size());
 	for (int i = 0; i < nCols; i++) {
 		if (i > 0) {
@@ -162,14 +161,14 @@ void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 
 	// insert/or modify the primary key row to ListView
 	if (nSelItems.empty()) {
-		runtimeDatas.insert(runtimeDatas.begin(), row); // insert to the first
+		supplier->getIdxRuntimeDatas().insert(supplier->getIdxRuntimeDatas().begin(), row); // insert to the first
 	} else {
-		runtimeDatas.at(nSelItems.at(0)).colums = row.colums; // modify colums string
+		supplier->getIdxRuntimeDatas().at(nSelItems.at(0)).colums = row.colums; // modify colums string
 		invalidateSubItem(nSelItems.at(0), 1); // 2th param = 1 - primary key
 	}
 
 	// update the item count and selected the new row	
-	n = static_cast<int>(runtimeDatas.size());
+	n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 }
 
@@ -185,7 +184,7 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	if (-1 == iItem)
 		return 0;
 
-	auto count = static_cast<int>(runtimeDatas.size());
+	auto count = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	if (!count || count <= iItem)
 		return 0;
 
@@ -201,19 +200,19 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		
 		return 0;
 	} else  if (pLvdi->item.iSubItem == 3 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).type;
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).type;
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);		
 		return 0;
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).name;	
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	} else if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT){ // default value
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).colums;	
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).colums;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
 	} else if (pLvdi->item.iSubItem == 4 && pLvdi->item.mask & LVIF_TEXT){ // check 
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).sql;
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).sql;
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
 
@@ -224,6 +223,7 @@ void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, st
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
+	auto & runtimeDatas = supplier->getIdxRuntimeDatas();
 	if (iSubItem == 1) { // column name
 		runtimeDatas[iItem].name = newText;
 	} else if (iSubItem == 2) { // columns
@@ -255,10 +255,10 @@ void TableIndexesPageAdapter::createNewIndex()
 	// 1.create a empty row and push it to runtimeDatas list
 	IndexInfo row;
 	row.name = L"";
-	runtimeDatas.push_back(row);
+	supplier->getIdxRuntimeDatas().push_back(row);
 
 	// 2.update the item count and selected the new row	
-	int n = static_cast<int>(runtimeDatas.size());
+	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 
 }
@@ -287,13 +287,13 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto iter = runtimeDatas.begin();
+		auto iter = supplier->getIdxRuntimeDatas().begin();
 		for (int j = 0; j < nSelItem; j++) {
 			iter++;
 		}
 
 		// 2.1 delete row from runtimeDatas vector 
-		runtimeDatas.erase(iter);
+		supplier->getIdxRuntimeDatas().erase(iter);
 
 		// 2.2 delete row from dataView
 		dataView->RemoveItem(nSelItem);
@@ -305,32 +305,93 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 
 void TableIndexesPageAdapter::removeSelectedItem(int nSelItem)
 {
-	auto iter = runtimeDatas.begin();
+	auto iter = supplier->getIdxRuntimeDatas().begin();
 	for (int j = 0; j < nSelItem; j++) {
 		iter++;
 	}
 
 	// 1 delete row from runtimeDatas vector 
-	runtimeDatas.erase(iter);
+	supplier->getIdxRuntimeDatas().erase(iter);
 
 	// 2 delete row from dataView
 	dataView->RemoveItem(nSelItem);
 }
 
+
+/**
+ * change columns value in listView of TableIndexesPage when TableColumnsPage changing column name.
+ * 
+ * @param oldColumnName
+ * @param newColumnName
+ */
+void TableIndexesPageAdapter::changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName)
+{
+	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
+	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
+	int n = static_cast<int>(indexes.size());
+	for (int i = 0; i < n; i++) {
+		auto & item = indexes.at(i);
+		auto columns = StringUtil::split(item.colums, L",");
+		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
+		if (iter == columns.end()) {
+			continue;
+		}
+		(*iter) = newColumnName;
+		item.colums = StringUtil::implode(columns, L",");
+		invalidateSubItem(i, 2); // 2 - columns 
+	}
+}
+
+
+void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnName)
+{
+	ATLASSERT(!columnName.empty());
+	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
+
+	int n = static_cast<int>(indexes.size());
+	std::stack<int> delItemStack;
+	for (int i = 0; i < n; i++) {
+		auto & item = indexes.at(i);
+		auto columns = StringUtil::split(item.colums, L",");
+		auto iter = std::find(columns.begin(), columns.end(), columnName);
+		if (iter == columns.end()) {
+			continue;
+		}
+		columns.erase(iter);
+		if (columns.empty()) {
+			delItemStack.push(i);
+		}
+		item.colums = StringUtil::implode(columns, L","); 
+		invalidateSubItem(i, 2); // 2 - columns 
+	}
+	
+	while (!delItemStack.empty()) {
+		int nSelItem = delItemStack.top();
+		delItemStack.pop();
+
+		removeSelectedItem(nSelItem);
+	}
+}
+
+std::wstring TableIndexesPageAdapter::genderateAlterIndexesSqlClause(bool hasAutoIncrement)
+{
+	throw std::logic_error("The method or operation is not implemented.");
+}
+
 std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
-	if (runtimeDatas.empty()) {
+	if (supplier->getIdxRuntimeDatas().empty()) {
 		return L"";
 	}
 	if (iSubItem == 1) {
-		return runtimeDatas.at(iItem).name;
+		return supplier->getIdxRuntimeDatas().at(iItem).name;
 	} else if (iSubItem == 2) {
-		return runtimeDatas.at(iItem).colums;
+		return supplier->getIdxRuntimeDatas().at(iItem).colums;
 	} else if (iSubItem == 3) {
-		return runtimeDatas.at(iItem).type;
+		return supplier->getIdxRuntimeDatas().at(iItem).type;
 	} else if (iSubItem == 4) {
-		return runtimeDatas.at(iItem).sql;
+		return supplier->getIdxRuntimeDatas().at(iItem).sql;
 	}
 	return L"";
 }
@@ -351,7 +412,7 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 		return ;
 	} else if (clickItem->iSubItem == 3) {
-		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, indexTypeList, false);
+		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, TableStructureSupplier::idxTypeList, false);
 		return ;	
 	}
 
@@ -359,17 +420,17 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 
-std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause(bool hasAutoIncrement)
+std::wstring TableIndexesPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
 {
 	std::wostringstream ss;
-	int n = static_cast<int>(runtimeDatas.size());
+	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	wchar_t blk[5] = { 0 };
 	wmemset(blk, 0x20, 4); // 4 blank chars
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
 			ss << L',' << std::endl;
 		}
-		auto item = runtimeDatas.at(i);
+		auto item = supplier->getIdxRuntimeDatas().at(i);
 		ss << blk;
 		if (!item.name.empty()) {
 			ss << L"CONSTRAINT \"" << item.name << L"\"" << blk[0];
@@ -381,7 +442,7 @@ std::wstring TableIndexesPageAdapter::genderateIndexesSqlClause(bool hasAutoIncr
 			ss  <<  item.colums ;
 		}
 
-		if (hasAutoIncrement && item.type == indexTypeList[1]) {// indexTypeList[1] - Primary key
+		if (hasAutoIncrement && item.type == TableStructureSupplier::idxTypeList[1]) {// idxTypeList[1] - Primary key
 			ss << L" AUTOINCREMENT";
 		}
 

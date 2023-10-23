@@ -91,7 +91,7 @@ public:
 	void createButton(int iItem, int iSubItem, const std::wstring & text);
 	
 
-	SubItemValues getChangedVals();
+	const SubItemValues & getChangedVals() ;
 	int getChangedCount();
 	SubItemValues getRowChangedVals(int iItem);
 	void setChangedVals(SubItemValues & changeVals);
@@ -178,8 +178,8 @@ private:
 	void pressedTabToMoveEditor();
 	void pressedShiftTabToMoveEditor();
 	void pressedSpaceToCheckbox();
-	void pressedUpToMoveEditor();
-	void pressedDownToMoveEditor();
+	bool pressedUpToMoveEditor();
+	bool pressedDownToMoveEditor();
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

@@ -45,29 +45,29 @@ public:
 
 	// user table operations
 	UserTableList getUserTables(uint64_t userDbId);
-	UserTable getUserTable(uint64_t userDbId, const std::wstring & tblName);
+	UserTable getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
 	// user table operations
-	UserTableStrings getUserTableStrings(uint64_t userDbId);
+	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
 
 	// user views operations
-	UserViewList getUserViews(uint64_t userDbId);
-	UserView getUserView(uint64_t userDbId, const std::wstring & viewName);
+	UserViewList getUserViews(uint64_t userDbId, const std::wstring & schema = std::wstring());
+	UserView getUserView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
 
 	// user triggers operations
-	UserTriggerList getUserTriggers(uint64_t userDbId);
-	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName);
+	UserTriggerList getUserTriggers(uint64_t userDbId, const std::wstring & schema = std::wstring());
+	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema = std::wstring());
 
 	// user columns operations
-	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName);
+	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
 	// user indexes operations
-	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName);
+	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
-	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName);
+	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	
 	// get runtime user unique or index columns
-	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns);
+	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
 
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();

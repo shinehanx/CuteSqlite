@@ -33,10 +33,9 @@ BOOL TableColumnsPage::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void TableColumnsPage::setup(uint64_t userDbId, const std::wstring & schema)
+void TableColumnsPage::setup(TableStructureSupplier * supplier)
 {
-	this->userDbId = userDbId;
-	this->schema = schema;
+	this->supplier = supplier;
 }
 
 
@@ -116,7 +115,7 @@ void TableColumnsPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 			0, Config::DATABASE_TABLE_COLUMNS_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(dwExStyle);
 		win.setItemHeight(22);
-		adapter = new TableColumnsPageAdapter(m_hWnd, &win, NEW_TABLE);
+		adapter = new TableColumnsPageAdapter(m_hWnd, &win, supplier);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
@@ -136,7 +135,7 @@ void TableColumnsPage::loadWindow()
 
 void TableColumnsPage::loadListView()
 {
-	rowCount = adapter->loadTblColumnsListView(userDbId, schema);
+	rowCount = adapter->loadTblColumnsListView();
 }
 
 int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -258,14 +257,30 @@ LRESULT TableColumnsPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHa
  */
 LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	SubItemValues changedVals = listView.getChangedVals();
-	for (auto val : changedVals) {
+	const SubItemValues &changedVals = listView.getChangedVals();
+	for (auto &val : changedVals) {
+		
+		//change the columns of TableIndexesPage that including this changed column name
+		if (val.iSubItem == 1) { // 1 - column name			
+			auto & origName = supplier->getColsRuntimeDatas().at(val.iItem).name;
+			auto & newName = val.newVal;
+			
+			std::wstring * origBuff = new std::wstring(origName);
+			std::wstring * newBuff = new std::wstring(newName);
+			Q_DEBUG(L"TableColumnsPage->changeColumnName send, wParam:{}, lParam:{}", *origBuff, *newBuff);
+
+			// TableColumnsPage($this)->QTabView($tabView)->QTableTabView  ------ then trans to --> TableIndexesPage
+			HWND pHwnd = GetParent().GetParent().m_hWnd;
+			::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, WPARAM(origBuff), LPARAM(newBuff));
+		}
+
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.newVal);
-		adapter->invalidateSubItem(val.iItem, val.iSubItem); 
+		adapter->invalidateSubItem(val.iItem, val.iSubItem);
 	}
 
-	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView->TableTabView->TableStructurePage
-	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
+	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
@@ -276,24 +291,11 @@ LRESULT TableColumnsPage::OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wPar
 	}
 	int iItem = static_cast<int>(wParam);
 	int iSubItem = static_cast<int>(lParam);
-	/*
-	const ColumnInfo columnInfo = adapter->getRuntimeData(iItem);
-	std::wstring newVal;
-	if (iSubItem == 3) {
-		newVal = std::to_wstring((int)!columnInfo.notnull);
-	} else if (iSubItem == 4) {
-		newVal = std::to_wstring((int)!columnInfo.pk);
-	} else if (iSubItem == 5) {
-		newVal = std::to_wstring((int)!columnInfo.ai);
-	} else if (iSubItem == 6) {
-		newVal = std::to_wstring((int)!columnInfo.un);
-	}
-	adapter->changeRuntimeDatasItem(iItem, iSubItem, newVal);
-	adapter->invalidateSubItem(iItem, iSubItem);*/
-
+	
 	adapter->changeListViewCheckBox(iItem, iSubItem);
-	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView->TableTabView->TableStructurePage
-	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
+	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 

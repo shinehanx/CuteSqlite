@@ -11,24 +11,31 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   SavePointUtil.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-23
  *********************************************************************/
-#pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
+#include "stdafx.h"
+#include "SavePointUtil.h"
+#include <chrono>
+#include <ctime>
+#include <stdexcept>
 
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
+/**
+ * Create a save point name for Sqlite3 transaction.
+ * 
+ * @param type - DDL type,such as create_table,alter_table,rename_table
+ * @param prefix
+ * @return 
+ */
+std::wstring SavePointUtil::create(const std::wstring & type, const std::wstring & prefix /*= std::wstring(L"cute_sqlite")*/)
 {
-public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
-
-	UserViewList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
-	UserView getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
-private:
-	UserView toUserView(QSqlStatement &query);
-};
+	std::wstring str = prefix;
+	std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+	std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+	
+	str.append(L"_").append(type).append(L"_").append(std::to_wstring(tt));
+	return str;
+}

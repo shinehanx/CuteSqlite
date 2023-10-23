@@ -36,14 +36,6 @@ BOOL TableTabView::PreTranslateMessage(MSG* pMsg)
 	return false;
 }
 
-
-void TableTabView::setup(uint64_t userDbId, const std::wstring & schema)
-{
-	this->userDbId = userDbId;
-	this->schema = schema;
-}
-
-
 TableColumnsPage & TableTabView::getTableColumnsPage()
 {
 	ATLASSERT(tableColumnsPage.IsWindow());
@@ -113,10 +105,9 @@ void TableTabView::createOrShowTableColumnsPage(TableColumnsPage & win, CRect &c
 	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
 	CRect rect(x, y, x + w, y + h);
 	if (IsWindow() && !win.IsWindow()) {
+		win.setup(supplier);
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-		win.setup(userDbId, schema);
-	} else if (IsWindow() && tabView.IsWindow()) {
-		
+	} else if (IsWindow() && tabView.IsWindow()) {		
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -129,13 +120,16 @@ void TableTabView::createOrShowTableIndexesPage(TableIndexesPage & win, CRect &c
 	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
 	CRect rect(x, y, x + w, y + h);
 	if (IsWindow() && !win.IsWindow()) {
-		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-		win.setup(userDbId, schema, tableColumnsPage.getAdapter());
+		win.setup(tableColumnsPage.getAdapter(), supplier);
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);		
 	} else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 		if (win.getTblColumnsPageAdapter() == nullptr) {
 			win.setTblColumnsPageAdapter(tableColumnsPage.getAdapter());
+		}
+		if (win.getSupplier() == nullptr) {
+			win.setSupplier(supplier);
 		}
 	}
 }
@@ -202,4 +196,22 @@ void TableTabView::OnPaint(CDCHandle dc)
 BOOL TableTabView::OnEraseBkgnd(CDCHandle dc)
 {
 	return true;
+}
+
+LRESULT TableTabView::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, wParam, lParam);
+	return 0;
+}
+
+LRESULT TableTabView::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, wParam, lParam);
+	return 0;
+}
+
+LRESULT TableTabView::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, wParam, lParam);
+	return 0;
 }

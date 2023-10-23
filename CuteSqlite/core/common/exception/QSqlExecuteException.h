@@ -11,24 +11,29 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   QSqlExecuteException.h
+ * @brief  Execute sql has error, throw this exception object with error rows and cols
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-21
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
+#include "QRuntimeException.h"
 
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
+class QSqlExecuteException : public QRuntimeException
 {
 public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
+	QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg);
 
-	UserViewList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
-	UserView getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
+	uint32_t getErrRow() const { return errRow; }
+	void setErrRow(uint32_t val) { errRow = val; }
+
+
+	uint32_t getErrCol() const { return errCol; }
+	void setErrCol(uint32_t val) { errCol = val; }
 private:
-	UserView toUserView(QSqlStatement &query);
+	// Execute sql has error, will be with error rows and cols
+	uint32_t errRow = 0;
+	uint32_t errCol = 0;
 };
+

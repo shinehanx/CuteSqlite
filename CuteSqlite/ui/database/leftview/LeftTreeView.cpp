@@ -227,11 +227,14 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	topbarBrush = ::CreateSolidBrush(topbarColor);
 	bkgBrush = ::CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE);
 	return 0;
 }
 
 int LeftTreeView::OnDestroy()
 {	
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+
 	if (topbarBrush) ::DeleteObject(topbarBrush);
 	if (bkgBrush) ::DeleteObject(bkgBrush);	
 	if (comboFont) ::DeleteObject(comboFont);
@@ -496,6 +499,12 @@ void LeftTreeView::OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd
 void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewTable();
+}
+
+LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	doRefreshDatabase();
+	return 0;
 }
 
 void LeftTreeView::doCreateDatabase()

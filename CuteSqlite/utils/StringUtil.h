@@ -308,7 +308,7 @@ public:
 	 * ×Ö·û´®·Ö¸îº¯Êı.
 	 * 
 	 * @param str ´ı·ÖÀë×Ö·û´®
-	 * @param pattern ·ÖÀë×Ö·û´®
+	 * @param pattern ·ÖÀë×Ö·û´®,Èç¶ººÅ
 	 * @return 
 	 */
 	static std::vector<std::wstring> split(std::wstring str, std::wstring pattern, bool bTrim = true)
@@ -335,6 +335,36 @@ public:
 				result.push_back(s);
 				i = static_cast<int>(pos + pattern.size()) - 1;
 			}
+		}
+		return result;
+	}
+
+	/**
+	 * implode strings with symbol character.
+	 * 
+	 * @param strVec
+	 * @param symbol - split character
+	 * @param bTrim - whether trim the 
+	 * @return 
+	 */
+	static std::wstring implode(const std::vector<std::wstring> & strVec, const std::wstring & symbol, bool bTrim = true)
+	{
+		if (strVec.empty()) {
+			return L"";
+		}
+		std::wstring result;
+		int i = 0;
+		for (auto str : strVec) {
+			if (i > 0 && !result.empty()) {
+				result.append(symbol);
+			}
+			if (bTrim && !str.empty()) {
+				StringUtil::trim(str);
+			}
+			if (!str.empty()) {
+				result.append(str);
+			}
+			i++;
 		}
 		return result;
 	}

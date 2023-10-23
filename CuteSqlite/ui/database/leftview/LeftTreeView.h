@@ -47,7 +47,6 @@ public:
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 
-		
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_SELCHANGED, OnChangedTreeViewItem)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_GETINFOTIP, OnShowTreeViewItemToolTip)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
@@ -69,6 +68,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_IMPORT_FROM_SQL_MENU_ID, OnClickImportFromSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_TABLE_MENU_ID, OnClickNewTableMenu)
 
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -146,6 +146,9 @@ private:
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// MSG
+	LRESULT OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void doRefreshDatabase();
 	void doDeleteDatabase();

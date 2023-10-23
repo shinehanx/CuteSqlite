@@ -44,12 +44,12 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemEdit  
 		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemComboBox  
 		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) ) { // press up on ListView  		
-		pressedUpToMoveEditor();		
+		return pressedUpToMoveEditor();
+		
 	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemEdit  
 		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemComboBox  
 		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) ) { // press down on ListView  		
-		pressedDownToMoveEditor();
-		
+		return pressedDownToMoveEditor();
 	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemEdit  
 		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemComboBox  
 		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) ) { // press left on ListView  		
@@ -196,7 +196,7 @@ void QListViewCtrl::createButton(int iItem, int iSubItem, const std::wstring & t
 	subItemButtonMap[pair] = text;
 }
 
-SubItemValues QListViewCtrl::getChangedVals()
+const SubItemValues & QListViewCtrl::getChangedVals()
 {
 	return changeVals;
 }
@@ -483,6 +483,11 @@ void QListViewCtrl::pressedTabToMoveEditor()
 	if (activeSubItemPos.first >= rowCount - 1 && activeSubItemPos.second >= columnCount - 1) {
 		return;
 	}
+	
+	if (activeSubItemPos.first > rowCount - 1 || activeSubItemPos.second > columnCount - 1) {
+		activeSubItemPos.first = 0;
+		activeSubItemPos.second = 1;
+	}
 
 	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
 	if (activeSubItemPos.first < rowCount - 1 && activeSubItemPos.second == columnCount - 1) {
@@ -490,13 +495,11 @@ void QListViewCtrl::pressedTabToMoveEditor()
 		iSubItem = 1;
 		SelectItem(iItem);
 		changeAllItemsCheckState();
-		createOrShowEditor(iItem, iSubItem);
-		return;
-	}
-
-	if (activeSubItemPos.first <= rowCount - 1 && activeSubItemPos.second < columnCount - 1) {
+		
+	}else if (activeSubItemPos.first <= rowCount - 1 && activeSubItemPos.second < columnCount - 1) {
 		iSubItem = activeSubItemPos.second + 1;
 	}
+	activeSubItem(iItem, iSubItem);
 	
 	std::pair<int, int> findPair({ iItem, iSubItem });
 	SubItemComboBoxMap::iterator comboBoxIter;
@@ -507,7 +510,6 @@ void QListViewCtrl::pressedTabToMoveEditor()
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
 		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
 		oldSubItemPos = activeSubItemPos;
-		activeSubItem(iItem, iSubItem);
 		return ;
 	} 
 	createOrShowEditor(iItem, iSubItem);
@@ -525,6 +527,11 @@ void QListViewCtrl::pressedShiftTabToMoveEditor()
 	if (activeSubItemPos.first <= 0 && activeSubItemPos.second <= 0) {
 		return;
 	}
+	if (activeSubItemPos.first > rowCount - 1 || activeSubItemPos.second > columnCount - 1) {
+		activeSubItemPos.first = 0;
+		activeSubItemPos.second = 1;
+		return ;
+	}
 
 	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
 	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
@@ -532,23 +539,19 @@ void QListViewCtrl::pressedShiftTabToMoveEditor()
 		iItem = activeSubItemPos.first - 1;
 		iSubItem = columnCount - 1;
 		SelectItem(iItem);
-		createOrShowEditor(iItem, iSubItem);
-		return;
-	}
-
-	if (activeSubItemPos.first >= 0 && activeSubItemPos.second > 1) {
+		changeAllItemsCheckState();
+	} else  if (activeSubItemPos.first >= 0 && activeSubItemPos.second > 1) { // common
 		iSubItem = activeSubItemPos.second - 1;
 	}
+	activeSubItem(iItem, iSubItem);
 	
 	std::pair<int, int> findPair({ iItem, iSubItem });
 	SubItemComboBoxMap::iterator comboBoxIter;
 	SubItemCheckBoxMap::iterator checkBoxIter;
 	SubItemButtonMap::iterator buttonIter;
-	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
 	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
-		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
-		activeSubItem(iItem, iSubItem);
+		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {		
 		return ;
 	} 
 	createOrShowEditor(iItem, iSubItem);
@@ -560,62 +563,80 @@ void QListViewCtrl::pressedSpaceToCheckbox()
 		WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
 }
 
-void QListViewCtrl::pressedUpToMoveEditor()
+bool QListViewCtrl::pressedUpToMoveEditor()
 {
 	changeSubItemText();
 	int columnCount = GetHeader().GetItemCount();
 	int rowCount = GetItemCount();
 	if (activeSubItemPos.first <= 0 && activeSubItemPos.second <= 0) {
-		return;
+		return false;
+	}
+
+	if (activeSubItemPos.first > rowCount - 1 || activeSubItemPos.second > columnCount - 1) {
+		activeSubItemPos.first = 0;
+		activeSubItemPos.second = 1;
+		return false;
 	}
 
 	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
 	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
-	if (iItem >= 0 && iSubItem > 0) {
-		iItem--;
+	if (iItem > 0 && iSubItem > 0) {
+		iItem = activeSubItemPos.first - 1;	
 	}
+	SelectItem(iItem);
+	changeAllItemsCheckState();
+	activeSubItem(iItem, iSubItem);
 	
 	std::pair<int, int> findPair({ iItem, iSubItem });
 	SubItemComboBoxMap::iterator comboBoxIter;
 	SubItemCheckBoxMap::iterator checkBoxIter;
 	SubItemButtonMap::iterator buttonIter;
-	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
 	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
 		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
-		activeSubItem(iItem, iSubItem);
-		return ;
+		return true;
 	} 
+
+		
 	createOrShowEditor(iItem, iSubItem);
+	return true;
 }
 
-void QListViewCtrl::pressedDownToMoveEditor()
+bool QListViewCtrl::pressedDownToMoveEditor()
 {
 	changeSubItemText();
 	int columnCount = GetHeader().GetItemCount();
 	int rowCount = GetItemCount();
 	if (activeSubItemPos.first >= rowCount - 1 || activeSubItemPos.second <= 0) {
-		return;
+		return false;
+	}
+
+	if (activeSubItemPos.first > rowCount - 1 || activeSubItemPos.second > columnCount - 1) {
+		activeSubItemPos.first = 0;
+		activeSubItemPos.second = 1;
+		return false;
 	}
 
 	int iItem = activeSubItemPos.first, iSubItem = activeSubItemPos.second;
 	// iSubItem == 0 is the first checkbox column, so valid iSubItem is begin from 1th
 	if (iItem >= 0 && iItem < rowCount - 1 && iSubItem > 0) {
-		iItem++;
+		iItem = activeSubItemPos.first + 1;	
 	}
+	SelectItem(iItem);
+	changeAllItemsCheckState();	
+	activeSubItem(iItem, iSubItem);
 	
 	std::pair<int, int> findPair({ iItem, iSubItem });
 	SubItemComboBoxMap::iterator comboBoxIter;
 	SubItemCheckBoxMap::iterator checkBoxIter;
 	SubItemButtonMap::iterator buttonIter;
-	GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, activeSubItemRect);
 	if ((comboBoxIter = subItemComboBoxMap.find(findPair)) != subItemComboBoxMap.end() 
 		|| (checkBoxIter = subItemCheckBoxMap.find(findPair)) != subItemCheckBoxMap.end()
-		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {
-		activeSubItem(iItem, iSubItem);
-		return ;
+		|| (buttonIter = subItemButtonMap.find(findPair)) != subItemButtonMap.end()) {	
+		return true;
 	} 
 	createOrShowEditor(iItem, iSubItem);
+	return true;
 }
 
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -1555,7 +1576,7 @@ void QListViewCtrl::drawButtonInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemSt
 	drawTextInSubItem(mdc, lpDrawItemStruct->itemID, buttonIter->first.second, rcText); // Draw the text in subitem itself
 
 	int x = rcText.right - 20 - 2, y = rcText.top + (rcText.Height() - 20) / 2 + 2,
-		w = 20, h = 20;
+		w = 20, h = 20 - 2;
 	CRect rect(x, y, x + w, y + h);
 	HPEN oldPen = mdc.SelectPen(btnBorderPen);
 	HBRUSH oldBrush = mdc.SelectBrush(btnBrush);

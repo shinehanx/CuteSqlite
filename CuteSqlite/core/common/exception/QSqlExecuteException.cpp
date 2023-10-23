@@ -11,24 +11,17 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   QSqlExecuteException.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-21
  *********************************************************************/
-#pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
+#include "stdafx.h"
+#include "QSqlExecuteException.h"
 
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
+QSqlExecuteException::QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg)
+	: QRuntimeException(errCode, errMsg)
 {
-public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
 
-	UserViewList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
-	UserView getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
-private:
-	UserView toUserView(QSqlStatement &query);
-};
+}

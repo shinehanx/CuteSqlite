@@ -22,10 +22,17 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId)
+UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId, const std::wstring & schema)
 {
 	UserViewList result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' ORDER BY name ASC";
+	// std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"sqlite_master\"");
+	} else {
+		sql.append(L"\"sqlite_master\"");
+	}
+	sql.append(L" WHERE type='view' ORDER BY name ASC");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
@@ -42,10 +49,17 @@ UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
-UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & viewName)
+UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema)
 {
 	UserTrigger result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' and name=:name ORDER BY name ASC";
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='view' and name=:name ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"sqlite_master\"");
+	} else {
+		sql.append(L"\"sqlite_master\"");
+	}
+	sql.append(L" WHERE type='view' and name=:name ORDER BY name ASC");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 		query.bind(L":name", viewName);

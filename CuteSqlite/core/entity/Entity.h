@@ -25,6 +25,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <chrono>
 
 typedef struct {
 	std::wstring name;
@@ -77,7 +78,9 @@ typedef struct {
 	std::wstring name;
 	std::wstring type;
 	std::wstring defVal;
-	std::wstring checks;	
+	std::wstring checks;
+	
+	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } ColumnInfo;
 typedef std::vector<ColumnInfo> ColumnInfoList;
 
@@ -86,6 +89,7 @@ typedef struct {
 	std::wstring type;
 	std::wstring colums;
 	std::wstring sql;
+	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } IndexInfo;
 typedef std::vector<IndexInfo> IndexInfoList;
 

@@ -11,24 +11,15 @@
 
  * limitations under the License.
 
- * @file   ViewUserRepository.h
- * @brief  Operations on views in the user database
+ * @file   SavePointUtil.h
+ * @brief  The utils class for sqlite3 SavePoints
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-23
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
-
-class ViewUserRepository : public BaseUserRepository<ViewUserRepository>
-{
+#include <string>
+class SavePointUtil {
 public:
-	ViewUserRepository() {}
-	~ViewUserRepository() {}
-
-	UserViewList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
-	UserView getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
-private:
-	UserView toUserView(QSqlStatement &query);
+	static std::wstring create(const std::wstring & type, const std::wstring & prefix = std::wstring(L"cute_sqlite"));
 };

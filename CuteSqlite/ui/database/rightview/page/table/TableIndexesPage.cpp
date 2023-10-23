@@ -33,12 +33,10 @@ BOOL TableIndexesPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void TableIndexesPage::setup(uint64_t userDbId, const std::wstring & schema /*= L""*/, 
-	TableColumnsPageAdapter * tblColumnsPageAdapter /*= nullpter */)
+void TableIndexesPage::setup(TableColumnsPageAdapter * tblColumnsPageAdapter, TableStructureSupplier * supplier)
 {
-	this->userDbId = userDbId;
-	this->schema = schema;
 	this->tblColumnsPageAdapter = tblColumnsPageAdapter;
+	this->setSupplier(supplier);
 }
 
 
@@ -96,7 +94,7 @@ void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.setItemHeight(22);
-		adapter = new TableIndexesPageAdapter(m_hWnd, &win, NEW_TABLE);
+		adapter = new TableIndexesPageAdapter(m_hWnd, &win, getSupplier());
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
@@ -116,12 +114,11 @@ void TableIndexesPage::loadWindow()
 
 void TableIndexesPage::loadListView()
 {
-	rowCount = adapter->loadTblIndexesListView(userDbId, schema);
+	rowCount = adapter->loadTblIndexesListView(runtimeUserDbId, runtimeSchema);
 }
 
 int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{	
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID);
+{
 	bool ret = QPage::OnCreate(lpCreateStruct);	
 	textFont = FT(L"form-text-size");
 	return ret;
@@ -140,7 +137,6 @@ int TableIndexesPage::OnDestroy()
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (adapter) delete adapter;
 
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID);
 	return ret;
 }
 
@@ -266,27 +262,90 @@ LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
 	}
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView->TableTabView->TableStructurePage
-	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID);
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
-
 
 LRESULT TableIndexesPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	ColumnInfoList pkColumns = tblColumnsPageAdapter->getPrimaryKeyColumnInfoList();
 	adapter->changePrimaryKey(pkColumns);
+	
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	return 0;
+}
+
+
+LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	std::wstring oldColumnName, newColumnName; 
+	std::wstring * origBuff = (std::wstring *)wParam;
+	std::wstring * newBuff = (std::wstring *)lParam;
+	if (origBuff) {
+		oldColumnName.assign(origBuff->c_str());
+		delete origBuff;
+	}
+
+	if (newBuff) {
+		newColumnName.assign(newBuff->c_str());
+		delete newBuff;
+	}
+	
+	Q_DEBUG(L"TableIndexesPage->changeColumnName arrive, wParam:{}, lParam:{}", oldColumnName, newColumnName);
+	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
+		Q_ERROR(L"oldColumnName or newColumnName can't be empty, oldColumnName:{}, newColumnName:{}", oldColumnName, newColumnName);
+		return 0;
+	}
+
+	adapter->changeTableColumnName(oldColumnName, newColumnName);
+
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+
+	return 0;
+}
+
+
+LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	std::wstring columnName; 
+	std::wstring * buff = (std::wstring *)wParam;
+	if (buff) {
+		columnName.assign(buff->c_str());
+		delete buff;
+	}
+	if (columnName.empty()) {
+		Q_ERROR(L"columnName can't be empty");
+		return 0;
+	}
+	adapter->deleteTableColumnName(columnName);
+
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewIndex();
+	
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
 LRESULT TableIndexesPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->deleteSelIndexes();
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }

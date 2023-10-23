@@ -391,3 +391,10 @@ std::wstring SqlUtil::makeInsertValuesClause(RowItem & rowItem)
 
 	return valuesClause;
 }
+
+std::wstring SqlUtil::makeTmpTableName(const std::wstring & tblName, int number,  const std::wstring & prefix /*= std::wstring(L"ctsqlite_tmp_")*/)
+{
+	std::wstring result = prefix;
+	result.append(tblName).append(L"_").append(std::to_wstring(number));
+	return result;
+}

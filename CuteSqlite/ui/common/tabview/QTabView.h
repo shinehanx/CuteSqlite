@@ -21,6 +21,7 @@
 #include <atlwin.h>
 #include <atlcrack.h>
 #include <atlctrlx.h>
+#include "common/Config.h"
 
 class QTabView : public CTabViewImpl<QTabView>
 {
@@ -28,12 +29,12 @@ public:
 	DECLARE_WND_CLASS_EX(_T("QTabView"), 0, COLOR_APPWORKSPACE)
 	
 
-	// Overrideables - add someone to tab control
+	// Override ables - add someone to tab control
 	bool CreateTabControl();
 
-	// Overrideables - someone move window
+	// Override ables - someone move window
 	void UpdateLayout();
 
-	// Overrideables - update tooltip to tab control
+	// Override ables - update tooltip to tab control
 	void UpdateTooltipText(LPNMTTDISPINFO pTTDI);
 };

@@ -272,7 +272,11 @@ typedef enum {
 	MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, // Send this msg when changing table columns index from the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
+	MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, // Send this msg when changing column from the TableColumnsPage to TableIndexesPage, wParam=oldColumnName, lParam=newColumnName
+	MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, // Send this msg when deleting column from the TableColumnsPage to TableIndexesPage, wParam=iItem, lParam=iSubItem
 	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
+	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
+	MSG_LEFTVIEW_REFRESH_DATABASE, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
 }MessageId;
 
 typedef enum {

@@ -25,6 +25,7 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 class TableColumnsPage : public QPage 
 {
@@ -54,13 +55,14 @@ public:
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	void setup(uint64_t userDbId, const std::wstring & schema = L"");
+	void setup(TableStructureSupplier * supplier);
 
 	TableColumnsPageAdapter * getAdapter();
-private:	
+private:
 	bool isNeedReload = true;
-	uint64_t userDbId = 0;
-	std::wstring schema;
+	uint64_t runtimeUserDbId = 0;
+	std::wstring runtimeTblName;
+	std::wstring runtimeSchema;
 	int rowCount = 0;
 
 	COLORREF buttonColor = RGB(238, 238, 238);
@@ -77,7 +79,8 @@ private:
 	QListViewCtrl listView;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
 
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	TableStructureSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	TableColumnsPageAdapter * adapter = nullptr;
 	
 	virtual void createOrShowUI();

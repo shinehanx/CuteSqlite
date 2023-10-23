@@ -287,6 +287,11 @@ void QSqlEdit::setText(const std::wstring & text)
 	::free(utf8Str);
 }
 
+void QSqlEdit::clearText()
+{
+	SendMessage(SCI_CLEARALL, NULL, NULL);
+}
+
 long QSqlEdit::lineFromPosition(long pos)
 {
 	LRESULT ret = SendMessage(SCI_LINEFROMPOSITION, static_cast<WPARAM>(pos), 0);
@@ -346,5 +351,6 @@ void QSqlEdit::OnSize(UINT nType, CSize size)
 {
 	createOrShowUI();
 }
+
 
 

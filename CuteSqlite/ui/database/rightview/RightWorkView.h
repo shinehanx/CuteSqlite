@@ -18,15 +18,21 @@
  *			view: QPage and it's subclass in the page folder.
  *			supplier: DatabaseSupplier
  * @ClassChain  RightWorkView
- *                    |-> QueryPage
- *                    |      |-> CHorSplitterWindow
- *                    |            |-> QHelpEdit -> QSqlEdit(Scintilla)
- *                    |            |-> ResultTabView
- *                    |                    |-> QTabView
- *                    |                          |-> ResultListPage
- *                    |                          |-> ResultInfoPage
- *                    |                          |-> ResultTableDataPage
- *                    |-> NewTablePage
+ *                |->QTabView(tabView)
+ *                         |-> QueryPage
+ *                         |      |-> CHorSplitterWindow
+ *                         |            |-> QHelpEdit ** QSqlEdit(Scintilla)
+ *                         |            |-> ResultTabView
+ *                         |                    |-> QTabView
+ *                         |                          |-> ResultListPage
+ *                         |                          |-> ResultInfoPage
+ *                         |                          |-> ResultTableDataPage
+ *                         |-> TableStructurePage
+ *					       |       |-> TableTabView
+ *                         |              |->QTabView(tabView)  
+ *                         |                    |->TableColumnsPage
+ *                         |                    |->TableIndexesPage
+ *                         |-> HistoryPage
  * @author Xuehan Qin
  * @date   2023-05-21
  *********************************************************************/
@@ -59,6 +65,7 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
+		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -76,7 +83,7 @@ private:
 	QTabView tabView;
 	CEdit historyPage;
 	QueryPage queryPage;
-	std::vector<TableStructurePage *> newTablePagePtrs; // The pointers of dynamically created page
+	std::vector<TableStructurePage *> tablePagePtrs; // The pointers of dynamically created page
 	CImageList imageList;
 
 	HBITMAP queryBitmap = nullptr;
@@ -113,6 +120,8 @@ private:
 
 	// Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 	LRESULT OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
+	LRESULT OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	void doAddNewTable();
 };

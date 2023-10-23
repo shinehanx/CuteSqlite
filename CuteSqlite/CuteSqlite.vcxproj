@@ -240,6 +240,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="common\AppContext.cpp" />
     <ClCompile Include="common\MsgDispatcher.cpp" />
     <ClCompile Include="core\common\exception\QRuntimeException.cpp" />
+    <ClCompile Include="core\common\exception\QSqlExecuteException.cpp" />
     <ClCompile Include="core\common\Lang.cpp" />
     <ClCompile Include="core\common\repository\QSqlColumn.cpp" />
     <ClCompile Include="core\common\repository\QSqlDatabase.cpp" />
@@ -310,6 +311,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\rightview\page\result\ResultTabView.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableIndexesPageAdapter.cpp" />
+    <ClCompile Include="ui\database\rightview\page\table\supply\TableStructureSupplier.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableColumnsPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableIndexesPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableTabView.cpp" />
@@ -324,6 +326,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="utils\Log.cpp" />
     <ClCompile Include="utils\PerformUtil.cpp" />
     <ClCompile Include="utils\ResourceUtil.cpp" />
+    <ClCompile Include="utils\SavePointUtil.cpp" />
     <ClCompile Include="utils\SqlUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -332,6 +335,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="common\Config.h" />
     <ClInclude Include="common\MsgDispatcher.h" />
     <ClInclude Include="core\common\exception\QRuntimeException.h" />
+    <ClInclude Include="core\common\exception\QSqlExecuteException.h" />
     <ClInclude Include="core\common\Lang.h" />
     <ClInclude Include="core\common\repository\BaseRepository.h" />
     <ClInclude Include="core\common\repository\BaseUserRepository.h" />
@@ -406,6 +410,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\page\result\ResultTabView.h" />
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.h" />
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableIndexesPageAdapter.h" />
+    <ClInclude Include="ui\database\rightview\page\table\supply\TableStructureSupplier.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableColumnsPage.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableIndexesPage.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableTabView.h" />
@@ -424,6 +429,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="utils\PerformUtil.h" />
     <ClInclude Include="utils\ProfileUtil.h" />
     <ClInclude Include="utils\ResourceUtil.h" />
+    <ClInclude Include="utils\SavePointUtil.h" />
     <ClInclude Include="utils\SqlUtil.h" />
     <ClInclude Include="utils\StringUtil.h" />
     <ClInclude Include="utils\ThreadUtil.h" />

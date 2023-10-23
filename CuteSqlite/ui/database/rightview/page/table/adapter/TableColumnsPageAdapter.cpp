@@ -25,16 +25,12 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
 
-const Columns TableColumnsPageAdapter::headerColumns = { S(L"column-name"), S(L"data-type"), L"Not Null", L"PK", L"Auto Insc", L"Unique", S(L"default"), S(L"check")};
-const std::vector<int> TableColumnsPageAdapter::columnSizes = { 150, 100, 70, 70, 70, 70, 150, 100 };
-const std::vector<int> TableColumnsPageAdapter::columnFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_LEFT, LVCFMT_LEFT };
-const std::vector<std::wstring> TableColumnsPageAdapter::dataTypeList = { L"INTEGER", L"TEXT", L"BLOB", L"REAL", L"NUMERIC"};
-
-TableColumnsPageAdapter::TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType operateType /*= NEW_TABLE*/)
+TableColumnsPageAdapter::TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
+	ATLASSERT(parentHwnd && listView && supplier);
 	this->parentHwnd = parentHwnd;
 	this->dataView = listView;
-	this->operateType = operateType;
+	this->supplier = supplier;
 }
 
 TableColumnsPageAdapter::~TableColumnsPageAdapter()
@@ -42,27 +38,27 @@ TableColumnsPageAdapter::~TableColumnsPageAdapter()
 	
 }
 
-int TableColumnsPageAdapter::loadTblColumnsListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
+int TableColumnsPageAdapter::loadTblColumnsListView()
 {
 	// headers
 	loadHeadersForListView();
 
 	// rows
-	if (tblName.empty()) {
+	if (supplier->getRuntimeTblName().empty()) {
 		return loadEmptyRowsForListView();
 	}
-	return loadColumnRowsForListView(userDbId, schema, tblName);
+	return loadColumnRowsForListView(supplier->getRuntimeUserDbId(), supplier->getRuntimeSchema(), supplier->getRuntimeTblName());
 }
 
 void TableColumnsPageAdapter::loadHeadersForListView()
 {
 	dataView->InsertColumn(0, L"", LVCFMT_CENTER, 26, -1, 0);
 	
-	int n = static_cast<int>(headerColumns.size());
+	int n = static_cast<int>(TableStructureSupplier::colsHeadColumns.size());
 	for (int i = 0; i < n; i++) {
-		auto column = headerColumns.at(i);
-		auto size = columnSizes.at(i);
-		auto format = columnFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
+		auto column = TableStructureSupplier::colsHeadColumns.at(i);
+		auto size = TableStructureSupplier::colsHeadSizes.at(i);
+		auto format = TableStructureSupplier::colsHeadFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
 
 		dataView->InsertColumn(i+1, column.c_str(), format, size);
 	}
@@ -74,7 +70,8 @@ int TableColumnsPageAdapter::loadEmptyRowsForListView()
 	for (int i = 0; i < NEW_TBL_EMPTY_COLUMN_SIZE; i++) {
 		ColumnInfo columnInfo;
 		columnInfo.name = ss.at(i);
-		runtimeDatas.push_back(columnInfo);
+		columnInfo.seq = std::chrono::system_clock::now(); // seq = current time 
+		supplier->getColsRuntimeDatas().push_back(columnInfo);
 	}
 	dataView->SetItemCount(NEW_TBL_EMPTY_COLUMN_SIZE);
 	dataView->Invalidate(true);
@@ -84,8 +81,8 @@ int TableColumnsPageAdapter::loadEmptyRowsForListView()
 
 int TableColumnsPageAdapter::loadColumnRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
 {
-	runtimeDatas = databaseService->getUserColumns(userDbId, tblName);
-	int n = static_cast<int>(runtimeDatas.size());
+	supplier->setColsRuntimeDatas(databaseService->getUserColumns(userDbId, tblName, schema));
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
 }
@@ -117,9 +114,9 @@ bool TableColumnsPageAdapter::getIsChecked(int iItem)
 int TableColumnsPageAdapter::getSelDataType(const std::wstring & dataType)
 {
 	int nSelItem = 0;
-	int n = static_cast<int>(dataTypeList.size());
+	int n = static_cast<int>(TableStructureSupplier::colsDataTypeList.size());
 	for (int i = 0; i < n; i++) {
-		if (dataType == dataTypeList.at(i)) {
+		if (dataType == TableStructureSupplier::colsDataTypeList.at(i)) {
 			nSelItem = i;
 			break;
 		}
@@ -135,13 +132,13 @@ int TableColumnsPageAdapter::getSelDataType(const std::wstring & dataType)
  */
 int TableColumnsPageAdapter::verifyExistsOtherAutoIncrement(int iItem)
 {
-	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
-	int n = static_cast<int>(runtimeDatas.size());
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	for (int i = 0; i < n; i++) {
 		if (i == iItem) {
 			continue;
 		}
-		auto item = runtimeDatas.at(i);
+		auto item = supplier->getColsRuntimeDatas().at(i);
 		if (item.ai) { // The other item that it's ai state is checked will be forbidden 
 			return i;
 		}
@@ -159,9 +156,9 @@ int TableColumnsPageAdapter::verifyExistsOtherAutoIncrement(int iItem)
  */
 bool TableColumnsPageAdapter::verifyDataTypeAllowAutoIncrement(int iItem)
 {
-	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
-	auto item = runtimeDatas.at(iItem);
-	if (item.type == dataTypeList.at(0)) { // datatypeList[0] - INTEGER;
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	auto item = supplier->getColsRuntimeDatas().at(iItem);
+	if (item.type == TableStructureSupplier::colsDataTypeList.at(0)) { // datatypeList[0] - INTEGER;
 		return true; // 3 - Primary key's iSubItem
 	}
 	return false; // not found
@@ -175,8 +172,8 @@ bool TableColumnsPageAdapter::verifyDataTypeAllowAutoIncrement(int iItem)
  */
 int TableColumnsPageAdapter::verifyExistsPrimaryKeyInSameRow(int iItem)
 {
-	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
-	auto item = runtimeDatas.at(iItem);
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	auto item = supplier->getColsRuntimeDatas().at(iItem);
 	if (item.pk) {
 		return 4; // 4 - Primary key's iSubItem
 	}
@@ -206,13 +203,13 @@ void TableColumnsPageAdapter::validPrimaryKeyInSameRow(int iItem)
  */
 void TableColumnsPageAdapter::invalidExistsPrimaryKeyInOtherRow(int iItem)
 {
-	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
-	int n = static_cast<int>(runtimeDatas.size());
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	for (int i = 0; i < n; i++) {
 		if (i == iItem) {
 			continue;
 		}
-		ColumnInfo & item = runtimeDatas.at(i);
+		ColumnInfo & item = supplier->getColsRuntimeDatas().at(i);
 		if (item.pk) { // The other item that it's ai state is checked will be forbidden 
 			item.pk = 0;
 			dataView->setCheckBoxIsChecked(i, 4, 0); //iSubItem = 4 - primary key
@@ -230,8 +227,8 @@ void TableColumnsPageAdapter::invalidExistsPrimaryKeyInOtherRow(int iItem)
  */
 void TableColumnsPageAdapter::invalidExistsAutoIncrementInSameRow(int iItem)
 {
-	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(runtimeDatas.size()));
-	ColumnInfo & item = runtimeDatas.at(iItem);
+	ATLASSERT(iItem >= 0 && iItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	ColumnInfo & item = supplier->getColsRuntimeDatas().at(iItem);
 	if (item.ai) { 
 		item.ai = 0;
 		dataView->setCheckBoxIsChecked(iItem, 5, 0); //iSubItem = 5 - auto increment
@@ -241,49 +238,139 @@ void TableColumnsPageAdapter::invalidExistsAutoIncrementInSameRow(int iItem)
 
 ColumnInfo TableColumnsPageAdapter::getRuntimeData(int nItem) const 
 {
-	ATLASSERT(nItem < static_cast<int>(runtimeDatas.size()));
-	return runtimeDatas.at(nItem);
+	ATLASSERT(nItem < static_cast<int>(supplier->getColsRuntimeDatas().size()));
+	return supplier->getColsRuntimeDatas().at(nItem);
 }
 
-
-std::wstring TableColumnsPageAdapter::genderateColumnsSqlClause() const
+std::wstring TableColumnsPageAdapter::genderateCreateColumnsSqlClause() const
 {
-	std::wostringstream ss;
-	int n = static_cast<int>(runtimeDatas.size());
+	std::wstring ss;
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	wchar_t blk[5] = { 0 };
+	wchar_t * blkc = L" ";
 	wmemset(blk, 0x20, 4); // 4 blank chars
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
-			ss << L',' << std::endl;
+			ss.append(L",").append(L"\n");
 		}
-		auto item = runtimeDatas.at(i);
-		ss << blk << L"\"" << item.name << L"\"" << blk[0] << item.type ;
+		auto item = supplier->getColsRuntimeDatas().at(i);
+		ss.append(blk).append(L"\"").append(item.name).append(L"\"").append(blkc).append(item.type) ;
 		if (item.notnull) {
-			ss <<  blk[0] << L"NOT NULL";
+			ss.append(blkc).append(L"NOT NULL");
 		}
 		if (!item.defVal.empty()) {
-			ss << blk[0] << L"DEFAULT" << blk[0] << L'(' << item.defVal << L')';
+			ss.append(blkc).append(L"DEFAULT").append(blkc).append(L"(").append(item.defVal).append(L")");
 		}
 		if (item.un) {
-			ss << blk[0] << L"UNIQUE";
+			ss.append(blkc).append(L"UNIQUE");
 		}
 
 		if (!item.checks.empty()) {
-			ss << blk[0] << L"CHECK(" << item.checks << L')';
+			ss.append(blkc).append(L"CHECK(").append(item.checks).append(L")");
 		}
 	}
-	return ss.str();
+	return ss;
 }
 
+/**
+ * Generate columns clause for insert into statement , such as "Insert into tbl_name (**here is pair->first**) SELECT **here is pair->second**".
+ * 
+ * @return pair - first is new columns , second is old columns
+ */
+std::pair<std::wstring,std::wstring> TableColumnsPageAdapter::generateInsertColumnsClause()
+{
+	std::wstring str1, str2;
+	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
+	auto & colsOrigDatas = supplier->getColsOrigDatas();
+	wchar_t blk[5] = { 0 };
+	wchar_t * blkc = L" ";
+	wchar_t * quo = L"\"";
+	int n = static_cast<int>(colsRuntimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		if (i > 0) {
+			str1.append(L",");
+			str2.append(L",");
+		}
+		auto & item = colsRuntimeDatas.at(i);
+
+		auto iter = std::find_if(colsOrigDatas.begin(), colsOrigDatas.end(), [&item](ColumnInfo & origInfo) {
+			if (item.seq == origInfo.seq) {
+				return true;
+			}
+			return false;
+		});
+
+		if (iter == colsOrigDatas.end()) {
+			continue;
+		}
+		str1.append(quo).append(item.name).append(quo);
+		str2.append(quo).append((*iter).name).append(quo);
+
+	}
+	return {str1, str2};
+}
+
+std::wstring TableColumnsPageAdapter::genderateAlterColumnsSqlClauseForMysql()
+{
+	std::wstring ss;
+	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
+	auto & colsOrigDatas = supplier->getColsOrigDatas();
+
+	wchar_t blk[5] = { 0 };
+	wchar_t * blkc = L" ";
+	// 1.alter table by change column name or change column properties 
+	int n = static_cast<int>(colsRuntimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		if (i > 0) {
+			ss.append(L",").append(L"\n");
+		}
+
+		auto & item = colsRuntimeDatas.at(i);
+		auto iter = std::find_if(colsOrigDatas.begin(), colsOrigDatas.end(), [&item](ColumnInfo & info) {
+			if (item.seq == info.seq) {
+				return true;
+			}
+			return false;
+		});
+		if (iter == colsOrigDatas.end()) {
+			ss.append(L" ADD COLUMN \"").append(item.name).append(L"\"");
+		} else {
+			if (item.name != (*iter).name) {
+				ss.append(L" RENAME COLUMN \"").append((*iter).name).append(L"\" TO \"")
+					.append(item.name);
+			} else if (item.name != (*iter).name && (
+				item.notnull != (*iter).notnull || item.pk != (*iter).pk && item.ai != (*iter).ai || item.un != (*iter).un
+				)){
+				ss.append(L" ALTER COLUMN \"").append((*iter).name).append(L"\"");
+			}
+		}
+
+		ss.append(blkc).append(L"\"").append(item.name).append(L"\"").append(blkc).append(item.type) ;
+		if (item.notnull) {
+			ss.append(L" NOT NULL");
+		}
+		if (!item.defVal.empty()) {
+			ss.append(L" DEFAULT").append(L" (").append(item.defVal).append(L")");
+		}
+		if (item.un) {
+			ss.append(L" UNIQUE");
+		}
+
+		if (!item.checks.empty()) {
+			ss.append(blkc).append(L"CHECK(").append(item.checks).append(L")");
+		}
+	}
+	return ss;
+}
 
 ColumnInfoList TableColumnsPageAdapter::getPrimaryKeyColumnInfoList()
 {
 	ColumnInfoList result;
-	if (runtimeDatas.empty()) {
+	if (supplier->getColsRuntimeDatas().empty()) {
 		return result;
 	}
 
-	for (auto item : runtimeDatas) {
+	for (auto item : supplier->getColsRuntimeDatas()) {
 		if (item.pk) {
 			result.push_back(item);
 		}
@@ -296,11 +383,11 @@ ColumnInfoList TableColumnsPageAdapter::getPrimaryKeyColumnInfoList()
 bool TableColumnsPageAdapter::verifyExistsAutoIncrement()
 {
 	ColumnInfoList result;
-	if (runtimeDatas.empty()) {
+	if (supplier->getColsRuntimeDatas().empty()) {
 		return false;
 	}
 
-	for (auto item : runtimeDatas) {
+	for (auto item : supplier->getColsRuntimeDatas()) {
 		if (item.ai) {
 			return true;
 		}
@@ -321,7 +408,7 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	if (-1 == iItem)
 		return 0;
 
-	auto count = static_cast<int>(runtimeDatas.size());
+	auto count = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	if (!count || count <= iItem)
 		return 0;
 
@@ -336,61 +423,61 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		}
 		return 0;
 	} else  if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).type;
+		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).type;
 		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		return 0;
 	} else if (pLvdi->item.iSubItem >= 3 && pLvdi->item.iSubItem <= 6 && (pLvdi->item.mask & LVIF_TEXT)) {
 		uint8_t val = 0;
 		if (pLvdi->item.iSubItem == 3) { // notnull - 3
-			val = runtimeDatas.at(pLvdi->item.iItem).notnull;
+			val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).notnull;
 		} else if (pLvdi->item.iSubItem == 4) { // primary key - 4
-			val = runtimeDatas.at(pLvdi->item.iItem).pk;
+			val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).pk;
 		} else if (pLvdi->item.iSubItem == 5) { // auto increment - 5
-			val = runtimeDatas.at(pLvdi->item.iItem).ai;
+			val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).ai;
 		} else if (pLvdi->item.iSubItem == 6) { // unique - 6
-			val = runtimeDatas.at(pLvdi->item.iItem).un;
+			val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).un;
 		}
 		dataView->createCheckBox(iItem, pLvdi->item.iSubItem, val);
 		return 0;
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name - 1
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).name;	
+		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	} else if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT){ // default value - 7
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).defVal;	
+		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).defVal;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	} else if (pLvdi->item.iSubItem == 8 && pLvdi->item.mask & LVIF_TEXT){ // check - 8
-		std::wstring & val = runtimeDatas.at(pLvdi->item.iItem).checks;	
+		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).checks;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
 
 	return 0;
 }
 
-void TableColumnsPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & newText)
+void TableColumnsPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, const std::wstring & newText)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
 	if (iSubItem == 1) { // column name
-		runtimeDatas[iItem].name = newText;
+		supplier->getColsRuntimeDatas()[iItem].name = newText;
 	} else if (iSubItem == 2) { // column name
-		runtimeDatas[iItem].type = newText;
+		supplier->getColsRuntimeDatas()[iItem].type = newText;
 	} else if (iSubItem == 3) { // not null
-		runtimeDatas[iItem].notnull = newText.empty() ? 0 
+		supplier->getColsRuntimeDatas()[iItem].notnull = newText.empty() ? 0 
 			: static_cast<uint8_t>(std::stoi(newText));
 	} else if (iSubItem == 4) { // pk : primary key
-		runtimeDatas[iItem].pk = newText.empty() ? 0 
+		supplier->getColsRuntimeDatas()[iItem].pk = newText.empty() ? 0 
 			: static_cast<uint8_t>(std::stoi(newText));
 	} else if (iSubItem == 5) { // ai : auto increment
-		runtimeDatas[iItem].ai = newText.empty() ? 0 
+		supplier->getColsRuntimeDatas()[iItem].ai = newText.empty() ? 0 
 			: static_cast<uint8_t>(std::stoi(newText));
 	} else if (iSubItem == 6) { // un : unique
-		runtimeDatas[iItem].un = newText.empty() ? 0 
+		supplier->getColsRuntimeDatas()[iItem].un = newText.empty() ? 0 
 			: static_cast<uint8_t>(std::stoi(newText));
 	}  else if (iSubItem == 7) { // default value
-		runtimeDatas[iItem].defVal = newText;
+		supplier->getColsRuntimeDatas()[iItem].defVal = newText;
 	} else if (iSubItem == 8) { // check 
-		runtimeDatas[iItem].checks = newText;
+		supplier->getColsRuntimeDatas()[iItem].checks = newText;
 	}
 }
 
@@ -406,10 +493,10 @@ void TableColumnsPageAdapter::createNewColumn()
 	// 1.create a empty row and push it to runtimeDatas list
 	ColumnInfo columnRow;
 	columnRow.name = L"New Column";
-	runtimeDatas.push_back(columnRow);
+	supplier->getColsRuntimeDatas().push_back(columnRow);
 
 	// 2.update the item count and selected the new row	
-	int n = static_cast<int>(runtimeDatas.size());
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	dataView->SetItemCount(n);
 
 }
@@ -422,12 +509,22 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
 		return false;
 	}
-		
+
 	// 1. delete the changeVals from dataView
 	std::vector<int> nSelItems;
+	bool foundIndex = false;
 	int nSelItem = -1;
 	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
 		nSelItems.push_back(nSelItem);
+
+		std::wstring columnName = supplier->getColsRuntimeDatas().at(nSelItem).name;
+		if (existsColumnNameInRuntimeIndexes(columnName)) {
+			foundIndex = true;
+		}
+	}
+
+	if (foundIndex && QMessageBox::confirm(parentHwnd, S(L"delete-column-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+		return false;
 	}
 
 	if (nSelItems.empty()) {
@@ -438,17 +535,22 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto iter = runtimeDatas.begin();
+		auto iter = supplier->getColsRuntimeDatas().begin();
 		for (int j = 0; j < nSelItem; j++) {
 			iter++;
 		}
-		auto & rowItem = (*iter);		
+		auto & rowItem = (*iter);
+		std::wstring * columnName = new std::wstring(rowItem.name);
 
 		// 2.1 delete row from runtimeDatas vector 
-		runtimeDatas.erase(iter);
+		supplier->getColsRuntimeDatas().erase(iter);
 
 		// 2.2 delete row from dataView
 		dataView->RemoveItem(nSelItem);
+
+		// TableColumnsPage($parentHwnd)->QTabView($tabView)->QTableTabView  ------ then trans to --> TableIndexesPage
+		HWND pHwnd = ::GetParent(::GetParent(parentHwnd));
+		::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, WPARAM(columnName), NULL);
 	}
 	
 	return true;
@@ -476,15 +578,15 @@ bool TableColumnsPageAdapter::moveUpSelColumns()
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto iter = runtimeDatas.begin();
+		auto iter = supplier->getColsRuntimeDatas().begin();
 		for (int j = 0; j < nSelItem; j++) {
 			iter++;
 		}
 		auto & rowItem = (*iter);
-		auto prevIter = iter == std::begin(runtimeDatas) ? 
-			runtimeDatas.end() : std::prev(iter);		
+		auto prevIter = iter == std::begin(supplier->getColsRuntimeDatas()) ? 
+			supplier->getColsRuntimeDatas().end() : std::prev(iter);		
 
-		if (prevIter != runtimeDatas.end()) {
+		if (prevIter != supplier->getColsRuntimeDatas().end()) {
 			// 2.1 delete row from runtimeDatas vector 
 			std::swap(rowItem, (*prevIter));
 
@@ -524,15 +626,15 @@ bool TableColumnsPageAdapter::moveDownSelColumns()
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto iter = runtimeDatas.begin();
+		auto iter = supplier->getColsRuntimeDatas().begin();
 		for (int j = 0; j < nSelItem; j++) {
 			iter++;
 		}
 		auto & rowItem = (*iter);
-		auto nextIter = iter == std::end(runtimeDatas) ? 
-			runtimeDatas.end() : std::next(iter);
+		auto nextIter = iter == std::end(supplier->getColsRuntimeDatas()) ? 
+			supplier->getColsRuntimeDatas().end() : std::next(iter);
 
-		if (nextIter != runtimeDatas.end()) {
+		if (nextIter != supplier->getColsRuntimeDatas().end()) {
 			// 2.1 swap row from runtimeDatas vector 
 			std::swap(rowItem, (*nextIter));
 
@@ -554,7 +656,7 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
 	if (clickItem->iSubItem == 0 || (clickItem->iSubItem >= 2 && clickItem->iSubItem <= 6)) {
 		if (clickItem->iSubItem == 2) {
-			dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, dataTypeList, true);
+			dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, TableStructureSupplier::colsDataTypeList, true);
 		} else if (clickItem->iSubItem >= 3 && clickItem->iSubItem <= 6) {
 			dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 			if (!changeListViewCheckBox(clickItem->iItem, clickItem->iSubItem)) {
@@ -570,7 +672,7 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 }
 
 /**
- * Check/uncheck the checkbox in ListView.
+ * Check/Uncheck the checkBox in ListView.
  * 
  * @param iItem
  * @param iSubItem
@@ -612,11 +714,34 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
 
 	// Send this msg when changing the table index in the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
 	if (iSubItem == 4 || iSubItem == 5) {
-		AppContext::getInstance()->dispatch(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, NULL, NULL);
+		//TableColumnsPage($parentHwnd)->QTabView($tabView)->TableTabView ------ trans to --> TableIndexesPage
+		HWND pHwnd = ::GetParent(::GetParent(parentHwnd));
+		::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, NULL, NULL);
 	}
-	AppContext::getInstance()->dispatch(Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+
+	// send msg to TableStructurePage, class chain : TableColumnsPage($parentHwnd)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = ::GetParent(::GetParent(::GetParent(parentHwnd)));
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 
 	return true;
+}
+
+
+bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstring & columnName)
+{
+	ATLASSERT(!columnName.empty());
+	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
+	int n = static_cast<int>(indexes.size());
+	for (int i = 0; i < n; i++) {
+		auto & item = indexes.at(i);
+		auto columns = StringUtil::split(item.colums, L",");
+		auto iter = std::find(columns.begin(), columns.end(), columnName);
+		if (iter == columns.end()) {
+			continue;
+		}
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -625,13 +750,13 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
  * @param excludeNames
  * @return 
  */
-std::vector<std::wstring> TableColumnsPageAdapter::getAllColumnNames(const std::vector<std::wstring> & excludeNames /*= std::vector<std::wstring>()*/) const
+std::vector<std::wstring> TableColumnsPageAdapter::getAllColumnNames(const std::vector<std::wstring> & excludeNames) const
 {
 	std::vector<std::wstring> result;
 
-	int n = static_cast<int>(runtimeDatas.size());
+	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	for (int i = 0; i < n; i++) {
-		auto data = runtimeDatas.at(i);
+		auto data = supplier->getColsRuntimeDatas().at(i);
 		std::wstring columnName = data.name;
 		if (columnName.empty()) {
 			continue;

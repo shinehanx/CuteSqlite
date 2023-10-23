@@ -23,6 +23,7 @@
 #include "core/service/db/DatabaseService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 #define NEW_TBL_EMPTY_COLUMN_SIZE 8
 
@@ -30,13 +31,13 @@
 class TableColumnsPageAdapter : public QAdapter<TableColumnsPageAdapter, QListViewCtrl>
 {
 public:
-	TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType resultType = NEW_TABLE);
+	TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier);
 	~TableColumnsPageAdapter();
 
-	int loadTblColumnsListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
+	int loadTblColumnsListView();
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
-	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & newText);
+	void changeRuntimeDatasItem(int iItem, int iSubItem, const std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
 	// create/copy a new column row operation
@@ -54,22 +55,18 @@ public:
 
 	ColumnInfo getRuntimeData(int nItem) const;
 
-	std::wstring genderateColumnsSqlClause() const;
+	std::wstring genderateCreateColumnsSqlClause() const;
+	std::pair<std::wstring,std::wstring> generateInsertColumnsClause();
+	std::wstring genderateAlterColumnsSqlClauseForMysql();
+
 	ColumnInfoList getPrimaryKeyColumnInfoList();
 	bool verifyExistsAutoIncrement();
 
 	bool changeListViewCheckBox(int iItem, int iSubItem);
+
+	bool existsColumnNameInRuntimeIndexes(const std::wstring & columnName);
 private:
-	const static Columns headerColumns;
-	const static std::vector<int> columnSizes;
-	const static std::vector<int> columnFormats;
-	const static std::vector<std::wstring> dataTypeList;
-
-	// store the runtime data of the column(s) settings
-	ColumnInfoList runtimeDatas;
-
-	TblOperateType operateType;
-
+	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	void loadHeadersForListView();
@@ -86,6 +83,5 @@ private:
 	void validPrimaryKeyInSameRow(int iItem);
 	void invalidExistsPrimaryKeyInOtherRow(int iItem);
 	void invalidExistsAutoIncrementInSameRow(int iItem);
-
 	
 };

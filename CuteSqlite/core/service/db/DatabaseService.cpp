@@ -140,63 +140,63 @@ UserTableList DatabaseService::getUserTables(uint64_t userDbId)
 	return tableUserRepository->getListByUserDbId(userDbId);
 }
 
-UserTable DatabaseService::getUserTable(uint64_t userDbId, const std::wstring & tblName)
+UserTable DatabaseService::getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return tableUserRepository->getTable(userDbId, tblName);
+	return tableUserRepository->getTable(userDbId, tblName, schema);
 }
 
-UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId)
+UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0);
 	UserTableStrings result;
-	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId);
+	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId, schema);
 	for (auto userTable : userTableList) {
 		result.push_back(userTable.name);
 	}
 	return result;
 }
 
-UserViewList DatabaseService::getUserViews(uint64_t userDbId)
+UserViewList DatabaseService::getUserViews(uint64_t userDbId, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0);
-	return viewUserRepository->getListByUserDbId(userDbId);
+	return viewUserRepository->getListByUserDbId(userDbId, schema);
 }
 
-UserView DatabaseService::getUserView(uint64_t userDbId, const std::wstring & viewName)
+UserView DatabaseService::getUserView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !viewName.empty());
-	return viewUserRepository->getView(userDbId, viewName);
+	return viewUserRepository->getView(userDbId, viewName, schema);
 }
 
-UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId)
+UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0);
-	return triggerUserRepository->getListByUserDbId(userDbId);
+	return triggerUserRepository->getListByUserDbId(userDbId, schema);
 }
 
-UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstring & triggerName)
+UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !triggerName.empty());
-	return triggerUserRepository->getTrigger(userDbId, triggerName);
+	return triggerUserRepository->getTrigger(userDbId, triggerName, schema);
 }
 
-ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, const std::wstring & tblName)
+ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return columnUserRepository->getListByTblName(userDbId, tblName);
+	return columnUserRepository->getListByTblName(userDbId, tblName, schema);
 }
 
-UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName)
+UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return indexUserRepository->getListByTblName(userDbId, tblName);
+	return indexUserRepository->getListByTblName(userDbId, tblName, schema);
 }
 
-IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName)
+IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName);
+	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName, schema);
 
 	// todo...
 
@@ -204,10 +204,10 @@ IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::ws
 	return IndexInfoList();
 }
 
-std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns)
+std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	UserTable userTable = tableUserRepository->getTable(userDbId, tblName);
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
 	if (userTable.name.empty() || userTable.sql.empty()) {
 		return L"";
 	}

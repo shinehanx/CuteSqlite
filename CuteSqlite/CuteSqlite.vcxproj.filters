@@ -267,6 +267,15 @@
     <ClCompile Include="ui\database\rightview\page\TableStructurePage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\table\supply\TableStructureSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\exception\QSqlExecuteException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\SavePointUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -567,6 +576,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\TableStructurePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\table\supply\TableStructureSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\exception\QSqlExecuteException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\SavePointUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -22,10 +22,17 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-UserIndexList IndexUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName)
+UserIndexList IndexUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema)
 {
 	UserIndexList result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"sqlite_master\"");
+	} else {
+		sql.append(L"\"sqlite_master\"");
+	}
+	sql.append(L" WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 		query.bind(L":tbl_name", tblName);

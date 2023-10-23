@@ -23,13 +23,14 @@
 #include "core/service/db/DatabaseService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 #define NEW_TBL_EMPTY_INDEX_SIZE 6
 
 class TableIndexesPageAdapter : public QAdapter<TableIndexesPageAdapter, QListViewCtrl>
 {
 public:
-	TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TblOperateType resultType = NEW_TABLE);
+	TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier);
 	~TableIndexesPageAdapter();
 
 	int loadTblIndexesListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
@@ -45,19 +46,13 @@ public:
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
-	std::wstring genderateIndexesSqlClause(bool hasAutoIncrement = false);
+	std::wstring genderateCreateIndexesSqlClause(bool hasAutoIncrement = false);
+	std::wstring genderateAlterIndexesSqlClause(bool hasAutoIncrement = false);
 	void changePrimaryKey(ColumnInfoList & pkColumns);
+	void changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName);
+	void deleteTableColumnName(const std::wstring & columnName);
 private:
-	const static Columns headerColumns;
-	const static std::vector<int> columnSizes;
-	const static std::vector<int> columnFormats;
-	const static std::vector<std::wstring> indexTypeList;
-
-	// store the runtime data of the column(s) settings
-	IndexInfoList runtimeDatas;
-
-	TblOperateType operateType;
-
+	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	void loadHeadersForListView();

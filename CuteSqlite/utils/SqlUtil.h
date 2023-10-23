@@ -64,4 +64,7 @@ public:
 	static std::wstring makeWhereClauseByPrimaryKey(std::wstring & primaryKey, Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals);
 	static std::wstring makeInsertColumsClause(Columns & columns);
 	static std::wstring makeInsertValuesClause(RowItem & rowItem);
+
+	// make table name
+	static std::wstring makeTmpTableName(const std::wstring & tblName, int number = 1, const std::wstring & prefix = std::wstring(L"ctsqlite_tmp_"));
 };

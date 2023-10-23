@@ -26,6 +26,7 @@
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
 #include "ui/database/rightview/page/table/adapter/TableIndexesPageAdapter.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 class TableIndexesPage : public QPage 
 {
@@ -49,19 +50,25 @@ public:
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey);		
+		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, OnTableColumsChangeColumnName);		
+		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName);		
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_INDEX_BUTTON_ID, BN_CLICKED, OnClickNewIndexButton)
 		COMMAND_HANDLER_EX(Config::TABLE_DEL_INDEX_BUTTON_ID, BN_CLICKED, OnClickDelIndexButton)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	void setup(uint64_t userDbId,  const std::wstring & schema = L"", TableColumnsPageAdapter * tblColumnsPageAdapter = nullptr);
+	void setup(TableColumnsPageAdapter * tblColumnsPageAdapter, TableStructureSupplier * supplier);
 	TableColumnsPageAdapter * getTblColumnsPageAdapter() const { return tblColumnsPageAdapter; }
 	void setTblColumnsPageAdapter(TableColumnsPageAdapter * val) { tblColumnsPageAdapter = val; }
 	TableIndexesPageAdapter * getAdapter();
+
+	TableStructureSupplier * getSupplier() const { return supplier; }
+	void setSupplier(TableStructureSupplier * val) { supplier = val; }
 private:
 	bool isNeedReload = true;
-	uint64_t userDbId = 0;
-	std::wstring schema;
+	uint64_t runtimeUserDbId = 0;
+	std::wstring runtimeTblName;
+	std::wstring runtimeSchema;
 	int rowCount = 0;
 
 	COLORREF buttonColor = RGB(238, 238, 238);
@@ -76,7 +83,8 @@ private:
 	QListViewCtrl listView;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
 
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	TableStructureSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	TableColumnsPageAdapter * tblColumnsPageAdapter = nullptr;
 	TableIndexesPageAdapter * adapter = nullptr;
 	
@@ -106,6 +114,8 @@ private:
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

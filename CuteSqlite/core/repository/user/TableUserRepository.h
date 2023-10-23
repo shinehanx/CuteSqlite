@@ -27,13 +27,15 @@ public:
 	TableUserRepository() {}
 	~TableUserRepository() {}
 
-	UserTableList getListByUserDbId(uint64_t userDbId);
-	UserTable getTable(uint64_t userDbId, const std::wstring & tblName);
+	UserTableList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
+	UserTable getTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
-	uint64_t getDataCount(uint64_t userDbId, const std::wstring & tblName);
-	DataList getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage);
+	uint64_t getDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+	DataList getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema = std::wstring());
 private:
 	
 	UserTable toUserTable(QSqlStatement &query);
 	RowItem toRowItem(QSqlStatement &query);
+public:
+	void execBySql(uint64_t userDbId, const std::wstring & sql);
 };

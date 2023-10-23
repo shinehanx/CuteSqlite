@@ -13,16 +13,22 @@
 
  * @file   RightWorkView.cpp
  * @brief  Right work space for splitter,include data query, sql execute and so on.
- * @ClassChain  RightWorkView
- *                    |-> QueryPage
- *                    |      |-> CHorSplitterWindow
- *                    |            |-> QHelpEdit -> QSqlEdit(Scintilla)
- *                    |            |-> ResultTabView
- *                    |                    |-> QTabView
- *                    |                          |-> ResultListPage
- *                    |                          |-> ResultInfoPage
- *                    |                          |-> ResultTableDataPage
- *                    |-> NewTablePage
+  * @ClassChain  RightWorkView
+ *                |->QTabView(tabView)
+ *                         |-> QueryPage
+ *                         |      |-> CHorSplitterWindow
+ *                         |            |-> QHelpEdit ** QSqlEdit(Scintilla)
+ *                         |            |-> ResultTabView
+ *                         |                    |-> QTabView(tabView)  
+ *                         |                          |-> ResultListPage
+ *                         |                          |-> ResultInfoPage
+ *                         |                          |-> ResultTableDataPage
+ *                         |-> TableStructurePage
+ *					       |       |-> TableTabView
+ *                         |              |->QTabView(tabView)
+ *                         |                    |->TableColumnsPage
+ *                         |                    |->TableIndexesPage
+ *                         |-> HistoryPage
  * @author Xuehan Qin
  * @date   2023-05-21
  *********************************************************************/
@@ -42,7 +48,7 @@ BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 	if (queryPage.IsWindow() && queryPage.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
-	for (auto pagePtr : newTablePagePtrs) {
+	for (auto pagePtr : tablePagePtrs) {
 		if (pagePtr->IsWindow() && pagePtr->PreTranslateMessage(pMsg)) {
 			return TRUE;
 		}
@@ -214,14 +220,14 @@ int RightWorkView::OnDestroy()
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
-	for (QPage * pagePtr : newTablePagePtrs) {
+	for (QPage * pagePtr : tablePagePtrs) {
 		if (pagePtr && pagePtr->IsWindow()) {
 			pagePtr->DestroyWindow();
 			delete pagePtr;
 			pagePtr = nullptr;
 		}
 	}
-	newTablePagePtrs.clear();
+	tablePagePtrs.clear();
 	return 0;
 }
 
@@ -293,11 +299,43 @@ void RightWorkView::doAddNewTable()
 	CRect clientRect;
 	GetClientRect(clientRect);
 	TableStructurePage * newTablePage = new TableStructurePage();
+	newTablePage->setup(TblOperateType::NEW_TABLE);
 	createOrShowTableStructurePage(*newTablePage, clientRect);
-	newTablePagePtrs.push_back(newTablePage);
+	tablePagePtrs.push_back(newTablePage);
 
 	// nImage = 2 : table 
 	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 2, newTablePage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::NEW_TABLE_PAGE, newTablePage->m_hWnd });
+}
+
+/**
+ * Send this msg when changing the page title of this tab view , wParam=(page hwnd:HWND), lParam=(title:wchar_t *).
+ * 
+ * @param uMsg
+ * @param wParam - page hwnd
+ * @param lParam - title(wchar_t *)
+ * @param bHandled
+ * @return 
+ */
+LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int nPage = tabView.GetActivePage();
+	HWND hwnd = (HWND)wParam;
+	wchar_t * cch = (wchar_t *)lParam;
+
+	if (tabView.GetPageHWND(nPage) != hwnd) {
+		return 0;
+	}
+
+	std::wstring title;
+	for (auto pagePtr : tablePagePtrs) {
+		if (pagePtr->m_hWnd == hwnd) {
+			title = pagePtr->getSupplier()->getRuntimeTblName();
+			tabView.SetPageTitle(nPage, title.c_str());
+		}
+	}
+	
+	
+	return 0;
 }

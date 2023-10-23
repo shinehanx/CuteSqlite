@@ -19,11 +19,13 @@
  *********************************************************************/
 #pragma once
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "ui/common/page/QPage.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/table/TableTabView.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 class TableStructurePage : public QPage {
 public:
@@ -35,6 +37,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		COMMAND_HANDLER_EX(Config::TABLE_TBL_NAME_EDIT_ID, EN_CHANGE, OnChangeTblNameEdit)
+		COMMAND_HANDLER_EX(Config::TABLE_SAVE_BUTTON_ID, BN_CLICKED, OnClickSaveButton)
 		MESSAGE_HANDLER(Config::MSG_TABLE_PREVIEW_SQL_ID, OnPreviewSql);
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
@@ -42,6 +45,9 @@ public:
 		CHAIN_MSG_MAP(QPage)
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
+
+	void setup(TblOperateType tblOperateType, const std::wstring &tblName = std::wstring(), const std::wstring & schema = std::wstring());
+	TableStructureSupplier * getSupplier() { return supplier; };
 private:
 	COLORREF editorBkgColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;	
@@ -65,8 +71,10 @@ private:
 
 	QHelpEdit sqlPreviewEdit;
 
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 	
 	CRect getEditorRect(CRect & clientRect);
 
@@ -87,6 +95,9 @@ private:
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 	void OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void afterCreatedTable(const std::wstring & tblName);
+
 	LRESULT OnPreviewSql(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
@@ -94,6 +105,13 @@ private:
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 	
 	void previewRuntimeSql();
-	std::wstring generateColumnsClause();
-	std::wstring generateIndexesClause();
+	std::wstring getCreateRuntimeSql();
+	std::wstring generateCreateTableSql(std::wstring &schema, std::wstring tblName);
+
+	std::wstring execAlterTable();
+
+	std::wstring generateCreateColumnsClause();
+	std::wstring generateCreateIndexesClause();
+	
+	std::wstring generateInsertIntoTmpTableSql(std::wstring& schema, std::wstring& tmpTblName, std::wstring& oldTblName);
 };

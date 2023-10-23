@@ -591,8 +591,13 @@ LRESULT ResultListPage::OnListViewItemChange(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 			listView.GetItem(&item);
 			// todo...
 		}
-
     }
+	
+	bool checkedFormView = isShowFormView();
+	if (checkedFormView) {
+		formView.loadFormData(formViewReadOnly);
+	}
+	
 	return 0;
 }
 

@@ -19,9 +19,9 @@ namespace SQLite
 }
 class QSqlDatabase;
 
-//因为QSqlStatement.h和QColumn.h互相递归包含，互相使用对方的类，所以需要解决包含的问题：
-//这里使用了友元类，参考https://blog.csdn.net/u013435183/article/details/47750745，(文档里第二种方法)
-//注意:第一，QSqlStatement.h不要包含#include "QSqlColumn.h"，但是QSqlStatement.cpp必须包含#include "QSqlColumn.h"，QSqlColumn.h需要类声明class QSqlColumn;(参见QSqlStatement.h)
+// 因为QSqlStatement.h和QColumn.h互相递归包含，互相使用对方的类，所以需要解决包含的问题：
+// 这里使用了友元类，参考https://blog.csdn.net/u013435183/article/details/47750745，(文档里第二种方法)
+// 注意:第一，QSqlStatement.h不要包含#include "QSqlColumn.h"，但是QSqlStatement.cpp必须包含#include "QSqlColumn.h"，QSqlColumn.h需要类声明class QSqlColumn;(参见QSqlStatement.h)
 //	   第二，QSqlColumn需要声明友元类friend class QSqlStatement;（参见QSqlColumn.h），QSqlColumn.h需要包含#include "QSqlStatement.h"
 class QSqlColumn;
 
@@ -688,7 +688,7 @@ private:
 		*/
 	sqlite3_stmt* getPreparedStatement() const;
 
-	std::wstring             mQuery;                 //!< UTF-8 SQL Query
+	std::wstring            mQuery;                 //!< UTF-8 SQL Query
 	sqlite3*                mpSQLite;               //!< Pointer to SQLite Database Connection Handle
 	TStatementPtr           mpPreparedStatement;    //!< Shared Pointer to the prepared SQLite Statement Object
 	int                     mColumnCount = 0;       //!< Number of columns in the result of the prepared statement

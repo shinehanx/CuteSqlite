@@ -109,7 +109,7 @@ private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	
-	// the runtime variable
+	// the runtime variables
 	uint64_t runtimeUserDbId = 0;
 	std::wstring originSql;
 	std::wstring runtimeSql;

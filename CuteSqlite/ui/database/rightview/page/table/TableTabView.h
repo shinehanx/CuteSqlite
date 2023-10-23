@@ -25,6 +25,7 @@
 #include "ui/common/tabview/QTabView.h"
 #include "ui/database/rightview/page/table/TableColumnsPage.h"
 #include "ui/database/rightview/page/table/TableIndexesPage.h"
+#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 class TableTabView : public CWindowImpl<TableTabView>
 {
@@ -40,18 +41,19 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey);		
+		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, OnTableColumsChangeColumnName);		
+		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName);
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(uint64_t userDbId, const std::wstring & schema = L"");
-
 	TableColumnsPage & getTableColumnsPage();
 	TableIndexesPage & getTableIndexesPage();
+
+	TableStructureSupplier * getSupplier() const { return supplier; }
+	void setSupplier(TableStructureSupplier * val) { supplier = val; }
 private:
 	bool isNeedReload = true;
-
-	uint64_t userDbId = 0;
-	std::wstring schema;
 
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
@@ -63,6 +65,8 @@ private:
 	CImageList imageList;
 	HBITMAP columnBitmap = nullptr;
 	HBITMAP indexBitmap = nullptr;
+
+	TableStructureSupplier * supplier = nullptr;
 
 	void createImageList();
 
@@ -83,4 +87,8 @@ private:
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
+
+	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

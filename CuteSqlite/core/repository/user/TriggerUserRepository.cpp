@@ -22,10 +22,17 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId)
+UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId, const std::wstring & schema)
 {
 	UserTriggerList result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' ORDER BY name ASC";
+	// std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"sqlite_master\"");
+	} else {
+		sql.append(L"\"sqlite_master\"");
+	}
+	sql.append(L" WHERE type='trigger' ORDER BY name ASC");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
@@ -42,10 +49,17 @@ UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId)
 	}
 }
 
-UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, const std::wstring & triggerName)
+UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema)
 {
 	UserTrigger result;
-	std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' and name=:name ORDER BY name ASC";
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='trigger' and name=:name ORDER BY name ASC";
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"sqlite_master\"");
+	} else {
+		sql.append(L"\"sqlite_master\"");
+	}
+	sql.append(L" WHERE type='trigger' and name=:name ORDER BY name ASC");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 		query.bind(L":name", triggerName);

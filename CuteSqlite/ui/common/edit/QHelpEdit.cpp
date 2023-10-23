@@ -63,6 +63,11 @@ void QHelpEdit::replaceSelText(std::wstring & text)
 	editor.replaceSelText(text);
 }
 
+void QHelpEdit::clearText()
+{
+	editor.clearText();
+}
+
 void QHelpEdit::createOrShowUI()
 {
 	QHelpPage::createOrShowUI();

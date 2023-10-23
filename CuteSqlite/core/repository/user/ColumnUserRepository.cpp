@@ -19,19 +19,23 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "ColumnUserRepository.h"
+#include <chrono>
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
 
-ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName)
+ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema)
 {
 	ColumnInfoList result;
 	std::wstring sql = L"PRAGMA table_info(\"";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(schema).append(L"\".\"");
+	} 
 	sql.append(tblName).append(L"\")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 
 		while (query.executeStep()) {
-			ColumnInfo item = toUserField(query);
+			ColumnInfo item = toColumnInfo(query);
 			result.push_back(item);
 		}
 		return result;
@@ -42,7 +46,7 @@ ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const s
 	}
 }
 
-ColumnInfo ColumnUserRepository::toUserField(QSqlStatement &query)
+ColumnInfo ColumnUserRepository::toColumnInfo(QSqlStatement &query)
 {
 	ColumnInfo item;
 	item.cid = query.getColumn(L"cid").isNull() ? 0
@@ -55,5 +59,6 @@ ColumnInfo ColumnUserRepository::toUserField(QSqlStatement &query)
 	item.defVal = query.getColumn(L"dflt_value").isNull() ? L"" 
 		: query.getColumn(L"dflt_value").getText();
 	item.pk = query.getColumn(L"pk").getInt();
+	item.seq = std::chrono::system_clock::now(); // seq = current time 
 	return item;
 }
