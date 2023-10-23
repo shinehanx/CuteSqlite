@@ -65,7 +65,10 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
+		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
+		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewTriggerElem)
 		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
+		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -82,13 +85,15 @@ private:
 
 	QTabView tabView;
 	CEdit historyPage;
-	QueryPage queryPage;
+	std::vector<QueryPage *> queryPagePtrs; // The pointers of dynamically created page
 	std::vector<TableStructurePage *> tablePagePtrs; // The pointers of dynamically created page
 	CImageList imageList;
 
 	HBITMAP queryBitmap = nullptr;
 	HBITMAP historyBitmap = nullptr;
 	HBITMAP tableBitmap = nullptr;
+	HBITMAP viewBitmap = nullptr;
+	HBITMAP triggerBitmap = nullptr;
 
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	
@@ -101,6 +106,7 @@ private:
 	void createOrShowUI();
 	void createOrShowToolButtons(CRect & clientRect);
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
+	void createFirstQueryPage(CRect & clientRect);
 	void createOrShowHistoryPage(CEdit &win, CRect & clientRect);
 	void createOrShowQueryPage(QueryPage &win, CRect & clientRect);
 	void createOrShowTableStructurePage(TableStructurePage &win, CRect & clientRect);
@@ -120,8 +126,17 @@ private:
 
 	// Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 	LRESULT OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Click "New view" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickNewViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Click "New trigger" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickNewTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	
 	// Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	LRESULT OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
+	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+
 	void doAddNewTable();
+	void doAddNewView();
+	void doAddNewTrigger();
 };

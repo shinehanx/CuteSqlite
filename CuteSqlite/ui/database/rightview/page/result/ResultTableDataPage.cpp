@@ -33,8 +33,8 @@ ResultTableDataPage::ResultTableDataPage()
 void ResultTableDataPage::setup(std::wstring & table)
 {
 	this->table = table;
-	// genderate query table sql
-	this->sql.assign(L"SELECT * FROM ").append(table);
+	// generate query table sql
+	this->sql.assign(L"SELECT * FROM \"").append(table).append(L"\"");
 	formViewReadOnly = false;
 }
 

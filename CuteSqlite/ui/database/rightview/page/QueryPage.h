@@ -39,13 +39,16 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	void setup(const std::wstring & tplPath, const std::wstring & content = std::wstring());
+
 	QHelpEdit & getSqlEditor();
 	ResultTabView & getResultTabView();
-
-
 	void execAndShow();
 private:
-	
+	std::wstring tplPath;
+	std::wstring content;
+
+	bool isSpliterReload = true;
 	CHorSplitterWindow splitter;// Horizontal splitter
 	QHelpEdit sqlEditor;
 	
@@ -55,6 +58,7 @@ private:
 	
 	virtual void createOrShowUI();
 	virtual void loadWindow();
+	void loadSqlEditor();
 
 	void createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRect);
 	void createOrShowSqlEditor(QHelpEdit & win, CRect & clientRect);
@@ -66,5 +70,6 @@ private:
 	// 单击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	LRESULT OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	// 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
-	LRESULT OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);	
+	
 };

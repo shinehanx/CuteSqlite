@@ -3,6 +3,7 @@
 #include <io.h>
 #include <direct.h>
 #include <string>
+#include <fstream>
 #include "StringUtil.h"
 #include "DateUtil.h"
 #include "ResourceUtil.h"
@@ -188,6 +189,28 @@ public:
 		FileUtil::createDirectory(tmpPath);
 		tmpPath.append(L"_tmp_").append(DateUtil::getCurrentDateTime(L"%Y%m%d_%H%M%S.")).append(ext);
 		return tmpPath;
+	}
+
+	static std::wstring readFile(const std::wstring & path)
+	{
+		std::wifstream ifs;
+		auto codeccvt = new std::codecvt_utf8<wchar_t, 0x10ffff, std::codecvt_mode(std::generate_header | std::little_endian)>();
+		std::locale utf8(std::locale("C"), codeccvt);
+		ifs.imbue(utf8);
+		ifs.open(path, std::ios::in);
+		if (ifs.bad()) {
+			return L"";
+		}
+		std::wstring result;
+		wchar_t buff[257];
+		while (!ifs.eof()) {
+			wmemset(buff, 0, 256);
+			ifs.read(buff, 256);
+			result.append(buff);
+		}
+
+		ifs.close();
+		return result;
 	}
 };
 

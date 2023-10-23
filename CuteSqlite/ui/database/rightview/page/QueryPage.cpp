@@ -41,6 +41,12 @@ BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+void QueryPage::setup(const std::wstring & tplPath, const std::wstring & content)
+{
+	this->tplPath = tplPath;
+	this->content = content;
+}
+
 QHelpEdit & QueryPage::getSqlEditor()
 {
 	return sqlEditor;
@@ -81,13 +87,14 @@ void QueryPage::createOrShowUI()
 	QPage::createOrShowUI();
 
 	CRect clientRect;
-	GetClientRect(clientRect);
+	GetClientRect(clientRect); 
 	createOrShowSplitter(splitter, clientRect);
 	createOrShowSqlEditor(sqlEditor, clientRect);
 	createOrShowResultTabView(resultTabView, clientRect);
 
-	if (isNeedReload) {
-		isNeedReload = false;
+	
+	if (isSpliterReload) {
+		isSpliterReload = false;
 		splitter.SetSplitterPane(0, sqlEditor, true);
 		splitter.SetSplitterPane(1, resultTabView, false);
 	}
@@ -96,10 +103,42 @@ void QueryPage::createOrShowUI()
 
 void QueryPage::loadWindow()
 {
+	if (!isNeedReload) {
+		return;
+	}
 	QPage::loadWindow();
+	isNeedReload = false;
 
+	CRect splitterRect, editRect, tabViewRect;
+	splitter.GetClientRect(splitterRect);
+	sqlEditor.GetClientRect(editRect);
+	resultTabView.GetClientRect(tabViewRect);
+
+	if (tabViewRect.Width() < 4) {
+		int x = 0, y = splitterRect.top + editRect.Height() + splitter.m_cxySplitBar,
+			w = splitterRect.Width(),
+			h = splitterRect.Height() - splitter.m_cxySplitBar - editRect.Height();
+		CRect rect(x, y, x + w, y + h);
+		resultTabView.MoveWindow(rect);
+	}	
+
+	loadSqlEditor();
 }
 
+
+void QueryPage::loadSqlEditor()
+{
+	if (!content.empty()) {
+		sqlEditor.setText(content);
+		return;
+	}
+
+	if (!tplPath.empty()) {
+		std::wstring tplContent = FileUtil::readFile(tplPath);
+		sqlEditor.setText(tplContent);
+		return;
+	}
+}
 
 void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRect)
 {
@@ -107,6 +146,9 @@ void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRec
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		win.m_cxySplitBar = 2;
+
+		if (win.GetSplitterPos() == 4)
+			win.SetSplitterPos(clientRect.Height() * 1 / 3);
 		return;
 	}
 	else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
@@ -187,7 +229,8 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		supplier->selectTable = selItemText;
 	}
 
-	if (resultTabView.isActiveTableDataPage()) {
+	if (resultTabView.isActiveTableDataPage() 
+		&& supplier->activeTabPageHwnd == m_hWnd) {
 		resultTabView.loadTableDatas(supplier->selectTable);
 	}
 	return 0;
@@ -204,6 +247,9 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
  */
 LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	if (supplier->activeTabPageHwnd != m_hWnd) {
+		return 0;
+	}
 	LeftTreeViewAdapter * treeViewAdapter = (LeftTreeViewAdapter *)wParam;
 	HTREEITEM hSelTreeItem = (HTREEITEM)lParam;
 	if (!hSelTreeItem) {
@@ -235,3 +281,4 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 
 	return 0;
 }
+

@@ -31,7 +31,9 @@ public:
 		RESULT_PAGE,
 		INFO_PAGE,
 		TABLE_DATA_PAGE,		
-		NEW_TABLE_PAGE,
+		TABLE_PAGE,
+		VIEW_PAGE,
+		TRIGGER_PAGE
 	} TabPageType;
 
 	// For tabView.SetPageData function
@@ -55,6 +57,7 @@ public:
 
 	// Tab Page Data vector for page, template param HWND
 	std::vector<TabPageData> mainTabPages;
+	HWND activeTabPageHwnd = nullptr;
 	
 	// sql statements
 	std::vector<std::wstring> sqlVector;

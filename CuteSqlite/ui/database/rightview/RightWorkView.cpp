@@ -45,11 +45,15 @@
 BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 {
 	BOOL result = FALSE;
-	if (queryPage.IsWindow() && queryPage.PreTranslateMessage(pMsg)) {
-		return TRUE;
+	
+	for (auto pagePtr : queryPagePtrs) {
+		if (pagePtr && pagePtr->IsWindow() && pagePtr->PreTranslateMessage(pMsg)) {
+			return TRUE;
+		}
 	}
+
 	for (auto pagePtr : tablePagePtrs) {
-		if (pagePtr->IsWindow() && pagePtr->PreTranslateMessage(pMsg)) {
+		if (pagePtr && pagePtr->IsWindow() && pagePtr->PreTranslateMessage(pMsg)) {
 			return TRUE;
 		}
 	}
@@ -66,11 +70,15 @@ void RightWorkView::createImageList()
 	queryBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\query.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	historyBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\history.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
 	tableBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\table.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
+	viewBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\view.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
+	triggerBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\trigger.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
 
 	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
 	imageList.Add(queryBitmap); // 0 - query
 	imageList.Add(historyBitmap); // 1 - history
 	imageList.Add(tableBitmap); // 2 - table
+	imageList.Add(viewBitmap); // 3 - view
+	imageList.Add(triggerBitmap); // 4 - trigger
 	
 }
 
@@ -90,7 +98,7 @@ void RightWorkView::createOrShowUI()
 	GetClientRect(clientRect);
 	createOrShowToolButtons(clientRect);
 	createOrShowTabView(tabView, clientRect);
-	createOrShowQueryPage(queryPage, clientRect);
+	createFirstQueryPage(clientRect);
 	createOrShowHistoryPage(historyPage, clientRect);	
 }
 
@@ -126,6 +134,20 @@ void RightWorkView::createOrShowTabView(QTabView &win, CRect & clientRect)
 	} else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
+	}
+}
+
+void RightWorkView::createFirstQueryPage(CRect & clientRect)
+{
+	//queryPagePtrs.clear();
+	QueryPage * firstQueryPage = nullptr;
+	if (queryPagePtrs.empty()) {
+		firstQueryPage = new QueryPage();
+		createOrShowQueryPage(*firstQueryPage, clientRect); 
+		queryPagePtrs.push_back(firstQueryPage);
+	} else {
+		firstQueryPage = queryPagePtrs.at(0);
+		createOrShowQueryPage(*firstQueryPage, clientRect);		
 	}
 }
 
@@ -182,17 +204,23 @@ void RightWorkView::loadWindow()
 
 void RightWorkView::loadTabViewPages()
 {
-	tabView.AddPage(queryPage.m_hWnd, S(L"query-editor").c_str(), 0, &queryPage);
+	ATLASSERT(!queryPagePtrs.empty());
+	QueryPage * firstQueryPage = queryPagePtrs.at(0);
+	tabView.AddPage(firstQueryPage->m_hWnd, S(L"query-editor").c_str(), 0, firstQueryPage);
 	tabView.AddPage(historyPage.m_hWnd, S(L"history-log").c_str(), 1, &historyPage);
 
-	supplier->mainTabPages.push_back({ DatabaseSupplier::QUERY_PAGE, queryPage.m_hWnd });
+	supplier->mainTabPages.push_back({ DatabaseSupplier::QUERY_PAGE, queryPagePtrs.at(0)->m_hWnd });
 	supplier->mainTabPages.push_back({ DatabaseSupplier::HISTORY_PAGE, historyPage.m_hWnd });
 	tabView.SetActivePage(0);
+	supplier->activeTabPageHwnd = firstQueryPage->m_hWnd;
 }
+
 
 int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 	createImageList();
 
 	topbarBrush = ::CreateSolidBrush(topbarColor);
@@ -203,6 +231,8 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int RightWorkView::OnDestroy()
 {
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 
 	if (topbarBrush) ::DeleteObject(topbarBrush);
 	if (bkgBrush) ::DeleteObject(bkgBrush);
@@ -212,7 +242,6 @@ int RightWorkView::OnDestroy()
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (historyPage.IsWindow()) historyPage.DestroyWindow();
-	if (queryPage.IsWindow()) queryPage.DestroyWindow();
 	
 	if (queryBitmap) ::DeleteObject(queryBitmap);
 	if (historyBitmap) ::DeleteObject(historyBitmap);
@@ -221,6 +250,15 @@ int RightWorkView::OnDestroy()
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
 	for (QPage * pagePtr : tablePagePtrs) {
+		if (pagePtr && pagePtr->IsWindow()) {
+			pagePtr->DestroyWindow();
+			delete pagePtr;
+			pagePtr = nullptr;
+		}
+	}
+
+	// destroy the pagePtr and release the memory from pagePtrs vector
+	for (QPage * pagePtr : queryPagePtrs) {
 		if (pagePtr && pagePtr->IsWindow()) {
 			pagePtr->DestroyWindow();
 			delete pagePtr;
@@ -266,8 +304,11 @@ BOOL RightWorkView::OnEraseBkgnd(CDCHandle dc)
 
 LRESULT RightWorkView::OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	if (tabView.GetPageHWND(tabView.GetActivePage()) == queryPage.m_hWnd) {
-		queryPage.execAndShow();
+	HWND activeHwnd = tabView.GetPageHWND(tabView.GetActivePage());
+	for (auto pagePtr : queryPagePtrs) {
+		if (pagePtr && pagePtr->IsWindow () && activeHwnd == pagePtr->m_hWnd) {
+			pagePtr->execAndShow();
+		}		
 	}
 	// execute sql statements from supplier->sqlVector
 	
@@ -279,6 +320,7 @@ LRESULT RightWorkView::OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd
 {
 	return 0;
 }
+
 /**
  * Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL.
  * 
@@ -303,10 +345,75 @@ void RightWorkView::doAddNewTable()
 	createOrShowTableStructurePage(*newTablePage, clientRect);
 	tablePagePtrs.push_back(newTablePage);
 
-	// nImage = 2 : table 
-	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 2, newTablePage);
+	// nImage = 3 : VIEW 
+	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 3, newTablePage);
 
-	supplier->mainTabPages.push_back({ DatabaseSupplier::NEW_TABLE_PAGE, newTablePage->m_hWnd });
+	supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_PAGE, newTablePage->m_hWnd });
+	supplier->activeTabPageHwnd = newTablePage->m_hWnd;
+}
+
+/**
+ * Click "New view" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL.
+ * 
+ * @param uMsg
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT RightWorkView::OnClickNewViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	doAddNewView();
+	return 0;
+}
+
+void RightWorkView::doAddNewView()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	std::wstring binDir = ResourceUtil::getProductBinDir();
+	std::wstring tplPath = binDir + L"res\\tpl\\create-view-sql.tpl";
+
+	QueryPage * newViewPage = new QueryPage();
+	newViewPage->setup(tplPath);
+	createOrShowQueryPage(*newViewPage, clientRect);
+	queryPagePtrs.push_back(newViewPage);
+
+	// nImage = 3 : view 
+	tabView.AddPage(newViewPage->m_hWnd, S(L"new-view").c_str(), 3, newViewPage);
+
+	supplier->mainTabPages.push_back({ DatabaseSupplier::VIEW_PAGE, newViewPage->m_hWnd });
+	supplier->activeTabPageHwnd = newViewPage->m_hWnd;
+}
+
+/**
+ * Click "New trigger" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL.
+ * 
+ * @param uMsg
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT RightWorkView::OnClickNewTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	doAddNewTrigger();
+	return 0;
+}
+
+void RightWorkView::doAddNewTrigger()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	QueryPage * newTriggerPage = new QueryPage();
+	createOrShowQueryPage(*newTriggerPage, clientRect); 
+	queryPagePtrs.push_back(newTriggerPage);
+
+	// nImage = 2 : table 
+	tabView.AddPage(newTriggerPage->m_hWnd, S(L"new-trigger").c_str(), 2, newTriggerPage);
+
+	supplier->mainTabPages.push_back({ DatabaseSupplier::TRIGGER_PAGE, newTriggerPage->m_hWnd });
+	supplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
 }
 
 /**
@@ -337,5 +444,13 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
 	}
 	
 	
+	return 0;
+}
+
+LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	HWND hwndPage = tabView.GetPageHWND(tabView.GetActivePage());
+	supplier->activeTabPageHwnd = hwndPage;
+
 	return 0;
 }

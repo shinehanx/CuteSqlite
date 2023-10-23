@@ -501,6 +501,16 @@ void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	doNewTable();
 }
 
+void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doNewView();
+}
+
+void LeftTreeView::OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doNewTrigger();
+}
+
 LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	doRefreshDatabase();
@@ -570,4 +580,14 @@ void LeftTreeView::doImportFromSql()
 void LeftTreeView::doNewTable()
 {
 	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID, NULL, NULL);
+}
+
+void LeftTreeView::doNewView()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_VIEW_ID, NULL, NULL);
+}
+
+void LeftTreeView::doNewTrigger()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_TRIGGER_ID, NULL, NULL);
 }
