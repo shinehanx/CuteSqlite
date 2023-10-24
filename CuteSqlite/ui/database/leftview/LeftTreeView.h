@@ -48,6 +48,7 @@ public:
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_SELCHANGED, OnChangedTreeViewItem)
+		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_ITEMEXPANDING, OnExpendingTreeViewItem)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, TVN_GETINFOTIP, OnShowTreeViewItemToolTip)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
 		NOTIFY_HANDLER(Config::DATABASE_TREEVIEW_ID, NM_RCLICK, OnRightClickTreeViewItem)
@@ -127,6 +128,7 @@ private:
 	
 	// change selected treeview item .
 	LRESULT OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+	LRESULT OnExpendingTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
 	LRESULT OnShowTreeViewItemToolTip(int wParam, LPNMHDR lParam, BOOL& bHandled);
 	// double click treeview item .
 	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);

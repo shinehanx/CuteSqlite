@@ -107,13 +107,13 @@ void LeftTreeViewAdapter::loadTreeView()
 		HTREEITEM hViewsFolderItem = dataView->InsertItem(S(L"views").c_str(), 1, 1, hDbItem, TVI_LAST);
 		HTREEITEM hTriggersFolderItem = dataView->InsertItem(S(L"triggers").c_str(), 1, 1, hDbItem, TVI_LAST);
 
-		loadTablesForTreeView(hTablesFolderItem, item);
-		loadViewsForTreeView(hViewsFolderItem, item);
-		loadTriggersForTreeView(hTriggersFolderItem, item);
-
 		if (item.isActive) {
 			hSelDbItem = hDbItem;
 			databaseSupplier->setSeletedUserDbId(item.id);
+
+			loadTablesForTreeView(hTablesFolderItem, item);
+			loadViewsForTreeView(hViewsFolderItem, item);
+			loadTriggersForTreeView(hTriggersFolderItem, item);
 		}
 		dataView->Expand(hTablesFolderItem);
 	}
@@ -236,6 +236,42 @@ void LeftTreeViewAdapter::loadDbs()
 		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
 	}
 }
+
+/**
+ * Get the dbItem sub folder item. the item must be folder
+ * 
+ * @param dbItem - database tree item
+ * @param folderName - find folder name: must be tables,  views,  triggers
+ * @return 
+ */
+HTREEITEM LeftTreeViewAdapter::getFolderItem(HTREEITEM dbItem, const std::wstring & folderName)
+{
+	ATLASSERT(dbItem && !folderName.empty());
+	if (!dataView->ItemHasChildren(dbItem)) {
+		return nullptr;
+	}
+
+	HTREEITEM hChildItem = dataView->GetChildItem(dbItem);
+	while (hChildItem) {
+		int iImage = -1, iSelImage = -1;
+		wchar_t * cch = NULL;
+		bool ret = dataView->GetItemText(hChildItem, cch);
+		if (!ret) {
+			::SysFreeString(cch);
+			continue;
+		}
+		std::wstring itemIext;
+		itemIext.assign(cch);
+		::SysFreeString(cch);
+		if (folderName == itemIext) {
+			return hChildItem;
+		}
+		
+		hChildItem = dataView->GetNextItem(hChildItem, TVGN_NEXT); // 下一个同级项
+	}
+	return nullptr;
+}
+
 
 void LeftTreeViewAdapter::copyUserDatabase(const std::wstring & toDbPath)
 {

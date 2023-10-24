@@ -45,6 +45,11 @@ public:
 	UserDbList getDbs();
 	void loadDbs();
 	
+	HTREEITEM getFolderItem(HTREEITEM hTreeItem, const std::wstring & folderName);
+
+	void loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb);
+	void loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserDb & userDb);
+	void loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, UserDb & userDb);
 private:
 	CImageList imageList;
 	UserDbList dbs;
@@ -61,9 +66,7 @@ private:
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	void createImageList();
-	void loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb);
-	void loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserDb & userDb);
-	void loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, UserDb & userDb);
+	
 	void loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable);
 	void loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable);
 };

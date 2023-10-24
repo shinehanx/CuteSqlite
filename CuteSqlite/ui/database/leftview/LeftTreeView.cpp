@@ -341,6 +341,40 @@ LRESULT LeftTreeView::OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bH
 	return 0;
 }
 
+LRESULT LeftTreeView::OnExpendingTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
+{
+	auto ptr = (LPNMTREEVIEW)lParam;
+	HTREEITEM hSelTreeItem = ptr->itemNew.hItem;
+	CTreeItem treeItem(hSelTreeItem, &treeView);
+
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+	if (nImage != 0) {
+		return 0;
+	}
+	uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
+	UserDb userDb;
+	userDb.id = userDbId;
+	HTREEITEM hTablesFolderItem = treeViewAdapter->getFolderItem(hSelTreeItem, S(L"tables"));
+	HTREEITEM hViewsFolderItem = treeViewAdapter->getFolderItem(hSelTreeItem, S(L"views"));
+	HTREEITEM hTriggersFolderItem = treeViewAdapter->getFolderItem(hSelTreeItem, S(L"triggers"));
+
+	// if folder item has children, then it is loaded before
+	if ((hTablesFolderItem && treeView.ItemHasChildren(hTablesFolderItem)) 
+		|| (hViewsFolderItem && treeView.ItemHasChildren(hViewsFolderItem))
+		|| (hTriggersFolderItem && treeView.ItemHasChildren(hTriggersFolderItem)) ) {
+		return 0;
+	}
+
+	// reload
+	treeViewAdapter->loadTablesForTreeView(hTablesFolderItem, userDb);
+	treeViewAdapter->loadViewsForTreeView(hViewsFolderItem, userDb);
+	treeViewAdapter->loadTriggersForTreeView(hTriggersFolderItem, userDb);
+
+	treeView.Expand(hTablesFolderItem);
+	return 0;
+}
+
 /**
  * Show the tooltip in the CTreeItem.
  * @reference url - https://learn.microsoft.com/zh-cn/windows/win32/api/commctrl/ns-commctrl-nmtvgetinfotipa
