@@ -11,21 +11,21 @@
 
  * limitations under the License.
 
- * @file   SqlService.cpp
- * @brief  Execute sql service class
+ * @file   QConnects.h
+ * @brief  QConnect::userConnectPool - The user connect pool for connecting user databases(Multiple)
+ * @brief  QConnect::sysConnect - The CuteSqlite system connect for connecting system database of CuteSqlite itself.(Single)
  * 
  * @author Xuehan Qin
- * @date   2023-05-28
+ * @date   2023-10-25
  *********************************************************************/
-#include "stdafx.h"
-#include "SqlService.h"
+#pragma once
+#include <unordered_map>
+#include "QSqlDatabase.h"
 
-QSqlStatement SqlService::tryExecuteSql(uint64_t userDbId, const std::wstring &sql)
-{
-	return getRepository()->tryExecSql(userDbId, sql);
-}
-
-void SqlService::executeSql(uint64_t userDbId, const std::wstring &sql)
-{
-	getRepository()->execSql(userDbId, sql);
-}
+class QConnect {
+public:
+	// The user connect pool for connecting user databases(Multiple)
+	static std::unordered_map<uint64_t, QSqlDatabase *> userConnectPool;
+	// The CuteSqlite system connect for connecting system database of CuteSqlite itself.(Single)
+	static QSqlDatabase * sysConnect; //CuteSqlite use myself
+};

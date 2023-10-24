@@ -37,6 +37,8 @@
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
+#include "ui/database/rightview//page/dialog/ViewDialog.h"
+#include "ui/database/rightview//page/dialog/TriggerDialog.h"
 
 
 #define RIGHTVIEW_TOPBAR_HEIGHT 30
@@ -151,13 +153,13 @@ void RightWorkView::createFirstQueryPage(CRect & clientRect)
 	}
 }
 
-void RightWorkView::createOrShowHistoryPage(CEdit &win, CRect & clientRect)
+void RightWorkView::createOrShowHistoryPage(HistoryPage &win, CRect & clientRect)
 {
 	CRect tabRect = getTabRect(clientRect);
 	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
 	CRect rect(x, y, x + w, y + h);
 	if (IsWindow() && !win.IsWindow()) {
-		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_READONLY, 0);		
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);		
 	} else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
@@ -304,15 +306,17 @@ BOOL RightWorkView::OnEraseBkgnd(CDCHandle dc)
 
 LRESULT RightWorkView::OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	HWND activeHwnd = tabView.GetPageHWND(tabView.GetActivePage());
+	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return 0;
+	}
+	HWND activeHwnd = tabView.GetPageHWND(nPage);
 	for (auto pagePtr : queryPagePtrs) {
 		if (pagePtr && pagePtr->IsWindow () && activeHwnd == pagePtr->m_hWnd) {
 			pagePtr->execAndShow();
 		}		
 	}
 	// execute sql statements from supplier->sqlVector
-	
-
 	return 0;
 }
 
@@ -369,13 +373,21 @@ LRESULT RightWorkView::OnClickNewViewElem(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 void RightWorkView::doAddNewView()
 {
+	ViewDialog viewDialog(m_hWnd);
+	if (viewDialog.DoModal(m_hWnd) != Config::QDIALOG_YES_BUTTON_ID) {
+		return ;
+	}
+	
 	CRect clientRect;
 	GetClientRect(clientRect);
 	std::wstring binDir = ResourceUtil::getProductBinDir();
 	std::wstring tplPath = binDir + L"res\\tpl\\create-view-sql.tpl";
+	std::wstring content = FileUtil::readFile(tplPath);
+	std::wstring viewName = L"\"" + supplier->newViewName + L"\"";
+	content = StringUtil::replace(content, L"{<!--view_name-->}", viewName);
 
 	QueryPage * newViewPage = new QueryPage();
-	newViewPage->setup(tplPath);
+	newViewPage->setup(QueryPage::CREATE_VIEW, content);
 	createOrShowQueryPage(*newViewPage, clientRect);
 	queryPagePtrs.push_back(newViewPage);
 
@@ -403,14 +415,26 @@ LRESULT RightWorkView::OnClickNewTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lP
 
 void RightWorkView::doAddNewTrigger()
 {
+	TriggerDialog triggerDialog(m_hWnd);
+	if (triggerDialog.DoModal(m_hWnd) != Config::QDIALOG_YES_BUTTON_ID) {
+		return ;
+	}
+
+	std::wstring binDir = ResourceUtil::getProductBinDir();
+	std::wstring tplPath = binDir + L"res\\tpl\\create-trigger-sql.tpl";
+	std::wstring content = FileUtil::readFile(tplPath);
+	std::wstring viewName = L"\"" + supplier->newViewName + L"\"";
+	content = StringUtil::replace(content, L"{<!--trigger_name-->}", viewName);
+
 	CRect clientRect;
 	GetClientRect(clientRect);
 	QueryPage * newTriggerPage = new QueryPage();
+	newTriggerPage->setup(QueryPage::CREATE_TRIGGER, content);
 	createOrShowQueryPage(*newTriggerPage, clientRect); 
-	queryPagePtrs.push_back(newTriggerPage);
+	queryPagePtrs.push_back(newTriggerPage); 
 
 	// nImage = 2 : table 
-	tabView.AddPage(newTriggerPage->m_hWnd, S(L"new-trigger").c_str(), 2, newTriggerPage);
+	tabView.AddPage(newTriggerPage->m_hWnd, S(L"new-trigger").c_str(), 4, newTriggerPage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::TRIGGER_PAGE, newTriggerPage->m_hWnd });
 	supplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
@@ -449,7 +473,11 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
-	HWND hwndPage = tabView.GetPageHWND(tabView.GetActivePage());
+	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return 0;
+	}
+	HWND hwndPage = tabView.GetPageHWND(nPage);
 	supplier->activeTabPageHwnd = hwndPage;
 
 	return 0;

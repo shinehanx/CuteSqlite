@@ -61,7 +61,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 	runtimeResultInfo.sql = runtimeSql;
 	auto bt = PerformUtil::begin();
 	try {		
-		QSqlStatement query = sqlService->executeSql(userDbId, runtimeSql);
+		QSqlStatement query = sqlService->tryExecuteSql(userDbId, runtimeSql);
 		loadRuntimeTables(userDbId, runtimeSql); 
 		loadRuntimeHeader(query);
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
@@ -96,7 +96,7 @@ int ResultListPageAdapter::loadFilterListView()
 	runtimeResultInfo.sql = runtimeSql;
 	auto bt = PerformUtil::begin();
 	try {		
-		QSqlStatement query = sqlService->executeSql(runtimeUserDbId, runtimeSql);
+		QSqlStatement query = sqlService->tryExecuteSql(runtimeUserDbId, runtimeSql);
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 
 		loadRuntimeTables(runtimeUserDbId, runtimeSql); 		
@@ -781,7 +781,7 @@ bool ResultListPageAdapter::saveChangeVals()
 			.append(whereClause);
 
 		try {
-			auto stmt = sqlService->executeSql(runtimeUserDbId, sqlUpdate);
+			auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlUpdate);
 			stmt.exec();
 		}  catch (SQLite::QSqlException &ex) {
 			errorChanges.push_back(subItemVal);
@@ -830,7 +830,7 @@ bool ResultListPageAdapter::saveNewRows()
 		sqlInsert.append(tblName).append(colums).append(values);
 
 		try {
-			auto stmt = sqlService->executeSql(runtimeUserDbId, sqlInsert);
+			auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlInsert);
 			stmt.exec();
 		}  catch (SQLite::QSqlException &ex) {
 			errorNewRows.push_back(nItem);
@@ -946,7 +946,7 @@ int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
 	}
 	sqlDelete.append(tblName).append(whereClause);
 	try {
-		auto stmt = sqlService->executeSql(runtimeUserDbId, sqlDelete);
+		auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlDelete);
 		return stmt.exec();
 	} catch (SQLite::QSqlException &ex) {
 

@@ -21,8 +21,9 @@
 #include "SqlExecutorUserRepository.h"
 #include <xutility>
 #include "core/common/exception/QRuntimeException.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
-QSqlStatement SqlExecutorUserRepository::execSql(uint64_t userDbId, std::wstring &sql)
+QSqlStatement SqlExecutorUserRepository::tryExecSql(uint64_t userDbId, const std::wstring &sql)
 {
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
@@ -31,6 +32,21 @@ QSqlStatement SqlExecutorUserRepository::execSql(uint64_t userDbId, std::wstring
 	catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw ex;
+	}
+}
+
+void SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sql)
+{
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.exec();		
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
+		QSqlExecuteException ex(std::to_wstring( e.getErrorCode()), _err);
+		ex.setErrRow(1);
+		ex.setErrCol(200);
 		throw ex;
 	}
 }

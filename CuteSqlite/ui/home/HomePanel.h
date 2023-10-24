@@ -20,7 +20,6 @@
 #pragma once
 #include <string>
 #include <atltypes.h>
-#include <atlctrlx.h>
 #include <atlcrack.h>
 #include <GdiPlus.h>
 #include "common/Config.h"

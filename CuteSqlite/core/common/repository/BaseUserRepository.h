@@ -21,6 +21,7 @@
 #include "BaseRepository.h"
 #include "core/entity/Entity.h"
 #include "utils/FileUtil.h"
+#include "QConnect.h"
 
 template <typename T>
 class BaseUserRepository : public BaseRepository<T>
@@ -29,16 +30,11 @@ public:
 	QSqlDatabase * getUserConnect(uint64_t userDbId);
 	void closeUserConnect(uint64_t userDbId);
 private:
-	static std::unordered_map<uint64_t, QSqlDatabase *> connects; //singleton
+	
 	UserDb getUserDbById(uint64_t userDbId);
 	std::wstring initUserDbFile(uint64_t userDbId);
 	UserDb toUserDb(QSqlStatement &query);
 };
-
-
-
-template <typename T>
-std::unordered_map<uint64_t, QSqlDatabase *> BaseUserRepository<T>::connects;
 
 /**
 * Read dbName and dbPath from the table CuteSqlite.user_db
@@ -49,39 +45,39 @@ std::unordered_map<uint64_t, QSqlDatabase *> BaseUserRepository<T>::connects;
 template <typename T>
 QSqlDatabase * BaseUserRepository<T>::getUserConnect(uint64_t userDbId)
 {
-	if (connects.empty() || connects.find(userDbId) == connects.end()) {
+	if (QConnect::userConnectPool.empty() || QConnect::userConnectPool.find(userDbId) == QConnect::userConnectPool.end()) {
 		std::wstring dbName = L"sqlite3_user_db_";
 		dbName.append(std::to_wstring(userDbId));
-		connects[userDbId] = new QSqlDatabase(dbName);
+		QConnect::userConnectPool[userDbId] = new QSqlDatabase(dbName);
 	}
 
 	Q_INFO(L"BaseUserRepository::getConnect(dbId), dbId:{} connect...", userDbId);
 	Q_INFO(L"BaseUserRepository::getConnect(dbId), dbId:{}, connect.isValid():{}, connect.isOpen():{}",
-		userDbId, connects[userDbId]->isValid(), connects[userDbId]->isOpen());
+		userDbId, QConnect::userConnectPool[userDbId]->isValid(), QConnect::userConnectPool[userDbId]->isOpen());
 
-	if (!connects[userDbId]->isValid() || !connects[userDbId]->isOpen()) {
+	if (!QConnect::userConnectPool[userDbId]->isValid() || !QConnect::userConnectPool[userDbId]->isOpen()) {
 		std::wstring dbPath = initUserDbFile(userDbId);
 		Q_INFO(L"db path:{}", dbPath.c_str());
-		connects[userDbId]->setDatabaseName(dbPath);
+		QConnect::userConnectPool[userDbId]->setDatabaseName(dbPath);
 
-		if (!connects[userDbId]->open()) {
-			Q_INFO(L"db connect.open Error:{}", connects[userDbId]->lastError());
-			setErrorMsg(connects[userDbId]->lastError());
-			ATLASSERT(connects[userDbId]->isValid() && connects[userDbId]->isOpen());
+		if (!QConnect::userConnectPool[userDbId]->open()) {
+			Q_INFO(L"db connect.open Error:{}", QConnect::userConnectPool[userDbId]->lastError());
+			setErrorMsg(QConnect::userConnectPool[userDbId]->lastError());
+			ATLASSERT(QConnect::userConnectPool[userDbId]->isValid() && QConnect::userConnectPool[userDbId]->isOpen());
 		}
 	}
 
-	return connects[userDbId];
+	return QConnect::userConnectPool[userDbId];
 }
 
 template <typename T>
 void BaseUserRepository<T>::closeUserConnect(uint64_t userDbId)
 {
-	if (connects.empty() || connects.find(userDbId) == connects.end()) {
+	if (QConnect::userConnectPool.empty() || QConnect::userConnectPool.find(userDbId) == QConnect::userConnectPool.end()) {
 		return;
 	}
 	
-	QSqlDatabase * tmpConnect = connects.at(userDbId);	
+	QSqlDatabase * tmpConnect = QConnect::userConnectPool.at(userDbId);	
 	if (tmpConnect) {
 		// 1) close the connect
 		if (tmpConnect->isValid() && tmpConnect->isOpen()) {
@@ -89,9 +85,10 @@ void BaseUserRepository<T>::closeUserConnect(uint64_t userDbId)
 		}
 		// 2) delete the ptr
 		delete tmpConnect;
+		tmpConnect = nullptr;
 	}
-	// 3) erase from map
-	connects.erase(userDbId);
+	// 3) erase from userConnectPool (map)
+	QConnect::userConnectPool.erase(userDbId);
 }
 
 template <typename T>
@@ -100,7 +97,7 @@ UserDb BaseUserRepository<T>::getUserDbById(uint64_t userDbId)
 	std::wstring sql = L"SELECT * FROM user_db WHERE id=:id";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":id", userDbId);
 
 		if (!query.executeStep()) {
@@ -128,53 +125,16 @@ std::wstring BaseUserRepository<T>::initUserDbFile(uint64_t userDbId)
 	}
 	std::wstring userDbDir = FileUtil::getFileDir(userDb.path);
 	ATLASSERT(!userDbDir.empty());
-	
-	char * ansiDbDir = StringUtil::unicodeToUtf8(userDbDir);
-	if (_waccess(userDbDir.c_str(), 0) != 0) { //文件目录不存在
-		Q_INFO(L"mkpath:{}", userDbDir);
-		//创建DB目录，子目录不存在，则创建
-		FileUtil::createDirectory(ansiDbDir);
-	}
-	free(ansiDbDir);
 
-
-	std::wstring path = userDb.path;
-	char * ansiPath = StringUtil::unicodeToUtf8(path);
-	if (_access(ansiPath, 0) != 0) { //文件不存在
+	std::wstring destPath = userDb.path;
+	if (_waccess(destPath.c_str(), 0) != 0) { //文件不存在
 		std::wstring origPath = localDir + L"res\\db\\UserDb.s3db";
-		char * ansiOrigPath = StringUtil::unicodeToUtf8(origPath.c_str());
-		ATLASSERT(_access(ansiOrigPath, 0) == 0);
+		ATLASSERT(_waccess(origPath.c_str(), 0) == 0);
 
-		errno_t _err;
-		char _err_buf[80] = { 0 };
-		FILE * origFile, *destFile;
-		_err = fopen_s(&origFile, ansiOrigPath, "rb"); //原文件
-		if (_err != 0 || origFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"orgin db file open error,error:{},path:{}", _err_msg, origPath);
-			ATLASSERT(_err == 0);
-		}
-		_err = fopen_s(&destFile, ansiPath, "wb"); //目标文件
-		if (_err != 0 || destFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"dest db file open error,error:{},path:{}", _err_msg, path);
-			ATLASSERT(_err == 0);
-		}
-		char ch = fgetc(origFile);
-		while (!feof(origFile)) {
-			_err = fputc(ch, destFile);
-			ch = fgetc(origFile);
-		}
-
-		fclose(destFile);
-		fclose(origFile);
-		free(ansiOrigPath);
+		FileUtil::copy(origPath, destPath);
 	}
 
-	free(ansiPath);
-	return path;
+	return destPath;
 }
 
 template <typename T>

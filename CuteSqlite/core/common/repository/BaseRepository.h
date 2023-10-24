@@ -18,6 +18,7 @@
 #include "QSqlDatabase.h"
 #include "QSqlStatement.h"
 #include "QSqlColumn.h"
+#include "QConnect.h"
 
 //sql where条件使用的类型
 typedef std::unordered_map<std::wstring, std::wstring>  QCondition;
@@ -56,17 +57,18 @@ public:
     void setErrorCode(std::wstring code);
     void setErrorMsg(std::wstring msg);
 
-	QSqlDatabase * getConnect();
+	QSqlDatabase * getSysConnect();
+	void closeSysConnect();
 protected:
 	static T * theInstance;
 	bool isInitConnect = false;
-	static QSqlDatabase * connect; //singleton
+	
     std::unordered_map<UINT, std::wstring> errorCode;
     std::unordered_map<UINT, std::wstring> errorMsg;
 	std::wstring localDir;
 
 	uint64_t getLastId(std::wstring tbl);
-	std::wstring initDbFile();
+	std::wstring initSysDbFile();
 
 	//生成WHERE语句
 	std::wstring wherePrepareClause(QCondition & condition, 
@@ -90,7 +92,7 @@ uint64_t BaseRepository<T>::getLastId(std::wstring tbl)
 	std::wstring sql = L"SELECT max(id) FROM :tbl ";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":uid", uid);
 		query.bind(L":analysis_type", analysisType);
 		query.bind(L":analysis_date", analysisDate);
@@ -109,9 +111,6 @@ uint64_t BaseRepository<T>::getLastId(std::wstring tbl)
 		throw QRuntimeException(L"10018", L"sorry, system has error.");
 	}	
 }
-
-template <typename T>
-QSqlDatabase * BaseRepository<T>::connect = nullptr;
 
 template <typename T>
 T * BaseRepository<T>::theInstance = nullptr;
@@ -133,30 +132,46 @@ void  BaseRepository<T>::setLocalDir(const std::wstring & dir)
 }
 
 template <typename T>
-QSqlDatabase * BaseRepository<T>::getConnect()
+QSqlDatabase * BaseRepository<T>::getSysConnect()
 {
-	if (connect == nullptr) {
+	if (QConnect::sysConnect == nullptr) {
 		//auto conn = std::make_shared<QSqlDatabase>(L"HairAnalyzer");
 		//connect = conn.get();
-		connect = new QSqlDatabase(L"CuteSqlite");
+		QConnect::sysConnect = new QSqlDatabase(L"CuteSqlite");
 	}
 	
     Q_INFO(L"BaseRepository::getConnect, local db connect...");
-    Q_INFO(L"BaseRepository::getConnect, connect.isValid():{}, connect.isOpen():{}" , connect->isValid() , connect->isOpen());
+    Q_INFO(L"BaseRepository::getConnect, connect.isValid():{}, connect.isOpen():{}" , QConnect::sysConnect->isValid() , QConnect::sysConnect->isOpen());
 
-	if (!connect->isValid() || !connect->isOpen()) {
-		std::wstring dbPath = initDbFile();
+	if (!QConnect::sysConnect->isValid() || !QConnect::sysConnect->isOpen()) {
+		std::wstring dbPath = initSysDbFile();
 		Q_INFO(L"db path:{}",dbPath.c_str());
-		connect->setDatabaseName(dbPath);
+		QConnect::sysConnect->setDatabaseName(dbPath);
 
-		if (!connect->open()) {
-			Q_INFO(L"db connect.open Error:{}", connect->lastError());
-			setErrorMsg(connect->lastError());
-			ATLASSERT(connect->isValid() && connect->isOpen());
+		if (!QConnect::sysConnect->open()) {
+			Q_INFO(L"db connect.open Error:{}", QConnect::sysConnect->lastError());
+			setErrorMsg(QConnect::sysConnect->lastError());
+			ATLASSERT(QConnect::sysConnect->isValid() && QConnect::sysConnect->isOpen());
 		}
 	}
 
-    return connect;
+    return QConnect::sysConnect;
+}
+
+template <typename T>
+void BaseRepository<T>::closeSysConnect()
+{
+	if (QConnect::sysConnect == nullptr) {
+		return;
+	}
+
+	// 1) close the connect
+	if (QConnect::sysConnect->isValid() && QConnect::sysConnect->isOpen()) {
+		QConnect::sysConnect->close();
+	}
+	// 2) delete the ptr
+	delete QConnect::sysConnect;
+	QConnect::sysConnect = nullptr;
 }
 
 template <typename T>
@@ -198,7 +213,7 @@ void BaseRepository<T>::setError(std::wstring code, std::wstring msg)
 
 
 template <typename T>
-std::wstring BaseRepository<T>::initDbFile()
+std::wstring BaseRepository<T>::initSysDbFile()
 {
 	if (localDir.empty()) {
 		localDir = ResourceUtil::getProductBinDir();
@@ -206,61 +221,24 @@ std::wstring BaseRepository<T>::initDbFile()
     ATLASSERT(!localDir.empty());
 
     std::wstring dbDir = localDir + L".magic\\data\\" ;
-	char * ansiDbDir = StringUtil::unicodeToUtf8(dbDir);
-    if (_waccess(dbDir.c_str(), 0) != 0) { //文件目录不存在
-        Q_INFO(L"mkpath:{}", dbDir);
-		//创建DB目录，子目录不存在，则创建
-		FileUtil::createDirectory(ansiDbDir);  
-    }
-	free(ansiDbDir);
-
-
-    std::wstring path = dbDir + L"CuteSqlite.s3db";
-	char * ansiPath = StringUtil::unicodeToUtf8(path);
-    if (_access(ansiPath, 0) != 0) { //文件不存在
+    std::wstring destPath = dbDir + L"CuteSqlite.s3db";
+    if (_waccess(destPath.c_str(), 0) != 0) { //文件不存在
 		std::wstring origPath = localDir + L"res\\db\\CuteSqlite.s3db" ;
-		char * ansiOrigPath = StringUtil::unicodeToUtf8(origPath.c_str());
-		ATLASSERT(_access(ansiOrigPath, 0) == 0);
+		ATLASSERT(_waccess(origPath.c_str(), 0) == 0);
 
-		errno_t _err;
-		char _err_buf[80] = { 0 };
-		FILE * origFile, *destFile;
-		_err = fopen_s(&origFile, ansiOrigPath, "rb"); //原文件
-		if (_err != 0 || origFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"orgin db file open error,error:{},path:{}",_err_msg,  origPath);
-			ATLASSERT(_err == 0);
-		}
-        _err = fopen_s(&destFile, ansiPath,  "wb"); //目标文件
-		if (_err != 0 || destFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"dest db file open error,error:{},path:{}",_err_msg,  path);
-			ATLASSERT(_err == 0);
-		}
-		char ch = fgetc(origFile);		
-		while (!feof(origFile)) {
-			_err = fputc(ch, destFile);
-			ch = fgetc(origFile);			
-		}		
-
-		fclose(destFile);
-		fclose(origFile);
-		free(ansiOrigPath);
+		FileUtil::copy(origPath, destPath);
     }
     
-	free(ansiPath);
-    return path;
+    return destPath;
 }
 
-
-/// <summary>
-/// Wheres语句(给prepare用的)
-/// </summary>
-/// <param name="condition">The condition.</param>
-/// <param name="keywordIncludes">如何包含keyword项，需要like %keyword%的字段</param>
-/// <returns></returns>
+/**
+ * Wheres clause for QSqlStatement::prepare() function
+ * 
+ * @param condition - The condition params map of where clause.
+ * @param keywordIncludes - The <key> vector for generating <like clause> in <where clause>, such as "where <key> like :keyword"
+ * @return 
+ */
 template <typename T>
 std::wstring BaseRepository<T>::wherePrepareClause(QCondition & condition, QKeywordIncludes & keywordIncludes)
 {
@@ -285,7 +263,7 @@ std::wstring BaseRepository<T>::wherePrepareClause(QCondition & condition, QKeyw
 			.append(L" ");
 	}
 
-	//keyword语句,根据字段拼接
+	// keyword语句,根据字段拼接
 	if (condition.find(L"keyword") != condition.end()
 		&& !condition[L"keyword"].empty() && !keywordIncludes.empty()) {
 		whereClause.append(L" AND (0 ");

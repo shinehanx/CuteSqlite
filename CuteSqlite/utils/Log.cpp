@@ -9,10 +9,6 @@ QLog::Logger& GetInstance() {
 
 namespace QLog {
     Logger::Logger() {
-        if (::_access("logs", 0) == -1) {
-            ::_mkdir("logs");
-        }
-
         //设置为异步日志
         //spdlog::set_async_mode(32768);  // 必须为 2 的幂
         std::vector<spdlog::sink_ptr> sinkList;

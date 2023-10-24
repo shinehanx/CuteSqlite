@@ -50,11 +50,13 @@ public:
 	void clearResultListPage();
 	void clearMessage();
 	void addResultListPage(std::wstring & sql, int tabNo);
+	bool execSqlToInfoPage(const std::wstring & sql);
 	int getPageIndex(HWND hwnd);
 	void setActivePage(int pageIndex);
 
 	bool isActiveTableDataPage();
 	void loadTableDatas(std::wstring & table);
+	
 private:
 	bool isNeedReload = true;
 
@@ -64,6 +66,7 @@ private:
 	QTabView tabView;
 	std::vector<ResultListPage *> resultListPagePtrs;
 	
+	ResultInfo runtimeResultInfo;
 	ResultInfoPage resultInfoPage;
 	ResultTableDataPage resultTableDataPage;
 
@@ -73,10 +76,15 @@ private:
 	HBITMAP tableDataBitmap = nullptr;
 	HBITMAP objectBitmap = nullptr;
 
+	SqlService * sqlService = SqlService::getInstance();
+	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+
 	void createImageList();
 
 	CRect getTabRect(CRect & clientRect);
 	CRect getPageRect(CRect & clientRect);
+
+	void resetRuntimeResultInfo();
 
 	void createOrShowUI();
 	void createOrShowTabView(QTabView &win, CRect & clientRect);

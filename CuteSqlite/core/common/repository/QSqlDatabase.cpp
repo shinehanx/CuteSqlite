@@ -37,7 +37,8 @@ QSqlDatabase::QSqlDatabase(QSqlDatabase & database)
 QSqlDatabase::~QSqlDatabase()
 {
 	if (handle != nullptr) {
-		free(handle);
+		// delete by Xuehan Qin 2023/10/25, because handle should be released by passing it to sqlite3_close() when it is no longer required.
+		// free(handle);
 	}
 }
 

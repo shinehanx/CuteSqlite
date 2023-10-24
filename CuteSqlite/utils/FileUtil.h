@@ -8,6 +8,7 @@
 #include "DateUtil.h"
 #include "ResourceUtil.h"
 #include "Log.h"
+#include "core/common/exception/QRuntimeException.h"
 
 #define MAX_PATH_LEN 256
 #define ACCESS(fileName, accessMode) _access(fileName, accessMode)
@@ -119,41 +120,48 @@ public:
 		return dir;
 	}
 
-	static bool copy(const std::wstring &src, const std::wstring &dst)
+	static bool copy(const std::wstring & fromPath, const std::wstring & toPath)
 	{
-		if (_waccess(src.c_str(), 0) != 0) {
-			return false;
+		std::wstring toUserDbDir = FileUtil::getFileDir(toPath);
+		ATLASSERT(!toUserDbDir.empty());
+	
+		if (_waccess(toUserDbDir.c_str(), 0) != 0) { //文件目录不存在
+			Q_INFO(L"mkpath:{}", toUserDbDir);
+			//创建DB目录，子目录不存在，则创建
+			FileUtil::createDirectory(toUserDbDir);
 		}
-		char * ansiSrcPath = StringUtil::unicodeToUtf8(src);
-		char * ansiDstPath = StringUtil::unicodeToUtf8(dst);
+
+		if (_waccess(toPath.c_str(), 0) == 0) { // 文件存在,删除后覆盖
+			::DeleteFileW(toPath.c_str());
+		}
+	
+		ATLASSERT(_waccess(fromPath.c_str(), 0) == 0);
+
 		errno_t _err;
-		char _err_buf[80] = { 0 };
+		wchar_t _err_buf[256] = { 0 };
 		FILE * origFile, *destFile;
-		_err = fopen_s(&origFile, ansiSrcPath, "rb"); //原文件
+		_err = _wfopen_s(&origFile, fromPath.c_str(), L"rb"); //原文件
 		if (_err != 0 || origFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"src file open error,error:{},path:{}", _err_msg, src);
-			ATLASSERT(_err == 0);
+			_wcserror_s(_err_buf, 256, _err);
+			Q_ERROR(L"orig db file open error,error:{},path:{}", _err_buf, fromPath);
+			QRuntimeException ex(std::to_wstring(_err), _err_buf);
+			throw ex;
 		}
-		_err = fopen_s(&destFile, ansiDstPath, "wb"); //目标文件
+		_err = _wfopen_s(&destFile, toPath.c_str(), L"wb"); // 目标文件
 		if (_err != 0 || destFile == NULL) {
-			_strerror_s(_err_buf, 80, NULL);
-			std::wstring _err_msg = StringUtil::utf82Unicode(_err_buf);
-			Q_ERROR(L"dst file open error,error:{},path:{}", _err_msg , dst);
-			ATLASSERT(_err == 0);
+			_wcserror_s(_err_buf, 256, _err);
+			Q_ERROR(L"dest db file open error,error:{},path:{}", _err_buf, toPath);
+			QRuntimeException ex(std::to_wstring(_err), _err_buf);
+			throw ex;
 		}
-		char ch = fgetc(origFile);
+		wchar_t ch = fgetwc(origFile);
 		while (!feof(origFile)) {
-			_err = fputc(ch, destFile);
-			ch = fgetc(origFile);
+			_err = fputwc(ch, destFile);
+			ch = fgetwc(origFile);
 		}
 
 		fclose(destFile);
 		fclose(origFile);
-		free(ansiSrcPath);
-		free(ansiDstPath);
-
 		return true;
 	}
 
@@ -193,6 +201,10 @@ public:
 
 	static std::wstring readFile(const std::wstring & path)
 	{
+		if (_waccess(path.c_str(), 0) != 0) {
+			ATLASSERT(false);
+			return std::wstring();
+		}
 		std::wifstream ifs;
 		auto codeccvt = new std::codecvt_utf8<wchar_t, 0x10ffff, std::codecvt_mode(std::generate_header | std::little_endian)>();
 		std::locale utf8(std::locale("C"), codeccvt);

@@ -22,6 +22,9 @@
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "utils/ResourceUtil.h"
+#include "core/common/exception/QSqlExecuteException.h"
+#include "ui/common/message/QPopAnimate.h"
+#include "utils/PerformUtil.h"
 
 #define RESULT_TOPBAR_HEIGHT 30
 #define RESULT_BUTTON_WIDTH 16
@@ -55,7 +58,11 @@ HWND ResultTabView::getActiveResultListPageHwnd()
 
 bool ResultTabView::isActiveTableDataPage()
 {
-	HWND activeHwnd = tabView.GetPageHWND(tabView.GetActivePage());
+	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return false;
+	}
+	HWND activeHwnd = tabView.GetPageHWND(nPage);
 	if (!activeHwnd) {
 		return false;
 	}
@@ -115,6 +122,41 @@ void ResultTabView::addResultListPage(std::wstring & sql, int tabNo)
 	resultListPagePtr->ShowWindow(SW_SHOW);
 }
 
+/**
+ * Exec sql and show message to MessagePage.
+ * 
+ * @param sql
+ */
+bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
+{
+	ATLASSERT(!sql.empty());
+	resetRuntimeResultInfo();
+	auto bt = PerformUtil::begin();
+	try {		
+		sqlService->executeSql(supplier->getSelectedUserDbId(), sql);
+		runtimeResultInfo.sql = sql;
+		runtimeResultInfo.execTime = PerformUtil::end(bt);
+		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		runtimeResultInfo.totalTime = PerformUtil::end(bt);
+		runtimeResultInfo.msg = S(L"execute-sql-success");
+		QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
+		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&runtimeResultInfo));
+		return true;
+	} catch (QSqlExecuteException & ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
+		QPopAnimate::error(m_hWnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+
+		runtimeResultInfo.code = std::stoi(ex.getCode());
+		runtimeResultInfo.sql = sql;
+		runtimeResultInfo.execTime = PerformUtil::end(bt);
+		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		runtimeResultInfo.totalTime = PerformUtil::end(bt);
+		runtimeResultInfo.msg = ex.getMsg();
+		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&runtimeResultInfo));
+	}
+	return false;
+}
+
 int ResultTabView::getPageIndex(HWND hwnd)
 {
 	int n = tabView.GetPageCount();
@@ -159,6 +201,16 @@ CRect ResultTabView::getTabRect(CRect & clientRect)
 CRect ResultTabView::getPageRect(CRect & clientRect)
 {
 	return { 0, tabView.m_cyTabHeight, clientRect.right, clientRect.bottom };
+}
+
+void ResultTabView::resetRuntimeResultInfo()
+{
+	runtimeResultInfo.sql.clear();
+	runtimeResultInfo.effectRows = 0;
+	runtimeResultInfo.execTime.clear();
+	runtimeResultInfo.totalTime.clear();
+	runtimeResultInfo.code = 0;
+	runtimeResultInfo.msg.clear();
 }
 
 void ResultTabView::createOrShowUI()

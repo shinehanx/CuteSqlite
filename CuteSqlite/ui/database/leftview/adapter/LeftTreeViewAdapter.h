@@ -32,7 +32,7 @@ public:
 	void createUserDatabase(std::wstring & dbPath);
 	void openUserDatabase(std::wstring & dbPath);
 	void activeUserDatabase(uint64_t userDbId);
-	
+	void copyUserDatabase(const std::wstring & toDbPath);
 
 	void loadTreeView();
 	CTreeItem getSeletedItem();
@@ -44,6 +44,7 @@ public:
 
 	UserDbList getDbs();
 	void loadDbs();
+	
 private:
 	CImageList imageList;
 	UserDbList dbs;

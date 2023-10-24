@@ -3,12 +3,10 @@
 #include <Windows.h>
 #include <atlbase.h>
 #include <atlapp.h>
-
 #include <atlcrack.h>
 #include <atlwin.h>
 #include <atlframe.h>
 #include <atlctrls.h>
-#include <atlctrlx.h>
 #include <atlmisc.h>
 #include <GdiPlus.h>
 #include <string>

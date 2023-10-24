@@ -58,8 +58,8 @@ void LeftTreeViewAdapter::openUserDatabase(std::wstring & dbPath)
 			QPopAnimate::warn(parentHwnd, S(L"open-db-exists-inlist"));
 			return ;
 		}
-
-		databaseService->openUserDb(dbPath);
+		// open and select that
+		databaseSupplier->selectedUserDbId = databaseService->openUserDb(dbPath);
 		QPopAnimate::success(parentHwnd, S(L"open-db-success-text"));
 		loadTreeView();
 	}
@@ -121,6 +121,7 @@ void LeftTreeViewAdapter::loadTreeView()
 	// Expand the Selected DB item
 	if (hSelDbItem) {
 		dataView->Expand(hSelDbItem);
+		dataView->SelectItem(hSelDbItem);
 	}
 	
 }
@@ -149,8 +150,9 @@ void LeftTreeViewAdapter::removeSeletedItem()
 		return ;
 	}
 	// if nImage == 0, seleted item is a item of user database
-	if (nImage == 0 && QMessageBox::confirm(parentHwnd, S(L"delete-user-db")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+	if ((nImage == 0 || nImage == 1) && QMessageBox::confirm(parentHwnd, S(L"delete-user-db")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
 		uint64_t userDbId = getSeletedItemData();
+		userDbId = userDbId ? userDbId : databaseSupplier->getSelectedUserDbId();
 		if (!userDbId) {
 			return ;
 		}
@@ -235,6 +237,39 @@ void LeftTreeViewAdapter::loadDbs()
 	}
 }
 
+void LeftTreeViewAdapter::copyUserDatabase(const std::wstring & toDbPath)
+{
+	CTreeItem treeItem = getSeletedItem();
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+	if (!ret) {
+		return ;
+	}
+	// if nImage == 0, seleted item is a item of user database
+	if (nImage == 0 || nImage == 1) { // 0 - database , 1 - table
+		uint64_t userDbId = getSeletedItemData();
+		userDbId = userDbId ? userDbId : databaseSupplier->getSelectedUserDbId();
+		if (!userDbId) {
+			return ;
+		}
+		
+		try {
+			// check user db is exists, then remove it.
+			bool isHas = databaseService->hasUserDb(userDbId);
+			if (!isHas) {
+				return ;
+			}
+			databaseService->copyUserDb(userDbId, toDbPath);
+			QPopAnimate::success(parentHwnd, S(L"copy-db-success-text"));
+			
+			loadTreeView(); // reload db list
+		} catch (QRuntimeException &ex) {
+			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+			QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		}
+	}
+}
+
 void LeftTreeViewAdapter::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -264,7 +299,7 @@ void LeftTreeViewAdapter::createImageList()
  * Load tables for TreeView.
  * 
  * @param hTablesFolderItem The tables folder item
- * @param userDb UserDb refrence
+ * @param userDb UserDb reference
  */
 void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb)
 {
@@ -290,7 +325,7 @@ void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, Use
 * Load views for TreeView.
 *
 * @param hViewsFolderItem The views folder item
-* @param userDb UserDb refrence
+* @param userDb UserDb reference
 */
 void LeftTreeViewAdapter::loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserDb & userDb)
 {
@@ -310,7 +345,7 @@ void LeftTreeViewAdapter::loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserD
 * Load triggers for TreeView.
 *
 * @param hViewsFolderItem The triggers folder item
-* @param userDb UserDb refrence
+* @param userDb UserDb reference
 */
 void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, UserDb & userDb)
 {

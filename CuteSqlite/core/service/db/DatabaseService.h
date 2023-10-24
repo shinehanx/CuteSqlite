@@ -42,6 +42,7 @@ public:
 	uint64_t openUserDb(std::wstring & dbPath);
 	void removeUserDb(uint64_t userDbId, bool isRealDelete=false);
 	bool activeUserDb(uint64_t userDbId);
+	uint64_t copyUserDb(uint64_t fromUserDbId, const std::wstring & toDbPath);
 
 	// user table operations
 	UserTableList getUserTables(uint64_t userDbId);

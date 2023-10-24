@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   ResultInfoPage.cpp
+ * @file   HistoryPage.cpp
  * @brief  Execute sql statement and show the info of query result
  * 
  * @author Xuehan Qin
@@ -19,17 +19,17 @@
  *********************************************************************/
 
 #include "stdafx.h"
-#include "ResultInfoPage.h"
+#include "HistoryPage.h"
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
 #include "common/AppContext.h"
 
-void ResultInfoPage::clear()
+void HistoryPage::clear()
 {
 	infoEdit.Clear();
 }
 
-void ResultInfoPage::createOrShowUI()
+void HistoryPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
 
@@ -38,24 +38,24 @@ void ResultInfoPage::createOrShowUI()
 	createOrShowInfoEditor(clientRect);
 }
 
-void ResultInfoPage::loadWindow()
+void HistoryPage::loadWindow()
 {
 	QPage::loadWindow();
 }
 
-void ResultInfoPage::createOrShowInfoEditor(CRect & clientRect)
+void HistoryPage::createOrShowInfoEditor(CRect & clientRect)
 {
 	CRect rect = clientRect;
 	QWinCreater::createOrShowEdit(m_hWnd, infoEdit, Config::INFOPAGE_INFO_EDIT_ID, L"", rect, clientRect, textFont,  WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL);
 	infoEdit.BringWindowToTop();
 }
 
-void ResultInfoPage::paintItem(CDC & dc, CRect & paintRect)
+void HistoryPage::paintItem(CDC & dc, CRect & paintRect)
 {
 	dc.FillRect(paintRect, bkgColor);
 }
 
-int ResultInfoPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int HistoryPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 	textFont = FT(L"form-text-size");
@@ -64,26 +64,26 @@ int ResultInfoPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return ret;
 }
 
-int ResultInfoPage::OnDestroy()
+int HistoryPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
 	if (textFont) ::DeleteObject(textFont);
 	return ret;
 }
 
-LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT HistoryPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	auto runtimeResultInfo = (ResultInfo *)lParam;
 	if (runtimeResultInfo == nullptr) {
 		return 0;
 	}
-	// class chain : ResultInfoPage($this)->QTabView(tabView)->ResultTabView->CHorSplitterWindow->QueryPage
-	HWND pHwnd = GetParent().GetParent().GetParent().GetParent(); // current query page hwnd
-	if (supplier->activeTabPageHwnd != pHwnd) {
-		return 0;
-	}
 	
-	std::wstring str = DateUtil::getCurrentDateTime();
+	
+	CString infoText;
+	infoEdit.GetWindowText(infoText);
+
+	std::wstring str = infoText;
+	str.append(DateUtil::getCurrentDateTime());
 	str.append(L" Execute sql:\r\n --------------------------------------------------------------------- \r\n");
 	str.append(runtimeResultInfo->sql);
 	str.append(L"\r\n ============================= \r\n\r\n");
@@ -101,14 +101,14 @@ LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM 
 	return 0;
 }
 
-HBRUSH ResultInfoPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
+HBRUSH HistoryPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-HBRUSH ResultInfoPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
+HBRUSH HistoryPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);

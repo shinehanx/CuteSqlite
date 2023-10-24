@@ -34,7 +34,10 @@ void ResultTableDataPage::setup(std::wstring & table)
 {
 	this->table = table;
 	// generate query table sql
-	this->sql.assign(L"SELECT * FROM \"").append(table).append(L"\"");
+	if (!table.empty()) {
+		this->sql.assign(L"SELECT * FROM \"").append(table).append(L"\"");
+	}
+	
 	formViewReadOnly = false;
 }
 

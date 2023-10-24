@@ -64,6 +64,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_MENU_ID, OnClickOpenDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_REFRESH_MENU_ID, OnClickRefreshDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_DELETE_MENU_ID, OnClickDeleteDatabaseMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_COPY_MENU_ID, OnClickCopyDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPORT_AS_SQL_MENU_ID, OnClickExportAsSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_IMPORT_FROM_SQL_MENU_ID, OnClickImportFromSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_TABLE_MENU_ID, OnClickNewTableMenu)
@@ -145,6 +146,7 @@ private:
 	void OnClickOpenDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCopyDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -158,6 +160,7 @@ private:
 	void doDeleteDatabase();
 	void doCreateDatabase();
 	void doOpenDatabase();
+	void doCopyDatabase();
 	void doExportAsSql();
 	void doImportFromSql();
 	void doNewTable();

@@ -19,6 +19,7 @@
  *********************************************************************/
 #pragma once
 #include <string>
+#include <atlctrlx.h>
 #include "common/Config.h"
 #include "ui/common/page/QPage.h"
 #include "ui/common/button/QImageButton.h"

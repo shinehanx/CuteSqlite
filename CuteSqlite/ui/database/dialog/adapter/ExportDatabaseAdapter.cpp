@@ -57,7 +57,7 @@ void ExportDatabaseAdapter::loadDbs()
 
 uint64_t ExportDatabaseAdapter::getSeletedUserDbId()
 {
-	return databaseSupplier->getSeletedUserDbId();
+	return databaseSupplier->getSelectedUserDbId();
 }
 
 

@@ -53,7 +53,7 @@ public:
 	// rumtime data
 	// -----------------------------------
 	// selected user db id
-	uint64_t seletedUserDbId = 0;
+	uint64_t selectedUserDbId = 0;
 
 	// Tab Page Data vector for page, template param HWND
 	std::vector<TabPageData> mainTabPages;
@@ -65,10 +65,14 @@ public:
 	// selected table name
 	std::wstring selectTable;
 
+	// New view name
+	std::wstring newViewName;
+	std::wstring newTriggerName;
+
 	// // --------------------------------
 
-	void setSeletedUserDbId(uint64_t userDbId) { seletedUserDbId = userDbId; }
-	uint64_t getSeletedUserDbId() { return seletedUserDbId; }
+	void setSeletedUserDbId(uint64_t userDbId) { selectedUserDbId = userDbId; }
+	uint64_t getSelectedUserDbId() { return selectedUserDbId; }
 
 	//Using semicolons to separate a SQL statement becomes a member variable sqlVector
 	void splitToSqlVector(std::wstring sql);

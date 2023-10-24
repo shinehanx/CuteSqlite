@@ -13,7 +13,7 @@ std::wstring SysInitRepository::get(const std::wstring & name)
 	std::wstring sql = L"SELECT * FROM sys_init name=:name;";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L"name", name);
 		if (query.executeStep()) {
 			return query.getColumn(L"val").getText();;
@@ -31,7 +31,7 @@ bool SysInitRepository::has(const std::wstring & name)
 	std::wstring sql = L"SELECT * FROM sys_init WHERE name=:name";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":name", name);
 		if (query.executeStep()) {
 			return true;
@@ -51,7 +51,7 @@ void SysInitRepository::set(const std::wstring & name, const std::wstring & val)
 		L"INSERT INTO sys_init (name, val) VALUES(:name, :val);";
 	
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":name", name);
 		query.bind(L":val", val);
 		query.executeStep();
@@ -67,7 +67,7 @@ SysInitList SysInitRepository::getAll()
 	SysInitList result;
 	std::wstring sql = L"SELECT * FROM sys_init";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		
 		while (query.executeStep()) {
 			SysInit item;

@@ -45,6 +45,7 @@
 #include "ui/common/tabview/QTabView.h"
 #include "ui/common/button/QImageButton.h"
 #include "ui/database/rightview/page/QueryPage.h"
+#include "ui/database/rightview/page/HistoryPage.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/TableStructurePage.h"
 
@@ -66,7 +67,7 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
-		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewTriggerElem)
+		MESSAGE_HANDLER(Config::MSG_NEW_TRIGGER_ID, OnClickNewTriggerElem)
 		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		REFLECT_NOTIFICATIONS()
@@ -84,7 +85,7 @@ private:
 	QImageButton execAllButton;
 
 	QTabView tabView;
-	CEdit historyPage;
+	HistoryPage historyPage;
 	std::vector<QueryPage *> queryPagePtrs; // The pointers of dynamically created page
 	std::vector<TableStructurePage *> tablePagePtrs; // The pointers of dynamically created page
 	CImageList imageList;
@@ -107,7 +108,7 @@ private:
 	void createOrShowToolButtons(CRect & clientRect);
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createFirstQueryPage(CRect & clientRect);
-	void createOrShowHistoryPage(CEdit &win, CRect & clientRect);
+	void createOrShowHistoryPage(HistoryPage &win, CRect & clientRect);
 	void createOrShowQueryPage(QueryPage &win, CRect & clientRect);
 	void createOrShowTableStructurePage(TableStructurePage &win, CRect & clientRect);
 

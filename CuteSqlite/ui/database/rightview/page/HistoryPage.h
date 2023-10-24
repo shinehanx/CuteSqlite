@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   ResultInfoPage.h
+ * @file   HistoryPage.h
  * @brief  Execute sql statement and show the info of query result
  * 
  * @author Xuehan Qin
@@ -22,11 +22,11 @@
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
-class ResultInfoPage : public QPage {
+class HistoryPage : public QPage {
 public:
 	DECLARE_WND_CLASS(NULL)
 
-	BEGIN_MSG_MAP_EX(ResultInfoPage)
+	BEGIN_MSG_MAP_EX(HistoryPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MESSAGE_HANDLER(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, OnExecSqlResultMessage)

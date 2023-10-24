@@ -28,5 +28,7 @@ public:
 	SqlService() {};
 	~SqlService() {};
 
-	QSqlStatement executeSql(uint64_t userDbId, std::wstring &sql);
+	QSqlStatement tryExecuteSql(uint64_t userDbId, const std::wstring &sql);
+
+	void executeSql(uint64_t userDbId, const std::wstring &sql);
 };

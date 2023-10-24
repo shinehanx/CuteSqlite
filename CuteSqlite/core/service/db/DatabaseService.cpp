@@ -134,6 +134,42 @@ bool DatabaseService::activeUserDb(uint64_t userDbId)
 	return true;
 }
 
+/**
+ * Copy database from fromUserDbId to toDbPath.
+ * 
+ * @param fromUserDbId - source database dbId
+ * @param toDbPath - target database path
+ * @return target database db id 
+ */
+uint64_t DatabaseService::copyUserDb(uint64_t fromUserDbId, const std::wstring & toDbPath)
+{
+	ATLASSERT(!toDbPath.empty());
+	UserDb fromUserDb = getRepository()->getById(fromUserDbId);
+	if (!fromUserDb.id) {
+		Q_ERROR(L"From user db not exists, fromUserDbId={}", fromUserDbId);
+		throw QRuntimeException(L"11003", L"sorry, system has error.");
+	}
+
+	UserDb userDb;
+	userDb.name = FileUtil::getFileName(toDbPath, false);
+	userDb.path = toDbPath;
+	userDb.isActive = 1;
+	userDb.createdAt = DateUtil::getCurrentDateTime();
+	userDb.updatedAt = DateUtil::getCurrentDateTime();
+	uint64_t toUserDbId = getRepository()->create(userDb);
+	if (!toUserDbId) {
+		Q_ERROR(L"getRepository()->create has error, return userDbId=0");
+		throw QRuntimeException(L"11002", L"sorry, system has error.");
+	}
+	getRepository()->updateIsActiveByNotId(toUserDbId);
+	
+	// close the database connection first, release the FILE handler
+	databaseUserRepository->closeUserConnect(fromUserDbId);
+	databaseUserRepository->copy(fromUserDb.path, toDbPath);
+	return toUserDbId;
+}
+
+
 UserTableList DatabaseService::getUserTables(uint64_t userDbId)
 {
 	ATLASSERT(userDbId > 0);
@@ -225,3 +261,4 @@ std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::
 	}
 	return L"";
 }
+

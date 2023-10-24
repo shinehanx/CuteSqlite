@@ -29,5 +29,7 @@ public:
 	SqlExecutorUserRepository() {};
 	~SqlExecutorUserRepository() {};
 
-	QSqlStatement execSql(uint64_t userDbId, std::wstring &sql);
+	QSqlStatement tryExecSql(uint64_t userDbId, const std::wstring &sql);
+
+	void execSql(uint64_t userDbId, const std::wstring &sql);
 };

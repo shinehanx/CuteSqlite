@@ -10,7 +10,6 @@
 #pragma once
 #include <atltypes.h>
 #include <atlwin.h>
-#include <atlctrlx.h>
 #include <GdiPlus.h>
 #include <atlgdi.h>
 #include "common/Config.h"

@@ -41,8 +41,9 @@ BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void QueryPage::setup(const std::wstring & tplPath, const std::wstring & content)
+void QueryPage::setup(QueryType queryType, const std::wstring & content, const std::wstring & tplPath)
 {
+	this->queryType = queryType;
 	this->tplPath = tplPath;
 	this->content = content;
 }
@@ -65,21 +66,33 @@ void QueryPage::execAndShow()
 		sqlEditor.focus();
 		return;
 	}
-
-	supplier->splitToSqlVector(sqls);
-	resultTabView.clearResultListPage();
-	resultTabView.clearMessage();
-	std::vector<std::wstring> & sqlVector = supplier->sqlVector;
-	int n = static_cast<int>(sqlVector.size());
-	for (int i = 0; i < n; i++) {
-		auto sql = sqlVector.at(i);
-		if (SqlUtil::isSelectSql(sql)) {
-			resultTabView.addResultListPage(sql, i+1);
+	if (queryType == QUERY_DATA || queryType == TABLE_DATA) {
+		supplier->splitToSqlVector(sqls);
+		resultTabView.clearResultListPage();
+		resultTabView.clearMessage();
+		std::vector<std::wstring> & sqlVector = supplier->sqlVector;
+		int n = static_cast<int>(sqlVector.size());
+		int nSelectSqlCount = 0;
+		for (int i = 0; i < n; i++) {
+			auto sql = sqlVector.at(i);
+			if (SqlUtil::isSelectSql(sql)) {
+				resultTabView.addResultListPage(sql, i+1);
+				nSelectSqlCount++;
+			}
+		}
+		if (nSelectSqlCount) {
+			resultTabView.setActivePage(0);
+		}
+	} else {
+		bool ret = resultTabView.execSqlToInfoPage(sqls);
+		if (ret) {
+			if (queryType != QUERY_DATA && queryType != TABLE_DATA) {
+				//Send message to refresh database when creating a table or altering a table , wParam = NULL, lParam=NULL 
+				AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+			}
 		}
 	}
-	if (n) {
-		resultTabView.setActivePage(0);
-	}
+	
 }
 
 void QueryPage::createOrShowUI()
@@ -227,11 +240,14 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
 		supplier->selectTable = selItemText;
+	} else {
+		supplier->selectTable.clear();
 	}
 
 	if (resultTabView.isActiveTableDataPage() 
-		&& supplier->activeTabPageHwnd == m_hWnd) {
+		&& supplier->activeTabPageHwnd == m_hWnd  && !supplier->selectTable.empty()) {
 		resultTabView.loadTableDatas(supplier->selectTable);
+		supplier->selectTable.clear();
 	}
 	return 0;
 }
@@ -269,7 +285,14 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 		return 0;
 	}
 
+	// if select table item
 	std::wstring selItemText(cch);
+	if (nImage == 2) { // 2 - table
+		supplier->selectTable = selItemText;
+	}else {
+		supplier->selectTable.clear();
+	}
+	
 	if (nImage == 3) { // 3 - column
 		std::wstring fieldName = SqlUtil::getColumnName(selItemText);
 		sqlEditor.replaceSelText(fieldName);

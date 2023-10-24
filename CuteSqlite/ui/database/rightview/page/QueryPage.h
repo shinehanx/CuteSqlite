@@ -26,6 +26,15 @@
 
 class QueryPage : public QPage {
 public:
+	typedef enum {
+		QUERY_DATA,
+		TABLE_DATA,
+		CREATE_VIEW,
+		CREATE_TRIGGER,
+		MODIFY_VIEW,
+		MODIFY_TRIGGER
+	} QueryType;
+
 	BOOL PreTranslateMessage(MSG* pMsg);
 
 	DECLARE_WND_CLASS(NULL)
@@ -39,12 +48,14 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(const std::wstring & tplPath, const std::wstring & content = std::wstring());
+	void setup(QueryType queryType, const std::wstring & content = std::wstring(), const std::wstring & tplPath = std::wstring());
 
 	QHelpEdit & getSqlEditor();
 	ResultTabView & getResultTabView();
 	void execAndShow();
 private:
+	QueryType queryType = QUERY_DATA;
+	std::wstring viewName;
 	std::wstring tplPath;
 	std::wstring content;
 

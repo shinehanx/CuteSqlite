@@ -199,7 +199,7 @@ void ResultListPage::loadWindow()
 
 void ResultListPage::loadListView()
 {
-	uint64_t userDbId = supplier->getSeletedUserDbId();
+	uint64_t userDbId = supplier->getSelectedUserDbId();
 	if (!userDbId) {
 		QPopAnimate::warn(m_hWnd, S(L"no-select-userdb"));
 		return;

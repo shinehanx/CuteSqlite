@@ -28,12 +28,12 @@ uint64_t UserDbRepository::create(UserDb & item)
 	std::wstring sql = L"INSERT INTO user_db (name, path, is_active, created_at, updated_at) \
 						VALUES (:name, :path, :is_active, :created_at, :updated_at)";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		queryBind(query, item);
 
 		query.exec();
 		Q_INFO(L"create analysis_sample_class success.");
-		return getConnect()->getLastInsertRowid();
+		return getSysConnect()->getLastInsertRowid();
 	}
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
@@ -51,7 +51,7 @@ bool UserDbRepository::remove(uint64_t id)
 	//sql
 	std::wstring sql = L"DELETE FROM user_db WHERE id=:id ";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":id", id);
 
 		query.exec();
@@ -74,7 +74,7 @@ UserDb UserDbRepository::getById(uint64_t id)
 	std::wstring sql = L"SELECT * FROM user_db WHERE id=:id";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":id", id);
 
 		//Ö´ÐÐÓï¾ä
@@ -102,7 +102,7 @@ UserDb UserDbRepository::getByPath(std::wstring & path)
 	std::wstring sql = L"SELECT * FROM user_db WHERE path=:path limit 1";
 
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":path", path);
 
 		//Ö´ÐÐÓï¾ä
@@ -126,7 +126,7 @@ UserDbList UserDbRepository::getAll()
 	UserDbList result;
 	std::wstring sql = L"SELECT * FROM user_db ORDER BY id ASC";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 
 		while (query.executeStep()) {
 			UserDb item = toUserDb(query);
@@ -150,7 +150,7 @@ bool UserDbRepository::updateIsActiveById(uint64_t id, int isActive)
 	//sql
 	std::wstring sql = L"UPDATE user_db SET is_active=:is_active WHERE id=:id ";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":is_active", isActive);
 		query.bind(L":id", id);
 
@@ -173,7 +173,7 @@ bool UserDbRepository::updateIsActiveByNotId(uint64_t notId, int isActive)
 	//sql
 	std::wstring sql = L"UPDATE user_db SET is_active=:is_active WHERE id<>:id ";
 	try {
-		QSqlStatement query(getConnect(), sql.c_str());
+		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":is_active", isActive);
 		query.bind(L":id", notId);
 

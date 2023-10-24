@@ -486,6 +486,11 @@ void LeftTreeView::OnClickDeleteDatabaseMenu(UINT uNotifyCode, int nID, HWND hwn
 	doDeleteDatabase();
 }
 
+void LeftTreeView::OnClickCopyDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doCopyDatabase();
+}
+
 void LeftTreeView::OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doExportAsSql();
@@ -519,15 +524,13 @@ LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void LeftTreeView::doCreateDatabase()
 {
-	CFileDialog fileDialog(FALSE,  // TRUE-打开 false-另存为
-		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
-		_T(""),
-		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
-		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
-		m_hWnd);
+	wchar_t * szFilter = L"Sqlite File(*.db)\0*.db\0Sqlite File(*.db3)\0*.db3\0Sqlite File(*.sqlite)\0*.sqlite\0Sqlite File(*.sqlite3)\0*.sqlite3\0All Files(*.*)\0*.*\0\0";
+	wchar_t * defExt = L"db";
 
-	if (fileDialog.DoModal() == IDOK) {
-		std::wstring databasePath = fileDialog.m_szFileName;
+	CFileDialog fileDlg(FALSE, defExt, L"NewDatabase", OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter, m_hWnd);
+
+	if (fileDlg.DoModal() == IDOK) {
+		std::wstring databasePath = fileDlg.m_szFileName;
 		treeViewAdapter->createUserDatabase(databasePath);
 		loadComboBox();
 	}
@@ -535,16 +538,29 @@ void LeftTreeView::doCreateDatabase()
 
 void LeftTreeView::doOpenDatabase()
 {
-	CFileDialog fileDialog(TRUE,  // TRUE-打开 false-另存为
-		_T("*.db;*.sqlite;*.sqlite3;*.db3|*.*||"),
-		_T(""),
-		OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,
-		L"Sqlite File(*.db,*.sqlite,*.sqlite3,*.db3)|All File(*.*)",
-		m_hWnd);
+	wchar_t * szFilter = L"Sqlite File(*.db)\0*.db\0Sqlite File(*.db3)\0*.db3\0Sqlite File(*.sqlite)\0*.sqlite\0Sqlite File(*.sqlite3)\0*.sqlite3\0All Files(*.*)\0*.*\0\0";
+	wchar_t * defExt = L"db";
 
-	if (fileDialog.DoModal() == IDOK) {
-		std::wstring databasePath = fileDialog.m_szFileName;
+	CFileDialog fileDlg(TRUE, defExt, L"", OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter, m_hWnd);
+
+	if (fileDlg.DoModal() == IDOK) {
+		std::wstring databasePath = fileDlg.m_szFileName;
 		treeViewAdapter->openUserDatabase(databasePath);
+		loadComboBox();
+		
+	}
+}
+
+void LeftTreeView::doCopyDatabase()
+{
+	wchar_t * szFilter = L"Sqlite File(*.db)\0*.db\0Sqlite File(*.db3)\0*.db3\0Sqlite File(*.sqlite)\0*.sqlite\0Sqlite File(*.sqlite3)\0*.sqlite3\0All Files(*.*)\0*.*\0\0";
+	wchar_t * defExt = L"db";
+
+	CFileDialog fileDlg(FALSE, defExt, L"CopyDatabase", OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter, m_hWnd);
+
+	if (fileDlg.DoModal() == IDOK) {
+		std::wstring databasePath = fileDlg.m_szFileName;
+		treeViewAdapter->copyUserDatabase(databasePath);
 		loadComboBox();
 	}
 }
