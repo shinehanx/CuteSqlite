@@ -129,6 +129,7 @@ private:
 	// change selected treeview item .
 	LRESULT OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
 	LRESULT OnExpendingTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+
 	LRESULT OnShowTreeViewItemToolTip(int wParam, LPNMHDR lParam, BOOL& bHandled);
 	// double click treeview item .
 	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);

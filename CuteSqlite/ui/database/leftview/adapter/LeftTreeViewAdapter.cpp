@@ -40,7 +40,8 @@ void LeftTreeViewAdapter::createUserDatabase(std::wstring & dbPath)
 			databaseService->removeUserDb(userDbId);
 		}
 
-		databaseService->createUserDb(dbPath);
+		uint64_t UserDbId = databaseService->createUserDb(dbPath);
+		
 		QPopAnimate::success(parentHwnd, S(L"create-db-success-text"));
 		loadTreeView();
 	}
@@ -238,20 +239,20 @@ void LeftTreeViewAdapter::loadDbs()
 }
 
 /**
- * Get the dbItem sub folder item. the item must be folder
+ * Get the children folder item
  * 
- * @param dbItem - database tree item
- * @param folderName - find folder name: must be tables,  views,  triggers
+ * @param hTreeItem - tree item
+ * @param folderName - find child folder name: must be tables,  views,  triggers, feilds, indexes
  * @return 
  */
-HTREEITEM LeftTreeViewAdapter::getFolderItem(HTREEITEM dbItem, const std::wstring & folderName)
+HTREEITEM LeftTreeViewAdapter::getChildFolderItem(HTREEITEM hTreeItem, const std::wstring & folderName)
 {
-	ATLASSERT(dbItem && !folderName.empty());
-	if (!dataView->ItemHasChildren(dbItem)) {
+	ATLASSERT(hTreeItem && !folderName.empty());
+	if (!dataView->ItemHasChildren(hTreeItem)) {
 		return nullptr;
 	}
 
-	HTREEITEM hChildItem = dataView->GetChildItem(dbItem);
+	HTREEITEM hChildItem = dataView->GetChildItem(hTreeItem);
 	while (hChildItem) {
 		int iImage = -1, iSelImage = -1;
 		wchar_t * cch = NULL;
@@ -337,18 +338,20 @@ void LeftTreeViewAdapter::createImageList()
  * @param hTablesFolderItem The tables folder item
  * @param userDb UserDb reference
  */
-void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb)
+void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb, bool isLoadColumnsAndIndex)
 {
 	try {
 		UserTableList tableList = databaseService->getUserTables(userDb.id);
 		for (UserTable item : tableList) {
-			HTREEITEM hTblItem = dataView->InsertItem(item.name.c_str(), 2, 2, hTablesFolderItem, TVI_LAST);
+			HTREEITEM hTblItem = dataView->InsertItem(item.name.c_str(), 2, 2, hTablesFolderItem, TVI_LAST); 
 
-			HTREEITEM hFieldsFolderItem = dataView->InsertItem(S(L"fields").c_str(), 1, 1, hTblItem, TVI_LAST);
+			HTREEITEM hColumnsFolderItem = dataView->InsertItem(S(L"columns").c_str(), 1, 1, hTblItem, TVI_LAST);
 			HTREEITEM hIndexesFolderItem = dataView->InsertItem(S(L"indexes").c_str(), 1, 1, hTblItem, TVI_LAST);
 
-			loadColumsForTreeView(hFieldsFolderItem, userDb.id, item);
-			loadIndexesForTreeView(hIndexesFolderItem, userDb.id, item);
+			if (isLoadColumnsAndIndex) {
+				loadColumsForTreeView(hColumnsFolderItem, userDb.id, item);
+				loadIndexesForTreeView(hIndexesFolderItem, userDb.id, item);
+			}			
 		}		
 	} catch (QRuntimeException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
@@ -397,14 +400,14 @@ void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem,
 	}
 }
 
-void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable)
+void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hColumnsFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
 		ColumnInfoList list = databaseService->getUserColumns(userDbId, userTable.name);
 		for (ColumnInfo item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
-			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hFieldsFolderItem, TVI_LAST);
+			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hColumnsFolderItem, TVI_LAST);
 			treeItem.SetData((DWORD_PTR)item.cid);
 		}
 	}
@@ -425,5 +428,70 @@ void LeftTreeViewAdapter::loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, u
 	catch (QRuntimeException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
 		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+	}
+}
+
+/**
+ * Call this function when tree item expanding 
+ * 
+ * @param ptr - NMTREEVIEW pointer for treeItem
+ */
+void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
+{
+	HTREEITEM hSelTreeItem = ptr->itemNew.hItem;
+	CTreeItem treeItem(hSelTreeItem, dataView);
+
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+	if (nImage == 0) { // 0 - database
+		uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
+		UserDb userDb;
+		userDb.id = userDbId;
+		HTREEITEM hTablesFolderItem = getChildFolderItem(hSelTreeItem, S(L"tables"));
+		HTREEITEM hViewsFolderItem = getChildFolderItem(hSelTreeItem, S(L"views"));
+		HTREEITEM hTriggersFolderItem = getChildFolderItem(hSelTreeItem, S(L"triggers"));
+
+		// if folder item has children, then it is loaded before
+		if ((hTablesFolderItem && dataView->ItemHasChildren(hTablesFolderItem))
+			|| (hViewsFolderItem && dataView->ItemHasChildren(hViewsFolderItem))
+			|| (hTriggersFolderItem && dataView->ItemHasChildren(hTriggersFolderItem))) {
+			return ;
+		}
+
+		// reload
+		loadTablesForTreeView(hTablesFolderItem, userDb);
+		loadViewsForTreeView(hViewsFolderItem, userDb);
+		loadTriggersForTreeView(hTriggersFolderItem, userDb);
+
+		dataView->Expand(hTablesFolderItem);
+	} else if (nImage == 2) { // 2- tables
+		UserTable userTable;
+		wchar_t * cch = nullptr;
+		treeItem.GetText(cch);
+		if (!cch) {
+			return;
+		}
+		userTable.name.assign(cch);
+		::SysFreeString(cch);
+
+		HTREEITEM hColumnsFolderItem = getChildFolderItem(hSelTreeItem, S(L"columns"));
+		HTREEITEM hIndexesFolderItem = getChildFolderItem(hSelTreeItem, S(L"indexes"));
+		// if folder item has children, then it is loaded before
+		if ((hColumnsFolderItem && dataView->ItemHasChildren(hColumnsFolderItem))
+			|| (hIndexesFolderItem && dataView->ItemHasChildren(hIndexesFolderItem))) {
+			return ;
+		}
+
+		// Get the userDbId, tree item parent chain upward: columns/indexes(folder:1) -> table(2) -> tables(folder:1) -> database(0)	
+		CTreeItem dbTreeItem = treeItem.GetParent().GetParent();
+		int pImage = -1, pSelImage = -1;
+		ATLASSERT(dbTreeItem.GetImage(pImage, pSelImage) && pImage == 0);// 0 - database
+		uint64_t userDbId = static_cast<uint64_t>(dbTreeItem.GetData());
+		ATLASSERT(userDbId);
+		
+		loadColumsForTreeView(hColumnsFolderItem, userDbId, userTable);		
+		loadIndexesForTreeView(hIndexesFolderItem, userDbId, userTable);
+		dataView->Expand(hColumnsFolderItem);
+		dataView->Expand(hIndexesFolderItem);
 	}
 }
