@@ -135,7 +135,10 @@ int TableIndexesPage::OnDestroy()
 	if (downIndexButton.IsWindow()) downIndexButton.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
-	if (adapter) delete adapter;
+	if (adapter) {
+		delete adapter;
+		adapter = nullptr;
+	}
 
 	return ret;
 }

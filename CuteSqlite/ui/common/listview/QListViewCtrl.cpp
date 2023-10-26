@@ -1084,15 +1084,15 @@ void QListViewCtrl::moveDownButtons(int iItem)
 
 void QListViewCtrl::OnDestroy()
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
-	if (btnBrush) ::DeleteObject(btnBrush);
-	if (btnDownBrush) ::DeleteObject(btnDownBrush);
-	if (chkBrush) ::DeleteObject(chkBrush);
-	if (selSubItemBorderBrush) ::DeleteObject(selSubItemBorderBrush);
+	if (bkgBrush) ::DeleteObject(bkgBrush),bkgBrush = nullptr;
+	if (btnBrush) ::DeleteObject(btnBrush),btnBrush = nullptr;
+	if (btnDownBrush) ::DeleteObject(btnDownBrush),btnDownBrush = nullptr;
+	if (chkBrush) ::DeleteObject(chkBrush),btnDownBrush = nullptr;
+	if (selSubItemBorderBrush) ::DeleteObject(selSubItemBorderBrush), selSubItemBorderBrush = nullptr;
 	if (!chkBorderPen.IsNull()) chkBorderPen.DeleteObject();
-	if (textFont) ::DeleteObject(textFont);
-	if (comboFont) ::DeleteObject(comboFont);
-	if (normalFont) ::DeleteObject(normalFont);
+	if (textFont) ::DeleteObject(textFont), textFont = nullptr;
+	if (comboFont) ::DeleteObject(comboFont),comboFont = nullptr;
+	if (normalFont) ::DeleteObject(normalFont),normalFont = nullptr;
 	if (!borderPen.IsNull()) borderPen.DeleteObject();
 	if (!btnBorderPen.IsNull()) btnBorderPen.DeleteObject();
 	if (!selSubItemBorderPen.IsNull()) selSubItemBorderPen.DeleteObject();

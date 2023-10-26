@@ -33,8 +33,22 @@ public:
 
 	void popupMenu(CPoint & pt);
 private:
+	CBrush menuBrush ;
+	HICON createDatabaseIcon = nullptr;
+	HICON openDatabaseIcon = nullptr;
+	HICON refreshDatabaseIcon = nullptr;
+	HICON deleteDatabaseIcon = nullptr;
+	HICON copyDatabaseIcon = nullptr;
+	HICON exportAsSqlIcon = nullptr;
+	HICON importFromSqlIcon = nullptr;
+	HICON newMenuIcon = nullptr;
+	HICON newTableIcon = nullptr;
+	HICON newViewIcon = nullptr;
+	HICON newTriggerIcon = nullptr;
+
 	CMenu menu;
 	CMenu newSubMenu;
+	void createImageList();
 
 	void createMenu();
 };

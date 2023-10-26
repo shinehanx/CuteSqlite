@@ -88,7 +88,7 @@ void QueryPage::execAndShow()
 		if (ret) {
 			if (queryType != QUERY_DATA && queryType != TABLE_DATA) {
 				//Send message to refresh database when creating a table or altering a table , wParam = NULL, lParam=NULL 
-				AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+				AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 			}
 		}
 	}
@@ -240,14 +240,13 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
 		supplier->selectTable = selItemText;
-	} else {
-		supplier->selectTable.clear();
-	}
+	} 
 
-	if (resultTabView.isActiveTableDataPage() 
-		&& supplier->activeTabPageHwnd == m_hWnd  && !supplier->selectTable.empty()) {
+	if (resultTabView.isActiveTableDataPage()  // 1.TableDataPage must be active
+		&& supplier->activeTabPageHwnd == m_hWnd  // 2.This QueryPage must be active
+		&& !supplier->selectTable.empty() // 3.supplier->selectTable must not empty
+		&& queryType != TABLE_DATA) {  // 4.query type must not equal TABLE_DATA
 		resultTabView.loadTableDatas(supplier->selectTable);
-		supplier->selectTable.clear();
 	}
 	return 0;
 }
@@ -289,8 +288,6 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
 		supplier->selectTable = selItemText;
-	}else {
-		supplier->selectTable.clear();
 	}
 	
 	if (nImage == 3) { // 3 - column
@@ -300,8 +297,6 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 		sqlEditor.replaceSelText(selItemText);
 	}
 	
-
-
 	return 0;
 }
 

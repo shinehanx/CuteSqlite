@@ -523,6 +523,10 @@ LRESULT ExportAsSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	if (exportPathEdit.IsWindow()) exportPathEdit.DestroyWindow();
 	if (openFileButton.IsWindow()) openFileButton.DestroyWindow();
 
+	if (objectsTreeViewAdapter) {
+		delete objectsTreeViewAdapter;
+		objectsTreeViewAdapter = nullptr;
+	}
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXPORT_DB_AS_SQL_PROCESS_ID);
 	return 0;
 }

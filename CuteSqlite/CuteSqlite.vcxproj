@@ -296,7 +296,6 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\leftview\adapter\DatabaseMenuAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\LeftTreeViewAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\TableMenuAdapter.cpp" />
-    <ClCompile Include="ui\database\leftview\adapter\TreeViewMenuAdapter.cpp" />
     <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\TriggerDialog.cpp" />
@@ -328,6 +327,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="utils\FontUtil.cpp" />
     <ClCompile Include="utils\GdiUtil.cpp" />
     <ClCompile Include="utils\Log.cpp" />
+    <ClCompile Include="utils\MenuUtil.cpp" />
     <ClCompile Include="utils\PerformUtil.cpp" />
     <ClCompile Include="utils\ResourceUtil.cpp" />
     <ClCompile Include="utils\SavePointUtil.cpp" />
@@ -398,7 +398,6 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\dialog\ImportFromSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\adapter\DatabaseMenuAdapter.h" />
     <ClInclude Include="ui\database\leftview\adapter\TableMenuAdapter.h" />
-    <ClInclude Include="ui\database\leftview\adapter\TreeViewMenuAdapter.h" />
     <ClInclude Include="ui\database\leftview\adapter\LeftTreeViewAdapter.h" />
     <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
@@ -434,6 +433,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="utils\GdiPlusUtil.h" />
     <ClInclude Include="utils\GdiUtil.h" />
     <ClInclude Include="utils\Log.h" />
+    <ClInclude Include="utils\MenuUtil.h" />
     <ClInclude Include="utils\PerformUtil.h" />
     <ClInclude Include="utils\ProfileUtil.h" />
     <ClInclude Include="utils\ResourceUtil.h" />

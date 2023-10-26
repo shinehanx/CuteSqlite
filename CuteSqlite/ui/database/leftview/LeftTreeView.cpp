@@ -227,21 +227,47 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	topbarBrush = ::CreateSolidBrush(topbarColor);
 	bkgBrush = ::CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 	return 0;
 }
 
 int LeftTreeView::OnDestroy()
 {	
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 
 	if (topbarBrush) ::DeleteObject(topbarBrush);
 	if (bkgBrush) ::DeleteObject(bkgBrush);	
 	if (comboFont) ::DeleteObject(comboFont);
 
+	if (createDbButton.IsWindow()) createDbButton.DestroyWindow();
+	if (openDbButton.IsWindow()) openDbButton.DestroyWindow();
+	if (refreshDbButton.IsWindow()) refreshDbButton.DestroyWindow();
+	if (deleteDbButton.IsWindow()) deleteDbButton.DestroyWindow();
+	if (selectedDbComboBox.IsWindow()) selectedDbComboBox.DestroyWindow();
 	if (treeView.IsWindow()) treeView.DestroyWindow();
 
-	if (treeViewAdapter) delete treeViewAdapter;
+	if (treeViewAdapter) {
+		delete treeViewAdapter;
+		treeViewAdapter = nullptr;
+	}
+	if (databaseMenuAdapter) {
+		delete databaseMenuAdapter;
+		databaseMenuAdapter = nullptr;
+	}
+	if (tableMenuAdapter) {
+		delete tableMenuAdapter;
+		tableMenuAdapter = nullptr;
+	}
+
+	if (exportDatabaseAdapter) {
+		delete exportDatabaseAdapter;
+		exportDatabaseAdapter = nullptr;
+	}
+
+	if (importDatabaseAdapter) {
+		delete importDatabaseAdapter;
+		importDatabaseAdapter = nullptr;
+	}
 	return 0;
 }
 
@@ -419,19 +445,19 @@ LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL 
 		int nImage = -1, nSeletedImage = -1;
 		bool ret = selItem.GetImage(nImage, nSeletedImage);
 	
-		if (nImage == 0) {
+		if (nImage == 0) { // 0 - database
 			databaseMenuAdapter->popupMenu(pt);
-		}else if (nImage == 1) {
+		} else if (nImage == 2) { // 2 - table
+			tableMenuAdapter->popupMenu(pt);
+		} else if (nImage == 1) { // 1 - folder
 			CTreeItem pTreeItem = treeView.GetParentItem(selItem.m_hTreeItem);
 			int npImage = -1, npSelImage = -1;
 			bool ret = pTreeItem.GetImage(npImage, npSelImage);
-			if (npImage == 0) {
+			if (npImage == 0) { // 0 - database
 				databaseMenuAdapter->popupMenu(pt);
-			}			
+			}
 		}
 	}
-	
-	
 	return 0;
 }
 
@@ -525,6 +551,23 @@ void LeftTreeView::OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	doNewTrigger();
 }
 
+void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	uint64_t userDbId = treeViewAdapter->getSeletedUserDbId();
+	std::wstring tblName, schema;
+
+	HTREEITEM hSelItem = treeView.GetSelectedItem();
+	if (!hSelItem) {
+		return ;
+	}
+	wchar_t * cch = nullptr;
+	treeView.GetItemText(hSelItem, cch);
+	tblName.assign(cch);
+	::SysFreeString(cch);
+	
+	tableMenuAdapter->openTable(userDbId,  tblName, schema);
+}
+
 LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	doRefreshDatabase();
@@ -590,15 +633,15 @@ void LeftTreeView::doDeleteDatabase()
 
 void LeftTreeView::doExportAsSql()
 {
-	auto adapter = ExportDatabaseAdapter::getInstance(m_hWnd, nullptr);
-	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, adapter);
+	exportDatabaseAdapter = ExportDatabaseAdapter::getInstance(m_hWnd, nullptr);
+	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, exportDatabaseAdapter);
 	exportAsSqlDialog.DoModal(m_hWnd);
 }
 
 void LeftTreeView::doImportFromSql()
 {
-	auto adapter = ImportDatabaseAdapter::getInstance(m_hWnd, nullptr);
-	ImportFromSqlDialog dialog(m_hWnd, adapter);
+	importDatabaseAdapter = ImportDatabaseAdapter::getInstance(m_hWnd, nullptr);
+	ImportFromSqlDialog dialog(m_hWnd, importDatabaseAdapter);
 	dialog.DoModal(m_hWnd);
 }
 

@@ -252,13 +252,15 @@ typedef enum {
 	// treeview popup menu for table
 	TABLE_OPEN_MENU_ID,
 	TABLE_CREATE_MENU_ID,
-	TABLE_MODIFY_MENU_ID,
-	TABLE_DELETE_MENU_ID,
+	TABLE_ALTER_MENU_ID,
+	TABLE_TRUCATE_MENU_ID,
+	TABLE_DROP_MENU_ID,
+	TABLE_COPY_MENU_ID,
 	TABLE_EXPORT_MENU_ID,
 	TABLE_IMPORT_SQL_MENU_ID,
 	TABLE_IMPORT_CSV_MENU_ID,
-	TABLE_NEW_INDEX_MENU_ID,
-	TABLE_MODIFY_INDEX_MENU_ID,
+	TABLE_MANAGE_INDEX_MENU_ID,
+	TABLE_PROPERTIES_MENU_ID,
 } MenuId;
 
 // PostMessage messageId
@@ -284,7 +286,8 @@ typedef enum {
 	MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, // Send this msg when deleting column from the TableColumnsPage to TableIndexesPage, wParam=iItem, lParam=iSubItem
 	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
-	MSG_LEFTVIEW_REFRESH_DATABASE, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 }MessageId;
 
 typedef enum {

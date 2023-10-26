@@ -210,9 +210,6 @@
     <ClCompile Include="utils\PerformUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\database\leftview\adapter\TreeViewMenuAdapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui\database\leftview\adapter\DatabaseMenuAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -286,6 +283,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core\common\repository\QConnect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\MenuUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -533,9 +533,6 @@
     <ClInclude Include="utils\PerformUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui\database\leftview\adapter\TreeViewMenuAdapter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ui\database\leftview\adapter\DatabaseMenuAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -609,6 +606,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\common\repository\QConnect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\MenuUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

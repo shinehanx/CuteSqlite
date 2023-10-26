@@ -66,3 +66,37 @@ void QTabView::UpdateTooltipText(LPNMTTDISPINFO pTTDI)
 {
 
 }
+
+void QTabView::OnTabCloseBtn(int nPage)
+{
+	int n = GetPageCount();
+	if (n == 1) {
+		return ;
+	}
+	CTabViewImpl<QTabView>::OnTabCloseBtn(nPage);
+}
+
+void QTabView::CalcCloseButtonRect(int nItem, RECT& rcClose)
+{
+	RECT rcItem = {};
+	m_tab.GetItemRect(nItem, &rcItem);
+
+	int cy = (rcItem.bottom - rcItem.top - _cyCloseBtn) / 2;
+	int cx = (nItem == m_tab.GetCurSel()) ? _cxCloseBtnMarginSel : _cxCloseBtnMargin;
+	::SetRect(&rcClose, rcItem.right - cx - _cxCloseBtn, rcItem.top + cy, 
+			        rcItem.right - cx, rcItem.top + cy + _cyCloseBtn);
+}
+
+LRESULT QTabView::OnTabMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int n = GetPageCount();
+	bool old_bTabCloseButton = m_bTabCloseButton;
+	if (n == 1) {
+		m_bTabCloseButton = false;
+	}
+
+	LRESULT result = CTabViewImpl<QTabView>::OnTabMouseMove(uMsg, wParam, lParam, bHandled);
+	m_bTabCloseButton = old_bTabCloseButton;
+	return result;
+}
+

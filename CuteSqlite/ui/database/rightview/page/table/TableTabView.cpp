@@ -147,8 +147,8 @@ void TableTabView::loadWindow()
 
 void TableTabView::loadTabViewPages()
 {
-	tabView.AddPage(tableColumnsPage.m_hWnd, S(L"table-columns").c_str(), 0, &tableColumnsPage);
-	tabView.AddPage(tableIndexesPage.m_hWnd, S(L"table-indexes").c_str(), 1, &tableIndexesPage);
+	tabView.AddPage(tableColumnsPage.m_hWnd, StringUtil::blkToTail(S(L"table-columns")).c_str(), 0, &tableColumnsPage);
+	tabView.AddPage(tableIndexesPage.m_hWnd, StringUtil::blkToTail(S(L"table-indexes")).c_str(), 1, &tableIndexesPage);
 	tabView.SetActivePage(0);
 }
 

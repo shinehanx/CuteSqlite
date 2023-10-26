@@ -203,11 +203,11 @@ void LeftTreeViewAdapter::selectItem(uint64_t userDbId)
 uint64_t LeftTreeViewAdapter::getSeletedUserDbId()
 {
 	CTreeItem seletedItem = dataView->GetSelectedItem();
-	int nImage = -1, nSeletedImage = -1;
+	int nImage = -1, nSelImage = -1;
 	bool ret = false;
 	CTreeItem parentItem = seletedItem;
 	do  {
-		ret = parentItem.GetImage(nImage, nSeletedImage);
+		ret = parentItem.GetImage(nImage, nSelImage);
 		if (!ret) {
 			continue;
 		}

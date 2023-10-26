@@ -31,6 +31,26 @@ public:
 	TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view);
 	~TableMenuAdapter();
 
+	void popupMenu(CPoint & pt);
+	void openTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
 private:
+	CBrush menuBrush;
 
+	HICON openTableIcon = nullptr;
+	HICON createTableIcon = nullptr;
+	HICON alterTableIcon = nullptr;
+	HICON trucateTableIcon = nullptr;
+	HICON dropTableIcon = nullptr;
+	HICON copyTableIcon = nullptr;
+	HICON exportTableIcon = nullptr;
+	HICON importFromSqlIcon = nullptr;
+	HICON importFromCsvIcon = nullptr;
+	HICON manageIndexIcon = nullptr;
+	HICON propertiesIcon = nullptr;
+	
+
+	CMenu menu;
+
+	void createImageList();
+	void createMenu();
 };

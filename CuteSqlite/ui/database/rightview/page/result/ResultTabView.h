@@ -55,8 +55,9 @@ public:
 	void setActivePage(int pageIndex);
 
 	bool isActiveTableDataPage();
+	void activeTableDataPage();
 	void loadTableDatas(std::wstring & table);
-	
+
 private:
 	bool isNeedReload = true;
 
@@ -71,10 +72,10 @@ private:
 	ResultTableDataPage resultTableDataPage;
 
 	CImageList imageList;
-	HBITMAP resultBitmap = nullptr;
-	HBITMAP infoBitmap = nullptr;
-	HBITMAP tableDataBitmap = nullptr;
-	HBITMAP objectBitmap = nullptr;
+	HICON resultIcon = nullptr;
+	HICON infoIcon = nullptr;
+	HICON tableDataIcon = nullptr;
+	HICON objectIcon = nullptr;
 
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();

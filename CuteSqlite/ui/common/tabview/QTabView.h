@@ -37,4 +37,12 @@ public:
 
 	// Override ables - update tooltip to tab control
 	void UpdateTooltipText(LPNMTTDISPINFO pTTDI);
+
+	virtual void OnTabCloseBtn(int nPage);
+
+	// Override ables - Specify the rect of close button in the TabItem
+	void CalcCloseButtonRect(int nItem, RECT& rcClose);
+
+	// Override ables - 
+	virtual LRESULT OnTabMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

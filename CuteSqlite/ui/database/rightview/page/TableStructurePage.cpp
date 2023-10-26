@@ -337,7 +337,7 @@ void TableStructurePage::afterCreatedTable(const std::wstring & tblName)
 	// sqlPreviewEdit.clearText();
 	
 	//Send message to refresh database when creating a table or altering a table , wParam = NULL, lParam=NULL 
-	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE);
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 
 	// post message to RightWorkView for changing tab page title, class chain : TableStructurePage->TableTabView->RightWorkView
 	::PostMessage(GetParent().GetParent().m_hWnd, Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, (WPARAM)m_hWnd, (LPARAM)NULL);

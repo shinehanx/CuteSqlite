@@ -69,18 +69,20 @@ void RightWorkView::createImageList()
 	}
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
-	queryBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\query.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	historyBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\history.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
-	tableBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\table.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
-	viewBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\view.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
-	triggerBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\trigger.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);	
+	queryIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\query.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	historyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\history.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
+	tableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
+	viewIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\view.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
+	triggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
+	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
 
 	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
-	imageList.Add(queryBitmap); // 0 - query
-	imageList.Add(historyBitmap); // 1 - history
-	imageList.Add(tableBitmap); // 2 - table
-	imageList.Add(viewBitmap); // 3 - view
-	imageList.Add(triggerBitmap); // 4 - trigger
+	imageList.AddIcon(queryIcon); // 0 - query
+	imageList.AddIcon(historyIcon); // 1 - history
+	imageList.AddIcon(tableIcon); // 2 - new table
+	imageList.AddIcon(viewIcon); // 3 - view
+	imageList.AddIcon(triggerIcon); // 4 - trigger
+	imageList.AddIcon(tableDataIcon); // 5 - trigger
 	
 }
 
@@ -207,9 +209,9 @@ void RightWorkView::loadWindow()
 void RightWorkView::loadTabViewPages()
 {
 	ATLASSERT(!queryPagePtrs.empty());
-	QueryPage * firstQueryPage = queryPagePtrs.at(0);
-	tabView.AddPage(firstQueryPage->m_hWnd, S(L"query-editor").c_str(), 0, firstQueryPage);
-	tabView.AddPage(historyPage.m_hWnd, S(L"history-log").c_str(), 1, &historyPage);
+	QueryPage * firstQueryPage = queryPagePtrs.at(0); 
+	tabView.AddPage(firstQueryPage->m_hWnd, StringUtil::blkToTail(S(L"query-editor")).c_str(), 0, firstQueryPage);
+	tabView.AddPage(historyPage.m_hWnd, StringUtil::blkToTail(S(L"history")).c_str(), 1, &historyPage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::QUERY_PAGE, queryPagePtrs.at(0)->m_hWnd });
 	supplier->mainTabPages.push_back({ DatabaseSupplier::HISTORY_PAGE, historyPage.m_hWnd });
@@ -223,6 +225,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	createImageList();
 
 	topbarBrush = ::CreateSolidBrush(topbarColor);
@@ -235,38 +238,49 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 
-	if (topbarBrush) ::DeleteObject(topbarBrush);
 	if (bkgBrush) ::DeleteObject(bkgBrush);
-
+	if (topbarBrush) ::DeleteObject(topbarBrush);
+	
 	if (execSqlButton.IsWindow()) execSqlButton.DestroyWindow();
 	if (execAllButton.IsWindow()) execAllButton.DestroyWindow();
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (historyPage.IsWindow()) historyPage.DestroyWindow();
 	
-	if (queryBitmap) ::DeleteObject(queryBitmap);
-	if (historyBitmap) ::DeleteObject(historyBitmap);
-	if (tableBitmap) ::DeleteObject(tableBitmap);
+	if (queryIcon) ::DeleteObject(queryIcon);
+	if (historyIcon) ::DeleteObject(historyIcon);
+	if (tableIcon) ::DeleteObject(tableIcon);
+	if (viewIcon) ::DeleteObject(viewIcon);
+	if (triggerIcon) ::DeleteObject(triggerIcon);
+	if (tableDataIcon) ::DeleteObject(tableDataIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
-	for (QPage * pagePtr : tablePagePtrs) {
+	for (TableStructurePage * pagePtr : tablePagePtrs) {
 		if (pagePtr && pagePtr->IsWindow()) {
 			pagePtr->DestroyWindow();
+			delete pagePtr;
+			pagePtr = nullptr;
+		} else if (pagePtr) {
 			delete pagePtr;
 			pagePtr = nullptr;
 		}
 	}
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
-	for (QPage * pagePtr : queryPagePtrs) {
+	for (QueryPage * pagePtr : queryPagePtrs) {
 		if (pagePtr && pagePtr->IsWindow()) {
 			pagePtr->DestroyWindow();
 			delete pagePtr;
 			pagePtr = nullptr;
+		} else if (pagePtr) {
+			delete pagePtr;
+			pagePtr = nullptr;
 		}
 	}
+	queryPagePtrs.clear();
 	tablePagePtrs.clear();
 	return 0;
 }
@@ -350,7 +364,7 @@ void RightWorkView::doAddNewTable()
 	tablePagePtrs.push_back(newTablePage);
 
 	// nImage = 3 : VIEW 
-	tabView.AddPage(newTablePage->m_hWnd, S(L"new-table").c_str(), 3, newTablePage);
+	tabView.AddPage(newTablePage->m_hWnd, StringUtil::blkToTail(S(L"new-table")).c_str(), 2, newTablePage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_PAGE, newTablePage->m_hWnd });
 	supplier->activeTabPageHwnd = newTablePage->m_hWnd;
@@ -392,7 +406,7 @@ void RightWorkView::doAddNewView()
 	queryPagePtrs.push_back(newViewPage);
 
 	// nImage = 3 : view 
-	tabView.AddPage(newViewPage->m_hWnd, S(L"new-view").c_str(), 3, newViewPage);
+	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(S(L"new-view")).c_str(), 3, newViewPage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::VIEW_PAGE, newViewPage->m_hWnd });
 	supplier->activeTabPageHwnd = newViewPage->m_hWnd;
@@ -434,7 +448,7 @@ void RightWorkView::doAddNewTrigger()
 	queryPagePtrs.push_back(newTriggerPage); 
 
 	// nImage = 2 : table 
-	tabView.AddPage(newTriggerPage->m_hWnd, S(L"new-trigger").c_str(), 4, newTriggerPage);
+	tabView.AddPage(newTriggerPage->m_hWnd, StringUtil::blkToTail(S(L"new-trigger")).c_str(), 4, newTriggerPage);
 
 	supplier->mainTabPages.push_back({ DatabaseSupplier::TRIGGER_PAGE, newTriggerPage->m_hWnd });
 	supplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
@@ -452,6 +466,9 @@ void RightWorkView::doAddNewTrigger()
 LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return 0;
+	}
 	HWND hwnd = (HWND)wParam;
 	wchar_t * cch = (wchar_t *)lParam;
 
@@ -467,6 +484,68 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 	}
 	
+	return 0;
+}
+
+/**
+ * Send Config::MSG_SHOW_TABLE_DATA_ID when clicking the table open menu , wParam = NULL, lParam=NULL.
+ * 
+ * @param uMsg - Config::MSG_SHOW_TABLE_DATA_ID
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	if (supplier->selectTable.empty()) {
+		return 0;
+	}
+	// 1.find the queryPage title is equal select table name
+	int n = tabView.GetPageCount();
+	int foundQueryPage = -1;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring title = tabView.GetPageTitle(i);
+		StringUtil::trim(title); // trim the title
+		if (title != supplier->selectTable) {
+			continue;
+		}
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd](QueryPage * ptr) {
+			return ptr->m_hWnd == pageHwnd;
+		});
+		if (iter == queryPagePtrs.end()) {
+			continue;
+		}
+		foundQueryPage = i; // found, and active this page and load table data
+		tabView.SetActivePage(foundQueryPage);
+		QueryPage * tableDataPage = (*iter);
+		tableDataPage->getResultTabView().activeTableDataPage(); // active first
+		tableDataPage->getResultTabView().loadTableDatas(supplier->selectTable);
+		return 0;
+	}
+
+	// 2.check if exists a queryPage of same table name in tabView, then active this queryPage, 
+	//   otherwise create a new queryPage for show table data
+	if (foundQueryPage == -1) { // not found, create
+		CRect clientRect;
+		GetClientRect(clientRect);
+		QueryPage * tableDataPage = new QueryPage();
+		tableDataPage->setup(QueryPage::TABLE_DATA);
+		createOrShowQueryPage(*tableDataPage, clientRect);
+		queryPagePtrs.push_back(tableDataPage);
+
+		// nImage = 3 : view 
+		std::wstring tblName = supplier->selectTable;
+		tabView.AddPage(tableDataPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableDataPage);
+		foundQueryPage = tabView.GetPageCount() - 1;
+		supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_DATA_PAGE, tableDataPage->m_hWnd });
+		supplier->activeTabPageHwnd = tableDataPage->m_hWnd;
+		tabView.SetActivePage(foundQueryPage);	
+		tableDataPage->getResultTabView().activeTableDataPage();
+		tableDataPage->getResultTabView().loadTableDatas(supplier->selectTable);
+	}
+
 	
 	return 0;
 }
@@ -480,5 +559,14 @@ LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bH
 	HWND hwndPage = tabView.GetPageHWND(nPage);
 	supplier->activeTabPageHwnd = hwndPage;
 
+	return 0;
+}
+
+LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	int n = tabView.GetPageCount();
+	if (!n) {
+		UpdateWindow();
+	}
 	return 0;
 }

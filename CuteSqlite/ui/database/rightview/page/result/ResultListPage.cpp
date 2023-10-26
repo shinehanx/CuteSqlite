@@ -473,10 +473,17 @@ int ResultListPage::OnDestroy()
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (formView.IsWindow()) formView.DestroyWindow();
-	if (statusBar.IsWindow()) statusBar.DestroyWindow();
+	if (statusBar.IsWindow()) {
+		int anPanes[] = {
+			Config::RESULT_STATUSBAR_SQL_PANE_ID
+		};
+		statusBar.SetPanes(anPanes, 1);
+		statusBar.DestroyWindow();
+	}
 
 	if (adapter) {
 		delete adapter;
+		adapter = nullptr;
 	}
 
 	return ret;

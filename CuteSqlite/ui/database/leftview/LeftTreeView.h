@@ -60,7 +60,7 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshDatabaseButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_DELETE_BUTTON_ID, BN_CLICKED, OnClickDeleteDatabaseButton)
 
-		// menus
+		// database menus
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_CREATE_MENU_ID, OnClickCreateDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_MENU_ID, OnClickOpenDatabaseMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_REFRESH_MENU_ID, OnClickRefreshDatabaseMenu)
@@ -72,7 +72,11 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_VIEW_MENU_ID, OnClickNewViewMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_TRIGGER_MENU_ID, OnClickNewTriggerMenu)
 
-		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE, OnRefreshDatabase)
+		// table menus
+		COMMAND_ID_HANDLER_EX(Config::TABLE_OPEN_MENU_ID, OnClickOpenTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_CREATE_MENU_ID, OnClickNewTableMenu)
+
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -97,6 +101,8 @@ private:
 	// singleton pointer
 	LeftTreeViewAdapter * treeViewAdapter = nullptr;
 	DatabaseMenuAdapter * databaseMenuAdapter = nullptr;
+	ExportDatabaseAdapter * exportDatabaseAdapter = nullptr;
+	ImportDatabaseAdapter * importDatabaseAdapter = nullptr;
 	TableMenuAdapter * tableMenuAdapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	ResultListPageAdapter * resultListPageAdapter = nullptr;
@@ -144,7 +150,7 @@ private:
 
 	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 
-	//menus
+	// database menus
 	void OnClickCreateDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickRefreshDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -155,6 +161,10 @@ private:
 	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	
+	// table menus
+	void OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
 
 	// MSG
 	LRESULT OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);

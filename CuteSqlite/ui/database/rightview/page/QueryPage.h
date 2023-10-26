@@ -60,10 +60,10 @@ private:
 	std::wstring content;
 
 	bool isSpliterReload = true;
-	CHorSplitterWindow splitter;// Horizontal splitter
-	QHelpEdit sqlEditor;
 	
+	QHelpEdit sqlEditor;	
 	ResultTabView resultTabView;
+	CHorSplitterWindow splitter;// Horizontal splitter
 
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	
@@ -82,5 +82,7 @@ private:
 	LRESULT OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	// 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	LRESULT OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);	
+
+	
 	
 };

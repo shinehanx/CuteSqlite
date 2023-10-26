@@ -161,7 +161,10 @@ int TableColumnsPage::OnDestroy()
 
 	if (imageList.IsNull()) imageList.Destroy();
 
-	if (adapter) delete adapter;
+	if (adapter) {
+		delete adapter;
+		adapter = nullptr;
+	}
 	return ret;
 }
 

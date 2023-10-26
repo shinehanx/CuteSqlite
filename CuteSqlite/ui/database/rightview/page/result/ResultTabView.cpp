@@ -72,9 +72,32 @@ bool ResultTabView::isActiveTableDataPage()
 	return false;
 }
 
+void ResultTabView::activeTableDataPage()
+{
+	if (!resultTableDataPage.IsWindow()) {
+		CRect clientRect;
+		GetClientRect(clientRect);
+		createOrShowResultTableDataPage(resultTableDataPage, clientRect);
+		int nPage = tabView.AddPage(resultTableDataPage.m_hWnd, StringUtil::blkToTail(S(L"result-table-data")).c_str(), 2, &resultTableDataPage);
+		tabView.SetActivePage(nPage);
+		return ;
+	} 
+	
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		if (tabView.GetPageHWND(i) != resultTableDataPage.m_hWnd) {
+			continue;
+		}
+		tabView.SetActivePage(i);
+	}
+}
+
 void ResultTabView::loadTableDatas(std::wstring & table)
 {
-	resultInfoPage.clear();
+	if (resultInfoPage.IsWindow()) {
+		resultInfoPage.clear();
+	}
+	
 	resultTableDataPage.setup(table);
 	resultTableDataPage.loadTableDatas();
 }
@@ -82,15 +105,19 @@ void ResultTabView::loadTableDatas(std::wstring & table)
 void ResultTabView::clearResultListPage()
 {
 	// destry window and delete ptr from resultListPage vector
-	for (auto resultListPagePtr : resultListPagePtrs) {
+	for (auto & resultListPagePtr : resultListPagePtrs) {
 		if (resultListPagePtr && resultListPagePtr->IsWindow()) {
+			/*
 			int idx = getPageIndex(resultListPagePtr->m_hWnd);
 			if (idx != -1) {
 				tabView.RemovePage(idx);
-			}
+			}*/
 			if (resultListPagePtr->IsWindow()) {
 				resultListPagePtr->DestroyWindow();
 			}
+			delete resultListPagePtr;
+			resultListPagePtr = nullptr;
+		} else if (resultListPagePtr) {
 			delete resultListPagePtr;
 			resultListPagePtr = nullptr;
 		}
@@ -181,16 +208,16 @@ void ResultTabView::createImageList()
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	
-	resultBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\result.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	infoBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\info.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	tableDataBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	objectBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\object.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	resultIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\result.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	infoIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\info.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	objectIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\object.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
-	imageList.Add(resultBitmap); // 0 - result
-	imageList.Add(infoBitmap); // 1 - info
-	imageList.Add(tableDataBitmap); // 2 - tableData
-	imageList.Add(objectBitmap);// 3 - object
+	imageList.AddIcon(resultIcon); // 0 - result
+	imageList.AddIcon(infoIcon); // 1 - info
+	imageList.AddIcon(tableDataIcon); // 2 - tableData
+	imageList.AddIcon(objectIcon);// 3 - object
 }
 
 CRect ResultTabView::getTabRect(CRect & clientRect)
@@ -279,8 +306,8 @@ void ResultTabView::loadWindow()
 
 void ResultTabView::loadTabViewPages()
 {
-	tabView.AddPage(resultInfoPage.m_hWnd, S(L"result-info").c_str(), 1, &resultInfoPage);
-	tabView.AddPage(resultTableDataPage.m_hWnd, S(L"result-table-data").c_str(), 2, &resultTableDataPage);
+	tabView.AddPage(resultInfoPage.m_hWnd, StringUtil::blkToTail(S(L"result-info")).c_str(), 1, &resultInfoPage);
+	tabView.AddPage(resultTableDataPage.m_hWnd, StringUtil::blkToTail(S(L"result-table-data")).c_str(), 2, &resultTableDataPage);
 	tabView.SetActivePage(0);
 }
 
@@ -296,16 +323,18 @@ int ResultTabView::OnDestroy()
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 
-	if (tabView.IsWindow()) tabView.DestroyWindow();
+	
 	if (resultInfoPage.IsWindow()) resultInfoPage.DestroyWindow();
 	if (resultTableDataPage.IsWindow()) resultTableDataPage.DestroyWindow();
 
-	if (resultBitmap) ::DeleteObject(resultBitmap);
-	if (infoBitmap) ::DeleteObject(infoBitmap);
-	if (tableDataBitmap) ::DeleteObject(tableDataBitmap);
-	if (objectBitmap) ::DeleteObject(objectBitmap);
+	if (resultIcon) ::DeleteObject(resultIcon);
+	if (infoIcon) ::DeleteObject(infoIcon);
+	if (tableDataIcon) ::DeleteObject(tableDataIcon);
+	if (objectIcon) ::DeleteObject(objectIcon);
 
 	clearResultListPage();
+
+	if (tabView.IsWindow()) tabView.DestroyWindow();
 	return 0;
 }
 

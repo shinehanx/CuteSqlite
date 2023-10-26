@@ -56,8 +56,6 @@ void ResultTableDataPage::createOrShowUI()
 
 	CRect clientRect;
 	GetClientRect(clientRect);
-	
-	//createOrShowEdits(clientRect);
 }
 
 void ResultTableDataPage::loadWindow()
@@ -67,11 +65,11 @@ void ResultTableDataPage::loadWindow()
 	if (!supplier || supplier->selectTable.empty()) {
 		return ;
 	}
-
+	/*
 	if (supplier->selectTable != table) {
 		setup(supplier->selectTable);
 		loadTableDatas();
-	}	
+	}*/
 }
 
 /**

@@ -68,6 +68,7 @@ int HistoryPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
 	if (textFont) ::DeleteObject(textFont);
+	if (infoEdit.IsWindow()) infoEdit.DestroyWindow();
 	return ret;
 }
 

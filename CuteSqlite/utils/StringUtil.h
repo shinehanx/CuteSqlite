@@ -453,6 +453,18 @@ public:
 		}
 		return true;
 	}
+
+	/**
+	 * append blank to string.
+	 */
+	static std::wstring & blkToTail(std::wstring & str, int nBlk = 3) 
+	{
+		wchar_t * blk = L" "; // blank 
+		for (int i = 0; i < nBlk; i++) {
+			str.append(blk);
+		}
+		return str;
+	}
 };
 
 
