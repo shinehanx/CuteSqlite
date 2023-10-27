@@ -45,6 +45,9 @@ ObjectsTreeViewAdapter::~ObjectsTreeViewAdapter()
 
 void ObjectsTreeViewAdapter::loadTreeView()
 {
+	if (!dataView->IsWindow()) {
+		return;
+	}
 	dataView->DeleteAllItems();
 	this->dataView->SetImageList(imageList);
 	
