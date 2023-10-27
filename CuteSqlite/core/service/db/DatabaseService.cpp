@@ -220,7 +220,29 @@ UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstrin
 ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return columnUserRepository->getListByTblName(userDbId, tblName, schema);
+	ColumnInfoList result = columnUserRepository->getListByTblName(userDbId, tblName, schema);
+
+	UserTable userTable = getUserTable(userDbId, tblName, schema);
+	IndexInfo primaryKey = SqlUtil::parseConstraintsForPrimaryKey(userTable.sql);
+	if (primaryKey.type.empty() && primaryKey.columns.empty()) {
+		return result;
+	}
+
+	auto colVec = StringUtil::split(primaryKey.columns, L",");
+	// supplemented the ai and pk properties
+	for (ColumnInfo & info : result) {
+		// supplemented the auto increment property
+		if (primaryKey.columns == info.name) {
+			info.ai = primaryKey.ai;
+		}
+
+		// supplemented the primary key property		
+		auto iter = std::find(colVec.begin(), colVec.end(), info.name);
+		if (iter != colVec.end()) {
+			info.pk = 1;
+		}
+	}
+	return result;
 }
 
 UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
@@ -232,12 +254,15 @@ UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstr
 IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
-	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName, schema);
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty() || userTable.sql.empty()) {
+		return IndexInfoList();
+	}
 
-	// todo...
+	std::wstring & createTblSql = userTable.sql;
+	IndexInfoList indexInfoList = SqlUtil::parseConstraints(createTblSql);
 
-
-	return IndexInfoList();
+	return indexInfoList;
 }
 
 std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema)
@@ -249,7 +274,7 @@ std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::
 	}
 
 	std::wstring & createTblSql = userTable.sql;
-	std::wstring primaryKey = SqlUtil::parsePrimaryKeyFromCreateTableSql(createTblSql);
+	std::wstring primaryKey = SqlUtil::parsePrimaryKey(createTblSql);
 	if (primaryKey.empty()) {
 		return primaryKey;
 	}

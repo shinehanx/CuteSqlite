@@ -33,7 +33,7 @@ public:
 	TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier);
 	~TableIndexesPageAdapter();
 
-	int loadTblIndexesListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName = L"");
+	int loadTblIndexesListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = L"");
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText);
@@ -47,7 +47,6 @@ public:
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
 	std::wstring genderateCreateIndexesSqlClause(bool hasAutoIncrement = false);
-	std::wstring genderateAlterIndexesSqlClause(bool hasAutoIncrement = false);
 	void changePrimaryKey(ColumnInfoList & pkColumns);
 	void changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName);
 	void deleteTableColumnName(const std::wstring & columnName);
@@ -57,9 +56,13 @@ private:
 
 	void loadHeadersForListView();
 	int loadEmptyRowsForListView();
-	int loadIndexRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName);
+	int loadIndexRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
 
 	bool getIsChecked(int iItem);
 	int getSelIndexType(const std::wstring & dataType);
 	void removeSelectedItem(int nSelItem);
+	void updateRelatedColsRuntimeData(const IndexInfo & indexInfo);
+
+	void generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement);
+	
 };

@@ -11,25 +11,29 @@
 
  * limitations under the License.
 
- * @file   IndexUserRepository.h
- * @brief  Operations on indexes in the user database
+ * @file   EntityUtil.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-10-28
  *********************************************************************/
-#pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
+#include "stdafx.h"
+#include "EntityUtil.h"
 
-class IndexUserRepository : public BaseUserRepository<IndexUserRepository>
+
+IndexInfo EntityUtil::copy(const IndexInfo & item)
 {
-public:
-	IndexUserRepository() {}
-	~IndexUserRepository() {}
+	IndexInfo result;
+	result.name = item.name;
+	result.type = item.type;
+	result.pk = item.pk;
+	result.ai = item.ai;
+	result.un = item.un;
+	result.fk = item.fk;
+	result.ck = item.ck;
+	result.columns = item.columns;
+	result.sql = item.sql;
+	result.seq = item.seq;
 
-	UserIndexList getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema = std::wstring());
-	IndexInfoList getInfoListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema = std::wstring());
-private:
-	UserIndex toUserIndex(QSqlStatement &query);
-	IndexInfo toIndexInfo(QSqlStatement &query);
-};
+	return result;
+}

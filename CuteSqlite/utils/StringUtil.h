@@ -465,6 +465,28 @@ public:
 		}
 		return str;
 	}
+
+	/**
+	 * Get gid of the parens and quetes.
+	 * 
+	 * @param str
+	 * @return 
+	 */
+	static std::wstring & cutParensAndQuotes(std::wstring & str)
+	{
+		if (str.empty()) {
+			return str;
+		}
+		
+		str = StringUtil::replace(str, L")", L"");
+		str = StringUtil::replace(str, L"`", L"");
+		str = StringUtil::replace(str, L"'", L"");
+		str = StringUtil::replace(str, L"\"", L"");
+
+		return str;
+	}
+
+
 };
 
 

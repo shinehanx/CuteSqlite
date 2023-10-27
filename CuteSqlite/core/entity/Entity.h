@@ -85,9 +85,14 @@ typedef struct {
 typedef std::vector<ColumnInfo> ColumnInfoList;
 
 typedef struct {
-	std::wstring name;
-	std::wstring type;
-	std::wstring colums;
+	std::wstring name; // constrain name
+	std::wstring type; // Primary Key,Unique,Foreign Key,Checks
+	uint8_t pk = 0;  // primary key
+	uint8_t ai = 0; // Auto increment
+	uint8_t un = 0; // unique
+	uint8_t fk = 0; // foreign key
+	uint8_t ck = 0; // checks
+	std::wstring columns; // columns
 	std::wstring sql;
 	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } IndexInfo;

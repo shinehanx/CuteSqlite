@@ -19,6 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "SqlUtil.h"
+#include <chrono>
 #include "StringUtil.h"
 
 std::wregex SqlUtil::selectPat(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
@@ -162,7 +163,7 @@ std::vector<std::wstring> SqlUtil::parseTablesFromTableClause(std::wstring & tbl
  * @param createTblSql
  * @return std::wstring such as id
  */
-std::wstring SqlUtil::parsePrimaryKeyFromCreateTableSql(std::wstring & createTblSql)
+std::wstring SqlUtil::parsePrimaryKey(std::wstring & createTblSql)
 {
 	std::wsmatch results;
 	if (!std::regex_search(createTblSql, results, SqlUtil::primaryKeyPat)) {
@@ -396,5 +397,382 @@ std::wstring SqlUtil::makeTmpTableName(const std::wstring & tblName, int number,
 {
 	std::wstring result = prefix;
 	result.append(tblName).append(L"_").append(std::to_wstring(number));
+	return result;
+}
+
+/**
+ * Parse all constraints from create table sql.
+ * 
+ * @param createTblSql
+ * @return IndexInfoList
+ */
+IndexInfoList SqlUtil::parseConstraints(const std::wstring & createTblSql)
+{
+	if (createTblSql.empty()) {
+		return IndexInfoList();
+	}
+
+	size_t paren_first = createTblSql.find_first_of(L'(');
+	size_t paren_end = createTblSql.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return IndexInfoList();
+	}
+
+	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	// std::vector<std::wstring> lineList = StringUtil::split(columnsAndConstrains, L",", true);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClauseToLines(columnsAndConstrains,true);
+
+	IndexInfoList result;
+	for (auto & line : lineList) {		
+		IndexInfo indexInfo = SqlUtil::parseConstraintFromLine(line);
+		if (indexInfo.columns.empty()) {
+			continue;
+		}
+		result.push_back(indexInfo);
+	}
+	return result;
+}
+
+/**
+ * Parse primary key constraints only from create table sql.
+ * 
+ * @param createTblSql
+ * @return IndexInfoList
+ */
+IndexInfo SqlUtil::parseConstraintsForPrimaryKey(const std::wstring & createTblSql)
+{
+	if (createTblSql.empty()) {
+		return IndexInfo();
+	}
+
+	size_t paren_first = createTblSql.find_first_of(L'(');
+	size_t paren_end = createTblSql.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return IndexInfo();
+	}
+
+	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	// std::vector<std::wstring> lineList = StringUtil::split(columnsAndConstrains, L",", true);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClauseToLines(columnsAndConstrains,true);
+		
+	for (auto & line : lineList) {
+		std::wstring upline = StringUtil::toupper(line);
+		if (upline.find(L"PRIMARY") != std::wstring::npos) {
+			return SqlUtil::parseLineToPrimaryKey(line);
+		}		
+	}
+	return IndexInfo();
+}
+
+/**
+ * Split columns and index to text lines in the create table DDL.
+ * Such as :
+*      "is_delete" INTEGER NOT NULL DEFAULT (0), // will be a line
+*      "created_at" DATETIME NOT NULL DEFAULT (''), // will be a line
+*      "updated_at" DATETIME NOT NULL DEFAULT (''), // will be a line
+*       PRIMARY KEY(id,analysis_type,sample_lib_id) // will be a line
+ * @param str
+ * @param bTrim
+ * @return string vector 
+ */
+std::vector<std::wstring> SqlUtil::splitTableDDLColumnClauseToLines(std::wstring str, bool bTrim /*= true*/)
+{
+	std::wstring pattern = L","; // column or index clause line split character
+	
+	std::wstring::size_type pos;
+	std::vector<std::wstring> result;
+	str.append(pattern); // 扩展字符串以方便操作
+
+	// not found the pattern character between ignore_begin and ignore_end
+	wchar_t ignore_begin = L'('; 
+	wchar_t ignore_end = L')'; 
+	
+	size_t size = static_cast<int>(str.size());
+	size_t from = 0;
+	for (size_t i = 0; i < size; i++) {
+		size_t ignore_begin_pos = str.find_first_of(ignore_begin, i);
+		size_t ignore_end_pos = str.find_first_of(ignore_end, i);
+		pos = str.find(pattern, i);
+		if (pos < size && (pos < ignore_begin_pos || pos > ignore_end_pos)) {
+			std::wstring s = str.substr(from, pos - from);
+			if (s.empty()) {
+				i = pos + pattern.size() - 1;
+				continue;
+			}
+			if (bTrim && !s.empty()) {
+				StringUtil::trim(s);
+			}
+			result.push_back(s);
+			i = pos + pattern.size() - 1;
+			from = pos + pattern.size();
+		} else {
+			i = ignore_end_pos ;
+		}
+	}
+	return result;
+}
+
+/**
+ * Parse one line to IndexInfo object, line text such as "PRIMARY KEY ("uid")"
+ * 
+ * @param line
+ * @return 
+ */
+IndexInfo SqlUtil::parseConstraintFromLine(const std::wstring& line)
+{
+	IndexInfo result;
+	std::wstring upline = StringUtil::toupper(line);
+	if (upline.find(L"PRIMARY") != std::wstring::npos) {
+		return SqlUtil::parseLineToPrimaryKey(line);
+	}
+	if (upline.find(L"UNIQUE") != std::wstring::npos) {
+		return SqlUtil::parseLineToUnique(line);
+	}
+
+	if (upline.find(L"FOREIGN") != std::wstring::npos) {
+		return SqlUtil::parseLineToForeignKey(line);
+	}
+
+	if (upline.find(L"CHECK") != std::wstring::npos) {
+		return SqlUtil::parseLineToCheck(line);
+	}
+	return result;
+}
+
+IndexInfo SqlUtil::parseLineToPrimaryKey(const std::wstring& line)
+{
+	if (line.empty()) {
+		return IndexInfo();
+	}
+	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
+	if (words.empty()) {
+		return IndexInfo();
+	}
+
+	IndexInfo result;
+	std::wstring first = StringUtil::toupper(words.at(0));
+	if (first == L"CONSTRAINT") {
+		// such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
+		result.name = StringUtil::cutParensAndQuotes(words.at(1));
+	} 
+	
+	bool isFound = false;
+	if ((first == L"PRIMARY") // such as : Primary Key("id" AUTOINCREMENT)
+		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"PRIMARY")){ // such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
+		result.type = L"Primary Key";
+		result.pk = 1;
+		auto pair = getColumnAndAiByPrimaryKeyLine(line);
+		if (pair.first.empty()) {
+			return IndexInfo();
+		}
+		result.columns = pair.first;
+		result.ai = pair.second;
+		isFound = true;
+	} else {
+		return IndexInfo();
+	}
+
+	result.sql = line;
+	result.seq = std::chrono::system_clock::now();
+	return result;
+
+}
+
+
+IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line)
+{
+	if (line.empty()) {
+		return IndexInfo();
+	}
+	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
+	if (words.empty()) {
+		return IndexInfo();
+	}
+
+	IndexInfo result;
+	std::wstring first = StringUtil::toupper(words.at(0));
+	if (first == L"CONSTRAINT") {
+		// such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
+		result.name = StringUtil::cutParensAndQuotes(words.at(1));
+	}
+	
+	if ( (first == L"UNIQUE") // such as : UNIQUE("id","name"...)
+		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"UNIQUE") ) { // such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
+		result.type = L"Unique";
+		result.un = 1;
+		auto columns = getColumnsByUniqueLine(line);
+		if (columns.empty()) {
+			return IndexInfo();
+		}
+		result.columns = columns;
+	} else {
+		return IndexInfo();
+	}
+
+	result.sql = line;
+	result.seq = std::chrono::system_clock::now();
+	return result;
+
+}
+
+IndexInfo SqlUtil::parseLineToForeignKey(const std::wstring& line)
+{
+	if (line.empty()) {
+		return IndexInfo();
+	}
+
+	return IndexInfo();
+}
+
+IndexInfo SqlUtil::parseLineToCheck(const std::wstring& line)
+{
+	if (line.empty()) {
+		return IndexInfo();
+	}
+	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
+	if (words.empty()) {
+		return IndexInfo();
+	}
+
+	IndexInfo result;
+	std::wstring first = StringUtil::toupper(words.at(0));
+	if (first == L"CONSTRAINT") {
+		// such as : CONSTRAINT "idx_chk"  CHECK("id" > 8)
+		result.name = StringUtil::cutParensAndQuotes(words.at(1));
+	}
+	
+	if ( (first == L"CHECK") // such as : UNIQUE("id","name"...)
+		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"CHECK") ) { // such as : CONSTRAINT "idx_check"  CHECK("id" > 8)
+		result.type = L"Check";
+		result.un = 1;
+		auto expression = getExpressionByCheckLine(line);
+		if (expression.empty()) {
+			return IndexInfo();
+		}
+		result.columns = expression;
+	} else {
+		return IndexInfo();
+	}
+
+	result.sql = line;
+	result.seq = std::chrono::system_clock::now();
+	return result;
+}
+
+/**
+ * Fetch the column name and auto increment in the Primary key line. 
+ * such as "Primary Key("id" AUTOINCREMENT)"
+ * 
+ * @param line
+ * @return pair<std::wstring : column, uint_8 : ai> 
+ *              - first:primary key column name, 
+ *              - second: 1 if AUTOINCREMENT, 0 if not AUTOINCREMENT
+ */
+std::pair<std::wstring, uint8_t> SqlUtil::getColumnAndAiByPrimaryKeyLine(const std::wstring &line)
+{
+	if (line.empty()) {
+		return std::pair<std::wstring, int>();
+	}
+
+	size_t paren_first = line.find_first_of(L'(');
+	size_t paren_end = line.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return std::pair<std::wstring, int>();
+	}
+
+	std::wstring parenClause = line.substr(paren_first + 1, paren_end - paren_first - 1);
+	std::vector<std::wstring> words = StringUtil::split(parenClause, L" ", true);
+	if (words.empty()) {
+		return std::pair<std::wstring, int>();
+	}
+	std::wstring columns;
+	if (words.at(0).find_first_of(L',') == std::wstring::npos) {
+		 // not found ',', single column ,such as "Primary key(id AUTOINCREMENT)"
+		columns = StringUtil::cutParensAndQuotes(words.at(0));
+	} else { 
+		// found ',', multiple columns, such as "Primary key(id,name,...)"
+		std::vector<std::wstring> columnVect = StringUtil::split(words.at(0), L",", true);
+
+		// Get gid of the symbol 
+		int i = 0;
+		for (auto & colItem : columnVect) {
+			colItem = StringUtil::cutParensAndQuotes(colItem);
+			StringUtil::trim(colItem);
+			if (colItem.empty()) {
+				continue;
+			}
+			if (i++ > 0) {
+				columns.append(L",");
+			}
+			columns.append(colItem);
+		}
+	}
+	uint8_t ai = 0;
+	if (words.size() > 1 && StringUtil::toupper(words.at(1)) == L"AUTOINCREMENT") {
+		ai = 1;
+	}
+	return { columns, ai };
+}
+
+/**
+ * Fetch the column names in the unique line. 
+ * such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
+ * 
+ * @param line
+ * @return columns
+ */
+std::wstring SqlUtil::getColumnsByUniqueLine(const std::wstring &line)
+{
+	if (line.empty()) {
+		return L"";
+	}
+
+	size_t paren_first = line.find_first_of(L'(');
+	size_t paren_end = line.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return L"";
+	}
+
+	std::wstring result = line.substr(paren_first + 1, paren_end - paren_first - 1);	
+	return result;
+}
+
+/**
+ * Fetch the column names in the unique line. 
+ * such as : CONSTRAINT "idx_check"  CHECK("id" > 8)
+ * 
+ * @param line
+ * @return columns
+ */
+std::wstring SqlUtil::getExpressionByCheckLine(const std::wstring &line)
+{
+	if (line.empty()) {
+		return L"";
+	}
+
+	size_t paren_first = line.find_first_of(L'(');
+	size_t paren_end = line.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return L"";
+	}
+
+	std::wstring parenClause = line.substr(paren_first + 1, paren_end - paren_first - 1);
+	std::vector<std::wstring> words = StringUtil::split(parenClause, L",", true);
+	if (words.empty()) {
+		return L"";
+	}
+	std::wstring result;
+	int i = 0;
+	for (auto & word : words) {
+		auto column = StringUtil::cutParensAndQuotes(word);
+		StringUtil::trim(column);
+		if (column.empty()) {
+			continue;
+		}
+		if (i++ > 0) {
+			result.append(L",");
+		}
+		result.append(column);
+	}
 	return result;
 }

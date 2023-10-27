@@ -114,7 +114,10 @@ void TableIndexesPage::loadWindow()
 
 void TableIndexesPage::loadListView()
 {
-	rowCount = adapter->loadTblIndexesListView(runtimeUserDbId, runtimeSchema);
+	uint64_t userDbId = supplier->getRuntimeUserDbId();
+	std::wstring tblName = supplier->getRuntimeTblName();
+	std::wstring schema = supplier->getRuntimeSchema();
+	rowCount = adapter->loadTblIndexesListView(userDbId, tblName, schema);
 }
 
 int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -174,7 +177,7 @@ LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
 
-	if (aItem->iSubItem == 0 || aItem->iSubItem == 2 || aItem->iSubItem == 3) {
+	if (aItem->iSubItem != 1) {
 		return 0;
 	}
 
@@ -199,7 +202,6 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 		CRect rect(x, y, x + w, y + h);
 		subItemRect.left = listWinRect.left + subItemRect.left;
 		TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
-
 		columnsDialog.DoModal(m_hWnd);
 		return 0;
 	}

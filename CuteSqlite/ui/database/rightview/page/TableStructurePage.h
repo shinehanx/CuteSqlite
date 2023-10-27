@@ -37,6 +37,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		COMMAND_HANDLER_EX(Config::TABLE_TBL_NAME_EDIT_ID, EN_CHANGE, OnChangeTblNameEdit)
+		COMMAND_HANDLER_EX(Config::TABLE_DATABASE_COMBOBOX_ID, CBN_SELENDOK, OnChangeDatabaseComboBox)
 		COMMAND_HANDLER_EX(Config::TABLE_SAVE_BUTTON_ID, BN_CLICKED, OnClickSaveButton)
 		MESSAGE_HANDLER(Config::MSG_TABLE_PREVIEW_SQL_ID, OnPreviewSql);
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
@@ -85,16 +86,18 @@ private:
 	void createOrShowTableTabView(TableTabView & win, CRect & clientRect);
 	void createOrShowSqlPreviewElems(CRect & clientRect);
 	void createOrShowButtons(CRect & clientRect);
-	void createOrShowSqlEditor(QHelpEdit & win, UINT id, CRect & rect, CRect & clientRect, DWORD exStyle = 0);
+	void createOrShowSqlEditor(QHelpEdit & win, UINT id, const std::wstring & text, CRect & rect, CRect & clientRect, DWORD exStyle = 0);
 
 	virtual void loadWindow();
 	void loadDatabaseComboBox();
 	void loadSchemaComboBox();
+	void loadSqlPreviewEdit();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 	void OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeDatabaseComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void afterCreatedTable(const std::wstring & tblName);
 
@@ -114,4 +117,5 @@ private:
 	std::wstring generateCreateIndexesClause();
 	
 	std::wstring generateInsertIntoTmpTableSql(std::wstring& schema, std::wstring& tmpTblName, std::wstring& oldTblName);
+	
 };

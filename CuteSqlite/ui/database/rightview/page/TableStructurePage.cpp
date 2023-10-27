@@ -60,6 +60,7 @@ void TableStructurePage::setup(TblOperateType tblOperateType, const std::wstring
 		supplier = new TableStructureSupplier();
 	}
 	supplier->setOperateType(tblOperateType);
+	supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
 	supplier->setRuntimeTblName(tblName);
 	supplier->setRuntimeSchema(schema);
 }
@@ -95,7 +96,12 @@ void TableStructurePage::createOrShowTblNameElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, 0);
 	rect.right += 120;
-	QWinCreater::createOrShowEdit(m_hWnd, tblNameEdit, Config::TABLE_TBL_NAME_EDIT_ID, L"", rect, clientRect, WS_CLIPCHILDREN | WS_CLIPSIBLINGS, false);
+	bool readOnly = false;
+	if (supplier->getOperateType() == MOD_TABLE) {
+		readOnly = true;
+	}
+	QWinCreater::createOrShowEdit(m_hWnd, tblNameEdit, Config::TABLE_TBL_NAME_EDIT_ID, supplier->getRuntimeTblName(), 
+		rect, clientRect, WS_CLIPCHILDREN | WS_CLIPSIBLINGS, readOnly);
 }
 
 
@@ -143,7 +149,7 @@ void TableStructurePage::createOrShowSqlPreviewElems(CRect & clientRect)
 {
 	CRect rect = getEditorRect(clientRect);
 	rect.DeflateRect(2, 2, 2, 2);
-	createOrShowSqlEditor(sqlPreviewEdit, Config::TABLE_SQL_PREVIEW_EDIT_ID, rect, clientRect);
+	createOrShowSqlEditor(sqlPreviewEdit, Config::TABLE_SQL_PREVIEW_EDIT_ID, L"", rect, clientRect);
 }
 
 void TableStructurePage::createOrShowButtons(CRect & clientRect)
@@ -165,6 +171,7 @@ void TableStructurePage::loadWindow()
 	isNeedReload = false;
 	loadDatabaseComboBox();
 	loadSchemaComboBox();
+	loadSqlPreviewEdit();
 }
 
 
@@ -210,6 +217,15 @@ void TableStructurePage::loadSchemaComboBox()
 		supplier->setRuntimeSchema(schemas.at(0));
 	}
 	schemaComboBox.SetCurSel(nSelItem);
+}
+
+void TableStructurePage::loadSqlPreviewEdit()
+{
+	ATLASSERT(supplier->getRuntimeUserDbId() && !supplier->getRuntimeTblName().empty());
+	UserTable userTable = databaseService->getUserTable(supplier->getRuntimeUserDbId(), 
+		supplier->getRuntimeTblName(), supplier->getRuntimeSchema());
+
+	sqlPreviewEdit.setText(userTable.sql);
 }
 
 int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -273,6 +289,13 @@ void TableStructurePage::OnChangeTblNameEdit(UINT uNotifyCode, int nID, HWND hwn
 }
 
 
+void TableStructurePage::OnChangeDatabaseComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int nSelItem = databaseComboBox.GetCurSel();
+	supplier->setRuntimeUserDbId(databaseComboBox.GetItemData(nSelItem));
+	ATLASSERT(supplier->getRuntimeUserDbId() > 0);
+}
+
 void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	int nSelItem = databaseComboBox.GetCurSel();
@@ -282,12 +305,14 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 	tblNameEdit.GetWindowText(str);
 	std::wstring tblName = str.GetString();
 	StringUtil::trim(tblName);
+
+	// 1. verify the params
 	if (tblName.empty()) {
 		QPopAnimate::error(m_hWnd, S(L"tbl-name-empty"));
 		tblNameEdit.SetFocus();
 		return;
 	}
-
+	
 	if (supplier->getOperateType() == NEW_TABLE && 
 		tableService->isExistsTblName(supplier->getRuntimeUserDbId(),
 			tblName, 
@@ -301,22 +326,33 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 	std::wstring schema = str.GetString();
 	supplier->setRuntimeSchema(schema);
 		
+	// 2. Set the SAVEPOINT for creating or altering table
+	std::wstring savePoint = SavePointUtil::create(L"create_table");
+	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
 	try {
-		std::wstring sql;
+		// 3.Execute create table or alter table DDL
 		if (supplier->getOperateType() == NEW_TABLE) {
 			sql = getCreateRuntimeSql();
 			tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
 			QPopAnimate::success(hwnd, S(L"create-table-success-text"));
 		} else {
 			sql = execAlterTable();
-			QPopAnimate::success(hwnd, S(L"create-table-success-text"));
+			QPopAnimate::success(hwnd, S(L"alter-table-success-text"));
 		}
 
-		// Do something after created table
+		// 4.Release the SAVEPOINT
+		sql = L"RELEASE \"" + savePoint + L"\";";
+		tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
+
+		// 5. Do something after created table
 		afterCreatedTable(tblName);
 	} catch (QSqlExecuteException & ex) {
+		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		tableService->execBySql(supplier->getRuntimeUserDbId(), sql); 
+
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
-		QPopAnimate::error(m_hWnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(m_hWnd, ex.getCode(), ex.getMsg());
 		return ;
 	}
 }
@@ -371,11 +407,11 @@ HBRUSH TableStructurePage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 	return AtlGetStockBrush(WHITE_BRUSH); 
 }
 
-void TableStructurePage::createOrShowSqlEditor(QHelpEdit & win, UINT id, CRect & rect, CRect & clientRect, DWORD exStyle)
+void TableStructurePage::createOrShowSqlEditor(QHelpEdit & win, UINT id, const std::wstring & text, CRect & rect, CRect & clientRect, DWORD exStyle)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.setup(S(L"sql-preview"), std::wstring(L""));
-		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::TABLE_SQL_PREVIEW_EDIT_ID);		
+		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::TABLE_SQL_PREVIEW_EDIT_ID);		
 		return;
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
@@ -480,36 +516,26 @@ std::wstring TableStructurePage::execAlterTable()
 			.append(quo).append(oldTblName).append(quo);
 	}
 
-	// 2. Set the SAVEPOINT for alter table
-	std::wstring savePoint = SavePointUtil::create(L"create_table");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	// 2.Create tmp table for rename table
+	std::wstring sql = generateCreateTableSql(schema, tmpTblName);
 	tableService->execBySql(userDbId, sql);
 	resultSql.append(sql).append(L"\n");
 
-	// 3.Create tmp table for rename table
-	sql = generateCreateTableSql(schema, tmpTblName);
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
-
-	// 4.Generate sql for insert into tmp table with select data from old table
+	// 3.Generate sql for insert into tmp table with select data from old table
 	sql = generateInsertIntoTmpTableSql(schema, tmpTblName, oldTblName);
 	tableService->execBySql(userDbId, sql);
 	resultSql.append(sql).append(L"\n");
 
-	// 5.Drop old table
+	// 4.Drop old table
 	sql = L"DROP TABLE " + fmtOldTblName + L";";
 	tableService->execBySql(userDbId, sql);
 	resultSql.append(sql).append(L"\n");
 
-	// 6.Rename tmp table name to new table name
+	// 5.Rename tmp table name to new table name
 	sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + L";";
 	tableService->execBySql(userDbId, sql);
 	resultSql.append(sql).append(L"\n");
 
-	// 7.Release SAVEPOINT
-	sql = L"RELEASE \"" + savePoint + L"\";";
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
 	return resultSql;
 }
 

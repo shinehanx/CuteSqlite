@@ -142,7 +142,7 @@ void TableUserRepository::execBySql(uint64_t userDbId, const std::wstring & sql)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
-		QSqlExecuteException ex(std::wstring(L"200023"), _err);
+		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err);
 		ex.setErrRow(1);
 		ex.setErrCol(200);
 		throw ex;

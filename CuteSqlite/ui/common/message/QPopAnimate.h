@@ -13,6 +13,7 @@
 #include <string>
 #include "resource.h"
 #include "ui/common/image/QStaticImage.h"
+#include "ui/common/button/QImageButton.h"
 
 #define QPOPANIMATE_WIDTH 300
 #define QPOPANIMATE_HEIGHT 70
@@ -29,34 +30,47 @@ public:
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
 		MSG_WM_CTLCOLORSTATIC(OnCtlEditColor)
+		COMMAND_HANDLER_EX(Config::QPOP_ANIMATE_CLOSE_BUTTON_ID, BN_CLICKED, OnClickCloseButton)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	typedef enum  {
+		POP_COMMON_TEXT,// common text text, close by timer
+		POP_REPORT_TEXT // report code/msg, close by user
+	} PopType;
 	static void error(HWND parentHwnd, std::wstring & text);
 	static void success(HWND parentHwnd, std::wstring & text);
 	static void warn(HWND parentHwnd, std::wstring & text);
+	static void report(HWND parentHwnd, const std::wstring & code, const std::wstring & text);
 
-	void setup(std::wstring & text);
+	void setup(const std::wstring & text);
+	void setup(const std::wstring & code, const std::wstring &text);
 	void setSize(int w, int h);
 	void createOrShowUI();
-	void setImagePath(std::wstring & imagePath);
+	void setImagePath(const std::wstring & imagePath);
+	void setCloseImagePath(const std::wstring & closeImagePath);
 private:
 	int width = QPOPANIMATE_WIDTH;
 	int height = QPOPANIMATE_HEIGHT;
 	CRect winRect;
 	CRect destopRect;
+
+	PopType popType = POP_COMMON_TEXT;
+	std::wstring code;
 	std::wstring text;
 	std::wstring imagePath;
+	std::wstring closeImagePath;
 
 	COLORREF textColor = RGB(8, 8, 8);
 	COLORREF bkgColor = RGB(238, 238, 238);
 	HBRUSH bkgBrush = nullptr;
 	HFONT textFont = nullptr;
 	QStaticImage image;
-
+	QImageButton closeButton;
 	CEdit textEdit;
 
 	void createOrShowImage(CRect & clientRect);
+	void createOrShowCloseButton(CRect & clientRect);
 	void createOrShowTextEdit(CRect & clientRect);
 
 	CRect getInitRect();
@@ -66,6 +80,7 @@ private:
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
+	LRESULT OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd);
 };
 
 

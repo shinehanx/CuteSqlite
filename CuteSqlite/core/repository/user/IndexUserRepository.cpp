@@ -50,9 +50,45 @@ UserIndexList IndexUserRepository::getListByTblName(uint64_t userDbId, const std
 	}
 }
 
+IndexInfoList IndexUserRepository::getInfoListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema /*= std::wstring()*/)
+{
+	IndexInfoList result;
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
+	std::wstring sql = L"PRAGMA ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"index_list(");
+	} else {
+		sql.append(L"index_list(");
+	}
+	sql.append(L"\"").append(tblName).append(L"\")");
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":tbl_name", tblName);
+
+		while (query.executeStep()) {
+			IndexInfo item = toIndexInfo(query);
+			result.push_back(item);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	}
+}
+
 UserIndex IndexUserRepository::toUserIndex(QSqlStatement &query)
 {
 	UserIndex item;
+	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
+	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
+	return item;
+}
+
+IndexInfo IndexUserRepository::toIndexInfo(QSqlStatement &query)
+{
+	IndexInfo item;
 	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
 	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
 	return item;

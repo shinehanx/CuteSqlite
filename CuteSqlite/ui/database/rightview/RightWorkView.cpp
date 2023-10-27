@@ -226,6 +226,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 	createImageList();
 
 	topbarBrush = ::CreateSolidBrush(topbarColor);
@@ -239,6 +240,7 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 	if (topbarBrush) ::DeleteObject(topbarBrush);
@@ -547,6 +549,54 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	}
 
 	
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	ATLASSERT(!supplier->selectTable.empty()); 
+
+	// 1.find the queryPage title is equal select table name
+	int n = tabView.GetPageCount();
+	int foundPage = -1;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring title = tabView.GetPageTitle(i);
+		StringUtil::trim(title); // trim the title
+		if (title != supplier->selectTable) {
+			continue;
+		}
+		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd](TableStructurePage * ptr) {
+			return ptr->m_hWnd == pageHwnd;
+		});
+		if (iter == tablePagePtrs.end()) {
+			continue;
+		}
+		foundPage = i; // found, and active this page and load table data
+		
+		TableStructurePage * tableStructPage = (*iter);
+		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
+		tabView.SetActivePage(foundPage);
+		return 0;
+	}
+
+	// 2.check if exists a tableStructPage of same table name in tabView, then active this tableStructPage, 
+	//   otherwise create a new tableStructPage for show table data
+	if (foundPage == -1) { // not found, create
+		CRect clientRect;
+		GetClientRect(clientRect);
+		TableStructurePage * tableStructPage = new TableStructurePage();
+		tableStructPage->setup(TblOperateType::MOD_TABLE, supplier->selectTable);
+		createOrShowTableStructurePage(*tableStructPage, clientRect);
+		tablePagePtrs.push_back(tableStructPage);
+
+		std::wstring tblName = supplier->selectTable;
+		tabView.AddPage(tableStructPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableStructPage);
+		foundPage = tabView.GetPageCount() - 1;
+		supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_DATA_PAGE, tableStructPage->m_hWnd });
+		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
+		tabView.SetActivePage(foundPage);
+	}
 	return 0;
 }
 

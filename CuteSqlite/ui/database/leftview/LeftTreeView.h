@@ -75,6 +75,7 @@ public:
 		// table menus
 		COMMAND_ID_HANDLER_EX(Config::TABLE_OPEN_MENU_ID, OnClickOpenTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_CREATE_MENU_ID, OnClickNewTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_ALTER_MENU_ID, OnClickAlterTableMenu)
 
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
@@ -158,12 +159,14 @@ private:
 	void OnClickCopyDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	
 	// table menus
 	void OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickAlterTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 
 	// MSG
@@ -176,7 +179,8 @@ private:
 	void doCopyDatabase();
 	void doExportAsSql();
 	void doImportFromSql();
-	void doNewTable();
 	void doNewView();
 	void doNewTrigger();
+	void doNewTable();
+	void doAlterTable();
 };

@@ -20,16 +20,105 @@
 #include "stdafx.h"
 #include "TableStructureSupplier.h"
 #include "core/common/Lang.h"
+#include "utils/StringUtil.h"
 
 const Columns TableStructureSupplier::colsHeadColumns = { S(L"column-name"), S(L"data-type"), L"Not Null", L"PK", L"Auto Insc", L"Unique", S(L"default"), S(L"check")};
 const std::vector<int> TableStructureSupplier::colsHeadSizes = { 150, 100, 70, 70, 70, 70, 150, 100 };
 const std::vector<int> TableStructureSupplier::colsHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_LEFT, LVCFMT_LEFT };
 const std::vector<std::wstring> TableStructureSupplier::colsDataTypeList = { L"INTEGER", L"TEXT", L"BLOB", L"REAL", L"NUMERIC"};
 
-const Columns TableStructureSupplier::idxHeadColumns = { S(L"index-name"), S(L"columns"), S(L"index-type"), L"SQL"};
-const std::vector<int> TableStructureSupplier::idxHeadSizes = { 150, 150, 150, 200 };
-const std::vector<int> TableStructureSupplier::idxHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT };
-const std::vector<std::wstring> TableStructureSupplier::idxTypeList = {L"Unique", L"Primary Key", L"Foreign Key",  L"Check"};
+const Columns TableStructureSupplier::idxHeadColumns = { S(L"index-name"), S(L"columns"), S(L"index-type")};
+const std::vector<int> TableStructureSupplier::idxHeadSizes = { 150, 150, 150};
+const std::vector<int> TableStructureSupplier::idxHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT};
+const std::vector<std::wstring> TableStructureSupplier::idxTypeList = {L"Unique", L"Primary Key",  L"Check"};
 
+
+void TableStructureSupplier::eraseColsRuntimeData(int nSelItem)
+{
+	if (nSelItem >= static_cast<int>(colsRuntimeDatas.size())) {
+		return;
+	}
+	auto iter = colsRuntimeDatas.begin();
+	for (int j = 0; j < nSelItem; j++) {
+		iter++;
+	}
+	colsRuntimeDatas.erase(iter);
+}
+
+
+void TableStructureSupplier::eraseColsOrigData(int nSelItem)
+{
+	if (nSelItem >= static_cast<int>(colsOrigDatas.size())) {
+		return;
+	}
+	auto iter = colsOrigDatas.begin();
+	for (int j = 0; j < nSelItem; j++) {
+		iter++;
+	}
+	colsOrigDatas.erase(iter);
+}
+
+
+void TableStructureSupplier::eraseIdxRuntimeData(int nSelItem)
+{
+	if (nSelItem >= static_cast<int>(idxRuntimeDatas.size())) {
+		return;
+	}
+	auto iter = idxRuntimeDatas.begin();
+	for (int j = 0; j < nSelItem; j++) {
+		iter++;
+	}
+	idxRuntimeDatas.erase(iter);
+}
+
+
+void TableStructureSupplier::eraseIdxOrigData(int nSelItem)
+{
+	if (nSelItem >= static_cast<int>(idxOrigDatas.size())) {
+		return;
+	}
+	auto iter = idxOrigDatas.begin();
+	for (int j = 0; j < nSelItem; j++) {
+		iter++;
+	}
+	idxOrigDatas.erase(iter);
+}
+
+/**
+ * if delete index, update related column runtime data through should be deleted index.
+ * 
+ * @param indexInfo
+ */
+void TableStructureSupplier::updateRelatedColumnsIfDeleteIndex(const IndexInfo &delIndexInfo)
+{
+	if (delIndexInfo.type.empty() || delIndexInfo.columns.empty()) {
+		return;
+	}
+	auto columns = StringUtil::split(delIndexInfo.columns, L",");
+
+	int n = static_cast<int>(colsRuntimeDatas.size());
+	for (int i = 0; i < n; i++) {
+		ColumnInfo &columnInfo = colsRuntimeDatas.at(i);
+		ColumnInfo &origInfo = colsOrigDatas.at(i);		
+		
+		auto iter = std::find_if(columns.begin(), columns.end(), [&columnInfo](std::wstring &column) {
+			return columnInfo.name == column;
+		});
+
+		if (iter == columns.end()) {
+			continue;
+		}
+
+		// change primary key column
+		if (delIndexInfo.type == idxTypeList.at(1)) { // 1- Primary Key
+			origInfo.pk = columnInfo.pk;
+			origInfo.ai = columnInfo.ai;
+
+			columnInfo.pk = 0;
+			columnInfo.ai = 0;
+		}
+		
+	}
+}
 
 

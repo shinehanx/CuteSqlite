@@ -55,7 +55,7 @@ public:
 	static std::wstring getColumnName(std::wstring & str);
 	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
 	static std::vector<std::wstring> parseTablesFromTableClause(std::wstring & tblStmt);
-	static std::wstring parsePrimaryKeyFromCreateTableSql(std::wstring & createTblSql);
+	static std::wstring parsePrimaryKey(std::wstring & createTblSql);
 	static std::wstring getWhereClause(std::wstring & sql);
 	static std::wstring getFourthClause(std::wstring & sql);
 
@@ -67,4 +67,18 @@ public:
 
 	// make table name
 	static std::wstring makeTmpTableName(const std::wstring & tblName, int number = 1, const std::wstring & prefix = std::wstring(L"ctsqlite_tmp_"));
+	
+	// parse constraints
+	static IndexInfoList parseConstraints(const std::wstring & createTblSql);
+	static IndexInfo parseConstraintsForPrimaryKey(const std::wstring & createTblSql);
+	static std::vector<std::wstring> splitTableDDLColumnClauseToLines(std::wstring str, bool bTrim = true);
+private:
+	static IndexInfo parseConstraintFromLine(const std::wstring& line);
+	static IndexInfo parseLineToPrimaryKey(const std::wstring& line);
+	static IndexInfo parseLineToUnique(const std::wstring& line);
+	static IndexInfo parseLineToForeignKey(const std::wstring& line);
+	static IndexInfo parseLineToCheck(const std::wstring& line);
+	static std::pair<std::wstring, uint8_t> getColumnAndAiByPrimaryKeyLine(const std::wstring &line);
+	static std::wstring getColumnsByUniqueLine(const std::wstring &line);
+	static std::wstring getExpressionByCheckLine(const std::wstring &line);
 };

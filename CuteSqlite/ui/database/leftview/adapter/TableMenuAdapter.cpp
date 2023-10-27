@@ -107,6 +107,7 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_PROPERTIES_MENU_ID, MF_BYCOMMAND, propertiesIcon);
 	
 }
+
 void TableMenuAdapter::popupMenu(CPoint & pt)
 {
 	menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);

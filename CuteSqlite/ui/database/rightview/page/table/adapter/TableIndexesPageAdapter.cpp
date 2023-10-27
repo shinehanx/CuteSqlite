@@ -24,6 +24,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
 #include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
+#include "utils/EntityUtil.h"
 
 TableIndexesPageAdapter::TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
@@ -38,7 +39,7 @@ TableIndexesPageAdapter::~TableIndexesPageAdapter()
 	
 }
 
-int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
+int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId,const std::wstring & tblName, const std::wstring & schema)
 {
 	// headers
 	loadHeadersForListView();
@@ -47,7 +48,7 @@ int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId, const std
 	if (tblName.empty()) {
 		return loadEmptyRowsForListView();
 	}
-	return loadIndexRowsForListView(userDbId, schema, tblName);
+	return loadIndexRowsForListView(userDbId, tblName, schema);
 }
 
 void TableIndexesPageAdapter::loadHeadersForListView()
@@ -68,11 +69,11 @@ int TableIndexesPageAdapter::loadEmptyRowsForListView()
 {
 	
 		IndexInfo index1, index2;
-		index1.colums = L"id"; // todo..., remove debug 
+		index1.columns = L"id"; // todo..., remove debug 
 		index1.type = TableStructureSupplier::idxTypeList.at(1); //type : Primary
 		index1.seq = std::chrono::system_clock::now(); // seq = current time 
 		supplier->getIdxRuntimeDatas().push_back(index1);
-		index2.colums = L"id,name,created_at,updated_at"; //type : Unique
+		index2.columns = L"id,name,created_at,updated_at"; //type : Unique
 		index2.type = TableStructureSupplier::idxTypeList.at(0); //type : Unique
 		index2.seq = std::chrono::system_clock::now(); // seq = current time 
 		supplier->getIdxRuntimeDatas().push_back(index2);
@@ -82,9 +83,11 @@ int TableIndexesPageAdapter::loadEmptyRowsForListView()
 }
 
 
-int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
+int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
-	supplier->setIdxRuntimeDatas(databaseService->getIndexInfoList(userDbId, tblName));
+	auto idxRuntimeDatas = databaseService->getIndexInfoList(userDbId, tblName, schema);
+	supplier->setIdxRuntimeDatas(idxRuntimeDatas);
+	supplier->setIdxOrigDatas(idxRuntimeDatas);
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -134,7 +137,7 @@ void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 	std::vector<int> nSelItems;
 	for (int i = 0; i < n; i++) {
 		auto item = supplier->getIdxRuntimeDatas().at(i);
-		if (item.type == TableStructureSupplier::idxTypeList.at(1)) { // indexTypeList[1] : primary key
+		if (StringUtil::toupper(item.type) == StringUtil::toupper(TableStructureSupplier::idxTypeList.at(1))) { // indexTypeList[1] : primary key
 			nSelItems.push_back(i);
 		}
 	}
@@ -153,17 +156,18 @@ void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 	int nCols = static_cast<int>(pkColumns.size());
 	for (int i = 0; i < nCols; i++) {
 		if (i > 0) {
-			row.colums.append(L",");
+			row.columns.append(L",");
 		}
 		auto item = pkColumns.at(i);
-		row.colums.append(item.name);
+		row.columns.append(item.name);
 	}
 
 	// insert/or modify the primary key row to ListView
 	if (nSelItems.empty()) {
 		supplier->getIdxRuntimeDatas().insert(supplier->getIdxRuntimeDatas().begin(), row); // insert to the first
 	} else {
-		supplier->getIdxRuntimeDatas().at(nSelItems.at(0)).colums = row.colums; // modify colums string
+		auto & oneIndex = supplier->getIdxRuntimeDatas().at(nSelItems.at(0));
+		oneIndex.columns = row.columns; // modify columns string
 		invalidateSubItem(nSelItems.at(0), 1); // 2th param = 1 - primary key
 	}
 
@@ -204,16 +208,13 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);		
 		return 0;
-	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name
+	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // index name
 		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-	} else if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT){ // default value
-		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).colums;	
+	} else if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT){ // columns
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).columns;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
-	} else if (pLvdi->item.iSubItem == 4 && pLvdi->item.mask & LVIF_TEXT){ // check 
-		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).sql;
-		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
 
 	return 0;
@@ -227,12 +228,10 @@ void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, st
 	if (iSubItem == 1) { // column name
 		runtimeDatas[iItem].name = newText;
 	} else if (iSubItem == 2) { // columns
-		runtimeDatas[iItem].colums = newText;
+		runtimeDatas[iItem].columns = newText;
 	} else if (iSubItem == 3) { // index type 
 		runtimeDatas[iItem].type = newText;
-	} else if (iSubItem == 4) { // 
-		runtimeDatas[iItem].sql = newText;
-	}
+	} 
 
 	SubItemValue subItemVal;
 	subItemVal.iItem = iItem;
@@ -268,7 +267,7 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 	if (!dataView->GetSelectedCount()) {
 		return false;
 	}
-	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-index-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
 		return false;
 	}
 		
@@ -287,16 +286,16 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto iter = supplier->getIdxRuntimeDatas().begin();
-		for (int j = 0; j < nSelItem; j++) {
-			iter++;
-		}
+		auto & indexInfo = supplier->getIdxRuntimeDatas().at(nSelItem);
+		// 2.0 update related TableColumnsPage runtime data through indexInfo.columns
+		supplier->updateRelatedColumnsIfDeleteIndex(indexInfo);
+		
+		// 2.1 delete row from runtimeDatas vector and origDatas
+		supplier->eraseIdxRuntimeData(nSelItem);
+		supplier->eraseIdxOrigData(nSelItem);
 
-		// 2.1 delete row from runtimeDatas vector 
-		supplier->getIdxRuntimeDatas().erase(iter);
-
-		// 2.2 delete row from dataView
-		dataView->RemoveItem(nSelItem);
+		// 2.2 delete row from dataView 
+		dataView->RemoveItem(nSelItem);		
 	}
 	
 	return true;
@@ -331,13 +330,14 @@ void TableIndexesPageAdapter::changeTableColumnName(const std::wstring & oldColu
 	int n = static_cast<int>(indexes.size());
 	for (int i = 0; i < n; i++) {
 		auto & item = indexes.at(i);
-		auto columns = StringUtil::split(item.colums, L",");
+		auto columns = StringUtil::split(item.columns, L",");
 		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
 		if (iter == columns.end()) {
 			continue;
 		}
 		(*iter) = newColumnName;
-		item.colums = StringUtil::implode(columns, L",");
+		item.columns = StringUtil::implode(columns, L",");
+
 		invalidateSubItem(i, 2); // 2 - columns 
 	}
 }
@@ -352,7 +352,7 @@ void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnN
 	std::stack<int> delItemStack;
 	for (int i = 0; i < n; i++) {
 		auto & item = indexes.at(i);
-		auto columns = StringUtil::split(item.colums, L",");
+		auto columns = StringUtil::split(item.columns, L",");
 		auto iter = std::find(columns.begin(), columns.end(), columnName);
 		if (iter == columns.end()) {
 			continue;
@@ -361,7 +361,7 @@ void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnN
 		if (columns.empty()) {
 			delItemStack.push(i);
 		}
-		item.colums = StringUtil::implode(columns, L","); 
+		item.columns = StringUtil::implode(columns, L","); 
 		invalidateSubItem(i, 2); // 2 - columns 
 	}
 	
@@ -373,10 +373,6 @@ void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnN
 	}
 }
 
-std::wstring TableIndexesPageAdapter::genderateAlterIndexesSqlClause(bool hasAutoIncrement)
-{
-	throw std::logic_error("The method or operation is not implemented.");
-}
 
 std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 {
@@ -387,12 +383,10 @@ std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 	if (iSubItem == 1) {
 		return supplier->getIdxRuntimeDatas().at(iItem).name;
 	} else if (iSubItem == 2) {
-		return supplier->getIdxRuntimeDatas().at(iItem).colums;
+		return supplier->getIdxRuntimeDatas().at(iItem).columns;
 	} else if (iSubItem == 3) {
 		return supplier->getIdxRuntimeDatas().at(iItem).type;
-	} else if (iSubItem == 4) {
-		return supplier->getIdxRuntimeDatas().at(iItem).sql;
-	}
+	} 
 	return L"";
 }
 
@@ -406,7 +400,7 @@ void TableIndexesPageAdapter::changeColumnText(int iItem, int iSubItem, const st
 
 void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
-	if (clickItem->iSubItem == 0) {
+	if (clickItem->iSubItem == 0) { // 0 - row checkBox
 		return ;
 	} else if (clickItem->iSubItem == 2) { // button
 		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
@@ -420,35 +414,63 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 }
 
+/**
+ * Generate indexes clause when generating create table DDL.
+ * 
+ * @param hasAutoIncrement
+ * @return 
+ */
 std::wstring TableIndexesPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
 {
-	std::wostringstream ss;
+	std::wstring ss;
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
-	wchar_t blk[5] = { 0 };
+	wchar_t blk[5] = { 0, 0, 0, 0, 0 };
 	wmemset(blk, 0x20, 4); // 4 blank chars
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
-			ss << L',' << std::endl;
+			ss.append(L",").append(L"\n");
 		}
 		auto item = supplier->getIdxRuntimeDatas().at(i);
-		ss << blk;
-		if (!item.name.empty()) {
-			ss << L"CONSTRAINT \"" << item.name << L"\"" << blk[0];
-		}
-		if (!item.type.empty()) {
-			ss <<  StringUtil::toupper(item.type) << L"(";
-		}
-		if (!item.colums.empty()) {
-			ss  <<  item.colums ;
-		}
-
-		if (hasAutoIncrement && item.type == TableStructureSupplier::idxTypeList[1]) {// idxTypeList[1] - Primary key
-			ss << L" AUTOINCREMENT";
-		}
-
-		if (!item.type.empty()) {
-			ss << L")";
-		}
+		ss.append(blk);
+		generateOneIndexSqlClause(item, ss, hasAutoIncrement);
 	}
-	return ss.str();
+	return ss;
+}
+
+/**
+ * Generate ONE index SQL clause.
+ * 
+ * @param item
+ * @param ss
+ * @param hasAutoIncrement
+ */
+void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement)
+{
+	if (!item.name.empty()) {
+		ss.append(L"CONSTRAINT \"").append(item.name).append(L"\"").append(L" ");
+	}
+	if (!item.type.empty()) {
+		ss.append(StringUtil::toupper(item.type)).append(L"(");
+	}
+	if (!item.columns.empty()) {
+		ss.append(item.columns);
+	}
+
+	if (hasAutoIncrement && item.type == TableStructureSupplier::idxTypeList[1]) {// idxTypeList[1] - Primary key
+		ss.append(L" AUTOINCREMENT");
+	}
+
+	if (!item.type.empty()) {
+		ss.append(L")");
+	}
+}
+
+/**
+ * Update related TableColumnsPage runtime data through the TableStructureSupplier::colsRuntimeData.
+ * 
+ * @param indexInfo
+ */
+void TableIndexesPageAdapter::updateRelatedColsRuntimeData(const IndexInfo &indexInfo)
+{
+	
 }

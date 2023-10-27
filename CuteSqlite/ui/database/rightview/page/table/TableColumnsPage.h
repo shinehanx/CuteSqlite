@@ -60,9 +60,6 @@ public:
 	TableColumnsPageAdapter * getAdapter();
 private:
 	bool isNeedReload = true;
-	uint64_t runtimeUserDbId = 0;
-	std::wstring runtimeTblName;
-	std::wstring runtimeSchema;
 	int rowCount = 0;
 
 	COLORREF buttonColor = RGB(238, 238, 238);

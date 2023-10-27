@@ -98,6 +98,9 @@ typedef enum {
 	TABLE_INDEX_MOVE_RIGHT_BUTTON_ID,
 	TABLE_INDEX_MOVE_UP_BUTTON_ID,
 	TABLE_INDEX_MOVE_DOWN_BUTTON_ID,
+
+	// QPOP ANIMATE
+	QPOP_ANIMATE_CLOSE_BUTTON_ID
 } ButtonId;
 
 // TabView id
@@ -288,6 +291,7 @@ typedef enum {
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
+	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=NULL, lParam=NULL
 }MessageId;
 
 typedef enum {

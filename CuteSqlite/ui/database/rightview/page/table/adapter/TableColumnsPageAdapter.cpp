@@ -81,7 +81,9 @@ int TableColumnsPageAdapter::loadEmptyRowsForListView()
 
 int TableColumnsPageAdapter::loadColumnRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
 {
-	supplier->setColsRuntimeDatas(databaseService->getUserColumns(userDbId, tblName, schema));
+	auto colsRuntimeDatas = databaseService->getUserColumns(userDbId, tblName, schema);
+	supplier->setColsRuntimeDatas(colsRuntimeDatas);
+	supplier->setColsOrigDatas(colsRuntimeDatas);
 	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -286,13 +288,8 @@ std::pair<std::wstring,std::wstring> TableColumnsPageAdapter::generateInsertColu
 	wchar_t * blkc = L" ";
 	wchar_t * quo = L"\"";
 	int n = static_cast<int>(colsRuntimeDatas.size());
-	for (int i = 0; i < n; i++) {
-		if (i > 0) {
-			str1.append(L",");
-			str2.append(L",");
-		}
+	for (int i = 0; i < n; i++) {		
 		auto & item = colsRuntimeDatas.at(i);
-
 		auto iter = std::find_if(colsOrigDatas.begin(), colsOrigDatas.end(), [&item](ColumnInfo & origInfo) {
 			if (item.seq == origInfo.seq) {
 				return true;
@@ -302,6 +299,10 @@ std::pair<std::wstring,std::wstring> TableColumnsPageAdapter::generateInsertColu
 
 		if (iter == colsOrigDatas.end()) {
 			continue;
+		}
+		if (i > 0) {
+			str1.append(L",");
+			str2.append(L",");
 		}
 		str1.append(quo).append(item.name).append(quo);
 		str2.append(quo).append((*iter).name).append(quo);
@@ -734,7 +735,7 @@ bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstrin
 	int n = static_cast<int>(indexes.size());
 	for (int i = 0; i < n; i++) {
 		auto & item = indexes.at(i);
-		auto columns = StringUtil::split(item.colums, L",");
+		auto columns = StringUtil::split(item.columns, L",");
 		auto iter = std::find(columns.begin(), columns.end(), columnName);
 		if (iter == columns.end()) {
 			continue;

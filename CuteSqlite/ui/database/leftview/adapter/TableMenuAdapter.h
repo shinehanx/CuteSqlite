@@ -53,4 +53,5 @@ private:
 
 	void createImageList();
 	void createMenu();
+
 };

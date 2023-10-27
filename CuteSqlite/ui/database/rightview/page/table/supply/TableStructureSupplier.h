@@ -56,15 +56,22 @@ public:
 	
 	ColumnInfoList & getColsRuntimeDatas() { return colsRuntimeDatas; }
 	void setColsRuntimeDatas(ColumnInfoList & val) { colsRuntimeDatas = val; }
+	void getColsRuntimeData(int nSelItem);
+	void eraseColsRuntimeData(int nSelItem);
 
 	ColumnInfoList & getColsOrigDatas() { return colsOrigDatas; }
 	void setColsOrigDatas(ColumnInfoList val) { colsOrigDatas = val; }
+	void eraseColsOrigData(int nSelItem);
 
 	IndexInfoList & getIdxRuntimeDatas() { return idxRuntimeDatas; }
 	void setIdxRuntimeDatas(IndexInfoList & val) { idxRuntimeDatas = val; }
+	void eraseIdxRuntimeData(int nSelItem);
 
 	IndexInfoList & getIdxOrigDatas() { return idxOrigDatas; }
 	void setIdxOrigDatas(IndexInfoList val) { idxOrigDatas = val; }
+	void eraseIdxOrigData(int nSelItem);
+
+	void updateRelatedColumnsIfDeleteIndex(const IndexInfo &indexInfo);
 private:
 	TblOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
 
@@ -79,9 +86,9 @@ private:
 	
 	// Original variables, for alter table
 	// store the original table name, for alter table comparing with runtimeTblName
-	std::wstring origTblName; 
+	std::wstring origTblName;
 	// store the original table column infos, for alter table comparing with colsRuntimeDatas
 	ColumnInfoList colsOrigDatas; 
 	// store the original table index infos, for alter table comparing with idxRuntimeDatas
-	IndexInfoList idxOrigDatas; 
+	IndexInfoList idxOrigDatas;
 };

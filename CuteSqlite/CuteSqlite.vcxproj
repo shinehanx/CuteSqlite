@@ -324,6 +324,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\home\LeftPanel.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
+    <ClCompile Include="utils\EntityUtil.cpp" />
     <ClCompile Include="utils\FontUtil.cpp" />
     <ClCompile Include="utils\GdiUtil.cpp" />
     <ClCompile Include="utils\Log.cpp" />
@@ -428,6 +429,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />
     <ClInclude Include="utils\DateUtil.h" />
+    <ClInclude Include="utils\EntityUtil.h" />
     <ClInclude Include="utils\FileUtil.h" />
     <ClInclude Include="utils\FontUtil.h" />
     <ClInclude Include="utils\GdiPlusUtil.h" />

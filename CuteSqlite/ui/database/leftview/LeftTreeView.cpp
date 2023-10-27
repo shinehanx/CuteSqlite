@@ -536,11 +536,6 @@ void LeftTreeView::OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd
 	doImportFromSql();
 }
 
-void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
-{
-	doNewTable();
-}
-
 void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewView();
@@ -549,6 +544,16 @@ void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
 void LeftTreeView::OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewTrigger();
+}
+
+void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doNewTable();
+}
+
+void LeftTreeView::OnClickAlterTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doAlterTable();
 }
 
 void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
@@ -645,11 +650,6 @@ void LeftTreeView::doImportFromSql()
 	dialog.DoModal(m_hWnd);
 }
 
-void LeftTreeView::doNewTable()
-{
-	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID, NULL, NULL);
-}
-
 void LeftTreeView::doNewView()
 {
 	AppContext::getInstance()->dispatch(Config::MSG_NEW_VIEW_ID, NULL, NULL);
@@ -658,4 +658,14 @@ void LeftTreeView::doNewView()
 void LeftTreeView::doNewTrigger()
 {
 	AppContext::getInstance()->dispatch(Config::MSG_NEW_TRIGGER_ID, NULL, NULL);
+}
+
+void LeftTreeView::doNewTable()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID, NULL, NULL);
+}
+
+void LeftTreeView::doAlterTable()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, NULL, NULL);
 }
