@@ -81,7 +81,7 @@ int TableColumnsPageAdapter::loadEmptyRowsForListView()
 
 int TableColumnsPageAdapter::loadColumnRowsForListView(uint64_t userDbId, const std::wstring & schema, const std::wstring & tblName)
 {
-	auto colsRuntimeDatas = databaseService->getUserColumns(userDbId, tblName, schema);
+	auto colsRuntimeDatas = tableService->getUserColumns(userDbId, tblName, schema, false);
 	supplier->setColsRuntimeDatas(colsRuntimeDatas);
 	supplier->setColsOrigDatas(colsRuntimeDatas);
 	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());

@@ -26,11 +26,11 @@
 ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema)
 {
 	ColumnInfoList result;
-	std::wstring sql = L"PRAGMA table_info(\"";
+	std::wstring sql = L"PRAGMA ";
 	if (!schema.empty() && schema != L"main") {
-		sql.append(schema).append(L"\".\"");
+		sql.append(schema).append(L".");
 	} 
-	sql.append(tblName).append(L"\")");
+	sql.append(L"table_info(\"").append(tblName).append(L"\")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 

@@ -55,8 +55,6 @@ public:
 	// selected user db id
 	uint64_t selectedUserDbId = 0;
 
-	// Tab Page Data vector for page, template param HWND
-	std::vector<TabPageData> mainTabPages;
 	HWND activeTabPageHwnd = nullptr;
 	
 	// sql statements

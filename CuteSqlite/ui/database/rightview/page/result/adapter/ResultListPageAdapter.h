@@ -26,6 +26,7 @@
 #include "ui/common/adapter/QAdapter.h"
 #include "core/service/db/SqlService.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
 
@@ -108,6 +109,7 @@ public:
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 	
 	// the runtime variables
 	uint64_t runtimeUserDbId = 0;

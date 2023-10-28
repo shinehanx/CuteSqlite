@@ -170,29 +170,6 @@ uint64_t DatabaseService::copyUserDb(uint64_t fromUserDbId, const std::wstring &
 }
 
 
-UserTableList DatabaseService::getUserTables(uint64_t userDbId)
-{
-	ATLASSERT(userDbId > 0);
-	return tableUserRepository->getListByUserDbId(userDbId);
-}
-
-UserTable DatabaseService::getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return tableUserRepository->getTable(userDbId, tblName, schema);
-}
-
-UserTableStrings DatabaseService::getUserTableStrings(uint64_t userDbId, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0);
-	UserTableStrings result;
-	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId, schema);
-	for (auto userTable : userTableList) {
-		result.push_back(userTable.name);
-	}
-	return result;
-}
-
 UserViewList DatabaseService::getUserViews(uint64_t userDbId, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0);
@@ -216,74 +193,3 @@ UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstrin
 	ATLASSERT(userDbId > 0 && !triggerName.empty());
 	return triggerUserRepository->getTrigger(userDbId, triggerName, schema);
 }
-
-ColumnInfoList DatabaseService::getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0 && !tblName.empty());
-	ColumnInfoList result = columnUserRepository->getListByTblName(userDbId, tblName, schema);
-
-	UserTable userTable = getUserTable(userDbId, tblName, schema);
-	IndexInfo primaryKey = SqlUtil::parseConstraintsForPrimaryKey(userTable.sql);
-	if (primaryKey.type.empty() && primaryKey.columns.empty()) {
-		return result;
-	}
-
-	auto colVec = StringUtil::split(primaryKey.columns, L",");
-	// supplemented the ai and pk properties
-	for (ColumnInfo & info : result) {
-		// supplemented the auto increment property
-		if (primaryKey.columns == info.name) {
-			info.ai = primaryKey.ai;
-		}
-
-		// supplemented the primary key property		
-		auto iter = std::find(colVec.begin(), colVec.end(), info.name);
-		if (iter != colVec.end()) {
-			info.pk = 1;
-		}
-	}
-	return result;
-}
-
-UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0 && !tblName.empty());
-	return indexUserRepository->getListByTblName(userDbId, tblName, schema);
-}
-
-IndexInfoList DatabaseService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0 && !tblName.empty());
-	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
-	if (userTable.name.empty() || userTable.sql.empty()) {
-		return IndexInfoList();
-	}
-
-	std::wstring & createTblSql = userTable.sql;
-	IndexInfoList indexInfoList = SqlUtil::parseConstraints(createTblSql);
-
-	return indexInfoList;
-}
-
-std::wstring DatabaseService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema)
-{
-	ATLASSERT(userDbId > 0 && !tblName.empty());
-	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
-	if (userTable.name.empty() || userTable.sql.empty()) {
-		return L"";
-	}
-
-	std::wstring & createTblSql = userTable.sql;
-	std::wstring primaryKey = SqlUtil::parsePrimaryKey(createTblSql);
-	if (primaryKey.empty()) {
-		return primaryKey;
-	}
-
-	for (auto column : columns) {
-		if (column == primaryKey) {
-			return primaryKey;
-		}
-	}
-	return L"";
-}
-

@@ -21,11 +21,8 @@
 #include "core/common/service/BaseService.h"
 #include "core/repository/db/UserDbRepository.h"
 #include "core/repository/user/DatabaseUserRepository.h"
-#include "core/repository/user/TableUserRepository.h"
 #include "core/repository/user/ViewUserRepository.h"
 #include "core/repository/user/TriggerUserRepository.h"
-#include "core/repository/user/ColumnUserRepository.h"
-#include "core/repository/user/IndexUserRepository.h"
 
 class DatabaseService : public BaseService<DatabaseService, UserDbRepository>
 {
@@ -44,13 +41,6 @@ public:
 	bool activeUserDb(uint64_t userDbId);
 	uint64_t copyUserDb(uint64_t fromUserDbId, const std::wstring & toDbPath);
 
-	// user table operations
-	UserTableList getUserTables(uint64_t userDbId);
-	UserTable getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
-
-	// user table operations
-	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
-
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserView getUserView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
@@ -58,23 +48,8 @@ public:
 	// user triggers operations
 	UserTriggerList getUserTriggers(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema = std::wstring());
-
-	// user columns operations
-	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
-
-	// user indexes operations
-	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
-
-	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
-	
-	// get runtime user unique or index columns
-	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
-
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();
-	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	ViewUserRepository * viewUserRepository = ViewUserRepository::getInstance();
 	TriggerUserRepository * triggerUserRepository = TriggerUserRepository::getInstance();
-	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
-	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 };

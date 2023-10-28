@@ -244,6 +244,24 @@ void QListViewCtrl::clearChangeVals()
 }
 
 /**
+ * Cancel the val of subitem in iItem row and iSubItem column.
+ * 
+ * @param iItem
+ * @param iSubItem
+ */
+void QListViewCtrl::cancelChangedVal(const SubItemValue &subItemVal)
+{
+	auto iter = std::find_if(changeVals.begin(), changeVals.end(), [&subItemVal](SubItemValue & val) {
+		return val.iItem == subItemVal.iItem && val.iSubItem == subItemVal.iSubItem
+			&& val.origVal == subItemVal.origVal && val.newVal == subItemVal.newVal;
+	});
+	if (iter == changeVals.end()) {
+		return;
+	}
+	changeVals.erase(iter);
+}
+
+/**
  * find the item(s) from changeVals and then remove them.
  * and then subtract the (*iter).iItem index if (*iter).iItem is bigger than the specified iItem
  * 

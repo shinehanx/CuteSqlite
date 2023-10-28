@@ -21,6 +21,7 @@
 #include "core/common/service/BaseService.h"
 #include "core/repository/user/TableUserRepository.h"
 #include "core/repository/user/ColumnUserRepository.h"
+#include "core/repository/user/IndexUserRepository.h"
 
 class TableService : public BaseService<TableService, TableUserRepository>
 {
@@ -35,6 +36,29 @@ public:
 
 	bool isExistsTblName(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	bool execBySql(uint64_t userDbId, const std::wstring & sql);
+
+	// user table operations
+	UserTableList getUserTables(uint64_t userDbId);
+	UserTable getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+
+	// user table operations
+	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
+
+	// user columns operations
+	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring(), bool isSimple = true);
+
+	// user indexes operations
+	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+
+	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+	
+	// get runtime user unique or index columns
+	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
+
+	ForeignKeyList getForeignKeyList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+
 private:
-	ColumnUserRepository  * columnUserRepository = ColumnUserRepository::getInstance();
+	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
+	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
+	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 };

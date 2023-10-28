@@ -283,5 +283,7 @@ void TableIndexColumnsDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND h
 	}
 	selColumns = StringUtil::cutLastChar(selColumns);
 	indexPageAdapter->changeColumnText(iItem, iSubItem, selColumns);
+	IndexInfo & changeIndexInfo = indexPageAdapter->getSupplier()->getIdxRuntimeData(iItem);
+	indexPageAdapter->getSupplier()->updateRelatedColumnsIfChangeIndex(changeIndexInfo);
 	EndDialog(0);
 }

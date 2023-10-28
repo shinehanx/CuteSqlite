@@ -136,7 +136,7 @@ void TableStructurePage::createOrShowTableTabView(TableTabView & win, CRect & cl
 	CRect rect(x, y, x + w, y + h);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.setSupplier(supplier);
-		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);		
+		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		return;
 	} else if (win.IsWindow()){
 		win.MoveWindow(rect);
@@ -221,6 +221,9 @@ void TableStructurePage::loadSchemaComboBox()
 
 void TableStructurePage::loadSqlPreviewEdit()
 {
+	if (supplier->getOperateType() == NEW_TABLE) {
+		return;
+	}
 	ATLASSERT(supplier->getRuntimeUserDbId() && !supplier->getRuntimeTblName().empty());
 	UserTable userTable = databaseService->getUserTable(supplier->getRuntimeUserDbId(), 
 		supplier->getRuntimeTblName(), supplier->getRuntimeSchema());
@@ -513,28 +516,34 @@ std::wstring TableStructurePage::execAlterTable()
 		fmtOldTblName.append(quo).append(schema).append(quo).append(L".")
 			.append(quo).append(oldTblName).append(quo);
 		fmtTmpTblName.append(quo).append(schema).append(quo).append(L".")
-			.append(quo).append(oldTblName).append(quo);
+			.append(quo).append(tmpTblName).append(quo);
 	}
 
-	// 2.Create tmp table for rename table
-	std::wstring sql = generateCreateTableSql(schema, tmpTblName);
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
+	try {
+		// 2.Create tmp table for rename table
+		std::wstring sql = generateCreateTableSql(schema, tmpTblName);
+		tableService->execBySql(userDbId, sql);
+		resultSql.append(sql).append(L"\n");
 
-	// 3.Generate sql for insert into tmp table with select data from old table
-	sql = generateInsertIntoTmpTableSql(schema, tmpTblName, oldTblName);
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
+		// 3.Generate sql for insert into tmp table with select data from old table
+		sql = generateInsertIntoTmpTableSql(schema, tmpTblName, oldTblName);
+		tableService->execBySql(userDbId, sql);
+		resultSql.append(sql).append(L"\n");
 
-	// 4.Drop old table
-	sql = L"DROP TABLE " + fmtOldTblName + L";";
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
+		// 4.Drop old table
+		sql = L"DROP TABLE " + fmtOldTblName + L";";
+		tableService->execBySql(userDbId, sql);
+		resultSql.append(sql).append(L"\n");
 
-	// 5.Rename tmp table name to new table name
-	sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + L";";
-	tableService->execBySql(userDbId, sql);
-	resultSql.append(sql).append(L"\n");
+		// 5.Rename tmp table name to new table name
+		sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + L";";
+		tableService->execBySql(userDbId, sql);
+		resultSql.append(sql).append(L"\n");
+	} catch (QSqlExecuteException & ex) {
+		std::wstring newMsg = ex.getMsg();
+		newMsg = StringUtil::replace(newMsg, tmpTblName, tblName);
+		throw QSqlExecuteException(ex.getCode(), newMsg);
+	}
 
 	return resultSql;
 }

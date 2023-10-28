@@ -57,12 +57,14 @@ void TableTabView::createImageList()
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	
-	columnBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\column.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	indexBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tab\\index.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	columnIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\column.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	indexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	foreignkeyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\foreignkey.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
-	imageList.Add(columnBitmap); // 0 - table
-	imageList.Add(indexBitmap); // 1 - index
+	imageList.Create(16, 16, ILC_COLOR32, 0, 3);
+	imageList.AddIcon(columnIcon); // 0 - table
+	imageList.AddIcon(indexIcon); // 1 - index
+	imageList.AddIcon(foreignkeyIcon); // 2 - foreign key
 }
 
 CRect TableTabView::getTabRect(CRect & clientRect)
@@ -83,6 +85,7 @@ void TableTabView::createOrShowUI()
 	createOrShowTabView(tabView, clientRect);
 	createOrShowTableColumnsPage(tableColumnsPage, clientRect);
 	createOrShowTableIndexesPage(tableIndexesPage, clientRect);
+	createOrShowTableForeignkeysPage(tableForeinkeysPage, clientRect);
 }
 
 
@@ -134,6 +137,27 @@ void TableTabView::createOrShowTableIndexesPage(TableIndexesPage & win, CRect &c
 	}
 }
 
+
+void TableTabView::createOrShowTableForeignkeysPage(TableForeignkeysPage & win, CRect &clientRect)
+{
+	CRect pageRect = getPageRect(clientRect);
+	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (IsWindow() && !win.IsWindow()) {
+		win.setup(tableColumnsPage.getAdapter(), supplier);
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);		
+	} else if (IsWindow() && tabView.IsWindow()) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+		if (win.getTblColumnsPageAdapter() == nullptr) {
+			win.setTblColumnsPageAdapter(tableColumnsPage.getAdapter());
+		}
+		if (win.getSupplier() == nullptr) {
+			win.setSupplier(supplier);
+		}
+	}
+}
+
 void TableTabView::loadWindow()
 {
 	if (!isNeedReload) {
@@ -149,6 +173,7 @@ void TableTabView::loadTabViewPages()
 {
 	tabView.AddPage(tableColumnsPage.m_hWnd, StringUtil::blkToTail(S(L"table-columns")).c_str(), 0, &tableColumnsPage);
 	tabView.AddPage(tableIndexesPage.m_hWnd, StringUtil::blkToTail(S(L"table-indexes")).c_str(), 1, &tableIndexesPage);
+	tabView.AddPage(tableForeinkeysPage.m_hWnd, StringUtil::blkToTail(S(L"table-foreignkeys")).c_str(), 2, &tableForeinkeysPage);
 	tabView.SetActivePage(0);
 }
 
@@ -169,8 +194,8 @@ int TableTabView::OnDestroy()
 	if (tableColumnsPage.IsWindow()) tableColumnsPage.DestroyWindow();
 	if (tableIndexesPage.IsWindow()) tableIndexesPage.DestroyWindow();
 
-	if (columnBitmap) ::DeleteObject(columnBitmap);
-	if (indexBitmap) ::DeleteObject(indexBitmap);	
+	if (columnIcon) ::DeleteObject(columnIcon);
+	if (indexIcon) ::DeleteObject(indexIcon);	
 	return 0;
 }
 

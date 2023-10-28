@@ -82,7 +82,7 @@ void RightWorkView::createImageList()
 	imageList.AddIcon(tableIcon); // 2 - new table
 	imageList.AddIcon(viewIcon); // 3 - view
 	imageList.AddIcon(triggerIcon); // 4 - trigger
-	imageList.AddIcon(tableDataIcon); // 5 - trigger
+	imageList.AddIcon(tableDataIcon); // 5 - table data
 	
 }
 
@@ -212,9 +212,6 @@ void RightWorkView::loadTabViewPages()
 	QueryPage * firstQueryPage = queryPagePtrs.at(0); 
 	tabView.AddPage(firstQueryPage->m_hWnd, StringUtil::blkToTail(S(L"query-editor")).c_str(), 0, firstQueryPage);
 	tabView.AddPage(historyPage.m_hWnd, StringUtil::blkToTail(S(L"history")).c_str(), 1, &historyPage);
-
-	supplier->mainTabPages.push_back({ DatabaseSupplier::QUERY_PAGE, queryPagePtrs.at(0)->m_hWnd });
-	supplier->mainTabPages.push_back({ DatabaseSupplier::HISTORY_PAGE, historyPage.m_hWnd });
 	tabView.SetActivePage(0);
 	supplier->activeTabPageHwnd = firstQueryPage->m_hWnd;
 }
@@ -368,7 +365,6 @@ void RightWorkView::doAddNewTable()
 	// nImage = 3 : VIEW 
 	tabView.AddPage(newTablePage->m_hWnd, StringUtil::blkToTail(S(L"new-table")).c_str(), 2, newTablePage);
 
-	supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_PAGE, newTablePage->m_hWnd });
 	supplier->activeTabPageHwnd = newTablePage->m_hWnd;
 }
 
@@ -409,8 +405,6 @@ void RightWorkView::doAddNewView()
 
 	// nImage = 3 : view 
 	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(S(L"new-view")).c_str(), 3, newViewPage);
-
-	supplier->mainTabPages.push_back({ DatabaseSupplier::VIEW_PAGE, newViewPage->m_hWnd });
 	supplier->activeTabPageHwnd = newViewPage->m_hWnd;
 }
 
@@ -452,7 +446,6 @@ void RightWorkView::doAddNewTrigger()
 	// nImage = 2 : table 
 	tabView.AddPage(newTriggerPage->m_hWnd, StringUtil::blkToTail(S(L"new-trigger")).c_str(), 4, newTriggerPage);
 
-	supplier->mainTabPages.push_back({ DatabaseSupplier::TRIGGER_PAGE, newTriggerPage->m_hWnd });
 	supplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
 }
 
@@ -513,8 +506,9 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		if (title != supplier->selectTable) {
 			continue;
 		}
+
 		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd](QueryPage * ptr) {
-			return ptr->m_hWnd == pageHwnd;
+			return ptr->m_hWnd == pageHwnd ;
 		});
 		if (iter == queryPagePtrs.end()) {
 			continue;
@@ -541,7 +535,6 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		std::wstring tblName = supplier->selectTable;
 		tabView.AddPage(tableDataPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableDataPage);
 		foundQueryPage = tabView.GetPageCount() - 1;
-		supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_DATA_PAGE, tableDataPage->m_hWnd });
 		supplier->activeTabPageHwnd = tableDataPage->m_hWnd;
 		tabView.SetActivePage(foundQueryPage);	
 		tableDataPage->getResultTabView().activeTableDataPage();
@@ -566,8 +559,9 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		if (title != supplier->selectTable) {
 			continue;
 		}
-		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd](TableStructurePage * ptr) {
-			return ptr->m_hWnd == pageHwnd;
+		uint64_t userDbId = supplier->getSelectedUserDbId();
+		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd, &userDbId](TableStructurePage * ptr) {
+			return ptr->m_hWnd == pageHwnd && userDbId == ptr->getSupplier()->getRuntimeUserDbId();
 		});
 		if (iter == tablePagePtrs.end()) {
 			continue;
@@ -591,9 +585,8 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		tablePagePtrs.push_back(tableStructPage);
 
 		std::wstring tblName = supplier->selectTable;
-		tabView.AddPage(tableStructPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableStructPage);
+		tabView.AddPage(tableStructPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 2, tableStructPage);
 		foundPage = tabView.GetPageCount() - 1;
-		supplier->mainTabPages.push_back({ DatabaseSupplier::TABLE_DATA_PAGE, tableStructPage->m_hWnd });
 		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
 		tabView.SetActivePage(foundPage);
 	}

@@ -12,6 +12,7 @@
 #include <cwctype>
 #include <algorithm>
 #include <regex>
+#include <stack>
 
 /// <summary>
 /// 字符串转换工具类，
@@ -320,7 +321,6 @@ public:
 		int size = static_cast<int>(str.size());
 		for (int i = 0; i < size; i++)
 		{
-
 			pos = str.find(pattern, i);
 			if (pos < size)
 			{
@@ -484,6 +484,88 @@ public:
 		str = StringUtil::replace(str, L"\"", L"");
 
 		return str;
+	}
+
+	/**
+	 * Fetch a substring between begin pos and end pos that start find from offset position.
+	 * 
+	 * @param str - string
+	 * @param begin - begin symbol
+	 * @param end - end symbol
+	 * @param offset - offset to start finding
+	 * @param rescure - 
+	 * @return 
+	 */
+	static std::wstring inSymbolString(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure = true)
+	{
+		if (str.empty()) {
+			return str;
+		}
+
+		size_t _begin_pos = str.find_first_of(begin, offset);
+		size_t _end_pos = str.find_first_of(end, offset);
+		size_t _str_len = str.size();
+
+		if (_begin_pos == std::wstring::npos || _end_pos == std::wstring::npos) {
+			return str;
+		}
+		if (!rescure) { // not rescure search, then let end position = the last end symbol position 
+			size_t last = str.find_last_of(end, offset);
+			if (last == std::wstring::npos || last >= _str_len) {
+				return str;
+			}
+			return str.substr(_begin_pos + 1, last - _begin_pos - 1);
+		}
+
+		std::stack<size_t> stack;
+		size_t _find_pos = _begin_pos;
+		while (_find_pos < _end_pos) {			
+			stack.push(_find_pos);
+			_find_pos = str.find_first_of(begin, _find_pos+1);
+		}
+
+		_find_pos = _end_pos;
+		while (_find_pos < _str_len) {
+			_end_pos = _find_pos;
+			stack.pop();
+			if (stack.empty()) {
+				break;
+			}			
+			_find_pos = str.find_first_of(end, _find_pos+1);
+		}
+
+		if (_end_pos == std::wstring::npos || _end_pos >= _str_len) {
+			return str;
+		}
+		return str.substr(_begin_pos + 1, _end_pos - _begin_pos - 1);
+	}
+
+	static wchar_t nextNotBlankChar(const std::wstring & line, wchar_t * word, size_t offset = 0)
+	{
+		
+		if (line.empty() || word == nullptr || !wcslen(word)) {
+			return 0;
+		}
+		size_t _line_len = line.size();
+		size_t _word_pos = line.find(word, offset);
+		if (_word_pos == std::wstring::npos) {
+			return 0;
+		}
+		size_t pos = _word_pos + wcslen(word);
+		if (pos >= _line_len) {
+			return 0;
+		}
+		wchar_t nextChar = line.at(pos);
+		// ignore the blank char
+		while (nextChar == L' ' || nextChar == L'\t' 
+			|| nextChar == L'\r' || nextChar == L'\n' ) {
+			if (++pos > _line_len - 1) {
+				break;
+			}
+			nextChar = line.at(pos);
+		}
+		
+		return nextChar;
 	}
 
 

@@ -21,6 +21,7 @@
 #include "ui/common/adapter/QAdapter.h"
 #include "core/service/db/SqlService.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
@@ -68,6 +69,7 @@ public:
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 
 	void loadHeadersForListView();
 	int loadEmptyRowsForListView();

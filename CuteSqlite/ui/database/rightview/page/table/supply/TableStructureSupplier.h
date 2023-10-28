@@ -38,6 +38,13 @@ public:
 	const static std::vector<int> idxHeadFormats;
 	const static std::vector<std::wstring> idxTypeList;
 
+	// TableForeignkeysPage list view header columns settings
+	const static Columns frkHeadColumns;
+	const static std::vector<int> frkHeadSizes;
+	const static std::vector<int> frkHeadFormats;
+	const static std::vector<std::wstring> frkOnUpdateTypeList;
+	const static std::vector<std::wstring> frkOnDeleteTypeList;
+
 	// Getter or setter
 	TblOperateType getOperateType() const { return operateType; }
 	void setOperateType(TblOperateType val) { operateType = val; }
@@ -56,7 +63,7 @@ public:
 	
 	ColumnInfoList & getColsRuntimeDatas() { return colsRuntimeDatas; }
 	void setColsRuntimeDatas(ColumnInfoList & val) { colsRuntimeDatas = val; }
-	void getColsRuntimeData(int nSelItem);
+	ColumnInfo & getColsRuntimeData(int nSelItem);
 	void eraseColsRuntimeData(int nSelItem);
 
 	ColumnInfoList & getColsOrigDatas() { return colsOrigDatas; }
@@ -65,13 +72,25 @@ public:
 
 	IndexInfoList & getIdxRuntimeDatas() { return idxRuntimeDatas; }
 	void setIdxRuntimeDatas(IndexInfoList & val) { idxRuntimeDatas = val; }
+	IndexInfo & getIdxRuntimeData(int nSelItem);
 	void eraseIdxRuntimeData(int nSelItem);
 
 	IndexInfoList & getIdxOrigDatas() { return idxOrigDatas; }
-	void setIdxOrigDatas(IndexInfoList val) { idxOrigDatas = val; }
+	void setIdxOrigDatas(IndexInfoList & val) { idxOrigDatas = val; }
 	void eraseIdxOrigData(int nSelItem);
+	
+	ForeignKeyList & getFrkRuntimeDatas() { return frkRuntimeDatas; }
+	void setFrkRuntimeDatas(ForeignKeyList & val) { frkRuntimeDatas = val; }
+	ForeignKey & getFrkRuntimeData(int nSelItem);
+	void eraseFrkRuntimeData(int nSelItem);
 
-	void updateRelatedColumnsIfDeleteIndex(const IndexInfo &indexInfo);
+	ForeignKeyList getFrkOrigDatas() const { return frkOrigDatas; }
+	void setFrkOrigDatas(ForeignKeyList val) { frkOrigDatas = val; }
+	void eraseFrkOrigData(int nSelItem);
+
+	// update related columns
+	void updateRelatedColumnsIfDeleteIndex(const IndexInfo &indexInfo);	
+	void updateRelatedColumnsIfChangeIndex(const IndexInfo & changeIndexInfo);	
 private:
 	TblOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
 
@@ -81,8 +100,10 @@ private:
 	std::wstring runtimeTblName;
 	// store the runtime data of the table column info(s)
 	ColumnInfoList colsRuntimeDatas;
-	// store the runtime data of the column(s) settings
+	// store the runtime data of the index(s) settings
 	IndexInfoList idxRuntimeDatas;
+	// store the runtime data of the foreign key(s) settings
+	ForeignKeyList frkRuntimeDatas;
 	
 	// Original variables, for alter table
 	// store the original table name, for alter table comparing with runtimeTblName
@@ -91,4 +112,6 @@ private:
 	ColumnInfoList colsOrigDatas; 
 	// store the original table index infos, for alter table comparing with idxRuntimeDatas
 	IndexInfoList idxOrigDatas;
+	// store the original table foreign key infos, for alter table comparing with frkRuntimeDatas
+	ForeignKeyList frkOrigDatas;
 };

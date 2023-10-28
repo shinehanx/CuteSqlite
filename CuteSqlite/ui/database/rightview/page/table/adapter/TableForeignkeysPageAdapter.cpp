@@ -11,14 +11,14 @@
 
  * limitations under the License.
  
- * @file   TableIndexesPageAdapter.cpp
+ * @file   TableForeignkeysPageAdapter.cpp
  * @brief  
  * 
  * @author Xuehan Qin
  * @date   2023-10-10
  *********************************************************************/
 #include "stdafx.h"
-#include "TableIndexesPageAdapter.h"
+#include "TableForeignkeysPageAdapter.h"
 #include <Strsafe.h>
 #include <stack>
 #include "core/common/Lang.h"
@@ -27,7 +27,7 @@
 #include "utils/EntityUtil.h"
 #include "ui/common/message/QPopAnimate.h"
 
-TableIndexesPageAdapter::TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
+TableForeignkeysPageAdapter::TableForeignkeysPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
 	ATLASSERT(parentHwnd && listView && supplier);
 	this->parentHwnd = parentHwnd;
@@ -35,12 +35,12 @@ TableIndexesPageAdapter::TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl 
 	this->supplier = supplier;
 }
 
-TableIndexesPageAdapter::~TableIndexesPageAdapter()
+TableForeignkeysPageAdapter::~TableForeignkeysPageAdapter()
 {
 	
 }
 
-int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId,const std::wstring & tblName, const std::wstring & schema)
+int TableForeignkeysPageAdapter::loadTblForeignkeysListView(uint64_t userDbId,const std::wstring & tblName, const std::wstring & schema)
 {
 	// headers
 	loadHeadersForListView();
@@ -49,47 +49,36 @@ int TableIndexesPageAdapter::loadTblIndexesListView(uint64_t userDbId,const std:
 	if (tblName.empty()) {
 		return loadEmptyRowsForListView();
 	}
-	return loadIndexRowsForListView(userDbId, tblName, schema);
+	return loadForeignkeyRowsForListView(userDbId, tblName, schema);
 }
 
-void TableIndexesPageAdapter::loadHeadersForListView()
+void TableForeignkeysPageAdapter::loadHeadersForListView()
 {
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 26, -1, 0);
 	
-	int n = static_cast<int>(TableStructureSupplier::idxHeadColumns.size());
+	int n = static_cast<int>(TableStructureSupplier::frkHeadColumns.size());
 	for (int i = 0; i < n; i++) {
-		auto column = TableStructureSupplier::idxHeadColumns.at(i);
-		auto size = TableStructureSupplier::idxHeadSizes.at(i);
-		auto format = TableStructureSupplier::idxHeadFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
+		auto column = TableStructureSupplier::frkHeadColumns.at(i);
+		auto size = TableStructureSupplier::frkHeadSizes.at(i);
+		auto format = TableStructureSupplier::frkHeadFormats.at(i);// LVCFMT_LEFT or LVCFMT_CENTER
 
 		dataView->InsertColumn(i+1, column.c_str(), format, size);
 	}
 }
 
-int TableIndexesPageAdapter::loadEmptyRowsForListView()
-{
+int TableForeignkeysPageAdapter::loadEmptyRowsForListView()
+{	
 	
-		IndexInfo index1, index2;
-		index1.columns = L"id"; // todo..., remove debug 
-		index1.type = TableStructureSupplier::idxTypeList.at(1); //type 1: Primary
-		index1.seq = std::chrono::system_clock::now(); // seq = current time 
-		supplier->getIdxRuntimeDatas().push_back(index1);
-		index2.columns = L"id,name,created_at,updated_at"; //type : Unique
-		index2.type = TableStructureSupplier::idxTypeList.at(0); //type 0: Unique
-		index2.seq = std::chrono::system_clock::now(); // seq = current time 
-		supplier->getIdxRuntimeDatas().push_back(index2);
-	
-	dataView->SetItemCount(2);
 	return 1;
 }
 
 
-int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+int TableForeignkeysPageAdapter::loadForeignkeyRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
-	auto idxRuntimeDatas = tableService->getIndexInfoList(userDbId, tblName, schema);
-	supplier->setIdxRuntimeDatas(idxRuntimeDatas);
-	supplier->setIdxOrigDatas(idxRuntimeDatas);
-	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	auto frkRuntimeDatas = tableService->getForeignKeyList(userDbId, tblName, schema);
+	supplier->setFrkRuntimeDatas(frkRuntimeDatas);
+	supplier->setFrkOrigDatas(frkRuntimeDatas);
+	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
 }
@@ -100,7 +89,7 @@ int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const s
  * @param iItem the row index
  * @return 
  */
-bool TableIndexesPageAdapter::getIsChecked(int iItem)
+bool TableForeignkeysPageAdapter::getIsChecked(int iItem)
 {
 	if (dataView->GetSelectedCount() == 0) {
 		return false;
@@ -118,7 +107,7 @@ bool TableIndexesPageAdapter::getIsChecked(int iItem)
 }
 
 
-int TableIndexesPageAdapter::getSelIndexType(const std::wstring & dataType)
+int TableForeignkeysPageAdapter::getSelIndexType(const std::wstring & dataType)
 {
 	int nSelItem = 0;
 	int n = static_cast<int>(TableStructureSupplier::idxTypeList.size());
@@ -132,7 +121,7 @@ int TableIndexesPageAdapter::getSelIndexType(const std::wstring & dataType)
 }
 
 
-void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
+void TableForeignkeysPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 {
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	std::vector<int> nSelItems;
@@ -183,7 +172,7 @@ void TableIndexesPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
  * @param pLvdi
  * @return 
  */
-LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
+LRESULT TableForeignkeysPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 {
 	auto iItem = pLvdi->item.iItem;
 	if (-1 == iItem)
@@ -221,7 +210,7 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	return 0;
 }
 
-void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText)
+void TableForeignkeysPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
@@ -249,14 +238,14 @@ void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, st
 	dataView->setChangeVal(subItemVal);
 }
 
-void TableIndexesPageAdapter::invalidateSubItem(int iItem, int iSubItem)
+void TableForeignkeysPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 {
 	CRect subItemRect;
 	dataView->GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, subItemRect);
 	dataView->InvalidateRect(subItemRect, false);
 }
 
-void TableIndexesPageAdapter::createNewIndex()
+void TableForeignkeysPageAdapter::createNewIndex()
 {
 	// 1.create a empty row and push it to runtimeDatas list
 	IndexInfo row;
@@ -269,7 +258,7 @@ void TableIndexesPageAdapter::createNewIndex()
 
 }
 
-bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
+bool TableForeignkeysPageAdapter::deleteSelIndexes(bool confirm)
 {
 	if (!dataView->GetSelectedCount()) {
 		return false;
@@ -309,7 +298,7 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 }
 
 
-void TableIndexesPageAdapter::removeSelectedItem(int nSelItem)
+void TableForeignkeysPageAdapter::removeSelectedItem(int nSelItem)
 {
 	auto iter = supplier->getIdxRuntimeDatas().begin();
 	for (int j = 0; j < nSelItem; j++) {
@@ -325,12 +314,12 @@ void TableIndexesPageAdapter::removeSelectedItem(int nSelItem)
 
 
 /**
- * change columns value in listView of TableIndexesPage when TableColumnsPage changing column name.
+ * change columns value in listView of TableForeinkeysPage when TableColumnsPage changing column name.
  * 
  * @param oldColumnName
  * @param newColumnName
  */
-void TableIndexesPageAdapter::changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName)
+void TableForeignkeysPageAdapter::changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName)
 {
 	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
 	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
@@ -350,7 +339,7 @@ void TableIndexesPageAdapter::changeTableColumnName(const std::wstring & oldColu
 }
 
 
-void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnName)
+void TableForeignkeysPageAdapter::deleteTableColumnName(const std::wstring & columnName)
 {
 	ATLASSERT(!columnName.empty());
 	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
@@ -381,7 +370,7 @@ void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnN
 }
 
 
-std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
+std::wstring TableForeignkeysPageAdapter::getSubItemString(int iItem, int iSubItem)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	if (supplier->getIdxRuntimeDatas().empty()) {
@@ -397,7 +386,7 @@ std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 	return L"";
 }
 
-void TableIndexesPageAdapter::changeColumnText(int iItem, int iSubItem, const std::wstring & text)
+void TableForeignkeysPageAdapter::changeColumnText(int iItem, int iSubItem, const std::wstring & text)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	std::wstring origText = getSubItemString(iItem, iSubItem);
@@ -405,7 +394,7 @@ void TableIndexesPageAdapter::changeColumnText(int iItem, int iSubItem, const st
 	invalidateSubItem(iItem, iSubItem);
 }
 
-void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
+void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
 	if (clickItem->iSubItem == 0) { // 0 - row checkBox
 		return ;
@@ -427,7 +416,7 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
  * @param hasAutoIncrement
  * @return 
  */
-std::wstring TableIndexesPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
+std::wstring TableForeignkeysPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
 {
 	std::wstring ss;
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
@@ -451,7 +440,7 @@ std::wstring TableIndexesPageAdapter::genderateCreateIndexesSqlClause(bool hasAu
  * @param ss
  * @param hasAutoIncrement
  */
-void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement)
+void TableForeignkeysPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement)
 {
 	if (!item.name.empty()) {
 		ss.append(L"CONSTRAINT \"").append(item.name).append(L"\"").append(L" ");
@@ -478,7 +467,7 @@ void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::ws
  * @param iItem - but not in iItem row
  * @return true - not duplicated, false - duplicated
  */
-bool TableIndexesPageAdapter::verifyIfDuplicatedPrimaryKey(int iItem)
+bool TableForeignkeysPageAdapter::verifyIfDuplicatedPrimaryKey(int iItem)
 {
 	auto & idxRuntimeDatas = supplier->getIdxRuntimeDatas();
 	int n = static_cast<int>(idxRuntimeDatas.size());

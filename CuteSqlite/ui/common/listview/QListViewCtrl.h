@@ -96,6 +96,8 @@ public:
 	void setChangedVals(SubItemValues & changeVals);
 	void setChangeVal(SubItemValue &subItemVal);
 	void clearChangeVals();
+	void cancelChangedVal(const SubItemValue &subItemVal);
+
 	void moveUpChangeValsItem(int iItem);
 	void moveDownChangeValsItem(int iItem);
 	void RemoveItem(int iItem);
@@ -120,7 +122,7 @@ public:
 	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	int CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct);
 	void DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct);
-
+	
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF borderColor = RGB(220, 220, 220);

@@ -341,7 +341,7 @@ void LeftTreeViewAdapter::createImageList()
 void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb, bool isLoadColumnsAndIndex)
 {
 	try {
-		UserTableList tableList = databaseService->getUserTables(userDb.id);
+		UserTableList tableList = tableService->getUserTables(userDb.id);
 		for (UserTable item : tableList) {
 			HTREEITEM hTblItem = dataView->InsertItem(item.name.c_str(), 2, 2, hTablesFolderItem, TVI_LAST); 
 
@@ -403,7 +403,7 @@ void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem,
 void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hColumnsFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
-		ColumnInfoList list = databaseService->getUserColumns(userDbId, userTable.name);
+		ColumnInfoList list = tableService->getUserColumns(userDbId, userTable.name);
 		for (ColumnInfo item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
@@ -420,7 +420,7 @@ void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hColumnsFolderItem, ui
 void LeftTreeViewAdapter::loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
-		UserIndexList list = databaseService->getUserIndexes(userDbId, userTable.name);
+		UserIndexList list = tableService->getUserIndexes(userDbId, userTable.name);
 		for (UserTable item : list) {
 			dataView->InsertItem(item.name.c_str(), 4, 4, hIndexesFolderItem, TVI_LAST);
 		}

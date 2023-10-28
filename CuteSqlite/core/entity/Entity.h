@@ -98,6 +98,18 @@ typedef struct {
 } IndexInfo;
 typedef std::vector<IndexInfo> IndexInfoList;
 
+typedef struct  {
+	std::wstring name; // constrain name
+	std::wstring type = L"Foreign Key"; // must be Foreign Key
+	std::wstring columns; // columns
+	std::wstring referencedTable;
+	std::wstring referencedColumns;
+	std::wstring onUpdate;
+	std::wstring onDelete;
+	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
+} ForeignKey;
+typedef std::vector<ForeignKey> ForeignKeyList;
+
 //Export to CSV params
 typedef struct {
 	std::wstring csvFieldTerminatedBy;

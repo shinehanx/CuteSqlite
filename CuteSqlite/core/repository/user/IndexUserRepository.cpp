@@ -56,11 +56,9 @@ IndexInfoList IndexUserRepository::getInfoListByTblName(uint64_t userDbId, const
 	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
 	std::wstring sql = L"PRAGMA ";
 	if (!schema.empty() && schema != L"main") {
-		sql.append(L"\"").append(schema).append(L"\".").append(L"index_list(");
-	} else {
-		sql.append(L"index_list(");
-	}
-	sql.append(L"\"").append(tblName).append(L"\")");
+		sql.append(schema).append(L".");
+	} 
+	sql.append(L"index_list(").append(L"\"").append(tblName).append(L"\")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
 		query.bind(L":tbl_name", tblName);

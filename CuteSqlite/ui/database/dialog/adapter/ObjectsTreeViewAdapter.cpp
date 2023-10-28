@@ -177,7 +177,7 @@ bool ObjectsTreeViewAdapter::getSelUserTableList(uint64_t userDbId, UserTableLis
 			continue;
 		}
 		std::wstring tblName(cch);
-		UserTable userTbl = databaseService->getUserTable(userDbId, tblName);
+		UserTable userTbl = tableService->getUserTable(userDbId, tblName);
 		tblList.push_back(userTbl);
 
         hChildItem =  dataView->GetNextSiblingItem(hChildItem);
@@ -271,7 +271,7 @@ void ObjectsTreeViewAdapter::createImageList()
 void ObjectsTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, uint64_t userDbId)
 {
 	try {
-		UserTableList tableList = databaseService->getUserTables(userDbId);
+		UserTableList tableList = tableService->getUserTables(userDbId);
 		for (UserTable item : tableList) {
 			if (item.name == L"sqlite_sequence") {
 				continue;
@@ -288,7 +288,7 @@ void ObjectsTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, 
 * Load views for TreeView.
 *
 * @param hViewsFolderItem The views folder item
-* @param userDb UserDb refrence
+* @param userDb UserDb reference
 */
 void ObjectsTreeViewAdapter::loadViewsForTreeView(HTREEITEM hViewsFolderItem, uint64_t userDbId)
 {
@@ -308,7 +308,7 @@ void ObjectsTreeViewAdapter::loadViewsForTreeView(HTREEITEM hViewsFolderItem, ui
 * Load triggers for TreeView.
 *
 * @param hViewsFolderItem - The triggers folder item
-* @param userDb - UserDb refrence
+* @param userDb - UserDb reference
 */
 void ObjectsTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, uint64_t userDbId)
 {

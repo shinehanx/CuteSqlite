@@ -89,3 +89,120 @@ bool TableService::execBySql(uint64_t userDbId, const std::wstring & sql)
 	return true;
 }
 
+
+UserTableList TableService::getUserTables(uint64_t userDbId)
+{
+	ATLASSERT(userDbId > 0);
+	return tableUserRepository->getListByUserDbId(userDbId);
+}
+
+UserTable TableService::getUserTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	return tableUserRepository->getTable(userDbId, tblName, schema);
+}
+
+UserTableStrings TableService::getUserTableStrings(uint64_t userDbId, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0);
+	UserTableStrings result;
+	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId, schema);
+	for (auto userTable : userTableList) {
+		result.push_back(userTable.name);
+	}
+	return result;
+}
+
+
+ColumnInfoList TableService::getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema, bool isSimple)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	ColumnInfoList result = columnUserRepository->getListByTblName(userDbId, tblName, schema);
+	if (isSimple) {
+		return result;
+	}
+
+	UserTable userTable = getUserTable(userDbId, tblName, schema);
+	IndexInfo primaryKey = SqlUtil::parseConstraintsForPrimaryKey(userTable.sql);
+	ColumnInfoList ddlColumns = SqlUtil::parseColumnsByTableDDL(userTable.sql);
+	
+	auto colVec = StringUtil::split(primaryKey.columns, L",");
+	// supplemented the ai and pk properties
+	for (ColumnInfo & columnInfo : result) {
+		// supplemented the auto increment property
+		if (primaryKey.columns == columnInfo.name) { // only one column in Primary key
+			columnInfo.ai = primaryKey.ai;
+		}
+
+		// supplemented the primary key property		
+		auto iter = std::find(colVec.begin(), colVec.end(), columnInfo.name);
+		if (iter != colVec.end()) {
+			columnInfo.pk = 1;
+		}
+
+		auto ddlIter = std::find_if(ddlColumns.begin(), ddlColumns.end(), [&columnInfo](const ColumnInfo & info) {
+			return columnInfo.name == info.name;
+		});
+		if (ddlIter != ddlColumns.end()) {
+			columnInfo.un = (*ddlIter).un;
+			columnInfo.ai = columnInfo.ai ? columnInfo.ai : (*ddlIter).ai;
+		}
+	}
+	return result;
+}
+
+UserIndexList TableService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	return indexUserRepository->getListByTblName(userDbId, tblName, schema);
+}
+
+IndexInfoList TableService::getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty() || userTable.sql.empty()) {
+		return IndexInfoList();
+	}
+
+	std::wstring & createTblSql = userTable.sql;
+	IndexInfoList indexInfoList = SqlUtil::parseConstraints(createTblSql);
+
+	return indexInfoList;
+}
+
+std::wstring TableService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty() || userTable.sql.empty()) {
+		return L"";
+	}
+
+	std::wstring & createTblSql = userTable.sql;
+	std::wstring primaryKey = SqlUtil::parsePrimaryKey(createTblSql);
+	if (primaryKey.empty()) {
+		return primaryKey;
+	}
+
+	for (auto column : columns) {
+		if (column == primaryKey) {
+			return primaryKey;
+		}
+	}
+	return L"";
+}
+
+ForeignKeyList TableService::getForeignKeyList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty() || userTable.sql.empty()) {
+		return ForeignKeyList();
+	}
+
+	std::wstring & createTblSql = userTable.sql;
+	ForeignKeyList foreignKeyList = SqlUtil::parseForeignKeysByTableDDL(createTblSql);
+
+	return foreignKeyList;
+}

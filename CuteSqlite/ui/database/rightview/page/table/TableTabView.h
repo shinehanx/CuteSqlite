@@ -25,6 +25,7 @@
 #include "ui/common/tabview/QTabView.h"
 #include "ui/database/rightview/page/table/TableColumnsPage.h"
 #include "ui/database/rightview/page/table/TableIndexesPage.h"
+#include "ui/database/rightview/page/table/TableForeignkeysPage.h"
 #include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
 class TableTabView : public CWindowImpl<TableTabView>
@@ -61,10 +62,12 @@ private:
 	QTabView tabView;
 	TableColumnsPage tableColumnsPage;
 	TableIndexesPage tableIndexesPage;
+	TableForeignkeysPage tableForeinkeysPage;
 
 	CImageList imageList;
-	HBITMAP columnBitmap = nullptr;
-	HBITMAP indexBitmap = nullptr;
+	HICON columnIcon = nullptr;
+	HICON indexIcon = nullptr;
+	HICON foreignkeyIcon = nullptr;
 
 	TableStructureSupplier * supplier = nullptr;
 
@@ -77,6 +80,7 @@ private:
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowTableColumnsPage(TableColumnsPage & win, CRect &clientRect);
 	void createOrShowTableIndexesPage(TableIndexesPage & win, CRect &clientRect);
+	void createOrShowTableForeignkeysPage(TableForeignkeysPage & win, CRect &clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();

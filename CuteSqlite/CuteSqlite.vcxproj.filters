@@ -291,6 +291,12 @@
     <ClCompile Include="utils\EntityUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\table\adapter\TableForeignkeysPageAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\table\TableForeignkeysPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -615,6 +621,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\EntityUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\table\adapter\TableForeignkeysPageAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\table\TableForeignkeysPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -22,6 +22,7 @@
 #include "core/entity/Entity.h"
 #include "core/service/system/SettingService.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
 class ObjectsTreeViewAdapter : public QAdapter<ObjectsTreeViewAdapter, CTreeViewCtrlEx>
@@ -54,6 +55,7 @@ private:
 
 	SettingService * settingService = SettingService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	void createImageList();

@@ -35,8 +35,8 @@ public:
 		CHAIN_MSG_MAP(QDialog<TableIndexColumnsDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	TableIndexColumnsDialog(HWND parentHwnd, TableColumnsPageAdapter * columnAdapter, 
-		TableIndexesPageAdapter * adapter, CRect btnRect, int iItem, int iSubItem);
+	TableIndexColumnsDialog(HWND parentHwnd, TableColumnsPageAdapter * columnPageAdapter, 
+	TableIndexesPageAdapter * indexPageAdapter, CRect btnRect, int iItem, int iSubItem);
 private:
 	bool isNeedReload = true;
 	HWND parentHwnd;

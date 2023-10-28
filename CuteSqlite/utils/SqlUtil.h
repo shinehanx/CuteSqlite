@@ -68,17 +68,25 @@ public:
 	// make table name
 	static std::wstring makeTmpTableName(const std::wstring & tblName, int number = 1, const std::wstring & prefix = std::wstring(L"ctsqlite_tmp_"));
 	
-	// parse constraints
+	// parse columns by create table DDL
+	static ColumnInfoList parseColumnsByTableDDL(const std::wstring & createTblSql);
+
+	// parse constraints by create table DDL exclude foreign key
 	static IndexInfoList parseConstraints(const std::wstring & createTblSql);
 	static IndexInfo parseConstraintsForPrimaryKey(const std::wstring & createTblSql);
-	static std::vector<std::wstring> splitTableDDLColumnClauseToLines(std::wstring str, bool bTrim = true);
+	static std::vector<std::wstring> splitTableDDLColumnClausesToLines(std::wstring str, bool bTrim = true);
+
+	// parse foreign keys by create table DDL
+	static ForeignKeyList parseForeignKeysByTableDDL(const std::wstring & createTblSql);
 private:
 	static IndexInfo parseConstraintFromLine(const std::wstring& line);
 	static IndexInfo parseLineToPrimaryKey(const std::wstring& line);
 	static IndexInfo parseLineToUnique(const std::wstring& line);
-	static IndexInfo parseLineToForeignKey(const std::wstring& line);
 	static IndexInfo parseLineToCheck(const std::wstring& line);
 	static std::pair<std::wstring, uint8_t> getColumnAndAiByPrimaryKeyLine(const std::wstring &line);
 	static std::wstring getColumnsByUniqueLine(const std::wstring &line);
 	static std::wstring getExpressionByCheckLine(const std::wstring &line);
+
+	static ColumnInfo parseColumnFromLine(const std::wstring& line);
+	static ForeignKey parseForeignKeyFromLine(const std::wstring& line);
 };

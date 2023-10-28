@@ -173,7 +173,7 @@ void ResultListPageAdapter::loadRuntimeTables(uint64_t userDbId, std::wstring & 
 	if (!SqlUtil::isSelectSql(sql)) {
 		return ;
 	}
-	UserTableStrings allTables = databaseService->getUserTableStrings(userDbId);
+	UserTableStrings allTables = tableService->getUserTableStrings(userDbId);
 	runtimeTables = SqlUtil::getTablesFromSelectSql(sql, allTables);
 }
 
@@ -395,13 +395,13 @@ void ResultListPageAdapter::addListViewChangeVal(SubItemValue &subItemVal)
 ColumnInfoList ResultListPageAdapter::getRuntimeColumnInfos(std::wstring & tblName)
 {
 	ATLASSERT(runtimeUserDbId && !tblName.empty());
-	return databaseService->getUserColumns(runtimeUserDbId, tblName);
+	return tableService->getUserColumns(runtimeUserDbId, tblName);
 }
 
 UserTable ResultListPageAdapter::getRuntimeUserTable(std::wstring & tblName)
 {
 	ATLASSERT(runtimeUserDbId && !tblName.empty());
-	return databaseService->getUserTable(runtimeUserDbId, tblName);
+	return tableService->getUserTable(runtimeUserDbId, tblName);
 }
 
 /**
@@ -663,7 +663,7 @@ void ResultListPageAdapter::createNewRow()
 	}
 	// 1.create a empty row and push it to runtimeDatas list
 	RowItem row;
-	std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
 	int n = static_cast<int>(runtimeColumns.size());
 	for (int i = 0; i < n; i++) {
 		auto colum = runtimeColumns.at(i);
@@ -696,7 +696,7 @@ void ResultListPageAdapter::copyNewRow()
 	if (row.empty()) {
 		return;
 	}
-	auto primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	auto primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
 	if (primaryKey == runtimeColumns.at(0)) {
 		row[0] = L"(Auto)";
 	}
@@ -761,7 +761,7 @@ bool ResultListPageAdapter::saveChangeVals()
 
 		RowItem & rowItem = *iter;
 		std::wstring tblName = runtimeTables.at(0);
-		std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+		std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
 		std::wstring whereClause;
 		int nSelSubItem = iSubItem - 1;
 		std::wstring & origVal = subItemVal.origVal;
@@ -936,7 +936,7 @@ int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
 
 	// delete row from database 
 	std::wstring sqlDelete = L"DELETE FROM ";
-	std::wstring primaryKey = databaseService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+	std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
 	std::wstring whereClause;
 	if (primaryKey.empty()) {
 		whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangedVals);

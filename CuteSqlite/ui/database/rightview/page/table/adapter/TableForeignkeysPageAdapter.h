@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   TableIndexesPageAdapter.h
+ * @file   TableForeignkeysPageAdapter.h
  * @brief  
  * 
  * @author Xuehan Qin
@@ -28,13 +28,13 @@
 
 #define NEW_TBL_EMPTY_INDEX_SIZE 6
 
-class TableIndexesPageAdapter : public QAdapter<TableIndexesPageAdapter, QListViewCtrl>
+class TableForeignkeysPageAdapter : public QAdapter<TableForeignkeysPageAdapter, QListViewCtrl>
 {
 public:
-	TableIndexesPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier);
-	~TableIndexesPageAdapter();
+	TableForeignkeysPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier);
+	~TableForeignkeysPageAdapter();
 
-	int loadTblIndexesListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = L"");
+	int loadTblForeignkeysListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = L"");
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText);
@@ -62,7 +62,7 @@ private:
 
 	void loadHeadersForListView();
 	int loadEmptyRowsForListView();
-	int loadIndexRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
+	int loadForeignkeyRowsForListView(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
 
 	bool getIsChecked(int iItem);
 	int getSelIndexType(const std::wstring & dataType);

@@ -21,6 +21,7 @@
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
 class LeftTreeViewAdapter : public QAdapter<LeftTreeViewAdapter, CTreeViewCtrlEx>
@@ -67,6 +68,7 @@ private:
 	HBITMAP triggerBitmap = nullptr;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	void createImageList();

@@ -11,14 +11,14 @@
 
  * limitations under the License.
 
- * @file   TableIndexesPage.cpp
+ * @file   TableForeignkeysPage.cpp
  * @brief  
  * 
  * @author Xuehan Qin
  * @date   2023-10-10
  *********************************************************************/
 #include "stdafx.h"
-#include "TableIndexesPage.h"
+#include "TableForeignkeysPage.h"
 #include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
@@ -26,7 +26,7 @@
 #include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
 #include "ui/common/message/QPopAnimate.h"
 
-BOOL TableIndexesPage::PreTranslateMessage(MSG* pMsg)
+BOOL TableForeignkeysPage::PreTranslateMessage(MSG* pMsg)
 {
 	if (listView.IsWindow() && listView.PreTranslateMessage(pMsg)) {
 		return TRUE;
@@ -34,20 +34,20 @@ BOOL TableIndexesPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void TableIndexesPage::setup(TableColumnsPageAdapter * tblColumnsPageAdapter, TableStructureSupplier * supplier)
+void TableForeignkeysPage::setup(TableColumnsPageAdapter * tblColumnsPageAdapter, TableStructureSupplier * supplier)
 {
 	this->tblColumnsPageAdapter = tblColumnsPageAdapter;
 	this->setSupplier(supplier);
 }
 
 
-TableIndexesPageAdapter * TableIndexesPage::getAdapter()
+TableForeignkeysPageAdapter * TableForeignkeysPage::getAdapter()
 {
 	ATLASSERT(adapter != nullptr);
 	return adapter;
 }
 
-void TableIndexesPage::createOrShowUI()
+void TableForeignkeysPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
 
@@ -57,7 +57,7 @@ void TableIndexesPage::createOrShowUI()
 	createOrShowListView(listView, clientRect);
 }
 
-void TableIndexesPage::createOrShowToolBarElems(CRect & clientRect)
+void TableForeignkeysPage::createOrShowToolBarElems(CRect & clientRect)
 {
 	CRect topbarRect = getTopRect(clientRect);
 	int x = 5, y = 5, w = PAGE_BUTTON_WIDTH, h = PAGE_BUTTON_HEIGHT;
@@ -86,7 +86,7 @@ void TableIndexesPage::createOrShowToolBarElems(CRect & clientRect)
 	delIndexButton.SetToolTip(S(L"delete-sel-column"));
 }
 
-void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
+void TableForeignkeysPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
 {
 	CRect & rect = getPageRect(clientRect);
 	if (IsWindow() && !win.IsWindow()) {
@@ -95,14 +95,14 @@ void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientR
 			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.setItemHeight(22);
-		adapter = new TableIndexesPageAdapter(m_hWnd, &win, getSupplier());
+		adapter = new TableForeignkeysPageAdapter(m_hWnd, &win, getSupplier());
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
 }
 
-void TableIndexesPage::loadWindow()
+void TableForeignkeysPage::loadWindow()
 {
 	QPage::loadWindow();
 
@@ -113,22 +113,22 @@ void TableIndexesPage::loadWindow()
 	loadListView();
 }
 
-void TableIndexesPage::loadListView()
+void TableForeignkeysPage::loadListView()
 {
 	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	std::wstring tblName = supplier->getRuntimeTblName();
 	std::wstring schema = supplier->getRuntimeSchema();
-	rowCount = adapter->loadTblIndexesListView(userDbId, tblName, schema);
+	rowCount = adapter->loadTblForeignkeysListView(userDbId, tblName, schema);
 }
 
-int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int TableForeignkeysPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);	
 	textFont = FT(L"form-text-size");
 	return ret;
 }
 
-int TableIndexesPage::OnDestroy()
+int TableForeignkeysPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
 	if (textFont) ::DeleteObject(textFont);
@@ -147,13 +147,13 @@ int TableIndexesPage::OnDestroy()
 	return ret;
 }
 
-void TableIndexesPage::paintItem(CDC & dc, CRect & paintRect)
+void TableForeignkeysPage::paintItem(CDC & dc, CRect & paintRect)
 {
 
 }
 
 
-LRESULT TableIndexesPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	LPNMLISTVIEW nvListViewPtr = reinterpret_cast<LPNMLISTVIEW>(pnmh);
 	if (nvListViewPtr->uOldState == 0 && nvListViewPtr->uNewState == 0) 
@@ -172,7 +172,7 @@ LRESULT TableIndexesPage::OnListViewItemChanged(int idCtrl, LPNMHDR pnmh, BOOL &
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
@@ -188,7 +188,7 @@ LRESULT TableIndexesPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 }
 
 
-LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * clickItem = (NMITEMACTIVATE *)pnmh; 
 	if (clickItem->iSubItem == 2) { // button
@@ -202,8 +202,8 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 			w = 20, h = subItemRect.Height() - 2;
 		CRect rect(x, y, x + w, y + h);
 		subItemRect.left = listWinRect.left + subItemRect.left;
-		TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
-		columnsDialog.DoModal(m_hWnd);
+		//TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
+		//columnsDialog.DoModal(m_hWnd);
 		return 0;
 	}
 	adapter->clickListViewSubItem(clickItem);
@@ -211,28 +211,28 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 	return 0;
 }
 
-HBRUSH TableIndexesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
+HBRUSH TableForeignkeysPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
 	return topbarBrush;
 }
 
-HBRUSH TableIndexesPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
+HBRUSH TableForeignkeysPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-HBRUSH TableIndexesPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
+HBRUSH TableForeignkeysPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
 }
 
-LRESULT TableIndexesPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMLVDISPINFO* plvdi = (NMLVDISPINFO*)pnmh;
 	adapter->fillDataInListViewSubItem(plvdi);
@@ -240,13 +240,13 @@ LRESULT TableIndexesPage::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHan
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto pCachehint = (NMLVCACHEHINT *)pnmh;
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+LRESULT TableForeignkeysPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	LPNMLVFINDITEM  pnmfi = (LPNMLVFINDITEM)pnmh;
 
@@ -261,7 +261,7 @@ LRESULT TableIndexesPage::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT TableForeignkeysPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	const SubItemValues & changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
@@ -280,25 +280,25 @@ LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 			adapter->getSupplier()->updateRelatedColumnsIfChangeIndex(changeIndexInfo);
 		}
 	}
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT TableForeignkeysPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	ColumnInfoList pkColumns = tblColumnsPageAdapter->getPrimaryKeyColumnInfoList();
 	adapter->changePrimaryKey(pkColumns);
 	
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
 
-LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT TableForeignkeysPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	std::wstring oldColumnName, newColumnName; 
 	std::wstring * origBuff = (std::wstring *)wParam;
@@ -313,7 +313,7 @@ LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam
 		delete newBuff;
 	}
 	
-	Q_DEBUG(L"TableIndexesPage->changeColumnName arrive, wParam:{}, lParam:{}", oldColumnName, newColumnName);
+	Q_DEBUG(L"TableForeinkeysPage->changeColumnName arrive, wParam:{}, lParam:{}", oldColumnName, newColumnName);
 	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
 		Q_ERROR(L"oldColumnName or newColumnName can't be empty, oldColumnName:{}, newColumnName:{}", oldColumnName, newColumnName);
 		return 0;
@@ -321,7 +321,7 @@ LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam
 
 	adapter->changeTableColumnName(oldColumnName, newColumnName);
 
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 
@@ -329,7 +329,7 @@ LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam
 }
 
 
-LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	std::wstring columnName; 
 	std::wstring * buff = (std::wstring *)wParam;
@@ -343,26 +343,26 @@ LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam
 	}
 	adapter->deleteTableColumnName(columnName);
 
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableForeignkeysPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewIndex();
 	
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
 
-LRESULT TableIndexesPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableForeignkeysPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->deleteSelIndexes();
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;

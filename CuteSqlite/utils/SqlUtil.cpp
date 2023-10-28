@@ -401,7 +401,39 @@ std::wstring SqlUtil::makeTmpTableName(const std::wstring & tblName, int number,
 }
 
 /**
- * Parse all constraints from create table sql.
+ * Parse all columns from create table DDL.
+ * 
+ * @param createTblSql
+ * @return IndexInfoList
+ */
+ColumnInfoList SqlUtil::parseColumnsByTableDDL(const std::wstring & createTblSql)
+{
+	if (createTblSql.empty()) {
+		return ColumnInfoList();
+	}
+
+	size_t paren_first = createTblSql.find_first_of(L'(');
+	size_t paren_end = createTblSql.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return ColumnInfoList();
+	}
+
+	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClausesToLines(columnsAndConstrains,true);
+
+	ColumnInfoList result;
+	for (auto & line : lineList) {		
+		ColumnInfo columnInfo = SqlUtil::parseColumnFromLine(line);
+		if (columnInfo.name.empty()) {
+			continue;
+		}
+		result.push_back(columnInfo);
+	}
+	return result;
+}
+
+/**
+ * Parse all constraints from create table DDL.
  * 
  * @param createTblSql
  * @return IndexInfoList
@@ -419,8 +451,7 @@ IndexInfoList SqlUtil::parseConstraints(const std::wstring & createTblSql)
 	}
 
 	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
-	// std::vector<std::wstring> lineList = StringUtil::split(columnsAndConstrains, L",", true);
-	std::vector<std::wstring> lineList = splitTableDDLColumnClauseToLines(columnsAndConstrains,true);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClausesToLines(columnsAndConstrains,true);
 
 	IndexInfoList result;
 	for (auto & line : lineList) {		
@@ -453,7 +484,7 @@ IndexInfo SqlUtil::parseConstraintsForPrimaryKey(const std::wstring & createTblS
 
 	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
 	// std::vector<std::wstring> lineList = StringUtil::split(columnsAndConstrains, L",", true);
-	std::vector<std::wstring> lineList = splitTableDDLColumnClauseToLines(columnsAndConstrains,true);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClausesToLines(columnsAndConstrains,true);
 		
 	for (auto & line : lineList) {
 		std::wstring upline = StringUtil::toupper(line);
@@ -475,7 +506,7 @@ IndexInfo SqlUtil::parseConstraintsForPrimaryKey(const std::wstring & createTblS
  * @param bTrim
  * @return string vector 
  */
-std::vector<std::wstring> SqlUtil::splitTableDDLColumnClauseToLines(std::wstring str, bool bTrim /*= true*/)
+std::vector<std::wstring> SqlUtil::splitTableDDLColumnClausesToLines(std::wstring str, bool bTrim /*= true*/)
 {
 	std::wstring pattern = L","; // column or index clause line split character
 	
@@ -512,6 +543,32 @@ std::vector<std::wstring> SqlUtil::splitTableDDLColumnClauseToLines(std::wstring
 	return result;
 }
 
+ForeignKeyList SqlUtil::parseForeignKeysByTableDDL(const std::wstring & createTblSql)
+{
+	if (createTblSql.empty()) {
+		return ForeignKeyList();
+	}
+
+	size_t paren_first = createTblSql.find_first_of(L'(');
+	size_t paren_end = createTblSql.find_last_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return ForeignKeyList();
+	}
+
+	std::wstring columnsAndConstrains = createTblSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	std::vector<std::wstring> lineList = splitTableDDLColumnClausesToLines(columnsAndConstrains, true);
+
+	ForeignKeyList result;
+	for (auto & line : lineList) {
+		ForeignKey foreignKey = SqlUtil::parseForeignKeyFromLine(line);
+		if (foreignKey.columns.empty()) {
+			continue;
+		}
+		result.push_back(foreignKey);
+	}
+	return result;
+}
+
 /**
  * Parse one line to IndexInfo object, line text such as "PRIMARY KEY ("uid")"
  * 
@@ -527,10 +584,6 @@ IndexInfo SqlUtil::parseConstraintFromLine(const std::wstring& line)
 	}
 	if (upline.find(L"UNIQUE") != std::wstring::npos) {
 		return SqlUtil::parseLineToUnique(line);
-	}
-
-	if (upline.find(L"FOREIGN") != std::wstring::npos) {
-		return SqlUtil::parseLineToForeignKey(line);
 	}
 
 	if (upline.find(L"CHECK") != std::wstring::npos) {
@@ -615,14 +668,6 @@ IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line)
 
 }
 
-IndexInfo SqlUtil::parseLineToForeignKey(const std::wstring& line)
-{
-	if (line.empty()) {
-		return IndexInfo();
-	}
-
-	return IndexInfo();
-}
 
 IndexInfo SqlUtil::parseLineToCheck(const std::wstring& line)
 {
@@ -774,5 +819,178 @@ std::wstring SqlUtil::getExpressionByCheckLine(const std::wstring &line)
 		}
 		result.append(column);
 	}
+	return result;
+}
+
+
+ColumnInfo SqlUtil::parseColumnFromLine(const std::wstring& line)
+{
+	ColumnInfo result;
+	std::wstring upline = StringUtil::toupper(line);
+	auto words = StringUtil::split(line, L" ");
+	if (words.empty() || words.at(0).empty()) {
+		return result;
+	}
+
+	// exclude the constrains
+	std::wstring & first = words.at(0);
+	std::wstring upfirst = StringUtil::toupper(first);
+	if (upfirst == L"CONSTRAINT"
+		|| upfirst == L"PRIMARY"
+		|| upfirst == L"UNIQUE" 
+		|| upfirst == L"CHECK"
+		|| upfirst == L"FOREIGN") {
+		return result;
+	}
+
+	// first word must be column name
+	std::wstring columnName = StringUtil::cutParensAndQuotes(first);
+	if (columnName.empty()) {
+		return result;
+	}
+	result.name = columnName;
+
+	if (words.size() > 1 && !words.at(1).empty()) {
+		result.type = words.at(1);
+	}
+	if (upline.find(L"NOT NULL") != std::wstring::npos) {
+		result.notnull = 1;
+	}
+
+	size_t defPos = -1;
+	if ((defPos = upline.find(L"DEFAULT")) != std::wstring::npos) {
+		wchar_t ch = StringUtil::nextNotBlankChar(line, L"DEFAULT", defPos);
+		if (ch == L'(') {
+			result.defVal = StringUtil::inSymbolString(line, L'(', L')', defPos);
+		} else {
+			auto iter = std::find_if(words.begin(), words.end(), [](std::wstring &str) {
+				return StringUtil::toupper(str) == L"DEFAULT";
+			});
+			while (++iter != words.end()) {
+				if ((*iter).empty()) {
+					continue;
+				}
+				result.defVal = (*iter);
+				break;
+			}
+		}		
+	}
+
+	if (upline.find(L"PRIMARY") != std::wstring::npos) {
+		result.pk = 1;
+	}
+
+	if (upline.find(L"UNIQUE") != std::wstring::npos) {
+		result.un = 1;
+	}
+
+	if (upline.find(L"AUTOINCREMENT") != std::wstring::npos) {
+		result.ai = 1;
+	}
+
+	if ((defPos = upline.find(L"CHECK")) != std::wstring::npos) {
+		size_t paren_first = line.find_first_of(L'(', defPos);
+		size_t paren_end = line.find_first_of(L')', defPos);
+		if (paren_first != std::wstring::npos && paren_end != std::wstring::npos) {
+			result.checks = StringUtil::inSymbolString(line, L'(', L')', defPos);
+		} else {
+			auto iter = std::find_if(words.begin(), words.end(), [](std::wstring &str) {
+				return StringUtil::toupper(str) == L"DEFAULT";
+			});
+			while (iter != words.end()) {
+				if ((*iter).empty()) {
+					iter++;
+				}
+				result.checks = (*iter);
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
+/**
+ * parse ddl line to a ForeignKey object
+ * foreig key supported such as :
+ *  // CONSTRAINT `name` FOREIGN KEY (`dog_id`) REFERENCES `asia_dog` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+ * 
+ * @param line
+ * @return 
+ */
+ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
+{
+	ForeignKey result;
+	std::wstring upline = StringUtil::toupper(line);
+	auto words = StringUtil::split(line, L" ");
+	if (words.empty() || words.at(0).empty()) {
+		return result;
+	}
+
+	// exclude the constrains
+	std::wstring first = StringUtil::toupper(words.at(0));
+	if (first == L"PRIMARY"
+		|| first == L"UNIQUE" 
+		|| first == L"CHECK") {
+		return result;
+	}
+
+	// 1. fetch name
+	if (first == L"CONSTRAINT") {
+		// such as : CONSTRAINT "foreign_key_idx1"  FOREIGN KEY("uid")
+		result.name = StringUtil::cutParensAndQuotes(words.at(1));
+	}
+	
+	size_t defPos = -1;
+	if ((first != L"FOREIGN") // such as : FOREIGN KEY("id","name"...)
+		&& (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"FOREIGN")) { // such as : CONSTRAINT "idx_check"  FOREIGN KEY("uid")...
+		return result;
+	}
+		
+	// 2. fetch columns
+	defPos = upline.find(L"FOREIGN");
+	wchar_t ch = StringUtil::nextNotBlankChar(upline, L"FOREIGN KEY", defPos);
+	if (ch == L'(') {
+		result.columns = StringUtil::inSymbolString(line, L'(', L')', defPos);
+		StringUtil::trim(result.columns);
+		result.columns = StringUtil::cutParensAndQuotes(result.columns);
+	}
+
+	// 2. fetch referenced table and columns
+	auto iter = std::find_if(words.begin(), words.end(), [](const std::wstring & word) {
+		return StringUtil::toupper(word) == L"REFERENCES";
+	});
+	if (iter != words.end() && ++iter != words.end()) {
+		result.referencedTable = StringUtil::cutParensAndQuotes((*iter));
+
+		defPos = upline.find(L"REFERENCES");
+		result.referencedColumns = StringUtil::inSymbolString(line, L'(', L')', defPos);
+		StringUtil::trim(result.referencedColumns);
+		result.referencedColumns = StringUtil::cutParensAndQuotes(result.referencedColumns);
+	}
+		
+	// 3. fetch on update / on delete
+	size_t n = words.size();
+	for (int i = 0; i < n - 2; i++) {
+		auto word = StringUtil::toupper(words.at(i));
+		std::wstring next1 = (i + 1) < n ? StringUtil::toupper(words.at(i + 1)) : L"";
+		std::wstring next2 = (i + 2) < n ? StringUtil::toupper(words.at(i + 2)) : L"";
+		std::wstring next3 = (i + 3) < n ? StringUtil::toupper(words.at(i + 3)) : L"";
+		if (word == L"ON" && next1 == L"UPDATE") {				
+			if (next2 == L"SET" || next2 == L"ON") {
+				result.onUpdate = next2 + L" " + next3;
+			} else {
+				result.onUpdate = next2;
+			}
+		} else if (word == L"ON" && next1 == L"DELETE") {
+			if (next2 == L"SET" || next2 == L"ON") {
+				result.onDelete = next2 + L" " + next3;
+			} else {
+				result.onDelete = next2;
+			}
+		}
+	}
+
+	result.seq = std::chrono::system_clock::now();
 	return result;
 }
