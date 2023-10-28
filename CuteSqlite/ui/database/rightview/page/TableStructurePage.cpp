@@ -225,7 +225,7 @@ void TableStructurePage::loadSqlPreviewEdit()
 		return;
 	}
 	ATLASSERT(supplier->getRuntimeUserDbId() && !supplier->getRuntimeTblName().empty());
-	UserTable userTable = databaseService->getUserTable(supplier->getRuntimeUserDbId(), 
+	UserTable userTable = tableService->getUserTable(supplier->getRuntimeUserDbId(), 
 		supplier->getRuntimeTblName(), supplier->getRuntimeSchema());
 
 	sqlPreviewEdit.setText(userTable.sql);
