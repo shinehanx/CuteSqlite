@@ -75,22 +75,16 @@ public:
 	IndexInfo & getIdxRuntimeData(int nSelItem);
 	void eraseIdxRuntimeData(int nSelItem);
 
-	IndexInfoList & getIdxOrigDatas() { return idxOrigDatas; }
-	void setIdxOrigDatas(IndexInfoList & val) { idxOrigDatas = val; }
-	void eraseIdxOrigData(int nSelItem);
-	
 	ForeignKeyList & getFrkRuntimeDatas() { return frkRuntimeDatas; }
 	void setFrkRuntimeDatas(ForeignKeyList & val) { frkRuntimeDatas = val; }
 	ForeignKey & getFrkRuntimeData(int nSelItem);
 	void eraseFrkRuntimeData(int nSelItem);
 
-	ForeignKeyList getFrkOrigDatas() const { return frkOrigDatas; }
-	void setFrkOrigDatas(ForeignKeyList val) { frkOrigDatas = val; }
-	void eraseFrkOrigData(int nSelItem);
-
 	// update related columns
 	void updateRelatedColumnsIfDeleteIndex(const IndexInfo &indexInfo);	
 	void updateRelatedColumnsIfChangeIndex(const IndexInfo & changeIndexInfo);	
+	void updateRelatedColumnsIfChangeColumnName(std::wstring& origName, const std::wstring& newName);
+	
 private:
 	TblOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
 
@@ -110,8 +104,8 @@ private:
 	std::wstring origTblName;
 	// store the original table column infos, for alter table comparing with colsRuntimeDatas
 	ColumnInfoList colsOrigDatas; 
-	// store the original table index infos, for alter table comparing with idxRuntimeDatas
-	IndexInfoList idxOrigDatas;
-	// store the original table foreign key infos, for alter table comparing with frkRuntimeDatas
-	ForeignKeyList frkOrigDatas;
+	
+
+	void updateColumnNameInIdxRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName);
+	void updateColumnNameInFrkRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName);
 };

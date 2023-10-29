@@ -43,13 +43,12 @@ public:
 	// create/copy a new column row operation
 	void createNewIndex();
 	// delete a column row operation
-	bool deleteSelIndexes(bool confirm=true);
+	bool deleteSelForeignKeys(bool confirm=true);
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
-	std::wstring genderateCreateIndexesSqlClause(bool hasAutoIncrement = false);
+	std::wstring genderateCreateForeignKeyClause();
 	void changePrimaryKey(ColumnInfoList & pkColumns);
-	void changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName);
 	void deleteTableColumnName(const std::wstring & columnName);
 
 	TableStructureSupplier * getSupplier() { return supplier; }
@@ -67,5 +66,5 @@ private:
 	bool getIsChecked(int iItem);
 	int getSelIndexType(const std::wstring & dataType);
 	void removeSelectedItem(int nSelItem);
-	void generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement);
+	void generateOneForeignKeyClause(ForeignKey &item, std::wstring &ss);
 };

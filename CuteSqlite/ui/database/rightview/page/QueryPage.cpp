@@ -239,14 +239,14 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
-		supplier->selectTable = selItemText;
+		supplier->selectedTable = selItemText;
 	} 
 
 	if (resultTabView.isActiveTableDataPage()  // 1.TableDataPage must be active
 		&& supplier->activeTabPageHwnd == m_hWnd  // 2.This QueryPage must be active
-		&& !supplier->selectTable.empty() // 3.supplier->selectTable must not empty
+		&& !supplier->selectedTable.empty() // 3.supplier->selectTable must not empty
 		&& queryType != TABLE_DATA) {  // 4.query type must not equal TABLE_DATA
-		resultTabView.loadTableDatas(supplier->selectTable);
+		resultTabView.loadTableDatas(supplier->selectedTable);
 	}
 	return 0;
 }
@@ -287,7 +287,7 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	// if select table item
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
-		supplier->selectTable = selItemText;
+		supplier->selectedTable = selItemText;
 	}
 	
 	if (nImage == 3) { // 3 - column

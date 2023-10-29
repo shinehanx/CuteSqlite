@@ -73,7 +73,7 @@ void TableIndexesPage::createOrShowToolBarElems(CRect & clientRect)
 		newIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
 	QWinCreater::createOrShowButton(m_hWnd, newIndexButton, Config::TABLE_NEW_INDEX_BUTTON_ID, L"", rect, clientRect);
-	newIndexButton.SetToolTip(S(L"insert-new-column"));
+	newIndexButton.SetToolTip(S(L"insert-new-index"));
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!delIndexButton.IsWindow()) {
@@ -83,7 +83,7 @@ void TableIndexesPage::createOrShowToolBarElems(CRect & clientRect)
 		delIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
 	QWinCreater::createOrShowButton(m_hWnd, delIndexButton, Config::TABLE_DEL_INDEX_BUTTON_ID, L"", rect, clientRect);
-	delIndexButton.SetToolTip(S(L"delete-sel-column"));
+	delIndexButton.SetToolTip(S(L"delete-sel-index"));
 }
 
 void TableIndexesPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
@@ -135,8 +135,6 @@ int TableIndexesPage::OnDestroy()
 
 	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
 	if (delIndexButton.IsWindow()) delIndexButton.DestroyWindow();
-	if (upIndexButton.IsWindow()) upIndexButton.DestroyWindow();
-	if (downIndexButton.IsWindow()) downIndexButton.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (adapter) {
@@ -203,7 +201,11 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 		CRect rect(x, y, x + w, y + h);
 		subItemRect.left = listWinRect.left + subItemRect.left;
 		TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
-		columnsDialog.DoModal(m_hWnd);
+		if (columnsDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+			// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+			HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+			::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+		}
 		return 0;
 	}
 	adapter->clickListViewSubItem(clickItem);
@@ -297,45 +299,13 @@ LRESULT TableIndexesPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam
 	return 0;
 }
 
-
-LRESULT TableIndexesPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	std::wstring oldColumnName, newColumnName; 
-	std::wstring * origBuff = (std::wstring *)wParam;
-	std::wstring * newBuff = (std::wstring *)lParam;
-	if (origBuff) {
-		oldColumnName.assign(origBuff->c_str());
-		delete origBuff;
-	}
-
-	if (newBuff) {
-		newColumnName.assign(newBuff->c_str());
-		delete newBuff;
-	}
-	
-	Q_DEBUG(L"TableIndexesPage->changeColumnName arrive, wParam:{}, lParam:{}", oldColumnName, newColumnName);
-	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
-		Q_ERROR(L"oldColumnName or newColumnName can't be empty, oldColumnName:{}, newColumnName:{}", oldColumnName, newColumnName);
-		return 0;
-	}
-
-	adapter->changeTableColumnName(oldColumnName, newColumnName);
-
-	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
-	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
-	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
-
-	return 0;
-}
-
-
 LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	std::wstring columnName; 
 	std::wstring * buff = (std::wstring *)wParam;
 	if (buff) {
 		columnName.assign(buff->c_str());
-		delete buff;
+		delete buff; // alloc memory in  TableColumnsPageAdapter::deleteSelColumns - columnName1
 	}
 	if (columnName.empty()) {
 		Q_ERROR(L"columnName can't be empty");

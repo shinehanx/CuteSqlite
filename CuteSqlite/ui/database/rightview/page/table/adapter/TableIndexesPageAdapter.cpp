@@ -88,7 +88,6 @@ int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const s
 {
 	auto idxRuntimeDatas = tableService->getIndexInfoList(userDbId, tblName, schema);
 	supplier->setIdxRuntimeDatas(idxRuntimeDatas);
-	supplier->setIdxOrigDatas(idxRuntimeDatas);
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -240,13 +239,6 @@ void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, st
 		runtimeDatas[iItem].type = newText;
 	} 
 
-	SubItemValue subItemVal;
-	subItemVal.iItem = iItem;
-	subItemVal.iSubItem = iSubItem;
-	subItemVal.origVal = origText;
-	subItemVal.newVal = newText;
-
-	dataView->setChangeVal(subItemVal);
 }
 
 void TableIndexesPageAdapter::invalidateSubItem(int iItem, int iSubItem)
@@ -299,7 +291,6 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 		
 		// 2.1 delete row from runtimeDatas vector and origDatas
 		supplier->eraseIdxRuntimeData(nSelItem);
-		supplier->eraseIdxOrigData(nSelItem);
 
 		// 2.2 delete row from dataView 
 		dataView->RemoveItem(nSelItem);		
@@ -311,44 +302,11 @@ bool TableIndexesPageAdapter::deleteSelIndexes(bool confirm)
 
 void TableIndexesPageAdapter::removeSelectedItem(int nSelItem)
 {
-	auto iter = supplier->getIdxRuntimeDatas().begin();
-	for (int j = 0; j < nSelItem; j++) {
-		iter++;
-	}
-
-	// 1 delete row from runtimeDatas vector 
-	supplier->getIdxRuntimeDatas().erase(iter);
+	supplier->eraseIdxRuntimeData(nSelItem);
 
 	// 2 delete row from dataView
 	dataView->RemoveItem(nSelItem);
 }
-
-
-/**
- * change columns value in listView of TableIndexesPage when TableColumnsPage changing column name.
- * 
- * @param oldColumnName
- * @param newColumnName
- */
-void TableIndexesPageAdapter::changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName)
-{
-	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
-	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
-	int n = static_cast<int>(indexes.size());
-	for (int i = 0; i < n; i++) {
-		auto & item = indexes.at(i);
-		auto columns = StringUtil::split(item.columns, L",");
-		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
-		if (iter == columns.end()) {
-			continue;
-		}
-		(*iter) = newColumnName;
-		item.columns = StringUtil::implode(columns, L",");
-
-		invalidateSubItem(i, 2); // 2 - columns 
-	}
-}
-
 
 void TableIndexesPageAdapter::deleteTableColumnName(const std::wstring & columnName)
 {
@@ -427,7 +385,7 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
  * @param hasAutoIncrement
  * @return 
  */
-std::wstring TableIndexesPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
+std::wstring TableIndexesPageAdapter::genderateCreateIndexesClause(bool hasAutoIncrement)
 {
 	std::wstring ss;
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());

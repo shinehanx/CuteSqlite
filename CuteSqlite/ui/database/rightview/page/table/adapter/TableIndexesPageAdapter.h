@@ -47,9 +47,8 @@ public:
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
-	std::wstring genderateCreateIndexesSqlClause(bool hasAutoIncrement = false);
+	std::wstring genderateCreateIndexesClause(bool hasAutoIncrement = false);
 	void changePrimaryKey(ColumnInfoList & pkColumns);
-	void changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName);
 	void deleteTableColumnName(const std::wstring & columnName);
 
 	TableStructureSupplier * getSupplier() { return supplier; }

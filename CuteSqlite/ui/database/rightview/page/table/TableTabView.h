@@ -43,13 +43,13 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey);		
-		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, OnTableColumsChangeColumnName);		
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName);
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 	TableColumnsPage & getTableColumnsPage();
 	TableIndexesPage & getTableIndexesPage();
+	TableForeignkeysPage & getTableForeignkeysPage();
 
 	TableStructureSupplier * getSupplier() const { return supplier; }
 	void setSupplier(TableStructureSupplier * val) { supplier = val; }
@@ -93,6 +93,5 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

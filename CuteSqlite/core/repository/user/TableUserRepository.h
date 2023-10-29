@@ -32,10 +32,10 @@ public:
 
 	uint64_t getDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	DataList getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema = std::wstring());
+
+	void execBySql(uint64_t userDbId, const std::wstring & sql);
+	void renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema);
 private:
-	
 	UserTable toUserTable(QSqlStatement &query);
 	RowItem toRowItem(QSqlStatement &query);
-public:
-	void execBySql(uint64_t userDbId, const std::wstring & sql);
 };

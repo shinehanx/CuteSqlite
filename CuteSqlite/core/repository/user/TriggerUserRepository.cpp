@@ -45,7 +45,7 @@ UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId, cons
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200020", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200090", L"sorry, system has error when loading databases.");
 	}
 }
 
@@ -72,7 +72,7 @@ UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, const std::wstr
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200091", L"sorry, system has error when loading databases.");
 	}
 }
 

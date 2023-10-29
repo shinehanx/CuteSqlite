@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   TableIndexColumnsDialog.h
+ * @file   TableForeignkeyColumnsDialog.h
  * @brief  The dialog for select columns for index in the indexes ListView
  * 
  * @author Xuehan Qin
@@ -19,21 +19,25 @@
  *********************************************************************/
 #pragma once
 #include "AbstractTableColumnsDialog.h"
+#include "core/service/db/TableService.h"
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
-#include "ui/database/rightview/page/table/adapter/TableIndexesPageAdapter.h"
+#include "ui/database/rightview/page/table/adapter/TableForeignkeysPageAdapter.h"
 
-class TableIndexColumnsDialog : public AbstractTableColumnsDialog
+class TableForeignkeyColumnsDialog : public AbstractTableColumnsDialog
 {
 public:
-	BEGIN_MSG_MAP_EX(TableIndexColumnsDialog)
+	BEGIN_MSG_MAP_EX(TableForeignkeyColumnsDialog)
 		CHAIN_MSG_MAP(AbstractTableColumnsDialog)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	TableIndexColumnsDialog(HWND parentHwnd, TableColumnsPageAdapter * columnPageAdapter, 
-	TableIndexesPageAdapter * indexPageAdapter, CRect btnRect, int iItem, int iSubItem);
+	TableForeignkeyColumnsDialog(HWND parentHwnd, 
+		TableColumnsPageAdapter * columnPageAdapter,
+		TableForeignkeysPageAdapter * foreignkeyPageAdapter, 
+		CRect btnRect, int iItem, int iSubItem);
 private:
+	TableService * tableService = TableService::getInstance();
 	TableColumnsPageAdapter * columnPageAdapter = nullptr;
-	TableIndexesPageAdapter * indexPageAdapter = nullptr;
+	TableForeignkeysPageAdapter * foreignkeyPageAdapter = nullptr;
 	
 	virtual void loadLeftListBox();
 	virtual void loadRightListBox();

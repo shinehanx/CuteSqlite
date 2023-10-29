@@ -23,7 +23,7 @@
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
-#include "ui/database/rightview/page/table/dialog/TableIndexColumnsDialog.h"
+#include "ui/database/rightview/page/table/dialog/TableForeignkeyColumnsDialog.h"
 #include "ui/common/message/QPopAnimate.h"
 
 BOOL TableForeignkeysPage::PreTranslateMessage(MSG* pMsg)
@@ -72,8 +72,8 @@ void TableForeignkeysPage::createOrShowToolBarElems(CRect & clientRect)
 		newIndexButton.SetIconPath(normalImagePath, pressedImagePath);
 		newIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, newIndexButton, Config::TABLE_NEW_INDEX_BUTTON_ID, L"", rect, clientRect);
-	newIndexButton.SetToolTip(S(L"insert-new-column"));
+	QWinCreater::createOrShowButton(m_hWnd, newIndexButton, Config::TABLE_NEW_FOREIGNKEY_BUTTON_ID, L"", rect, clientRect);
+	newIndexButton.SetToolTip(S(L"insert-new-foreignkey"));
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!delIndexButton.IsWindow()) {
@@ -82,8 +82,8 @@ void TableForeignkeysPage::createOrShowToolBarElems(CRect & clientRect)
 		delIndexButton.SetIconPath(normalImagePath, pressedImagePath);
 		delIndexButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
-	QWinCreater::createOrShowButton(m_hWnd, delIndexButton, Config::TABLE_DEL_INDEX_BUTTON_ID, L"", rect, clientRect);
-	delIndexButton.SetToolTip(S(L"delete-sel-column"));
+	QWinCreater::createOrShowButton(m_hWnd, delIndexButton, Config::TABLE_DEL_FOREIGNKEY_BUTTON_ID, L"", rect, clientRect);
+	delIndexButton.SetToolTip(S(L"delete-sel-foreignkey"));
 }
 
 void TableForeignkeysPage::createOrShowListView(QListViewCtrl & win, CRect & clientRect)
@@ -92,13 +92,16 @@ void TableForeignkeysPage::createOrShowListView(QListViewCtrl & win, CRect & cli
 	if (IsWindow() && !win.IsWindow()) {
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
-			0, Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID );
+			0, Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.setItemHeight(22);
 		adapter = new TableForeignkeysPageAdapter(m_hWnd, &win, getSupplier());
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
+		if (adapter == nullptr) {
+			adapter = new TableForeignkeysPageAdapter(m_hWnd, &win, getSupplier());
+		}
 	}
 }
 
@@ -135,8 +138,6 @@ int TableForeignkeysPage::OnDestroy()
 
 	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
 	if (delIndexButton.IsWindow()) delIndexButton.DestroyWindow();
-	if (upIndexButton.IsWindow()) upIndexButton.DestroyWindow();
-	if (downIndexButton.IsWindow()) downIndexButton.DestroyWindow();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (adapter) {
@@ -191,7 +192,7 @@ LRESULT TableForeignkeysPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &
 LRESULT TableForeignkeysPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	NMITEMACTIVATE * clickItem = (NMITEMACTIVATE *)pnmh; 
-	if (clickItem->iSubItem == 2) { // button
+	if (clickItem->iSubItem == 2 || clickItem->iSubItem == 4) { // show button, 2 - Referencing columns  4 - Referenced columns
 		int iItem = clickItem->iItem;
 		int iSubItem = clickItem->iSubItem;
 	
@@ -202,9 +203,17 @@ LRESULT TableForeignkeysPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bH
 			w = 20, h = subItemRect.Height() - 2;
 		CRect rect(x, y, x + w, y + h);
 		subItemRect.left = listWinRect.left + subItemRect.left;
-		//TableIndexColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
-		//columnsDialog.DoModal(m_hWnd);
-		return 0;
+		if (clickItem->iSubItem == 4 && adapter->getSubItemString(iItem, 3).empty()) {
+			QPopAnimate::error(m_hWnd, S(L"select-referenced-table-first"));
+			listView.activeSubItem(iItem, 3);
+			return 0;
+		}
+		TableForeignkeyColumnsDialog columnsDialog(m_hWnd, tblColumnsPageAdapter, adapter, rect, iItem, iSubItem);
+		if (columnsDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+			// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+			HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+			::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+		}
 	}
 	adapter->clickListViewSubItem(clickItem);
 	listView.changeAllItemsCheckState();
@@ -266,76 +275,22 @@ LRESULT TableForeignkeysPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPar
 	const SubItemValues & changedVals = listView.getChangedVals();
 	for (auto val : changedVals) {
 
-		// check if duplicated define Primary Key
-		if (val.iSubItem == 3 && val.newVal == supplier->idxTypeList.at(1) // 1 - primary key
-			&& !adapter->verifyIfDuplicatedPrimaryKey(val.iItem)) { // 3 - index type, only one primary key
-			QPopAnimate::error(m_hWnd, S(L"primary-key-duplicated"));
-			listView.cancelChangedVal(val);
-			continue;
-		}
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.origVal, val.newVal);
 		adapter->invalidateSubItem(val.iItem, val.iSubItem);
-		if (val.iSubItem == 3) { // 3 - index type
-			auto & changeIndexInfo = adapter->getSupplier()->getIdxRuntimeData(val.iItem);
-			adapter->getSupplier()->updateRelatedColumnsIfChangeIndex(changeIndexInfo);
-		}
 	}
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	return 0;
 }
-
-LRESULT TableForeignkeysPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	ColumnInfoList pkColumns = tblColumnsPageAdapter->getPrimaryKeyColumnInfoList();
-	adapter->changePrimaryKey(pkColumns);
-	
-	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
-	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
-	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
-	return 0;
-}
-
-
-LRESULT TableForeignkeysPage::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	std::wstring oldColumnName, newColumnName; 
-	std::wstring * origBuff = (std::wstring *)wParam;
-	std::wstring * newBuff = (std::wstring *)lParam;
-	if (origBuff) {
-		oldColumnName.assign(origBuff->c_str());
-		delete origBuff;
-	}
-
-	if (newBuff) {
-		newColumnName.assign(newBuff->c_str());
-		delete newBuff;
-	}
-	
-	Q_DEBUG(L"TableForeinkeysPage->changeColumnName arrive, wParam:{}, lParam:{}", oldColumnName, newColumnName);
-	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
-		Q_ERROR(L"oldColumnName or newColumnName can't be empty, oldColumnName:{}, newColumnName:{}", oldColumnName, newColumnName);
-		return 0;
-	}
-
-	adapter->changeTableColumnName(oldColumnName, newColumnName);
-
-	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
-	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
-	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
-
-	return 0;
-}
-
 
 LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	std::wstring columnName; 
-	std::wstring * buff = (std::wstring *)wParam;
+	std::wstring * buff = (std::wstring *)lParam;
 	if (buff) {
 		columnName.assign(buff->c_str());
-		delete buff;
+		delete buff; // // alloc memory in  TableColumnsPageAdapter::deleteSelColumns - columnName2
 	}
 	if (columnName.empty()) {
 		Q_ERROR(L"columnName can't be empty");
@@ -349,7 +304,7 @@ LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wP
 	return 0;
 }
 
-LRESULT TableForeignkeysPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableForeignkeysPage::OnClickNewForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewIndex();
 	
@@ -359,9 +314,9 @@ LRESULT TableForeignkeysPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, H
 	return 0;
 }
 
-LRESULT TableForeignkeysPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
+LRESULT TableForeignkeysPage::OnClickDelForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->deleteSelIndexes();
+	adapter->deleteSelForeignKeys();
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);

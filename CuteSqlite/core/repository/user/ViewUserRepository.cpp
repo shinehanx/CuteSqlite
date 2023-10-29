@@ -45,7 +45,7 @@ UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId, const std:
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200020", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200100", L"sorry, system has error when loading databases.");
 	}
 }
 
@@ -72,7 +72,7 @@ UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & vie
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200101", L"sorry, system has error when loading databases.");
 	}
 }
 

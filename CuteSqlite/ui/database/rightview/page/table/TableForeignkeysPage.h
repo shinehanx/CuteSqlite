@@ -42,18 +42,16 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, NM_CLICK, OnClickListView)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChanged)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
-		NOTIFY_HANDLER(Config::DATABASE_TABLE_INDEXES_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, NM_CLICK, OnClickListView)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, LVN_ITEMCHANGED, OnListViewItemChanged)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
+		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
-		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey)
-		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, OnTableColumsChangeColumnName)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName)
-		COMMAND_HANDLER_EX(Config::TABLE_NEW_INDEX_BUTTON_ID, BN_CLICKED, OnClickNewIndexButton)
-		COMMAND_HANDLER_EX(Config::TABLE_DEL_INDEX_BUTTON_ID, BN_CLICKED, OnClickDelIndexButton)
+		COMMAND_HANDLER_EX(Config::TABLE_NEW_FOREIGNKEY_BUTTON_ID, BN_CLICKED, OnClickNewForeignkeyButton)
+		COMMAND_HANDLER_EX(Config::TABLE_DEL_FOREIGNKEY_BUTTON_ID, BN_CLICKED, OnClickDelForeignkeyButton)
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -77,8 +75,6 @@ private:
 	// toolbar button
 	QImageButton newIndexButton;
 	QImageButton delIndexButton;
-	QImageButton upIndexButton;
-	QImageButton downIndexButton;
 
 	QListViewCtrl listView;
 	std::pair<int, int> subItemPos; // pair.first-iItem, pair.second-iSubItem
@@ -113,9 +109,7 @@ private:
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
-	LRESULT OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickNewForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl);
+	LRESULT OnClickDelForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

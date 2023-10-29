@@ -21,6 +21,7 @@
 #include "TableService.h"
 #include "utils/Log.h"
 #include "utils/SqlUtil.h"
+#include "core/common/Lang.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/exception/QSqlExecuteException.h"
 
@@ -205,4 +206,14 @@ ForeignKeyList TableService::getForeignKeyList(uint64_t userDbId, const std::wst
 	ForeignKeyList foreignKeyList = SqlUtil::parseForeignKeysByTableDDL(createTblSql);
 
 	return foreignKeyList;
+}
+
+void TableService::renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema /*= std::wstring()*/)
+{
+	UserTable userTable = tableUserRepository->getTable(userDbId, newTableName, schema);
+	if (!userTable.name.empty()) {
+		throw QRuntimeException(L"200024", E(L"200024"));
+	}
+
+	tableUserRepository->renameTable(userDbId, oldTableName, newTableName, schema);
 }

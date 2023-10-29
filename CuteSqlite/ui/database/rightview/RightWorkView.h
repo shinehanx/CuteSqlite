@@ -71,6 +71,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
 		MESSAGE_HANDLER(Config::MSG_SHOW_TABLE_DATA_ID, OnShowTableData)
 		MESSAGE_HANDLER(Config::MSG_ALTER_TABLE_ID, OnClickAlterTableElem)
+		MESSAGE_HANDLER(Config::MSG_RENAME_TABLE_ID, OnClickRenameTableElem)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 		REFLECT_NOTIFICATIONS()
@@ -142,6 +143,7 @@ private:
 	// Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	LRESULT OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnClickRenameTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);

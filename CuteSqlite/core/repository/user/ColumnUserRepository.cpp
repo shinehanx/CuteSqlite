@@ -42,7 +42,7 @@ ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const s
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200020", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200070", L"sorry, system has error when loading databases.");
 	}
 }
 

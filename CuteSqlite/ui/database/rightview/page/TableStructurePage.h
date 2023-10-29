@@ -109,13 +109,14 @@ private:
 	
 	void previewRuntimeSql();
 	std::wstring getCreateRuntimeSql();
-	std::wstring generateCreateTableSql(std::wstring &schema, std::wstring tblName);
+	std::wstring generateCreateTableDDL(std::wstring &schema, std::wstring tblName);
 
 	std::wstring execAlterTable();
 
 	std::wstring generateCreateColumnsClause();
-	std::wstring generateCreateIndexesClause();
-	
+	std::wstring generateCreateIndexesClause();	
+	std::wstring generateCreateForeignKeyClause();
+
 	std::wstring generateInsertIntoTmpTableSql(std::wstring& schema, std::wstring& tmpTblName, std::wstring& oldTblName);
 	
 };

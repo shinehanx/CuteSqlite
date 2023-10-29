@@ -26,9 +26,6 @@
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
 
-#define NEW_TBL_EMPTY_COLUMN_SIZE 8
-
-
 class TableColumnsPageAdapter : public QAdapter<TableColumnsPageAdapter, QListViewCtrl>
 {
 public:

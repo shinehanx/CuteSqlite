@@ -66,16 +66,25 @@ void TableColumnsPageAdapter::loadHeadersForListView()
 
 int TableColumnsPageAdapter::loadEmptyRowsForListView()
 {
-	std::vector<std::wstring> ss = StringUtil::split(L"id,name,type,remark,phone,email,created_at,updated_at",L","); // tmp
-	for (int i = 0; i < NEW_TBL_EMPTY_COLUMN_SIZE; i++) {
+	std::vector<std::wstring> ss = StringUtil::split(L"id,name,type,class_id,inspection_id,remark,phone,email,created_at,updated_at",L","); // tmp
+	int n = static_cast<int>(ss.size());
+	for (int i = 0; i < n; i++) {
 		ColumnInfo columnInfo;
 		columnInfo.name = ss.at(i);
+		if (i == 0 || i== 3 || i == 4) {
+			columnInfo.type = L"INTEGER";
+			columnInfo.defVal = L"0";
+		}else {
+			columnInfo.type = L"TEXT";
+			columnInfo.defVal = L"''";
+		}
+		columnInfo.notnull = 1;
 		columnInfo.seq = std::chrono::system_clock::now(); // seq = current time 
 		supplier->getColsRuntimeDatas().push_back(columnInfo);
 	}
-	dataView->SetItemCount(NEW_TBL_EMPTY_COLUMN_SIZE);
+	dataView->SetItemCount(n);
 	dataView->Invalidate(true);
-	return NEW_TBL_EMPTY_COLUMN_SIZE;
+	return n;
 }
 
 
@@ -541,7 +550,8 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 			iter++;
 		}
 		auto & rowItem = (*iter);
-		std::wstring * columnName = new std::wstring(rowItem.name);
+		std::wstring * columnName1 = new std::wstring(rowItem.name); // will be delete by TableIndexesPage::OnTableColumsDeleteColumnName
+		std::wstring * columnName2 = new std::wstring(rowItem.name); // will be delete by TableForeignkeysPage::OnTableColumsDeleteColumnName
 
 		// 2.1 delete row from runtimeDatas vector 
 		supplier->getColsRuntimeDatas().erase(iter);
@@ -549,9 +559,9 @@ bool TableColumnsPageAdapter::deleteSelColumns(bool confirm)
 		// 2.2 delete row from dataView
 		dataView->RemoveItem(nSelItem);
 
-		// TableColumnsPage($parentHwnd)->QTabView($tabView)->QTableTabView  ------ then trans to --> TableIndexesPage
+		// TableColumnsPage($parentHwnd)->QTabView($tabView)->QTableTabView  ------ then trans to --> TableIndexesPage and TableForeignkeysPage
 		HWND pHwnd = ::GetParent(::GetParent(parentHwnd));
-		::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, WPARAM(columnName), NULL);
+		::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, WPARAM(columnName1), LPARAM(columnName2));
 	}
 	
 	return true;

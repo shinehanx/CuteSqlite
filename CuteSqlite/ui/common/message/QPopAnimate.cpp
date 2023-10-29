@@ -16,6 +16,11 @@ void QPopAnimate::error(HWND parentHwnd, std::wstring & text)
 	win->ShowWindow(SW_SHOW);
 }
 
+void QPopAnimate::error(std::wstring & text)
+{
+	QPopAnimate::error(AppContext::getInstance()->getMainFrmHwnd(), text);
+}
+
 void QPopAnimate::report(HWND parentHwnd, const std::wstring & code, const std::wstring & text)
 {
 	QPopAnimate * win = new QPopAnimate();
@@ -28,6 +33,21 @@ void QPopAnimate::report(HWND parentHwnd, const std::wstring & code, const std::
 	win->ShowWindow(SW_SHOW);
 }
 
+void QPopAnimate::report(HWND parentHwnd, const QRuntimeException & ex)
+{
+	QPopAnimate::report(parentHwnd, ex.getCode(), ex.getMsg());
+}
+
+void QPopAnimate::report(const QRuntimeException & ex)
+{
+	QPopAnimate::report(AppContext::getInstance()->getMainFrmHwnd(), ex.getCode(), ex.getMsg());
+}
+
+
+void QPopAnimate::report(const QSqlExecuteException & ex)
+{
+	QPopAnimate::report(AppContext::getInstance()->getMainFrmHwnd(), ex.getCode(), ex.getMsg());
+}
 
 void QPopAnimate::success(HWND parentHwnd, std::wstring & text)
 {
@@ -39,6 +59,11 @@ void QPopAnimate::success(HWND parentHwnd, std::wstring & text)
 	win->ShowWindow(SW_SHOW);
 }
 
+void QPopAnimate::success(std::wstring & text)
+{
+	QPopAnimate::success(AppContext::getInstance()->getMainFrmHwnd(), text);
+}
+
 void QPopAnimate::warn(HWND parentHwnd, std::wstring & text)
 {
 	QPopAnimate * win = new QPopAnimate();
@@ -47,6 +72,11 @@ void QPopAnimate::warn(HWND parentHwnd, std::wstring & text)
 	win->setImagePath(imagePath);
 	win->Create(parentHwnd);
 	win->ShowWindow(SW_SHOW);
+}
+
+void QPopAnimate::warn(std::wstring & text)
+{
+	QPopAnimate::warn(AppContext::getInstance()->getMainFrmHwnd(), text);
 }
 
 void QPopAnimate::setup(const std::wstring & text)

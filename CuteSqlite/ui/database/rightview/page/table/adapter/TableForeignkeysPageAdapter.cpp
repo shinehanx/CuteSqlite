@@ -68,7 +68,10 @@ void TableForeignkeysPageAdapter::loadHeadersForListView()
 
 int TableForeignkeysPageAdapter::loadEmptyRowsForListView()
 {	
-	
+	ForeignKey item1{L"ctsqlite_auto_foreign_key_1", L"Foreign Key", L"class_id", L"analysis_sample_class", L"id", L"CASCADE", L"SET NULL"};
+	ForeignKey item2{L"ctsqlite_auto_foreign_key_2", L"Foreign Key", L"inspection_id", L"analysis_hair_inspection", L"id", L"CASCADE", L"SET NULL"};
+	supplier->setFrkRuntimeDatas(ForeignKeyList({ item1 , item2 }));
+	dataView->SetItemCount(2);
 	return 1;
 }
 
@@ -77,7 +80,6 @@ int TableForeignkeysPageAdapter::loadForeignkeyRowsForListView(uint64_t userDbId
 {
 	auto frkRuntimeDatas = tableService->getForeignKeyList(userDbId, tblName, schema);
 	supplier->setFrkRuntimeDatas(frkRuntimeDatas);
-	supplier->setFrkOrigDatas(frkRuntimeDatas);
 	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -123,10 +125,10 @@ int TableForeignkeysPageAdapter::getSelIndexType(const std::wstring & dataType)
 
 void TableForeignkeysPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 {
-	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	std::vector<int> nSelItems;
 	for (int i = 0; i < n; i++) {
-		auto item = supplier->getIdxRuntimeDatas().at(i);
+		auto item = supplier->getFrkRuntimeDatas().at(i);
 		if (StringUtil::toupper(item.type) == StringUtil::toupper(TableStructureSupplier::idxTypeList.at(1))) { // indexTypeList[1] : primary key
 			nSelItems.push_back(i);
 		}
@@ -141,7 +143,7 @@ void TableForeignkeysPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 	}
 
 	// Generate columns string, such as "id,name,..."
-	IndexInfo row;
+	ForeignKey row;
 	row.type = TableStructureSupplier::idxTypeList.at(1);// indexTypeList[1] : primary key
 	int nCols = static_cast<int>(pkColumns.size());
 	for (int i = 0; i < nCols; i++) {
@@ -154,15 +156,15 @@ void TableForeignkeysPageAdapter::changePrimaryKey(ColumnInfoList & pkColumns)
 
 	// insert/or modify the primary key row to ListView
 	if (nSelItems.empty()) {
-		supplier->getIdxRuntimeDatas().insert(supplier->getIdxRuntimeDatas().begin(), row); // insert to the first
+		supplier->getFrkRuntimeDatas().insert(supplier->getFrkRuntimeDatas().begin(), row); // insert to the first
 	} else {
-		auto & oneIndex = supplier->getIdxRuntimeDatas().at(nSelItems.at(0));
+		auto & oneIndex = supplier->getFrkRuntimeDatas().at(nSelItems.at(0));
 		oneIndex.columns = row.columns; // modify columns string
 		invalidateSubItem(nSelItems.at(0), 1); // 2th param = 1 - primary key
 	}
 
 	// update the item count and selected the new row	
-	n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	dataView->SetItemCount(n);
 }
 
@@ -178,7 +180,7 @@ LRESULT TableForeignkeysPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pL
 	if (-1 == iItem)
 		return 0;
 
-	auto count = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	auto count = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	if (!count || count <= iItem)
 		return 0;
 
@@ -193,18 +195,30 @@ LRESULT TableForeignkeysPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pL
 		}
 		
 		return 0;
-	} else  if (pLvdi->item.iSubItem == 3 && pLvdi->item.mask & LVIF_TEXT) { // set dataType - 2
-		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).type;
+	} else  if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT) { // name
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).name;
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);		
 		return 0;
-	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // index name
-		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).name;	
-		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	} else if (pLvdi->item.iSubItem == 2 && pLvdi->item.mask & LVIF_TEXT){ // columns
-		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).columns;	
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).columns;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
+	} else if (pLvdi->item.iSubItem == 3 && pLvdi->item.mask & LVIF_TEXT){ // referenced table
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).referencedTable;
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
+	} else if (pLvdi->item.iSubItem == 4 && pLvdi->item.mask & LVIF_TEXT){ // referenced columns
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).referencedColumns;	
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
+	} else if (pLvdi->item.iSubItem == 5 && pLvdi->item.mask & LVIF_TEXT){ // referenced columns
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).onUpdate;	
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
+	} else if (pLvdi->item.iSubItem == 6 && pLvdi->item.mask & LVIF_TEXT){ // referenced columns
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).onDelete;	
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
 	}
 
 	return 0;
@@ -214,28 +228,21 @@ void TableForeignkeysPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
 	
-	auto & runtimeDatas = supplier->getIdxRuntimeDatas();
+	auto & runtimeDatas = supplier->getFrkRuntimeDatas();
 	if (iSubItem == 1) { // column name
 		runtimeDatas[iItem].name = newText;
 	} else if (iSubItem == 2) { // columns
 		runtimeDatas[iItem].columns = newText;
-		if (runtimeDatas[iItem].type == getSupplier()->idxTypeList.at(1)) { // 1 - Primary Key
-			auto colVector = StringUtil::split(newText, L",");
-			if (colVector.size() > 1) {
-				runtimeDatas[iItem].ai = 0;
-			}
-		}
-	} else if (iSubItem == 3) { // index type 
-		runtimeDatas[iItem].type = newText;
-	} 
+	} else if (iSubItem == 3) { // referenced column
+		runtimeDatas[iItem].referencedTable = newText;
+	} else if (iSubItem == 4) { // referenced column
+		runtimeDatas[iItem].referencedColumns = newText;
+	} else if (iSubItem == 5) { // on update
+		runtimeDatas[iItem].onUpdate = newText;
+	} else if (iSubItem == 6) { // on delete
+		runtimeDatas[iItem].onDelete = newText;
+	}
 
-	SubItemValue subItemVal;
-	subItemVal.iItem = iItem;
-	subItemVal.iSubItem = iSubItem;
-	subItemVal.origVal = origText;
-	subItemVal.newVal = newText;
-
-	dataView->setChangeVal(subItemVal);
 }
 
 void TableForeignkeysPageAdapter::invalidateSubItem(int iItem, int iSubItem)
@@ -248,22 +255,22 @@ void TableForeignkeysPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 void TableForeignkeysPageAdapter::createNewIndex()
 {
 	// 1.create a empty row and push it to runtimeDatas list
-	IndexInfo row;
+	ForeignKey row;
 	row.name = L"";
-	supplier->getIdxRuntimeDatas().push_back(row);
+	supplier->getFrkRuntimeDatas().push_back(row);
 
 	// 2.update the item count and selected the new row	
-	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	dataView->SetItemCount(n);
 
 }
 
-bool TableForeignkeysPageAdapter::deleteSelIndexes(bool confirm)
+bool TableForeignkeysPageAdapter::deleteSelForeignKeys(bool confirm)
 {
 	if (!dataView->GetSelectedCount()) {
 		return false;
 	}
-	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-index-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-foreign-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
 		return false;
 	}
 		
@@ -282,13 +289,10 @@ bool TableForeignkeysPageAdapter::deleteSelIndexes(bool confirm)
 	int n = static_cast<int>(nSelItems.size());
 	for (int i = n - 1; i >= 0; i--) {
 		nSelItem = nSelItems.at(i);
-		auto & indexInfo = supplier->getIdxRuntimeDatas().at(nSelItem);
-		// 2.0 update related TableColumnsPage runtime data through indexInfo.columns
-		supplier->updateRelatedColumnsIfDeleteIndex(indexInfo);
-		
+		auto & foreignKey = supplier->getFrkRuntimeDatas().at(nSelItem);
+	
 		// 2.1 delete row from runtimeDatas vector and origDatas
-		supplier->eraseIdxRuntimeData(nSelItem);
-		supplier->eraseIdxOrigData(nSelItem);
+		supplier->eraseFrkRuntimeData(nSelItem);
 
 		// 2.2 delete row from dataView 
 		dataView->RemoveItem(nSelItem);		
@@ -300,49 +304,16 @@ bool TableForeignkeysPageAdapter::deleteSelIndexes(bool confirm)
 
 void TableForeignkeysPageAdapter::removeSelectedItem(int nSelItem)
 {
-	auto iter = supplier->getIdxRuntimeDatas().begin();
-	for (int j = 0; j < nSelItem; j++) {
-		iter++;
-	}
-
-	// 1 delete row from runtimeDatas vector 
-	supplier->getIdxRuntimeDatas().erase(iter);
+	supplier->eraseFrkRuntimeData(nSelItem);
 
 	// 2 delete row from dataView
 	dataView->RemoveItem(nSelItem);
 }
 
-
-/**
- * change columns value in listView of TableForeinkeysPage when TableColumnsPage changing column name.
- * 
- * @param oldColumnName
- * @param newColumnName
- */
-void TableForeignkeysPageAdapter::changeTableColumnName(const std::wstring & oldColumnName, const std::wstring & newColumnName)
-{
-	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
-	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
-	int n = static_cast<int>(indexes.size());
-	for (int i = 0; i < n; i++) {
-		auto & item = indexes.at(i);
-		auto columns = StringUtil::split(item.columns, L",");
-		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
-		if (iter == columns.end()) {
-			continue;
-		}
-		(*iter) = newColumnName;
-		item.columns = StringUtil::implode(columns, L",");
-
-		invalidateSubItem(i, 2); // 2 - columns 
-	}
-}
-
-
 void TableForeignkeysPageAdapter::deleteTableColumnName(const std::wstring & columnName)
 {
 	ATLASSERT(!columnName.empty());
-	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
+	ForeignKeyList & indexes = supplier->getFrkRuntimeDatas();
 
 	int n = static_cast<int>(indexes.size());
 	std::stack<int> delItemStack;
@@ -373,16 +344,22 @@ void TableForeignkeysPageAdapter::deleteTableColumnName(const std::wstring & col
 std::wstring TableForeignkeysPageAdapter::getSubItemString(int iItem, int iSubItem)
 {
 	ATLASSERT(iItem >= 0 && iSubItem > 0);
-	if (supplier->getIdxRuntimeDatas().empty()) {
+	if (supplier->getFrkRuntimeDatas().empty()) {
 		return L"";
 	}
 	if (iSubItem == 1) {
-		return supplier->getIdxRuntimeDatas().at(iItem).name;
+		return supplier->getFrkRuntimeDatas().at(iItem).name;
 	} else if (iSubItem == 2) {
-		return supplier->getIdxRuntimeDatas().at(iItem).columns;
+		return supplier->getFrkRuntimeDatas().at(iItem).columns;
 	} else if (iSubItem == 3) {
-		return supplier->getIdxRuntimeDatas().at(iItem).type;
-	} 
+		return supplier->getFrkRuntimeDatas().at(iItem).referencedTable;
+	} else if (iSubItem == 4) {
+		return supplier->getFrkRuntimeDatas().at(iItem).referencedColumns;
+	} else if (iSubItem == 5) {
+		return supplier->getFrkRuntimeDatas().at(iItem).onUpdate;
+	} else if (iSubItem == 6) {
+		return supplier->getFrkRuntimeDatas().at(iItem).onDelete;
+	}
 	return L"";
 }
 
@@ -398,12 +375,26 @@ void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickIte
 {
 	if (clickItem->iSubItem == 0) { // 0 - row checkBox
 		return ;
-	} else if (clickItem->iSubItem == 2) { // button
+	} else if (clickItem->iSubItem == 2 || clickItem->iSubItem == 4) { // 2 - columns, 4 - referenced columns
 		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 		return ;
-	} else if (clickItem->iSubItem == 3) {
-		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, TableStructureSupplier::idxTypeList, false);
+	} else if (clickItem->iSubItem == 3) { // 3 - a
+		UserTableList userTableList = tableService->getUserTables(supplier->getRuntimeUserDbId());
+		std::vector<std::wstring> tblNames;
+		for (auto & table : userTableList) {
+			if (table.name == supplier->getRuntimeTblName()) {
+				continue;
+			}
+			tblNames.push_back(table.name);
+		}
+		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, tblNames, false);
 		return ;	
+	} else if (clickItem->iSubItem == 5) { // 5. on update
+		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, supplier->frkOnUpdateTypeList, false);
+		return ;
+	} else if (clickItem->iSubItem == 6) { // 5. on delete
+		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, supplier->frkOnDeleteTypeList, false);
+		return ;
 	}
 
 	// show the editor
@@ -416,19 +407,19 @@ void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickIte
  * @param hasAutoIncrement
  * @return 
  */
-std::wstring TableForeignkeysPageAdapter::genderateCreateIndexesSqlClause(bool hasAutoIncrement)
+std::wstring TableForeignkeysPageAdapter::genderateCreateForeignKeyClause()
 {
 	std::wstring ss;
-	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	wchar_t blk[5] = { 0, 0, 0, 0, 0 };
 	wmemset(blk, 0x20, 4); // 4 blank chars
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
 			ss.append(L",").append(L"\n");
 		}
-		auto item = supplier->getIdxRuntimeDatas().at(i);
+		auto item = supplier->getFrkRuntimeDatas().at(i);
 		ss.append(blk);
-		generateOneIndexSqlClause(item, ss, hasAutoIncrement);
+		generateOneForeignKeyClause(item, ss);
 	}
 	return ss;
 }
@@ -440,24 +431,29 @@ std::wstring TableForeignkeysPageAdapter::genderateCreateIndexesSqlClause(bool h
  * @param ss
  * @param hasAutoIncrement
  */
-void TableForeignkeysPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement)
+void TableForeignkeysPageAdapter::generateOneForeignKeyClause(ForeignKey &item, std::wstring &ss)
 {
 	if (!item.name.empty()) {
 		ss.append(L"CONSTRAINT \"").append(item.name).append(L"\"").append(L" ");
 	}
-	if (!item.type.empty()) {
-		ss.append(StringUtil::toupper(item.type)).append(L"(");
-	}
+	ss.append(L"FOREIGN KEY ");
 	if (!item.columns.empty()) {
-		ss.append(item.columns);
+		ss.append(L"(").append(item.columns).append(L") ");
+	}
+	ss.append(L"REFERENCES ");
+	if (!item.referencedTable.empty()) {
+		ss.append(L"\"").append(item.referencedTable).append(L"\" ");
+	}
+	if (!item.referencedColumns.empty()) {
+		ss.append(L"(").append(item.referencedColumns).append(L") ");
 	}
 
-	if (hasAutoIncrement && item.type == TableStructureSupplier::idxTypeList[1]) {// idxTypeList[1] - Primary key
-		ss.append(L" AUTOINCREMENT");
+	if (!item.onDelete.empty()) {
+		ss.append(L"ON DELETE ").append(item.onDelete).append(L" ");
 	}
 
-	if (!item.type.empty()) {
-		ss.append(L")");
+	if (!item.onUpdate.empty()) {
+		ss.append(L"ON UPDATE ").append(item.onUpdate).append(L" ");
 	}
 }
 
@@ -469,7 +465,7 @@ void TableForeignkeysPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std
  */
 bool TableForeignkeysPageAdapter::verifyIfDuplicatedPrimaryKey(int iItem)
 {
-	auto & idxRuntimeDatas = supplier->getIdxRuntimeDatas();
+	auto & idxRuntimeDatas = supplier->getFrkRuntimeDatas();
 	int n = static_cast<int>(idxRuntimeDatas.size());
 	for (int i = 0; i < n; i++) {
 		if (i == iItem) {

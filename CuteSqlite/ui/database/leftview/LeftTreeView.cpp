@@ -157,7 +157,7 @@ void LeftTreeView::createOrShowSelectedDbComboBox(CComboBox & win, CRect & clien
 	int x = clientRect.right - 1 - TREEVIEW_COMBOBOX_WIDTH, y = 5, w = TREEVIEW_COMBOBOX_WIDTH, h = TREEVIEW_COMBOBOX_HEIGHT;
 	CRect rect(x, y, x + w, y + h);
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | CBS_DROPDOWNLIST | CBS_HASSTRINGS, 
+		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_AUTOHSCROLL, 
 			0, Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID);
 		return;
 	}
@@ -556,21 +556,16 @@ void LeftTreeView::OnClickAlterTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	doAlterTable();
 }
 
-void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+void LeftTreeView::OnClickRenameTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	uint64_t userDbId = treeViewAdapter->getSeletedUserDbId();
-	std::wstring tblName, schema;
-
-	HTREEITEM hSelItem = treeView.GetSelectedItem();
-	if (!hSelItem) {
-		return ;
+	if (tableMenuAdapter->renameTable()) {
+		doRefreshDatabase();
 	}
-	wchar_t * cch = nullptr;
-	treeView.GetItemText(hSelItem, cch);
-	tblName.assign(cch);
-	::SysFreeString(cch);
-	
-	tableMenuAdapter->openTable(userDbId,  tblName, schema);
+}
+
+void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{	
+	tableMenuAdapter->openTable();
 }
 
 LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)

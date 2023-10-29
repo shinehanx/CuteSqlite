@@ -60,12 +60,19 @@ public:
 	// sql statements
 	std::vector<std::wstring> sqlVector;
 
-	// selected table name
-	std::wstring selectTable;
+	// selected schema
+	std::wstring selectedSchema;
 
-	// New view name
+	// selected table name
+	std::wstring selectedTable;
+
+	// New view name	
 	std::wstring newViewName;
 	std::wstring newTriggerName;
+
+	// Rename table
+	std::wstring oldTableName;
+	std::wstring newTableName;
 
 	// // --------------------------------
 

@@ -224,6 +224,15 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_IMPORT_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 	createImageList();
 
 	topbarBrush = ::CreateSolidBrush(topbarColor);
@@ -238,6 +247,15 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_SQL_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 	if (topbarBrush) ::DeleteObject(topbarBrush);
@@ -493,7 +511,7 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
  */
 LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (supplier->selectTable.empty()) {
+	if (supplier->selectedTable.empty()) {
 		return 0;
 	}
 	// 1.find the queryPage title is equal select table name
@@ -503,7 +521,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		HWND pageHwnd = tabView.GetPageHWND(i);
 		std::wstring title = tabView.GetPageTitle(i);
 		StringUtil::trim(title); // trim the title
-		if (title != supplier->selectTable) {
+		if (title != supplier->selectedTable) {
 			continue;
 		}
 
@@ -517,7 +535,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		tabView.SetActivePage(foundQueryPage);
 		QueryPage * tableDataPage = (*iter);
 		tableDataPage->getResultTabView().activeTableDataPage(); // active first
-		tableDataPage->getResultTabView().loadTableDatas(supplier->selectTable);
+		tableDataPage->getResultTabView().loadTableDatas(supplier->selectedTable);
 		return 0;
 	}
 
@@ -532,13 +550,13 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		queryPagePtrs.push_back(tableDataPage);
 
 		// nImage = 3 : view 
-		std::wstring tblName = supplier->selectTable;
+		std::wstring tblName = supplier->selectedTable;
 		tabView.AddPage(tableDataPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableDataPage);
 		foundQueryPage = tabView.GetPageCount() - 1;
 		supplier->activeTabPageHwnd = tableDataPage->m_hWnd;
 		tabView.SetActivePage(foundQueryPage);	
 		tableDataPage->getResultTabView().activeTableDataPage();
-		tableDataPage->getResultTabView().loadTableDatas(supplier->selectTable);
+		tableDataPage->getResultTabView().loadTableDatas(supplier->selectedTable);
 	}
 
 	
@@ -547,7 +565,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	ATLASSERT(!supplier->selectTable.empty()); 
+	ATLASSERT(!supplier->selectedTable.empty()); 
 
 	// 1.find the queryPage title is equal select table name
 	int n = tabView.GetPageCount();
@@ -556,7 +574,7 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		HWND pageHwnd = tabView.GetPageHWND(i);
 		std::wstring title = tabView.GetPageTitle(i);
 		StringUtil::trim(title); // trim the title
-		if (title != supplier->selectTable) {
+		if (title != supplier->selectedTable) {
 			continue;
 		}
 		uint64_t userDbId = supplier->getSelectedUserDbId();
@@ -580,16 +598,21 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		CRect clientRect;
 		GetClientRect(clientRect);
 		TableStructurePage * tableStructPage = new TableStructurePage();
-		tableStructPage->setup(TblOperateType::MOD_TABLE, supplier->selectTable);
+		tableStructPage->setup(TblOperateType::MOD_TABLE, supplier->selectedTable);
 		createOrShowTableStructurePage(*tableStructPage, clientRect);
 		tablePagePtrs.push_back(tableStructPage);
 
-		std::wstring tblName = supplier->selectTable;
+		std::wstring tblName = supplier->selectedTable;
 		tabView.AddPage(tableStructPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 2, tableStructPage);
 		foundPage = tabView.GetPageCount() - 1;
 		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
 		tabView.SetActivePage(foundPage);
 	}
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickRenameTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
 	return 0;
 }
 

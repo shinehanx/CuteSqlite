@@ -24,6 +24,9 @@
 #include "core/common/Lang.h"
 #include "utils/MenuUtil.h"
 #include "common/AppContext.h"
+#include "ui/database/leftview/dialog/RenameTableDialog.h"
+#include "ui/common/message/QPopAnimate.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
@@ -40,6 +43,7 @@ TableMenuAdapter::~TableMenuAdapter()
 	if (openTableIcon) ::DeleteObject(openTableIcon);
 	if (createTableIcon) ::DeleteObject(createTableIcon);
 	if (alterTableIcon) ::DeleteObject(alterTableIcon);
+	if (renameTableIcon) ::DeleteObject(renameTableIcon);
 	if (trucateTableIcon) ::DeleteObject(trucateTableIcon);
 	if (dropTableIcon) ::DeleteObject(dropTableIcon);
 	if (copyTableIcon) ::DeleteObject(copyTableIcon);
@@ -58,6 +62,7 @@ void TableMenuAdapter::createImageList()
 	openTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\open-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	createTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\create-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	alterTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\alter-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	renameTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\rename-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	trucateTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\truncate-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dropTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\drop-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	copyTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\copy.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
@@ -74,6 +79,7 @@ void TableMenuAdapter::createMenu()
 	menu.AppendMenu(MF_STRING, Config::TABLE_OPEN_MENU_ID, S(L"table-open").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_CREATE_MENU_ID, S(L"table-create").c_str()); 
 	menu.AppendMenu(MF_STRING, Config::TABLE_ALTER_MENU_ID, S(L"table-alter").c_str());
+	menu.AppendMenu(MF_STRING, Config::TABLE_RENAME_MENU_ID, S(L"table-rename").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_TRUCATE_MENU_ID, S(L"table-truncate").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_DROP_MENU_ID, S(L"table-drop").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_COPY_MENU_ID, S(L"table-copy-as").c_str());
@@ -97,6 +103,7 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_OPEN_MENU_ID, MF_BYCOMMAND, openTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_CREATE_MENU_ID, MF_BYCOMMAND, createTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_ALTER_MENU_ID, MF_BYCOMMAND, alterTableIcon);
+	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_RENAME_MENU_ID, MF_BYCOMMAND, renameTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_TRUCATE_MENU_ID, MF_BYCOMMAND, trucateTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_DROP_MENU_ID, MF_BYCOMMAND, dropTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_COPY_MENU_ID, MF_BYCOMMAND, copyTableIcon);
@@ -106,6 +113,24 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_PROPERTIES_MENU_ID, MF_BYCOMMAND, propertiesIcon);
 	
+}
+
+
+bool TableMenuAdapter::renameTable()
+{
+	RenameTableDialog dialog(parentHwnd);
+	if (dialog.DoModal(parentHwnd) == Config::QDIALOG_YES_BUTTON_ID) {
+		try {
+			tableService->renameTable(supplier->getSelectedUserDbId(), supplier->oldTableName, supplier->newTableName, supplier->selectedSchema);
+			QPopAnimate::success(S(L"rename-table-success-text"));
+			return true;
+		} catch (QSqlExecuteException &ex) {
+			QPopAnimate::report(ex);
+		} catch (QRuntimeException &ex) {
+			QPopAnimate::report(ex);
+		}
+	}
+	return false;
 }
 
 void TableMenuAdapter::popupMenu(CPoint & pt)
@@ -120,7 +145,7 @@ void TableMenuAdapter::popupMenu(CPoint & pt)
  * @param tblName
  * @param schema
  */
-void TableMenuAdapter::openTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+void TableMenuAdapter::openTable()
 {
 	AppContext::getInstance()->dispatch(Config::MSG_SHOW_TABLE_DATA_ID, NULL, NULL);
 }

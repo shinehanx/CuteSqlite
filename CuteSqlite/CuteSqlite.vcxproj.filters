@@ -297,6 +297,15 @@
     <ClCompile Include="ui\database\rightview\page\table\TableForeignkeysPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\table\dialog\AbstractTableColumnsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\table\dialog\TableForeignkeyColumnsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -627,6 +636,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\table\TableForeignkeysPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\table\dialog\AbstractTableColumnsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\table\dialog\TableForeignkeyColumnsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

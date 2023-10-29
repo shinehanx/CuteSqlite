@@ -1107,12 +1107,14 @@ void QListViewCtrl::OnDestroy()
 	if (btnDownBrush) ::DeleteObject(btnDownBrush),btnDownBrush = nullptr;
 	if (chkBrush) ::DeleteObject(chkBrush),btnDownBrush = nullptr;
 	if (selSubItemBorderBrush) ::DeleteObject(selSubItemBorderBrush), selSubItemBorderBrush = nullptr;
-	if (!chkBorderPen.IsNull()) chkBorderPen.DeleteObject();
+	
 	if (textFont) ::DeleteObject(textFont), textFont = nullptr;
 	if (comboFont) ::DeleteObject(comboFont),comboFont = nullptr;
 	if (normalFont) ::DeleteObject(normalFont),normalFont = nullptr;
+
 	if (!borderPen.IsNull()) borderPen.DeleteObject();
 	if (!btnBorderPen.IsNull()) btnBorderPen.DeleteObject();
+	if (!chkBorderPen.IsNull()) chkBorderPen.DeleteObject();
 	if (!selSubItemBorderPen.IsNull()) selSubItemBorderPen.DeleteObject();
 
 	if (subItemEdit.IsWindow()) subItemEdit.DestroyWindow();
@@ -1127,17 +1129,15 @@ void QListViewCtrl::OnDestroy()
 	// release subItemButtonMap
 	subItemButtonMap.clear();
 
-	if (!imageList.IsNull()) {
-		imageList.Destroy();
-	}
-
 	if (!checkYesBitmap.IsNull()) {
-		::DeleteObject(checkYesBitmap);
-		checkYesBitmap.Detach();
+		checkYesBitmap.DeleteObject();
 	}
 	if (!checkNoBitmap.IsNull()) {
-		::DeleteObject(checkNoBitmap);
-		checkNoBitmap.Detach();
+		checkNoBitmap.DeleteObject();
+	}
+
+	if (!imageList.IsNull()) {
+		imageList.Destroy();
 	}
 }
 
@@ -1645,7 +1645,7 @@ void QListViewCtrl::createOrShowComboBox(int iItem, int iSubItem, const std::vec
 void QListViewCtrl::createOrShowSubItemComboBox(CComboBox & win, CRect & rect, bool allowEdit)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS | CBS_AUTOHSCROLL; 
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS | CBS_AUTOHSCROLL | WS_VSCROLL; 
 		if (allowEdit) {
 			dwStyle = dwStyle | CBS_DROPDOWN;
 		} else {

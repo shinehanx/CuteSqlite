@@ -262,19 +262,13 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 {
 	const SubItemValues &changedVals = listView.getChangedVals();
 	for (auto &val : changedVals) {
-		
 		//change the columns of TableIndexesPage that including this changed column name
-		if (val.iSubItem == 1) { // 1 - column name			
+		if (val.iSubItem == 1) { // 1 - column name
 			auto & origName = supplier->getColsRuntimeDatas().at(val.iItem).name;
 			auto & newName = val.newVal;
-			
-			std::wstring * origBuff = new std::wstring(origName);
-			std::wstring * newBuff = new std::wstring(newName);
-			Q_DEBUG(L"TableColumnsPage->changeColumnName send, wParam:{}, lParam:{}", *origBuff, *newBuff);
-
-			// TableColumnsPage($this)->QTabView($tabView)->QTableTabView  ------ then trans to --> TableIndexesPage
-			HWND pHwnd = GetParent().GetParent().m_hWnd;
-			::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, WPARAM(origBuff), LPARAM(newBuff));
+			if (origName != newName) {
+				supplier->updateRelatedColumnsIfChangeColumnName(origName, newName);
+			}			
 		}
 
 		adapter->changeRuntimeDatasItem(val.iItem, val.iSubItem, val.newVal);

@@ -46,7 +46,7 @@ UserIndexList IndexUserRepository::getListByTblName(uint64_t userDbId, const std
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200020", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200080", L"sorry, system has error when loading databases.");
 	}
 }
 
@@ -72,7 +72,7 @@ IndexInfoList IndexUserRepository::getInfoListByTblName(uint64_t userDbId, const
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200081", L"sorry, system has error when loading databases.");
 	}
 }
 

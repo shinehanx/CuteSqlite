@@ -12,6 +12,8 @@
 #include <atlcrack.h>
 #include <string>
 #include "resource.h"
+#include "core/common/exception/QRuntimeException.h"
+#include "core/common/exception/QSqlExecuteException.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/button/QImageButton.h"
 
@@ -38,11 +40,21 @@ public:
 		POP_COMMON_TEXT,// common text text, close by timer
 		POP_REPORT_TEXT // report code/msg, close by user
 	} PopType;
-	static void error(HWND parentHwnd, std::wstring & text);
-	static void success(HWND parentHwnd, std::wstring & text);
-	static void warn(HWND parentHwnd, std::wstring & text);
-	static void report(HWND parentHwnd, const std::wstring & code, const std::wstring & text);
 
+	static void error(HWND parentHwnd, std::wstring & text);
+	static void error(std::wstring & text);
+
+	static void success(HWND parentHwnd, std::wstring & text);
+	static void success(std::wstring & text);
+
+	static void warn(HWND parentHwnd, std::wstring & text);
+	static void warn(std::wstring & text);
+
+	static void report(HWND parentHwnd, const std::wstring & code, const std::wstring & text);
+	static void report(HWND parentHwnd, const QRuntimeException & ex);
+	static void report(const QRuntimeException & ex);
+	static void report(const QSqlExecuteException & ex);
+	
 	void setup(const std::wstring & text);
 	void setup(const std::wstring & code, const std::wstring &text);
 	void setSize(int w, int h);

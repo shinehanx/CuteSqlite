@@ -12,6 +12,7 @@
 
 // 取指定语言的字符串
 #define S(key) Lang::lang(key)
+#define E(key) Lang::error(key)
 
 // 取指定语言的字体
 #define FT(key) Lang::font(key)
@@ -28,6 +29,11 @@ public:
 	 * 获得指定语言的文本.
 	 */
 	static std::wstring lang(const wchar_t * key);
+
+	/**
+	 * 获得指定语言的文本.
+	 */
+	static std::wstring error(const std::wstring & key);
 
 	/**
 	 * 获得指定语言的字体.

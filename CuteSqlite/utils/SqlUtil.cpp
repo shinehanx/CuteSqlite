@@ -866,7 +866,7 @@ ColumnInfo SqlUtil::parseColumnFromLine(const std::wstring& line)
 			auto iter = std::find_if(words.begin(), words.end(), [](std::wstring &str) {
 				return StringUtil::toupper(str) == L"DEFAULT";
 			});
-			while (++iter != words.end()) {
+			while (iter != words.end() && ++iter != words.end()) {
 				if ((*iter).empty()) {
 					continue;
 				}
@@ -942,8 +942,9 @@ ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
 	}
 	
 	size_t defPos = -1;
-	if ((first != L"FOREIGN") // such as : FOREIGN KEY("id","name"...)
-		&& (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"FOREIGN")) { // such as : CONSTRAINT "idx_check"  FOREIGN KEY("uid")...
+	if (words.size() <= 2 || 
+		((first != L"FOREIGN") // such as : FOREIGN KEY("id","name"...)
+		&& (words.size() > 2 && StringUtil::toupper(words.at(2)) != L"FOREIGN"))) { // such as : CONSTRAINT "idx_check"  FOREIGN KEY("uid")...
 		return result;
 	}
 		
@@ -971,7 +972,7 @@ ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
 		
 	// 3. fetch on update / on delete
 	size_t n = words.size();
-	for (int i = 0; i < n - 2; i++) {
+	for (size_t i = 0; i < n - 2; i++) {
 		auto word = StringUtil::toupper(words.at(i));
 		std::wstring next1 = (i + 1) < n ? StringUtil::toupper(words.at(i + 1)) : L"";
 		std::wstring next2 = (i + 2) < n ? StringUtil::toupper(words.at(i + 2)) : L"";

@@ -100,7 +100,7 @@ uint64_t TableUserRepository::getDataCount(uint64_t userDbId, const std::wstring
 	catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
 	}
 }
 
@@ -127,7 +127,7 @@ DataList TableUserRepository::getPageDataList(uint64_t userDbId, const std::wstr
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
+		throw QRuntimeException(L"200023", L"sorry, system has error when loading databases.");
 	}
 }
 
@@ -136,16 +136,32 @@ void TableUserRepository::execBySql(uint64_t userDbId, const std::wstring & sql)
 {
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
-		if (query.exec()) {
-
-		}
+		query.exec();
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
 		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err);
-		ex.setErrRow(1);
-		ex.setErrCol(200);
+		
 		throw ex;
+	}
+}
+
+void TableUserRepository::renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema)
+{
+	std::wstring ddl = L"ALTER TABLE ";
+	if (!schema.empty() && schema != L"main") {
+		ddl.append(schema).append(L".");
+	}
+	ddl.append(L"\"").append(oldTableName).append(L"\" RENAME TO ")
+		.append(L"\"").append(newTableName).append(L"\"");
+
+	try {
+		QSqlStatement query(getUserConnect(userDbId), ddl.c_str());
+		query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);		
+		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
 	}
 }
 

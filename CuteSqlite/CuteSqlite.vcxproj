@@ -298,6 +298,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\leftview\adapter\TableMenuAdapter.cpp" />
     <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
+    <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\TriggerDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\ViewDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\HistoryPage.cpp" />
@@ -307,6 +308,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\rightview\page\result\dialog\ExportResultDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\result\dialog\ResultFilterDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableForeignkeysPageAdapter.cpp" />
+    <ClCompile Include="ui\database\rightview\page\table\dialog\AbstractTableColumnsDialog.cpp" />
+    <ClCompile Include="ui\database\rightview\page\table\dialog\TableForeignkeyColumnsDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\dialog\TableIndexColumnsDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\result\form\RowDataFormView.cpp" />
     <ClCompile Include="ui\database\rightview\page\result\ResultInfoPage.cpp" />
@@ -404,6 +407,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\leftview\adapter\LeftTreeViewAdapter.h" />
     <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
+    <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\TriggerDialog.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\ViewDialog.h" />
     <ClInclude Include="ui\database\rightview\page\HistoryPage.h" />
@@ -413,6 +417,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\page\result\dialog\ExportResultDialog.h" />
     <ClInclude Include="ui\database\rightview\page\result\dialog\ResultFilterDialog.h" />
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableForeignkeysPageAdapter.h" />
+    <ClInclude Include="ui\database\rightview\page\table\dialog\AbstractTableColumnsDialog.h" />
+    <ClInclude Include="ui\database\rightview\page\table\dialog\TableForeignkeyColumnsDialog.h" />
     <ClInclude Include="ui\database\rightview\page\table\dialog\TableIndexColumnsDialog.h" />
     <ClInclude Include="ui\database\rightview\page\result\form\RowDataFormView.h" />
     <ClInclude Include="ui\database\rightview\page\result\ResultInfoPage.h" />

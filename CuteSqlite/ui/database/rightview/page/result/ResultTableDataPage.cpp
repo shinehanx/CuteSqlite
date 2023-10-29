@@ -62,7 +62,7 @@ void ResultTableDataPage::loadWindow()
 {
 	ResultListPage::loadWindow();
 
-	if (!supplier || supplier->selectTable.empty()) {
+	if (!supplier || supplier->selectedTable.empty()) {
 		return ;
 	}
 	/*

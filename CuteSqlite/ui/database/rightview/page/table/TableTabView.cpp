@@ -49,6 +49,13 @@ TableIndexesPage & TableTabView::getTableIndexesPage()
 	return tableIndexesPage;
 }
 
+
+TableForeignkeysPage & TableTabView::getTableForeignkeysPage()
+{
+	ATLASSERT(tableForeinkeysPage.IsWindow());
+	return tableForeinkeysPage;
+}
+
 void TableTabView::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -229,14 +236,9 @@ LRESULT TableTabView::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LP
 	return 0;
 }
 
-LRESULT TableTabView::OnTableColumsChangeColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, wParam, lParam);
-	return 0;
-}
-
 LRESULT TableTabView::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, wParam, lParam);
+	::PostMessage(tableForeinkeysPage.m_hWnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, wParam, lParam);
 	return 0;
 }

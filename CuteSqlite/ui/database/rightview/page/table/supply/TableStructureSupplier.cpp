@@ -94,20 +94,6 @@ void TableStructureSupplier::eraseIdxRuntimeData(int nSelItem)
 	idxRuntimeDatas.erase(iter);
 }
 
-
-void TableStructureSupplier::eraseIdxOrigData(int nSelItem)
-{
-	if (nSelItem >= static_cast<int>(idxOrigDatas.size())) {
-		return;
-	}
-	auto iter = idxOrigDatas.begin();
-	for (int j = 0; j < nSelItem; j++) {
-		iter++;
-	}
-	idxOrigDatas.erase(iter);
-}
-
-
 ForeignKey & TableStructureSupplier::getFrkRuntimeData(int nSelItem)
 {
 	if (nSelItem >= static_cast<int>(frkRuntimeDatas.size())) {
@@ -129,19 +115,6 @@ void TableStructureSupplier::eraseFrkRuntimeData(int nSelItem)
 	frkRuntimeDatas.erase(iter);
 }
 
-
-void TableStructureSupplier::eraseFrkOrigData(int nSelItem)
-{
-	if (nSelItem >= static_cast<int>(frkOrigDatas.size())) {
-		return;
-	}
-	auto iter = frkOrigDatas.begin();
-	for (int j = 0; j < nSelItem; j++) {
-		iter++;
-	}
-	frkOrigDatas.erase(iter);
-}
-
 /**
  * if delete index, update related column runtime data through should be deleted index.
  * 
@@ -157,7 +130,6 @@ void TableStructureSupplier::updateRelatedColumnsIfDeleteIndex(const IndexInfo &
 	int n = static_cast<int>(colsRuntimeDatas.size());
 	for (int i = 0; i < n; i++) {
 		ColumnInfo &columnInfo = colsRuntimeDatas.at(i);
-		ColumnInfo &origInfo = colsOrigDatas.at(i);		
 		
 		auto iter = std::find_if(columns.begin(), columns.end(), [&columnInfo](std::wstring &column) {
 			return columnInfo.name == column;
@@ -169,8 +141,6 @@ void TableStructureSupplier::updateRelatedColumnsIfDeleteIndex(const IndexInfo &
 
 		// change primary key column
 		if (delIndexInfo.type == idxTypeList.at(1)) { // 1- Primary Key
-			origInfo.pk = columnInfo.pk;
-			origInfo.ai = columnInfo.ai;
 
 			columnInfo.pk = 0;
 			columnInfo.ai = 0;
@@ -178,6 +148,11 @@ void TableStructureSupplier::updateRelatedColumnsIfDeleteIndex(const IndexInfo &
 	}
 }
 
+/**
+ * if delete index, update related column runtime data through should be deleted index.
+ * 
+ * @param indexInfo
+ */
 void TableStructureSupplier::updateRelatedColumnsIfChangeIndex(const IndexInfo & changeIndexInfo)
 {
 	if (changeIndexInfo.type.empty() || changeIndexInfo.columns.empty()) {
@@ -205,13 +180,66 @@ void TableStructureSupplier::updateRelatedColumnsIfChangeIndex(const IndexInfo &
 
 			columnInfo.pk = 1;
 			columnInfo.ai = changeIndexInfo.ai;
-		} 
-		/*
-		else if (changeIndexInfo.type == idxTypeList.at(0))  { // 0 - unique
-			origInfo.un = columnInfo.un;
-			columnInfo.un = 1;
-		}*/
+		} 		
 	}
 }
 
+/**
+ * if update column name, update related index column and foreign key column
+ * 
+ * @param origName
+ * @param newName
+ */
+void TableStructureSupplier::updateRelatedColumnsIfChangeColumnName(std::wstring& origName, const std::wstring& newName)
+{
+	// update column name of indexes
+	updateColumnNameInIdxRuntimeDatas(origName, newName);
+	// update column name of foreign keys
+	updateColumnNameInFrkRuntimeDatas(origName, newName);
+}
 
+/**
+ * change columns value in listView of TableIndexesPage when TableColumnsPage changing column name.
+ * 
+ * @param oldColumnName
+ * @param newColumnName
+ */
+void TableStructureSupplier::updateColumnNameInIdxRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName)
+{
+	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
+	IndexInfoList & indexes = getIdxRuntimeDatas();
+	int n = static_cast<int>(indexes.size());
+	for (int i = 0; i < n; i++) {
+		auto & item = indexes.at(i);
+		auto columns = StringUtil::split(item.columns, L",");
+		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
+		if (iter == columns.end()) {
+			continue;
+		}
+		(*iter) = newColumnName;
+		item.columns = StringUtil::implode(columns, L",");
+	}
+}
+
+/**
+ * change columns value in listView of TableForeinkeysPage when TableColumnsPage changing column name.
+ * 
+ * @param oldColumnName
+ * @param newColumnName
+ */
+void TableStructureSupplier::updateColumnNameInFrkRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName)
+{
+	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
+	ForeignKeyList & foreignKeys = getFrkRuntimeDatas();
+	int n = static_cast<int>(foreignKeys.size());
+	for (int i = 0; i < n; i++) {
+		auto & item = foreignKeys.at(i);
+		auto columns = StringUtil::split(item.columns, L",");
+		auto iter = std::find(columns.begin(), columns.end(), oldColumnName);
+		if (iter == columns.end()) {
+			continue;
+		}
+		(*iter) = newColumnName;
+		item.columns = StringUtil::implode(columns, L",");
+	}
+}

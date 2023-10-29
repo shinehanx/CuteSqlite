@@ -96,10 +96,7 @@ void TableStructurePage::createOrShowTblNameElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, 0);
 	rect.right += 120;
-	bool readOnly = false;
-	if (supplier->getOperateType() == MOD_TABLE) {
-		readOnly = true;
-	}
+	bool readOnly = supplier->getOperateType() == MOD_TABLE;
 	QWinCreater::createOrShowEdit(m_hWnd, tblNameEdit, Config::TABLE_TBL_NAME_EDIT_ID, supplier->getRuntimeTblName(), 
 		rect, clientRect, WS_CLIPCHILDREN | WS_CLIPSIBLINGS, readOnly);
 }
@@ -114,6 +111,7 @@ void TableStructurePage::createOrShowDatabaseElems(CRect & clientRect)
 	rect.OffsetRect(w + 5, -5);
 	rect.right += 120;
 	QWinCreater::createOrShowComboBox(m_hWnd, databaseComboBox, Config::TABLE_DATABASE_COMBOBOX_ID, rect, clientRect);
+	databaseComboBox.EnableWindow(supplier->getOperateType() == NEW_TABLE);
 }
 
 
@@ -126,6 +124,7 @@ void TableStructurePage::createOrShowSchemaElems(CRect & clientRect)
 	rect.OffsetRect(w + 5, -5);
 	rect.right += 120;
 	QWinCreater::createOrShowComboBox(m_hWnd, schemaComboBox, Config::TABLE_SCHEMA_COMBOBOX_ID, rect, clientRect);
+	schemaComboBox.EnableWindow(supplier->getOperateType() == NEW_TABLE);
 }
 
 
@@ -369,8 +368,6 @@ void TableStructurePage::afterCreatedTable(const std::wstring & tblName)
 
 	// Update the original variables
 	supplier->setOrigTblName(tblName);
-	supplier->setColsOrigDatas(supplier->getColsRuntimeDatas());
-	supplier->setIdxOrigDatas(supplier->getIdxRuntimeDatas());
 
 	// Clear the text from sql editor
 	// sqlPreviewEdit.clearText();
@@ -390,8 +387,12 @@ LRESULT TableStructurePage::OnPreviewSql(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 HBRUSH TableStructurePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
-	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
+	if (hwnd == tblNameEdit.m_hWnd) {
+		::SetBkColor(hdc, topbarColor);
+		return topbarBrush;
+	}
+	::SetBkColor(hdc, bkgColor);
 	return bkgBrush;
 }
 
@@ -436,12 +437,12 @@ std::wstring TableStructurePage::getCreateRuntimeSql()
 	schemaComboBox.GetWindowText(str);
 	std::wstring schema(str.GetString());
 
-	return generateCreateTableSql(schema, tblName);
+	return generateCreateTableDDL(schema, tblName);
 
 }
 
 
-std::wstring TableStructurePage::generateCreateTableSql(std::wstring &schema, std::wstring tblName)
+std::wstring TableStructurePage::generateCreateTableDDL(std::wstring &schema, std::wstring tblName)
 {
 	// Generate "CREATE TABLE schema.table_name"
 	std::wstring sql;
@@ -454,14 +455,19 @@ std::wstring TableStructurePage::generateCreateTableSql(std::wstring &schema, st
 	}
 	sql.append(L"\" (").append(L"\n");
 
-	std::wstring columnsSqlClause = generateCreateColumnsClause();
-	if (!columnsSqlClause.empty()) {
-		sql.append(columnsSqlClause);
+	std::wstring columnsClause = generateCreateColumnsClause();
+	if (!columnsClause.empty()) {
+		sql.append(columnsClause);
 	}
 
-	std::wstring indexesSqlClause = generateCreateIndexesClause();
-	if (!indexesSqlClause.empty()) {
-		sql.append(L",").append(L"\n").append(indexesSqlClause);
+	std::wstring indexesClause = generateCreateIndexesClause();
+	if (!indexesClause.empty()) {
+		sql.append(L",").append(L"\n").append(indexesClause);
+	}
+
+	std::wstring foreignKeyClause = generateCreateForeignKeyClause();
+	if (!foreignKeyClause.empty()) {
+		sql.append(L",").append(L"\n").append(foreignKeyClause);
 	}
 	sql.append(L"\n").append(L"); ").append(L"\n");
 
@@ -483,7 +489,18 @@ std::wstring TableStructurePage::generateCreateIndexesClause()
 {
 	ATLASSERT(tableTabView.IsWindow());
 	bool hasAutoIncrement = tableTabView.getTableColumnsPage().getAdapter()->verifyExistsAutoIncrement();
-	return tableTabView.getTableIndexesPage().getAdapter()->genderateCreateIndexesSqlClause(hasAutoIncrement);
+	return tableTabView.getTableIndexesPage().getAdapter()->genderateCreateIndexesClause(hasAutoIncrement);
+}
+
+/**
+ * Generate the columns clause for create table,
+ * 
+ * @return 
+ */
+std::wstring TableStructurePage::generateCreateForeignKeyClause()
+{
+	ATLASSERT(tableTabView.IsWindow());
+	return tableTabView.getTableForeignkeysPage().getAdapter()->genderateCreateForeignKeyClause();
 }
 
 std::wstring TableStructurePage::execAlterTable()
@@ -521,7 +538,7 @@ std::wstring TableStructurePage::execAlterTable()
 
 	try {
 		// 2.Create tmp table for rename table
-		std::wstring sql = generateCreateTableSql(schema, tmpTblName);
+		std::wstring sql = generateCreateTableDDL(schema, tmpTblName);
 		tableService->execBySql(userDbId, sql);
 		resultSql.append(sql).append(L"\n");
 

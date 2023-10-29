@@ -22,7 +22,7 @@
 
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
-#include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
 class TableMenuAdapter : public QAdapter<TableMenuAdapter, CTreeViewCtrlEx>
@@ -32,13 +32,15 @@ public:
 	~TableMenuAdapter();
 
 	void popupMenu(CPoint & pt);
-	void openTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
+	void openTable();
+	bool renameTable();
 private:
 	CBrush menuBrush;
 
 	HICON openTableIcon = nullptr;
 	HICON createTableIcon = nullptr;
 	HICON alterTableIcon = nullptr;
+	HICON renameTableIcon = nullptr;
 	HICON trucateTableIcon = nullptr;
 	HICON dropTableIcon = nullptr;
 	HICON copyTableIcon = nullptr;
@@ -48,10 +50,11 @@ private:
 	HICON manageIndexIcon = nullptr;
 	HICON propertiesIcon = nullptr;
 	
-
 	CMenu menu;
+
+	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	TableService * tableService = TableService::getInstance();
 
 	void createImageList();
 	void createMenu();
-
 };

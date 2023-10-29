@@ -57,6 +57,8 @@ public:
 
 	ForeignKeyList getForeignKeyList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
+
+	void renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema = std::wstring());
 private:
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();

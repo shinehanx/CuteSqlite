@@ -90,6 +90,8 @@ typedef enum {
 	TABLE_DOWN_COLUMN_BUTTON_ID,
 	TABLE_NEW_INDEX_BUTTON_ID,
 	TABLE_DEL_INDEX_BUTTON_ID,
+	TABLE_NEW_FOREIGNKEY_BUTTON_ID,
+	TABLE_DEL_FOREIGNKEY_BUTTON_ID,
 	TABLE_SAVE_BUTTON_ID,
 	TABLE_REVERT_BUTTON_ID,
 
@@ -172,6 +174,7 @@ typedef enum {
 	// NEW TABLE/MODIFY TABLE
 	DATABASE_TABLE_COLUMNS_LISTVIEW_ID,
 	DATABASE_TABLE_INDEXES_LISTVIEW_ID,
+	DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID,
 } ListViewId;
 
 typedef enum {
@@ -256,6 +259,7 @@ typedef enum {
 	TABLE_OPEN_MENU_ID,
 	TABLE_CREATE_MENU_ID,
 	TABLE_ALTER_MENU_ID,
+	TABLE_RENAME_MENU_ID,
 	TABLE_TRUCATE_MENU_ID,
 	TABLE_DROP_MENU_ID,
 	TABLE_COPY_MENU_ID,
@@ -292,6 +296,15 @@ typedef enum {
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_RENAME_TABLE_ID, // Send this msg when clicking "Rename table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TRUNCATE_TABLE_ID, // Send this msg when clicking "Truncate table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_DROP_TABLE_ID, // Send this msg when clicking "Drop table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_COPY_TABLE_ID, // Send this msg when clicking "Copy table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_EXPORT_TABLE_ID, // Send this msg when clicking "Export table as..." menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TABLE_IMPORT_SQL_ID, // Send this msg when clicking "Import From SQL File" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TABLE_IMPORT_CSV_ID, // Send this msg when clicking "Import From CSV File" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TABLE_MANAGE_INDEX_ID, // Send this msg when clicking "Manage Indexes" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_TABLE_PROPERTIES_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
 }MessageId;
 
 typedef enum {
