@@ -21,6 +21,10 @@ public:
 	QRuntimeException(const std::wstring code, const std::wstring msg) :
 		QRuntimeException(code.c_str(), msg.c_str()) {};
 
+	QRuntimeException(const wchar_t* code);
+	QRuntimeException(const std::wstring code)
+		:QRuntimeException(code.c_str()) {};
+
 	const std::wstring getCode() const;
 	const std::wstring getMsg() const;
 private:

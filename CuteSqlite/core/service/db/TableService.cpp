@@ -212,8 +212,18 @@ void TableService::renameTable(uint64_t userDbId, const std::wstring & oldTableN
 {
 	UserTable userTable = tableUserRepository->getTable(userDbId, newTableName, schema);
 	if (!userTable.name.empty()) {
-		throw QRuntimeException(L"200024", E(L"200024"));
+		throw QRuntimeException(L"200026");
 	}
 
 	tableUserRepository->renameTable(userDbId, oldTableName, newTableName, schema);
+}
+
+void TableService::truncateTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty()) {
+		throw QRuntimeException(L"200027");
+	}
+
+	tableUserRepository->truncateTable(userDbId, tblName, schema);
 }

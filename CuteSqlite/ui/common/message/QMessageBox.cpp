@@ -3,6 +3,7 @@
 
 #include "core/common/Lang.h"
 #include "utils/FontUtil.h"
+#include "utils/StringUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "common/AppContext.h"
 
@@ -58,7 +59,8 @@ void QMessageBox::createOrShowTextEdit(CRect & clientRect)
 {
 	int x = clientRect.left + 20 , y = clientRect.top + 20, w = clientRect.Width() - 20 * 2 , h = clientRect.Height() - 20 * 2 - 40;
 	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, text, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL);
+	std::wstring showText = StringUtil::replaceBreak(text);
+	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, showText, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL);
 
 }
 
@@ -149,7 +151,8 @@ LRESULT QMessageBox::OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	return 0;
 }
 
-HBRUSH QMessageBox::OnCtlEditColor(HDC hdc, HWND hwnd)
+
+HBRUSH QMessageBox::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SetTextColor(hdc, textColor);

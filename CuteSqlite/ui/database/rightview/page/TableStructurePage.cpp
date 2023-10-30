@@ -54,7 +54,7 @@ BOOL TableStructurePage::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void TableStructurePage::setup(TblOperateType tblOperateType, const std::wstring &tblName, const std::wstring & schema)
+void TableStructurePage::setup(PageOperateType tblOperateType, const std::wstring &tblName, const std::wstring & schema)
 {
 	if (supplier == nullptr) {
 		supplier = new TableStructureSupplier();
@@ -63,6 +63,14 @@ void TableStructurePage::setup(TblOperateType tblOperateType, const std::wstring
 	supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
 	supplier->setRuntimeTblName(tblName);
 	supplier->setRuntimeSchema(schema);
+}
+
+
+void TableStructurePage::renameTable(const std::wstring &oldTableName, const std::wstring &newTableName)
+{
+	supplier->setRuntimeTblName(newTableName);
+	tblNameEdit.SetWindowText(newTableName.c_str());
+	previewRuntimeSql();
 }
 
 CRect TableStructurePage::getEditorRect(CRect & clientRect)

@@ -41,9 +41,20 @@ BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void QueryPage::setup(QueryType queryType, const std::wstring & content, const std::wstring & tplPath)
+void QueryPage::setup(PageOperateType operateType, const std::wstring & content, const std::wstring & tplPath)
 {
-	this->queryType = queryType;
+	if (!supplier) {
+		supplier = new QueryPageSupplier();
+	}
+
+	supplier->setOperateType(operateType);
+	if (operateType == TABLE_DATA) {
+		// persistent store the three runtime data
+		supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
+		supplier->setRuntimeTblName(databaseSupplier->selectedTable);
+		supplier->setRuntimeSchema(databaseSupplier->selectedSchema);
+	}
+	
 	this->tplPath = tplPath;
 	this->content = content;
 }
@@ -66,7 +77,7 @@ void QueryPage::execAndShow()
 		sqlEditor.focus();
 		return;
 	}
-	if (queryType == QUERY_DATA || queryType == TABLE_DATA) {
+	if (supplier->getOperateType() == QUERY_DATA || supplier->getOperateType() == TABLE_DATA) {
 		supplier->splitToSqlVector(sqls);
 		resultTabView.clearResultListPage();
 		resultTabView.clearMessage();
@@ -76,7 +87,7 @@ void QueryPage::execAndShow()
 		for (int i = 0; i < n; i++) {
 			auto sql = sqlVector.at(i);
 			if (SqlUtil::isSelectSql(sql)) {
-				resultTabView.addResultListPage(sql, i+1);
+				resultTabView.addResultListPage(sql, i+1); 
 				nSelectSqlCount++;
 			}
 		}
@@ -86,7 +97,7 @@ void QueryPage::execAndShow()
 	} else {
 		bool ret = resultTabView.execSqlToInfoPage(sqls);
 		if (ret) {
-			if (queryType != QUERY_DATA && queryType != TABLE_DATA) {
+			if (supplier->getOperateType() != QUERY_DATA && supplier->getOperateType() != TABLE_DATA) {
 				//Send message to refresh database when creating a table or altering a table , wParam = NULL, lParam=NULL 
 				AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 			}
@@ -190,6 +201,7 @@ void QueryPage::createOrShowResultTabView(ResultTabView & win, CRect & clientRec
 {
 	CRect rect(0, 0, 1, 1);
 	if (::IsWindow(splitter.m_hWnd) && !win.IsWindow()) {
+		win.setup(supplier);
 		win.Create(splitter.m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		return;
 	}
@@ -213,6 +225,10 @@ int QueryPage::OnDestroy()
 	if (resultTabView.IsWindow()) resultTabView.DestroyWindow();
 	if (splitter.IsWindow()) splitter.DestroyWindow();
 
+	if (supplier) {
+		delete supplier;
+		supplier = nullptr;
+	}
 	return ret;
 }
 
@@ -239,14 +255,19 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
-		supplier->selectedTable = selItemText;
+		databaseSupplier->selectedTable = selItemText;
 	} 
 
 	if (resultTabView.isActiveTableDataPage()  // 1.TableDataPage must be active
-		&& supplier->activeTabPageHwnd == m_hWnd  // 2.This QueryPage must be active
-		&& !supplier->selectedTable.empty() // 3.supplier->selectTable must not empty
-		&& queryType != TABLE_DATA) {  // 4.query type must not equal TABLE_DATA
-		resultTabView.loadTableDatas(supplier->selectedTable);
+		&& databaseSupplier->activeTabPageHwnd == m_hWnd  // 2.This QueryPage must be active
+		&& !databaseSupplier->selectedTable.empty() // 3.supplier->selectTable must not empty
+		&& supplier->getOperateType() != TABLE_DATA) {  // 4.query type must not equal TABLE_DATA
+		// reset the runtime data in the supplier object
+		supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
+		supplier->setRuntimeTblName(databaseSupplier->selectedTable);
+		supplier->setRuntimeSchema(databaseSupplier->selectedSchema);
+
+		resultTabView.loadTableDatas(databaseSupplier->selectedTable);
 	}
 	return 0;
 }
@@ -262,7 +283,7 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
  */
 LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (supplier->activeTabPageHwnd != m_hWnd) {
+	if (databaseSupplier->activeTabPageHwnd != m_hWnd) {
 		return 0;
 	}
 	LeftTreeViewAdapter * treeViewAdapter = (LeftTreeViewAdapter *)wParam;
@@ -287,7 +308,7 @@ LRESULT QueryPage::OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	// if select table item
 	std::wstring selItemText(cch);
 	if (nImage == 2) { // 2 - table
-		supplier->selectedTable = selItemText;
+		databaseSupplier->selectedTable = selItemText;
 	}
 	
 	if (nImage == 3) { // 3 - column

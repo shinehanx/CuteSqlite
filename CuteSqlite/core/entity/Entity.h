@@ -177,7 +177,13 @@ typedef struct {
 
 // Support create/modify table
 typedef enum {
+	QUERY_DATA,
+	TABLE_DATA,
+	CREATE_VIEW,
+	CREATE_TRIGGER,
+	MODIFY_VIEW,
+	MODIFY_TRIGGER,
 	NEW_TABLE,
 	MOD_TABLE,
-} TblOperateType;
+} PageOperateType;
 

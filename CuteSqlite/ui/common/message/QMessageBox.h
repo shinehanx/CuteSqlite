@@ -28,7 +28,7 @@ public:
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
-		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
+		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		COMMAND_HANDLER_EX(Config::CUSTOMER_FORM_NO_BUTTON_ID, BN_CLICKED, OnClickNoButton)
 		COMMAND_HANDLER_EX(Config::CUSTOMER_FORM_YES_BUTTON_ID, BN_CLICKED, OnClickYesButton)
 		REFLECT_NOTIFICATIONS()
@@ -50,7 +50,7 @@ private:
 	std::wstring noBtnText;
 
 	COLORREF textColor = RGB(8, 8, 8);
-	COLORREF bkgColor = RGB(238, 238, 238);
+	COLORREF bkgColor = RGB(219, 219, 219);
 	HBRUSH bkgBrush = nullptr;
 	HFONT textFont = nullptr;
 	Gdiplus::Font * btnFont = nullptr;
@@ -67,7 +67,7 @@ private:
 	LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 
 	LRESULT OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);

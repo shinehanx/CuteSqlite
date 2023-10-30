@@ -40,8 +40,9 @@ BOOL ResultListPage::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void ResultListPage::setup(std::wstring & sql)
+void ResultListPage::setup(QueryPageSupplier * supplier, std::wstring & sql)
 {
+	this->supplier = supplier;
 	this->sql = sql;
 }
 
@@ -199,7 +200,7 @@ void ResultListPage::loadWindow()
 
 void ResultListPage::loadListView()
 {
-	uint64_t userDbId = supplier->getSelectedUserDbId();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
 	if (!userDbId) {
 		QPopAnimate::warn(m_hWnd, S(L"no-select-userdb"));
 		return;
@@ -263,7 +264,7 @@ void ResultListPage::createOrShowListView(QListViewCtrl & win, CRect & clientRec
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.setItemHeight(22);
-		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_RESULT);
+		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_SQL_RESULT);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);

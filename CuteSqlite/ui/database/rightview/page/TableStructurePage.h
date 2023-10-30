@@ -20,14 +20,13 @@
 #pragma once
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/TableService.h"
-#include "ui/common/page/QPage.h"
+#include "ui/database/rightview/common/QTabPage.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
-#include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/table/TableTabView.h"
-#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
 
-class TableStructurePage : public QPage {
+class TableStructurePage : public QTabPage<TableStructureSupplier> {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 
@@ -47,8 +46,9 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(TblOperateType tblOperateType, const std::wstring &tblName = std::wstring(), const std::wstring & schema = std::wstring());
+	void setup(PageOperateType tblOperateType, const std::wstring &tblName = std::wstring(), const std::wstring & schema = std::wstring());
 	TableStructureSupplier * getSupplier() { return supplier; };
+	void renameTable(const std::wstring &oldTableName, const std::wstring &newTableName);
 private:
 	COLORREF editorBkgColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;	
@@ -72,8 +72,6 @@ private:
 
 	QHelpEdit sqlPreviewEdit;
 
-	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
-	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 	

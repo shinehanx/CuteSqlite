@@ -299,9 +299,11 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp" />
+    <ClCompile Include="ui\database\rightview\common\QPageSupplier.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\TriggerDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\ViewDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\HistoryPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\supply\QueryPageSupplier.cpp" />
     <ClCompile Include="ui\database\rightview\page\TableStructurePage.cpp" />
     <ClCompile Include="ui\database\rightview\page\QueryPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\result\adapter\ResultListPageAdapter.cpp" />
@@ -318,7 +320,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\rightview\page\result\ResultTabView.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\adapter\TableIndexesPageAdapter.cpp" />
-    <ClCompile Include="ui\database\rightview\page\table\supply\TableStructureSupplier.cpp" />
+    <ClCompile Include="ui\database\rightview\page\supply\TableStructureSupplier.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableColumnsPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableForeignkeysPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\table\TableIndexesPage.cpp" />
@@ -408,9 +410,12 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
     <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h" />
+    <ClInclude Include="ui\database\rightview\common\QPageSupplier.h" />
+    <ClInclude Include="ui\database\rightview\common\QTabPage.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\TriggerDialog.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\ViewDialog.h" />
     <ClInclude Include="ui\database\rightview\page\HistoryPage.h" />
+    <ClInclude Include="ui\database\rightview\page\supply\QueryPageSupplier.h" />
     <ClInclude Include="ui\database\rightview\page\TableStructurePage.h" />
     <ClInclude Include="ui\database\rightview\page\QueryPage.h" />
     <ClInclude Include="ui\database\rightview\page\result\adapter\ResultListPageAdapter.h" />
@@ -427,7 +432,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\page\result\ResultTabView.h" />
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableColumnsPageAdapter.h" />
     <ClInclude Include="ui\database\rightview\page\table\adapter\TableIndexesPageAdapter.h" />
-    <ClInclude Include="ui\database\rightview\page\table\supply\TableStructureSupplier.h" />
+    <ClInclude Include="ui\database\rightview\page\supply\TableStructureSupplier.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableColumnsPage.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableForeignkeysPage.h" />
     <ClInclude Include="ui\database\rightview\page\table\TableIndexesPage.h" />

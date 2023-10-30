@@ -26,6 +26,7 @@
 #include "common/AppContext.h"
 #include "ui/database/leftview/dialog/RenameTableDialog.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "ui/common/message/QMessageBox.h"
 #include "core/common/exception/QSqlExecuteException.h"
 
 TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
@@ -80,7 +81,7 @@ void TableMenuAdapter::createMenu()
 	menu.AppendMenu(MF_STRING, Config::TABLE_CREATE_MENU_ID, S(L"table-create").c_str()); 
 	menu.AppendMenu(MF_STRING, Config::TABLE_ALTER_MENU_ID, S(L"table-alter").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_RENAME_MENU_ID, S(L"table-rename").c_str());
-	menu.AppendMenu(MF_STRING, Config::TABLE_TRUCATE_MENU_ID, S(L"table-truncate").c_str());
+	menu.AppendMenu(MF_STRING, Config::TABLE_TRUNCATE_MENU_ID, S(L"table-truncate").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_DROP_MENU_ID, S(L"table-drop").c_str());
 	menu.AppendMenu(MF_STRING, Config::TABLE_COPY_MENU_ID, S(L"table-copy-as").c_str());
 	menu.AppendMenu(MF_SEPARATOR);
@@ -104,7 +105,7 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_CREATE_MENU_ID, MF_BYCOMMAND, createTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_ALTER_MENU_ID, MF_BYCOMMAND, alterTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_RENAME_MENU_ID, MF_BYCOMMAND, renameTableIcon);
-	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_TRUCATE_MENU_ID, MF_BYCOMMAND, trucateTableIcon);
+	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_TRUNCATE_MENU_ID, MF_BYCOMMAND, trucateTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_DROP_MENU_ID, MF_BYCOMMAND, dropTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_COPY_MENU_ID, MF_BYCOMMAND, copyTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_EXPORT_MENU_ID, MF_BYCOMMAND, exportTableIcon);
@@ -119,16 +120,37 @@ void TableMenuAdapter::createMenu()
 bool TableMenuAdapter::renameTable()
 {
 	RenameTableDialog dialog(parentHwnd);
-	if (dialog.DoModal(parentHwnd) == Config::QDIALOG_YES_BUTTON_ID) {
-		try {
-			tableService->renameTable(supplier->getSelectedUserDbId(), supplier->oldTableName, supplier->newTableName, supplier->selectedSchema);
-			QPopAnimate::success(S(L"rename-table-success-text"));
-			return true;
-		} catch (QSqlExecuteException &ex) {
-			QPopAnimate::report(ex);
-		} catch (QRuntimeException &ex) {
-			QPopAnimate::report(ex);
-		}
+	if (dialog.DoModal(parentHwnd) != Config::QDIALOG_YES_BUTTON_ID) {
+		return false;
+	}
+	try {
+		tableService->renameTable(supplier->getSelectedUserDbId(), supplier->oldTableName, supplier->newTableName, supplier->selectedSchema);
+		QPopAnimate::success(S(L"rename-table-success-text"));
+		AppContext::getInstance()->dispatch(Config::MSG_RENAME_TABLE_ID, NULL, NULL);
+		return true;
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+	}
+	return false;
+}
+
+
+bool TableMenuAdapter::truncateTable()
+{
+	if (QMessageBox::confirm(parentHwnd, S(L"truncate-table-confirm-text")) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		return false;
+	}
+	try {
+		tableService->truncateTable(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
+		QPopAnimate::success(S(L"truncate-table-success-text")); 
+		AppContext::getInstance()->dispatch(Config::MSG_TRUNCATE_TABLE_ID, NULL, NULL);
+		return true;
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
 	}
 	return false;
 }

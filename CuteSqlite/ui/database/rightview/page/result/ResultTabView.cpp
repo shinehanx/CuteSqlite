@@ -29,6 +29,10 @@
 #define RESULT_TOPBAR_HEIGHT 30
 #define RESULT_BUTTON_WIDTH 16
 
+void ResultTabView::setup(QueryPageSupplier * supplier)
+{
+	this->supplier = supplier;
+}
 
 BOOL ResultTabView::PreTranslateMessage(MSG* pMsg)
 {
@@ -97,7 +101,7 @@ void ResultTabView::loadTableDatas(std::wstring & table)
 	if (resultInfoPage.IsWindow()) {
 		resultInfoPage.clear();
 	}
-	
+	supplier->setRuntimeTblName(table);
 	resultTableDataPage.setup(table);
 	resultTableDataPage.loadTableDatas();
 }
@@ -107,11 +111,10 @@ void ResultTabView::clearResultListPage()
 	// destry window and delete ptr from resultListPage vector
 	for (auto & resultListPagePtr : resultListPagePtrs) {
 		if (resultListPagePtr && resultListPagePtr->IsWindow()) {
-			/*
 			int idx = getPageIndex(resultListPagePtr->m_hWnd);
 			if (idx != -1) {
 				tabView.RemovePage(idx);
-			}*/
+			}
 			if (resultListPagePtr->IsWindow()) {
 				resultListPagePtr->DestroyWindow();
 			}
@@ -139,7 +142,7 @@ void ResultTabView::addResultListPage(std::wstring & sql, int tabNo)
 	CRect rect(x, y, x + w, y + h);
 
 	ResultListPage * resultListPagePtr = new ResultListPage();
-	resultListPagePtr->setup(sql);
+	resultListPagePtr->setup(supplier, sql);
 	resultListPagePtr->Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
 	std::wstring pageTitle = S(L"result-list").append(L" ").append(std::to_wstring(tabNo));
 	int nInsert = static_cast<int>(resultListPagePtrs.size());
@@ -160,7 +163,7 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 	resetRuntimeResultInfo();
 	auto bt = PerformUtil::begin();
 	try {		
-		sqlService->executeSql(supplier->getSelectedUserDbId(), sql);
+		sqlService->executeSql(databaseSupplier->getSelectedUserDbId(), sql);
 		runtimeResultInfo.sql = sql;
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
@@ -269,10 +272,9 @@ void ResultTabView::createOrShowResultInfoPage(ResultInfoPage & win, CRect &clie
 	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
 	CRect rect(x, y, x + w, y + h);
 	if (IsWindow() && !win.IsWindow()) {
+		win.setup(supplier);
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-	}
-	else if (IsWindow() && tabView.IsWindow()) {
-		
+	} else if (IsWindow() && tabView.IsWindow()) {		
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -285,9 +287,9 @@ void ResultTabView::createOrShowResultTableDataPage(ResultTableDataPage & win, C
 	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height() - 2;
 	CRect rect(x, y, x + w, y + h);
 	if (IsWindow() && !win.IsWindow()) {
+		win.setup(supplier, std::wstring());
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-	}
-	else if (IsWindow() && tabView.IsWindow()) {
+	} else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -361,3 +363,5 @@ BOOL ResultTabView::OnEraseBkgnd(CDCHandle dc)
 {
 	return TRUE;
 }
+
+

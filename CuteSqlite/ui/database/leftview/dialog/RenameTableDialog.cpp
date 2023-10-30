@@ -90,18 +90,20 @@ void RenameTableDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	CString str;
 	tblNameEdit.GetWindowText(str);
 	if (str.IsEmpty()) {
-		QPopAnimate::error(m_hWnd, S(L"table-name-not-empty"));
+		QPopAnimate::error(S(L"table-name-not-empty"));
 		tblNameEdit.SetFocus();
 		return;
 	}
 	std::wstring & oldTblName = supplier->selectedTable;
 	std::wstring newTblName = str.GetString();
 	if (oldTblName == newTblName) {
+		tblNameEdit.SetFocus();
+		tblNameEdit.SetSel(0, -1, FALSE);
 		return;
 	}
 	auto tableInfo = tableService->getUserTable(supplier->getSelectedUserDbId(), newTblName);
 	if (!tableInfo.name.empty()) {
-		QPopAnimate::error(m_hWnd, S(L"table-name-dupplicated"));
+		QPopAnimate::error(S(L"table-name-duplicated"));
 		tblNameEdit.SetFocus();
 		tblNameEdit.SetSel(0, -1, FALSE);
 		return;

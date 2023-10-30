@@ -24,6 +24,11 @@
 #include "core/common/Lang.h"
 #include "common/AppContext.h"
 
+void ResultInfoPage::setup(QueryPageSupplier * supplier)
+{
+	this->supplier = supplier;
+}
+
 void ResultInfoPage::clear()
 {
 	infoEdit.Clear();
@@ -80,7 +85,7 @@ LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM 
 	}
 	// class chain : ResultInfoPage($this)->QTabView(tabView)->ResultTabView->CHorSplitterWindow->QueryPage
 	HWND pHwnd = GetParent().GetParent().GetParent().GetParent(); // current query page hwnd
-	if (supplier->activeTabPageHwnd != pHwnd) {
+	if (databaseSupplier->activeTabPageHwnd != pHwnd) {
 		return 0;
 	}
 	

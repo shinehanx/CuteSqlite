@@ -40,15 +40,15 @@ typedef std::vector<FilterTuple> DataFilters;
 
 // query result type 
 typedef enum {
-	QUERY_RESULT,
-	TABLE_DATA
+	QUERY_SQL_RESULT,
+	QUERY_TABLE_DATA
 } ResultType;
 
 #define TABLE_DATA_SETTING_PREFIX L"table-data-"
 class ResultListPageAdapter : public QAdapter<ResultListPageAdapter, QListViewCtrl>
 {
 public:
-	ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * listView, ResultType resultType = QUERY_RESULT);
+	ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * listView, ResultType resultType = QUERY_SQL_RESULT);
 	~ResultListPageAdapter();
 
 	int loadListView(uint64_t userDbId, std::wstring & sql);

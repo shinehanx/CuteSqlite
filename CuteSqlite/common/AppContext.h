@@ -18,8 +18,13 @@ public:
 	// mainFrm的窗口句柄
 	void setMainFrmHwnd(HWND hwnd);
 	HWND getMainFrmHwnd();
+
 	std::wstring getMainFrmCaption();
 	void appendMainFrmCaption(const std::wstring & text);
+
+	// HomeView的窗口句柄
+	void setHomeViewHwnd(HWND hwnd) { homeViewHwnd = hwnd; };
+	HWND getHomeViewHwnd() { return homeViewHwnd; };
 
 	std::wstring get(std::wstring k);
 	int getInt(std::wstring k);
@@ -43,6 +48,8 @@ private:
 
 	// mainFrm的窗口句柄
 	HWND mainFrmHwnd = nullptr;
+	// HomeView的窗口句柄
+	HWND homeViewHwnd = nullptr;
 	
 	// 全局的配置
 	std::unordered_map<std::wstring, std::wstring> settings;

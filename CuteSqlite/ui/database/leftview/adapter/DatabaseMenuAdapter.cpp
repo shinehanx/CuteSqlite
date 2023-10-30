@@ -36,7 +36,7 @@ DatabaseMenuAdapter::DatabaseMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view
 DatabaseMenuAdapter::~DatabaseMenuAdapter()
 {
 	menu.DestroyMenu();
-	menu.DestroyMenu();
+	newSubMenu.DestroyMenu();
 	if (!menuBrush.IsNull()) menuBrush.DeleteObject();
 	if (createDatabaseIcon) ::DeleteObject(createDatabaseIcon);
 	if (openDatabaseIcon) ::DeleteObject(openDatabaseIcon);

@@ -2,13 +2,18 @@
 #include "QPopAnimate.h"
 #include "core/common/Lang.h"
 #include "utils/FontUtil.h"
+#include "utils/StringUtil.h"
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "common/AppContext.h"
 
+std::vector<QPopAnimate *> QPopAnimate::popAnimatePtrs;
+
 void QPopAnimate::error(HWND parentHwnd, std::wstring & text)
 {
+	clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
+	popAnimatePtrs.push_back(win);
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	win->setImagePath(imagePath);
@@ -23,7 +28,10 @@ void QPopAnimate::error(std::wstring & text)
 
 void QPopAnimate::report(HWND parentHwnd, const std::wstring & code, const std::wstring & text)
 {
+	clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
+	popAnimatePtrs.push_back(win);
+
 	win->setup(code, text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	std::wstring closeImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close.bmp";
@@ -51,7 +59,10 @@ void QPopAnimate::report(const QSqlExecuteException & ex)
 
 void QPopAnimate::success(HWND parentHwnd, std::wstring & text)
 {
+	clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
+	popAnimatePtrs.push_back(win);
+
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\success.bmp";
 	win->setImagePath(imagePath);
@@ -66,7 +77,9 @@ void QPopAnimate::success(std::wstring & text)
 
 void QPopAnimate::warn(HWND parentHwnd, std::wstring & text)
 {
+	clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
+	popAnimatePtrs.push_back(win);
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\warn.bmp";
 	win->setImagePath(imagePath);
@@ -101,7 +114,7 @@ void QPopAnimate::setup(const std::wstring & code, const std::wstring &text)
 	
 	popType = POP_REPORT_TEXT;
 	width = 500;
-	height = 250;
+	height = 150;
 
 	textFont = Lang::font(L"message-text-size", false);
 }
@@ -197,12 +210,12 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 		rect = { x, y, x + w, y + h + 10 };
 	}
 	
-	std::wstring reportText = text;
+	std::wstring reportText = StringUtil::replaceBreak(text);
 	if (popType == POP_REPORT_TEXT) {
 		reportText.append(L"\r\n\r\n").append(L"Code:").append(code);
 	}
 	
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL , false);
+	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL , true);
 	::SetWindowLong(textEdit.m_hWnd, GWL_STYLE, ::GetWindowLongW(textEdit.m_hWnd, GWL_STYLE) & ~WS_BORDER);
 }
 
@@ -298,5 +311,21 @@ LRESULT QPopAnimate::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
 	DestroyWindow();
 	m_hWnd = nullptr;
 	return 0;
+}
+
+
+void QPopAnimate::clearPopAnimatePtrs()
+{
+	for (QPopAnimate * ptr : popAnimatePtrs) {
+		if (ptr && ptr->IsWindow()) {
+			::CloseWindow(ptr->m_hWnd);
+			ptr->DestroyWindow();
+		}
+		if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+	popAnimatePtrs.clear();
 }
 

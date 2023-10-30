@@ -41,7 +41,7 @@ void ViewDialog::createOrShowUI()
 
 void ViewDialog::createViewNameElems(CRect & clientRect)
 {
-	int x = 20, y = 20, w = clientRect.Width() - 40, h = 20;
+	int x = 20, y = 10, w = clientRect.Width() - 40, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormLabel(viewNameLabel, S(L"create-a-view-name"), rect, clientRect, SS_LEFT); 
 

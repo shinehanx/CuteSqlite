@@ -41,7 +41,7 @@ void TriggerDialog::createOrShowUI()
 
 void TriggerDialog::createTriggerNameElems(CRect & clientRect)
 {
-	int x = 20, y = 20, w = clientRect.Width() - 40, h = 20;
+	int x = 20, y = 10, w = clientRect.Width() - 40, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormLabel(triggerNameLabel, S(L"create-a-trigger-name"), rect, clientRect, SS_LEFT); 
 

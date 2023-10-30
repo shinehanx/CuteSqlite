@@ -43,7 +43,8 @@ public:
 	END_MSG_MAP()
 	ResultTableDataPage();
 
-	virtual void setup(std::wstring & table); // override
+	virtual void setup(std::wstring & table);
+	virtual void setup(QueryPageSupplier *supplier, std::wstring sql);
 	void loadTableDatas();
 protected:
 	std::wstring table; // table name

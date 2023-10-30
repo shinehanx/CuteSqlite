@@ -57,9 +57,6 @@ public:
 
 	HWND activeTabPageHwnd = nullptr;
 	
-	// sql statements
-	std::vector<std::wstring> sqlVector;
-
 	// selected schema
 	std::wstring selectedSchema;
 
@@ -79,11 +76,6 @@ public:
 	void setSeletedUserDbId(uint64_t userDbId) { selectedUserDbId = userDbId; }
 	uint64_t getSelectedUserDbId() { return selectedUserDbId; }
 
-	//Using semicolons to separate a SQL statement becomes a member variable sqlVector
-	void splitToSqlVector(std::wstring sql);
-	//Execute sqls,resutlt to runtime sql
-	void execSqlVetor();
-	
 private:
 	static DatabaseSupplier * theInstance;
 

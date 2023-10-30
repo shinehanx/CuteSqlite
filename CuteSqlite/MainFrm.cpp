@@ -8,6 +8,7 @@
 #include "aboutdlg.h"
 #include "HomeView.h"
 #include "MainFrm.h"
+#include "common/AppContext.h"
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
@@ -32,6 +33,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ATLASSERT(pLoop != NULL);
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
+
+	AppContext::getInstance()->setMainFrmHwnd(m_hWnd);
 
 	SetMenu(NULL);
 	return 0;

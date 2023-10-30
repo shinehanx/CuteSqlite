@@ -11,28 +11,24 @@
 
  * limitations under the License.
 
- * @file   DatabaseSupplier.cpp
- * @brief  Holds temporary and persistent data across multiple windows
+ * @file   QTabPage.h
+ * @brief  The base TabPage class for CTabView.
+ *		   It's child class supply to store runtime data and handle functions.
  * 
  * @author Xuehan Qin
- * @date   2023-05-23
+ * @date   2023-10-30
  *********************************************************************/
-#include "stdafx.h"
-#include "DatabaseSupplier.h"
-#include "utils/StringUtil.h"
+#pragma once
+#include "QPageSupplier.h"
+#include "ui/common/page/QPage.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
 
-DatabaseSupplier * DatabaseSupplier::theInstance = nullptr;
-
-DatabaseSupplier::DatabaseSupplier()
-{
-
-}
-
-DatabaseSupplier * DatabaseSupplier::getInstance()
-{
-	if (DatabaseSupplier::theInstance == nullptr) {
-		DatabaseSupplier::theInstance = new DatabaseSupplier();
-	}
-	return DatabaseSupplier::theInstance;
-}
-
+template <typename T = QPageSupplier>
+class QTabPage : public QPage {
+public:
+	T * getSupplier() { return supplier; }
+	DatabaseSupplier * getDataPageSupplier() { return databaseSupplier; }
+protected:
+	T * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+};

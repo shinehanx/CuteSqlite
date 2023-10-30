@@ -11,28 +11,12 @@
 
  * limitations under the License.
 
- * @file   DatabaseSupplier.cpp
- * @brief  Holds temporary and persistent data across multiple windows
+ * @file   QPageSupplier.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-23
+ * @date   2023-10-30
  *********************************************************************/
 #include "stdafx.h"
-#include "DatabaseSupplier.h"
-#include "utils/StringUtil.h"
-
-DatabaseSupplier * DatabaseSupplier::theInstance = nullptr;
-
-DatabaseSupplier::DatabaseSupplier()
-{
-
-}
-
-DatabaseSupplier * DatabaseSupplier::getInstance()
-{
-	if (DatabaseSupplier::theInstance == nullptr) {
-		DatabaseSupplier::theInstance = new DatabaseSupplier();
-	}
-	return DatabaseSupplier::theInstance;
-}
+#include "QPageSupplier.h"
 

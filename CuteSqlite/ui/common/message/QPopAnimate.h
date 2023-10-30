@@ -62,6 +62,8 @@ public:
 	void setImagePath(const std::wstring & imagePath);
 	void setCloseImagePath(const std::wstring & closeImagePath);
 private:
+	static std::vector<QPopAnimate *> popAnimatePtrs;
+
 	int width = QPOPANIMATE_WIDTH;
 	int height = QPOPANIMATE_HEIGHT;
 	CRect winRect;
@@ -74,12 +76,14 @@ private:
 	std::wstring closeImagePath;
 
 	COLORREF textColor = RGB(8, 8, 8);
-	COLORREF bkgColor = RGB(238, 238, 238);
+	COLORREF bkgColor = RGB(201, 211, 216);
 	HBRUSH bkgBrush = nullptr;
 	HFONT textFont = nullptr;
 	QStaticImage image;
 	QImageButton closeButton;
 	CEdit textEdit;
+
+	static void clearPopAnimatePtrs();
 
 	void createOrShowImage(CRect & clientRect);
 	void createOrShowCloseButton(CRect & clientRect);

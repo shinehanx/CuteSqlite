@@ -270,7 +270,7 @@ bool TableForeignkeysPageAdapter::deleteSelForeignKeys(bool confirm)
 	if (!dataView->GetSelectedCount()) {
 		return false;
 	}
-	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-foreign-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
+	if (confirm && QMessageBox::confirm(parentHwnd, S(L"delete-confirm-text"), S(L"yes"), S(L"no")) == Config::CUSTOMER_FORM_NO_BUTTON_ID) {
 		return false;
 	}
 		

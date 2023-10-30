@@ -17,7 +17,7 @@ ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * li
 	this->parentHwnd = parentHwnd;
 	this->dataView = listView;
 	this->resultType = resultType;
-	if (this->resultType == TABLE_DATA) {
+	if (this->resultType == QUERY_TABLE_DATA) {
 		settingPrefix = TABLE_DATA_SETTING_PREFIX;
 	}
 }

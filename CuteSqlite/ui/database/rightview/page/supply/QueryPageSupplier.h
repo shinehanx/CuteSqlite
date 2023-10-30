@@ -11,28 +11,21 @@
 
  * limitations under the License.
 
- * @file   DatabaseSupplier.cpp
- * @brief  Holds temporary and persistent data across multiple windows
+ * @file   QueryPageSupplier.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-23
+ * @date   2023-10-30
  *********************************************************************/
-#include "stdafx.h"
-#include "DatabaseSupplier.h"
-#include "utils/StringUtil.h"
+#pragma once
+#include "core/entity/Entity.h"
+#include "ui/database/rightview/common/QPageSupplier.h"
 
-DatabaseSupplier * DatabaseSupplier::theInstance = nullptr;
+class QueryPageSupplier : public QPageSupplier {
+public:
+	// sql statements
+	std::vector<std::wstring> sqlVector;
 
-DatabaseSupplier::DatabaseSupplier()
-{
-
-}
-
-DatabaseSupplier * DatabaseSupplier::getInstance()
-{
-	if (DatabaseSupplier::theInstance == nullptr) {
-		DatabaseSupplier::theInstance = new DatabaseSupplier();
-	}
-	return DatabaseSupplier::theInstance;
-}
-
+	// Using semicolons to separate a SQL statement becomes a member variable sqlVector
+	void splitToSqlVector(std::wstring sql);
+};

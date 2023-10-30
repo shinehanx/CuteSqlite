@@ -24,7 +24,7 @@
 #include "core/service/db/TableService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
-#include "ui/database/rightview/page/table/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
 
 class TableColumnsPageAdapter : public QAdapter<TableColumnsPageAdapter, QListViewCtrl>
 {

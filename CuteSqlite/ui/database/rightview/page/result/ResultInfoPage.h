@@ -18,11 +18,11 @@
  * @date   2023-05-22
  *********************************************************************/
 #pragma once
-#include "ui/common/page/QPage.h"
+#include "ui/database/rightview/common/QTabPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
-#include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
 
-class ResultInfoPage : public QPage {
+class ResultInfoPage : public QTabPage<QueryPageSupplier> {
 public:
 	DECLARE_WND_CLASS(NULL)
 
@@ -35,6 +35,7 @@ public:
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+	void setup(QueryPageSupplier * supplier);
 
 	void clear();
 protected:
@@ -42,7 +43,6 @@ protected:
 
 	CEdit infoEdit;
 	ResultListPageAdapter * adapter = nullptr;
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

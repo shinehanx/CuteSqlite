@@ -11,28 +11,26 @@
 
  * limitations under the License.
 
- * @file   DatabaseSupplier.cpp
- * @brief  Holds temporary and persistent data across multiple windows
+ * @file   QueryPageSupplier.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-23
+ * @date   2023-10-30
  *********************************************************************/
 #include "stdafx.h"
-#include "DatabaseSupplier.h"
+#include "QueryPageSupplier.h"
 #include "utils/StringUtil.h"
 
-DatabaseSupplier * DatabaseSupplier::theInstance = nullptr;
-
-DatabaseSupplier::DatabaseSupplier()
+void QueryPageSupplier::splitToSqlVector(std::wstring sql)
 {
-
-}
-
-DatabaseSupplier * DatabaseSupplier::getInstance()
-{
-	if (DatabaseSupplier::theInstance == nullptr) {
-		DatabaseSupplier::theInstance = new DatabaseSupplier();
+	sqlVector.clear();
+	if (sql.empty()) {
+		return;
 	}
-	return DatabaseSupplier::theInstance;
-}
+	
+	if (sql.find(L':') == -1) {
+		sqlVector.push_back(sql);
+	}
 
+	sqlVector = StringUtil::split(sql, L";");
+}

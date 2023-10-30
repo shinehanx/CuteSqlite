@@ -563,6 +563,13 @@ void LeftTreeView::OnClickRenameTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	}
 }
 
+void LeftTreeView::OnClickTruncateTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (tableMenuAdapter->truncateTable()) {
+		doRefreshDatabase();
+	}
+}
+
 void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {	
 	tableMenuAdapter->openTable();

@@ -34,6 +34,7 @@ public:
 	void popupMenu(CPoint & pt);
 	void openTable();
 	bool renameTable();
+	bool truncateTable();
 private:
 	CBrush menuBrush;
 

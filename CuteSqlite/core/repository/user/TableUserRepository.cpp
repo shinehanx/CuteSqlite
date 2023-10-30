@@ -139,7 +139,7 @@ void TableUserRepository::execBySql(uint64_t userDbId, const std::wstring & sql)
 		query.exec();
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
+		Q_ERROR(L"Execute sql has error:{}, msg:{}", e.getErrorCode(), _err);
 		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err);
 		
 		throw ex;
@@ -160,7 +160,25 @@ void TableUserRepository::renameTable(uint64_t userDbId, const std::wstring & ol
 		query.exec();
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);		
+		Q_ERROR(L"rename table has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
+	}
+}
+
+void TableUserRepository::truncateTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	std::wstring ddl = L"DELETE FROM ";
+	if (!schema.empty() && schema != L"main") {
+		ddl.append(schema).append(L".");
+	}
+	ddl.append(L"\"").append(tblName).append(L"\"");
+
+	try {
+		QSqlStatement query(getUserConnect(userDbId), ddl.c_str());
+		query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"truncate table has error:{}, msg:{}", e.getErrorCode(), _err);
 		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
 	}
 }
@@ -184,3 +202,5 @@ RowItem TableUserRepository::toRowItem(QSqlStatement &query)
 	}
 	return rowItem;
 }
+
+

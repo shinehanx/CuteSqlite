@@ -21,16 +21,17 @@
 #include <string>
 #include <atlctrlx.h>
 #include "common/Config.h"
-#include "ui/common/page/QPage.h"
+
 #include "ui/common/button/QImageButton.h"
 #include "ui/common/button/QDropButton.h"
 #include "ui/common/checkbox/QCheckBox.h"
-#include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/database/rightview/common/QTabPage.h"
+#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/rightview/page/result/form/RowDataFormView.h"
 #include "ui/common/listview/QListViewCtrl.h"
 
-class ResultListPage : public QPage {
+class ResultListPage : public QTabPage<QueryPageSupplier> {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 
@@ -67,7 +68,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	virtual void setup(std::wstring & sql);
+	virtual void setup(QueryPageSupplier * supplier, std::wstring & sql);
 protected:
 	bool isNeedReload = true;
 	std::wstring sql;
@@ -98,7 +99,6 @@ protected:
 	CMultiPaneStatusBarCtrl statusBar;
 
 	ResultListPageAdapter * adapter = nullptr;
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
 

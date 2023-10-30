@@ -35,6 +35,7 @@ public:
 
 	void execBySql(uint64_t userDbId, const std::wstring & sql);
 	void renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema);
+	void truncateTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
 private:
 	UserTable toUserTable(QSqlStatement &query);
 	RowItem toRowItem(QSqlStatement &query);

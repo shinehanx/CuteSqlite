@@ -23,8 +23,9 @@
 #include <string>
 #include <vector>
 #include "core/entity/Entity.h"
+#include "ui/database/rightview/common/QPageSupplier.h"
 
-class TableStructureSupplier {
+class TableStructureSupplier : public QPageSupplier {
 public:
 	// TableColumnsPage list view header columns settings
 	const static Columns colsHeadColumns;
@@ -45,22 +46,9 @@ public:
 	const static std::vector<std::wstring> frkOnUpdateTypeList;
 	const static std::vector<std::wstring> frkOnDeleteTypeList;
 
-	// Getter or setter
-	TblOperateType getOperateType() const { return operateType; }
-	void setOperateType(TblOperateType val) { operateType = val; }
-
-	uint64_t getRuntimeUserDbId() const { return runtimeUserDbId; }
-	void setRuntimeUserDbId(uint64_t val) { runtimeUserDbId = val; }
-
-	std::wstring getRuntimeTblName() const { return runtimeTblName; }
-	void setRuntimeTblName(const std::wstring & val) { runtimeTblName = val; }
-
 	std::wstring getOrigTblName() const { return origTblName; }
 	void setOrigTblName(std::wstring val) { origTblName = val; }
 
-	std::wstring getRuntimeSchema() const { return runtimeSchema; }
-	void setRuntimeSchema(const std::wstring & val) { runtimeSchema = val; }	
-	
 	ColumnInfoList & getColsRuntimeDatas() { return colsRuntimeDatas; }
 	void setColsRuntimeDatas(ColumnInfoList & val) { colsRuntimeDatas = val; }
 	ColumnInfo & getColsRuntimeData(int nSelItem);
@@ -86,12 +74,7 @@ public:
 	void updateRelatedColumnsIfChangeColumnName(std::wstring& origName, const std::wstring& newName);
 	
 private:
-	TblOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
-
-	// Runtime variables, for create or alter table
-	uint64_t runtimeUserDbId = 0;
-	std::wstring runtimeSchema;
-	std::wstring runtimeTblName;
+	
 	// store the runtime data of the table column info(s)
 	ColumnInfoList colsRuntimeDatas;
 	// store the runtime data of the index(s) settings

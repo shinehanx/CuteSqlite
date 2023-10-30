@@ -26,6 +26,7 @@
 #include "ui/database/rightview/page/result/ResultListPage.h"
 #include "ui/database/rightview/page/result/ResultInfoPage.h"
 #include "ui/database/rightview/page/result/ResultTableDataPage.h"
+#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
 
 class ResultTabView : public CWindowImpl<ResultTabView>
 {
@@ -44,6 +45,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	void setup(QueryPageSupplier * supplier);
 	HWND getActiveResultListPageHwnd();
 	
 
@@ -60,6 +62,7 @@ public:
 
 private:
 	bool isNeedReload = true;
+	
 
 	COLORREF bkgColor = RGB(255, 255, 255);
 	HBRUSH bkgBrush = nullptr;
@@ -78,7 +81,8 @@ private:
 	HICON objectIcon = nullptr;
 
 	SqlService * sqlService = SqlService::getInstance();
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	QueryPageSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	void createImageList();
 
@@ -102,4 +106,5 @@ private:
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
+	
 };

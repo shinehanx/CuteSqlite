@@ -255,6 +255,19 @@ public:
 	}
 
 	/**
+	 * Replace the the line break : \r\n.
+	 * 
+	 * @param str
+	 * @return 
+	 */
+	static std::wstring replaceBreak(const std::wstring & str) 
+	{
+		std::wstring res = replace(str, L"\\r", L"\r");
+		res = replace(res, L"\\n", L"\n");
+		return res;
+	}
+
+	/**
 	 * .
 	 * 
 	 * @param str - original text

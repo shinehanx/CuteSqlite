@@ -147,6 +147,7 @@ void RightWorkView::createFirstQueryPage(CRect & clientRect)
 	QueryPage * firstQueryPage = nullptr;
 	if (queryPagePtrs.empty()) {
 		firstQueryPage = new QueryPage();
+		firstQueryPage->setup(QUERY_DATA);
 		createOrShowQueryPage(*firstQueryPage, clientRect); 
 		queryPagePtrs.push_back(firstQueryPage);
 	} else {
@@ -213,7 +214,7 @@ void RightWorkView::loadTabViewPages()
 	tabView.AddPage(firstQueryPage->m_hWnd, StringUtil::blkToTail(S(L"query-editor")).c_str(), 0, firstQueryPage);
 	tabView.AddPage(historyPage.m_hWnd, StringUtil::blkToTail(S(L"history")).c_str(), 1, &historyPage);
 	tabView.SetActivePage(0);
-	supplier->activeTabPageHwnd = firstQueryPage->m_hWnd;
+	databaseSupplier->activeTabPageHwnd = firstQueryPage->m_hWnd;
 }
 
 
@@ -376,14 +377,14 @@ void RightWorkView::doAddNewTable()
 	CRect clientRect;
 	GetClientRect(clientRect);
 	TableStructurePage * newTablePage = new TableStructurePage();
-	newTablePage->setup(TblOperateType::NEW_TABLE);
+	newTablePage->setup(PageOperateType::NEW_TABLE);
 	createOrShowTableStructurePage(*newTablePage, clientRect);
 	tablePagePtrs.push_back(newTablePage);
 
 	// nImage = 3 : VIEW 
 	tabView.AddPage(newTablePage->m_hWnd, StringUtil::blkToTail(S(L"new-table")).c_str(), 2, newTablePage);
 
-	supplier->activeTabPageHwnd = newTablePage->m_hWnd;
+	databaseSupplier->activeTabPageHwnd = newTablePage->m_hWnd;
 }
 
 /**
@@ -413,17 +414,17 @@ void RightWorkView::doAddNewView()
 	std::wstring binDir = ResourceUtil::getProductBinDir();
 	std::wstring tplPath = binDir + L"res\\tpl\\create-view-sql.tpl";
 	std::wstring content = FileUtil::readFile(tplPath);
-	std::wstring viewName = L"\"" + supplier->newViewName + L"\"";
+	std::wstring viewName = L"\"" + databaseSupplier->newViewName + L"\"";
 	content = StringUtil::replace(content, L"{<!--view_name-->}", viewName);
 
 	QueryPage * newViewPage = new QueryPage();
-	newViewPage->setup(QueryPage::CREATE_VIEW, content);
+	newViewPage->setup(CREATE_VIEW, content);
 	createOrShowQueryPage(*newViewPage, clientRect);
 	queryPagePtrs.push_back(newViewPage);
 
 	// nImage = 3 : view 
 	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(S(L"new-view")).c_str(), 3, newViewPage);
-	supplier->activeTabPageHwnd = newViewPage->m_hWnd;
+	databaseSupplier->activeTabPageHwnd = newViewPage->m_hWnd;
 }
 
 /**
@@ -451,20 +452,20 @@ void RightWorkView::doAddNewTrigger()
 	std::wstring binDir = ResourceUtil::getProductBinDir();
 	std::wstring tplPath = binDir + L"res\\tpl\\create-trigger-sql.tpl";
 	std::wstring content = FileUtil::readFile(tplPath);
-	std::wstring viewName = L"\"" + supplier->newViewName + L"\"";
+	std::wstring viewName = L"\"" + databaseSupplier->newViewName + L"\"";
 	content = StringUtil::replace(content, L"{<!--trigger_name-->}", viewName);
 
 	CRect clientRect;
 	GetClientRect(clientRect);
 	QueryPage * newTriggerPage = new QueryPage();
-	newTriggerPage->setup(QueryPage::CREATE_TRIGGER, content);
+	newTriggerPage->setup(CREATE_TRIGGER, content);
 	createOrShowQueryPage(*newTriggerPage, clientRect); 
 	queryPagePtrs.push_back(newTriggerPage); 
 
 	// nImage = 2 : table 
 	tabView.AddPage(newTriggerPage->m_hWnd, StringUtil::blkToTail(S(L"new-trigger")).c_str(), 4, newTriggerPage);
 
-	supplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
+	databaseSupplier->activeTabPageHwnd = newTriggerPage->m_hWnd;
 }
 
 /**
@@ -511,7 +512,7 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
  */
 LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (supplier->selectedTable.empty()) {
+	if (databaseSupplier->selectedTable.empty()) {
 		return 0;
 	}
 	// 1.find the queryPage title is equal select table name
@@ -521,7 +522,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		HWND pageHwnd = tabView.GetPageHWND(i);
 		std::wstring title = tabView.GetPageTitle(i);
 		StringUtil::trim(title); // trim the title
-		if (title != supplier->selectedTable) {
+		if (title != databaseSupplier->selectedTable) {
 			continue;
 		}
 
@@ -535,7 +536,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		tabView.SetActivePage(foundQueryPage);
 		QueryPage * tableDataPage = (*iter);
 		tableDataPage->getResultTabView().activeTableDataPage(); // active first
-		tableDataPage->getResultTabView().loadTableDatas(supplier->selectedTable);
+		tableDataPage->getResultTabView().loadTableDatas(databaseSupplier->selectedTable);
 		return 0;
 	}
 
@@ -545,18 +546,18 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		CRect clientRect;
 		GetClientRect(clientRect);
 		QueryPage * tableDataPage = new QueryPage();
-		tableDataPage->setup(QueryPage::TABLE_DATA);
+		tableDataPage->setup(TABLE_DATA);
 		createOrShowQueryPage(*tableDataPage, clientRect);
 		queryPagePtrs.push_back(tableDataPage);
 
 		// nImage = 3 : view 
-		std::wstring tblName = supplier->selectedTable;
+		std::wstring tblName = databaseSupplier->selectedTable;
 		tabView.AddPage(tableDataPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 5, tableDataPage);
 		foundQueryPage = tabView.GetPageCount() - 1;
-		supplier->activeTabPageHwnd = tableDataPage->m_hWnd;
+		databaseSupplier->activeTabPageHwnd = tableDataPage->m_hWnd;
 		tabView.SetActivePage(foundQueryPage);	
 		tableDataPage->getResultTabView().activeTableDataPage();
-		tableDataPage->getResultTabView().loadTableDatas(supplier->selectedTable);
+		tableDataPage->getResultTabView().loadTableDatas(databaseSupplier->selectedTable);
 	}
 
 	
@@ -565,7 +566,7 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	ATLASSERT(!supplier->selectedTable.empty()); 
+	ATLASSERT(!databaseSupplier->selectedTable.empty()); 
 
 	// 1.find the queryPage title is equal select table name
 	int n = tabView.GetPageCount();
@@ -574,10 +575,10 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		HWND pageHwnd = tabView.GetPageHWND(i);
 		std::wstring title = tabView.GetPageTitle(i);
 		StringUtil::trim(title); // trim the title
-		if (title != supplier->selectedTable) {
+		if (title != databaseSupplier->selectedTable) {
 			continue;
 		}
-		uint64_t userDbId = supplier->getSelectedUserDbId();
+		uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
 		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd, &userDbId](TableStructurePage * ptr) {
 			return ptr->m_hWnd == pageHwnd && userDbId == ptr->getSupplier()->getRuntimeUserDbId();
 		});
@@ -587,7 +588,7 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		foundPage = i; // found, and active this page and load table data
 		
 		TableStructurePage * tableStructPage = (*iter);
-		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
+		databaseSupplier->activeTabPageHwnd = tableStructPage->m_hWnd;
 		tabView.SetActivePage(foundPage);
 		return 0;
 	}
@@ -598,21 +599,92 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		CRect clientRect;
 		GetClientRect(clientRect);
 		TableStructurePage * tableStructPage = new TableStructurePage();
-		tableStructPage->setup(TblOperateType::MOD_TABLE, supplier->selectedTable);
+		tableStructPage->setup(PageOperateType::MOD_TABLE, databaseSupplier->selectedTable);
 		createOrShowTableStructurePage(*tableStructPage, clientRect);
 		tablePagePtrs.push_back(tableStructPage);
 
-		std::wstring tblName = supplier->selectedTable;
+		std::wstring tblName = databaseSupplier->selectedTable;
 		tabView.AddPage(tableStructPage->m_hWnd, StringUtil::blkToTail(tblName).c_str(), 2, tableStructPage);
 		foundPage = tabView.GetPageCount() - 1;
-		supplier->activeTabPageHwnd = tableStructPage->m_hWnd;
+		databaseSupplier->activeTabPageHwnd = tableStructPage->m_hWnd;
 		tabView.SetActivePage(foundPage);
 	}
 	return 0;
 }
 
-LRESULT RightWorkView::OnClickRenameTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT RightWorkView::OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	int n = tabView.GetPageCount();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	std::wstring & oldTableName = databaseSupplier->oldTableName;
+	std::wstring & newTableName = databaseSupplier->newTableName;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);
+		// same name
+		if (pageTitle != oldTableName) {
+			continue;
+		}
+		// query page has properties of TABLE_DATA and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == TABLE_DATA 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				return true;
+			}
+			return false;
+		});
+		if (iter != queryPagePtrs.end()) {
+			tabView.SetPageTitle(i, newTableName.c_str());
+			(*iter)->getResultTabView().loadTableDatas(newTableName);
+		}
+
+		// database page has properties of TABLE_DATA and  same user db id
+		auto iter2 = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd, &userDbId](TableStructurePage * page) {
+			if (page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == MOD_TABLE 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				return true;
+			}
+			return false;
+		});
+		if (iter2 != tablePagePtrs.end()) {
+			tabView.SetPageTitle(i, newTableName.c_str());
+			(*iter2)->renameTable(oldTableName, newTableName);
+		}
+	}
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int n = tabView.GetPageCount();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	std::wstring & tblName = databaseSupplier->selectedTable;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);
+		// same name
+		if (pageTitle != tblName) {
+			continue;
+		}
+		// query page has properties of TABLE_DATA and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == TABLE_DATA 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				return true;
+			}
+			return false;
+		});
+
+		// reload table data
+		if (iter != queryPagePtrs.end()) {
+			(*iter)->getResultTabView().loadTableDatas(tblName);
+		}
+	}
 	return 0;
 }
 
@@ -623,7 +695,7 @@ LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bH
 		return 0;
 	}
 	HWND hwndPage = tabView.GetPageHWND(nPage);
-	supplier->activeTabPageHwnd = hwndPage;
+	databaseSupplier->activeTabPageHwnd = hwndPage;
 
 	return 0;
 }

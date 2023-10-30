@@ -18,11 +18,10 @@
  * @date   2023-05-22
  *********************************************************************/
 #pragma once
-#include "ui/common/page/QPage.h"
+#include "ui/database/rightview/common/QTabPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
-#include "ui/database/supplier/DatabaseSupplier.h"
 
-class HistoryPage : public QPage {
+class HistoryPage : public QTabPage<QPageSupplier> {
 public:
 	DECLARE_WND_CLASS(NULL)
 
@@ -42,7 +41,6 @@ protected:
 
 	CEdit infoEdit;
 	ResultListPageAdapter * adapter = nullptr;
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

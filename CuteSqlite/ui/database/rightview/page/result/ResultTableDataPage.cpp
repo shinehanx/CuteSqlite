@@ -41,6 +41,11 @@ void ResultTableDataPage::setup(std::wstring & table)
 	formViewReadOnly = false;
 }
 
+void ResultTableDataPage::setup(QueryPageSupplier *supplier, std::wstring sql)
+{
+	ResultListPage::setup(supplier, sql);
+}
+
 void ResultTableDataPage::loadTableDatas()
 {
 	if (table.empty() || sql.empty()) {
@@ -62,7 +67,7 @@ void ResultTableDataPage::loadWindow()
 {
 	ResultListPage::loadWindow();
 
-	if (!supplier || supplier->selectedTable.empty()) {
+	if (!databaseSupplier || databaseSupplier->selectedTable.empty()) {
 		return ;
 	}
 	/*
@@ -89,7 +94,7 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
 		win.setItemHeight(22);
-		adapter = new ResultListPageAdapter(m_hWnd, &win, TABLE_DATA);
+		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_TABLE_DATA);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);

@@ -19,22 +19,14 @@
  *********************************************************************/
 #pragma once
 #include <atlsplit.h>
-#include "ui/common/page/QPage.h"
+#include "ui/database/rightview/common/QTabPage.h"
+#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
-class QueryPage : public QPage {
+class QueryPage : public QTabPage<QueryPageSupplier> {
 public:
-	typedef enum {
-		QUERY_DATA,
-		TABLE_DATA,
-		CREATE_VIEW,
-		CREATE_TRIGGER,
-		MODIFY_VIEW,
-		MODIFY_TRIGGER
-	} QueryType;
-
 	BOOL PreTranslateMessage(MSG* pMsg);
 
 	DECLARE_WND_CLASS(NULL)
@@ -48,13 +40,12 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(QueryType queryType, const std::wstring & content = std::wstring(), const std::wstring & tplPath = std::wstring());
+	void setup(PageOperateType operateType, const std::wstring & content = std::wstring(), const std::wstring & tplPath = std::wstring());
 
 	QHelpEdit & getSqlEditor();
 	ResultTabView & getResultTabView();
 	void execAndShow();
 private:
-	QueryType queryType = QUERY_DATA;
 	std::wstring viewName;
 	std::wstring tplPath;
 	std::wstring content;
@@ -65,8 +56,6 @@ private:
 	ResultTabView resultTabView;
 	CHorSplitterWindow splitter;// Horizontal splitter
 
-	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
-	
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 	void loadSqlEditor();

@@ -24,6 +24,7 @@
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
+#include "ui/common/message/QPopAnimate.h"
 
 TableColumnsPageAdapter::TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
@@ -696,6 +697,7 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
 	// verify if there is auto increment in other row
 	if (iSubItem == 4 && !isChecked) {
 		if (verifyExistsOtherAutoIncrement(iItem) != -1) {
+			QPopAnimate::error(parentHwnd, S(L"ai-fobidden-multi-pk"));
 			return false;
 		}
 	} else if (iSubItem == 4 && isChecked) {
@@ -706,10 +708,12 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
 	// check other row has auto increment
 	if (iSubItem == 5 && !isChecked) {
 		if (verifyExistsOtherAutoIncrement(iItem) != -1) {
+			QPopAnimate::error(parentHwnd, S(L"ai-column-exists"));
 			return false;
 		}
 		// data type must INTEGER
 		if (!verifyDataTypeAllowAutoIncrement(iItem)) {
+			QPopAnimate::error(parentHwnd, S(L"ai-column-must-integer"));
 			return false;
 		}
 		// valid primary key in same row
