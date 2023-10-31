@@ -22,8 +22,8 @@
 #include "core/service/db/DatabaseService.h"
 #include "../../../supplier/DatabaseSupplier.h"
 
-#define TRIGGER_DIALOG_WIDTH	300
-#define TRIGGER_DIALOG_HEIGHT	160
+#define VIEW_DIALOG_WIDTH	300
+#define VIEW_DIALOG_HEIGHT	160
 class ViewDialog : public QDialog<ViewDialog>
 {
 public:

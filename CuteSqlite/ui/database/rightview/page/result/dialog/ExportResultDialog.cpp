@@ -233,15 +233,15 @@ void ExportResultDialog::createOrShowSqlSettingsElems(CRect & clientRect)
 
 	int x = 260, y = 220, w = 140, h = 20;
 	CRect rect(x, y, x + w, y + h);
-	createOrShowFormRadio(structureOnlyRadio, Config::EXPORT_SQL_STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
+	createOrShowFormRadio(structureOnlyRadio, Config::STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
 	structureOnlyRadio.EnableWindow(isEnabled);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormRadio(dataOnlyRadio, Config::EXPORT_SQL_DATA_ONLY_RADIO_ID, S(L"data-only"), rect, clientRect);
+	createOrShowFormRadio(dataOnlyRadio, Config::DATA_ONLY_RADIO_ID, S(L"data-only"), rect, clientRect);
 	dataOnlyRadio.EnableWindow(isEnabled);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormRadio(structurAndDataRadio, Config::EXPORT_SQL_STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
+	createOrShowFormRadio(structurAndDataRadio, Config::STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
 	structurAndDataRadio.EnableWindow(isEnabled);
 }
 

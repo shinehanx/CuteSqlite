@@ -11,27 +11,30 @@
 
  * limitations under the License.
 
- * @file   QPageSupplier.h
- * @brief  The base PageSupplier class.
- *		   It's child class supply to store runtime data and handle functions.
- *         These runtime data is use for multiple pages
+ * @file   CopyTableAdapter.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-10-30
+ * @date   2023-10-31
  *********************************************************************/
-#pragma once
+#include "ui/common/adapter/QAdapter.h"
+#include <atlwin.h>
 #include "core/entity/Entity.h"
-#include "core/common/supplier/QSupplier.h"
+#include "core/service/db/DatabaseService.h"
+#include "core/service/db/TableService.h"
+#include "ui/database/leftview/dialog/supplier/CopyTableSupplier.h"
 
-class QPageSupplier : public QSupplier {
+class CopyTableAdapter : public QAdapter<CopyTableAdapter>
+{
 public:
-	// Getter or setter
-	PageOperateType getOperateType() const { return operateType; }
-	void setOperateType(PageOperateType val) { operateType = val; }
+	CopyTableAdapter(HWND parentHwnd, ATL::CWindow * view);
+	CopyTableAdapter(HWND parentHwnd, CopyTableSupplier * supplier);
+	~CopyTableAdapter();
 
-	
+	UserDbList getDbs();
+	std::wstring getDefaultShardingStrategyExpress(int suffixBegin, int suffixEnd);
 private:
-	PageOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
-
-	
+	DatabaseService * databaseService = DatabaseService::getInstance();
+	TableService * tableService = TableService::getInstance();
+	CopyTableSupplier * supplier = nullptr;
 };

@@ -47,6 +47,9 @@ public:
 	// field regex pattern
 	static std::wregex columnPat;
 
+	// number suffix pattern of table name, use for table sharding
+	static std::wregex tblNumSuffixPat;
+
 	static std::vector<std::wstring> tableTags;
 
 	// parse sql 
@@ -78,6 +81,8 @@ public:
 
 	// parse foreign keys by create table DDL
 	static ForeignKeyList parseForeignKeysByTableDDL(const std::wstring & createTblSql);
+
+	static std::wstring replaceNumOfSuffixInTblName(const std::wstring & tblName, const std::wstring & after);
 private:
 	static IndexInfo parseConstraintFromLine(const std::wstring& line);
 	static IndexInfo parseLineToPrimaryKey(const std::wstring& line);

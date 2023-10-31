@@ -247,6 +247,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\common\repository\QSqlDatabase.cpp" />
     <ClCompile Include="core\common\repository\QSqlException.cpp" />
     <ClCompile Include="core\common\repository\QSqlStatement.cpp" />
+    <ClCompile Include="core\common\supplier\QSupplier.cpp" />
     <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
     <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
     <ClCompile Include="core\repository\user\DatabaseUserRepository.cpp" />
@@ -297,6 +298,9 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\leftview\adapter\LeftTreeViewAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\adapter\TableMenuAdapter.cpp" />
     <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp" />
+    <ClCompile Include="ui\database\leftview\dialog\adapter\CopyTableAdapter.cpp" />
+    <ClCompile Include="ui\database\leftview\dialog\CopyTableDialog.cpp" />
+    <ClCompile Include="ui\database\leftview\dialog\supplier\CopyTableSupplier.cpp" />
     <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp" />
     <ClCompile Include="ui\database\rightview\common\QPageSupplier.cpp" />
@@ -359,6 +363,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\common\repository\QSqlStatement.h" />
     <ClInclude Include="core\common\repository\QSqlUtil.h" />
     <ClInclude Include="core\common\service\BaseService.h" />
+    <ClInclude Include="core\common\supplier\QSupplier.h" />
     <ClInclude Include="core\entity\Entity.h" />
     <ClInclude Include="core\repository\db\UserDbRepository.h" />
     <ClInclude Include="core\repository\system\SysInitRepository.h" />
@@ -408,6 +413,9 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\leftview\adapter\TableMenuAdapter.h" />
     <ClInclude Include="ui\database\leftview\adapter\LeftTreeViewAdapter.h" />
     <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h" />
+    <ClInclude Include="ui\database\leftview\dialog\adapter\CopyTableAdapter.h" />
+    <ClInclude Include="ui\database\leftview\dialog\CopyTableDialog.h" />
+    <ClInclude Include="ui\database\leftview\dialog\supplier\CopyTableSupplier.h" />
     <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
     <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h" />
     <ClInclude Include="ui\database\rightview\common\QPageSupplier.h" />

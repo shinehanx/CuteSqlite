@@ -19,12 +19,12 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "RenameTableDialog.h"
-#include "ui\common\message\QPopAnimate.h"
+#include "ui/common/message/QPopAnimate.h"
 
 
 RenameTableDialog::RenameTableDialog(HWND parentHwnd)
 {
-	setFormSize(TRIGGER_DIALOG_WIDTH, TRIGGER_DIALOG_HEIGHT);
+	setFormSize(RENAME_DIALOG_WIDTH, RENAME_DIALOG_HEIGHT);
 	caption = S(L"table-rename");
 }
 

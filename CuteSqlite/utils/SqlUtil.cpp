@@ -36,6 +36,9 @@ std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?([^(\\s|\\\
 
 std::wregex SqlUtil::columnPat(L"(.*)\\s+\\[(.*)\\]+");
 
+std::wregex SqlUtil::tblNumSuffixPat(L"([0-9]+)$");
+
+
 
 std::vector<std::wstring> SqlUtil::tableTags({ L"as", L"left", L"right",L"inner", L"cross", L"full", L"outer", L"natural", L"join" });
 
@@ -994,4 +997,32 @@ ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
 
 	result.seq = std::chrono::system_clock::now();
 	return result;
+}
+
+/**
+ * Replace the number of suffix in the table name. use for table sharding
+ * such as : "analysis_23" => "analysis_{n}"; 
+ * 
+ * @param tblName
+ * @param after
+ * @return 
+ */
+std::wstring SqlUtil::replaceNumOfSuffixInTblName(const std::wstring & tblName, const std::wstring & after)
+{
+	if (tblName.empty() || after.empty()) {
+		return tblName;
+	}
+	if (tblName.find(after) != std::wstring::npos) {
+		return tblName;
+	}
+
+	std::regex_constants::match_flag_type fonly =
+        std::regex_constants::format_first_only;
+	
+	std::wstring str = std::regex_replace(tblName, SqlUtil::tblNumSuffixPat, after, fonly);
+	if (str.find(after) != std::wstring::npos) {
+		return str;
+	}
+	str.append(L"_").append(after);
+	return str;
 }

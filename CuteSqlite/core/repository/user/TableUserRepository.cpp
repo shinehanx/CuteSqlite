@@ -183,6 +183,24 @@ void TableUserRepository::truncateTable(uint64_t userDbId, const std::wstring & 
 	}
 }
 
+void TableUserRepository::dropTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
+{
+	std::wstring ddl = L"DROP TABLE IF EXISTS ";
+	if (!schema.empty() && schema != L"main") {
+		ddl.append(schema).append(L".");
+	}
+	ddl.append(L"\"").append(tblName).append(L"\"");
+
+	try {
+		QSqlStatement query(getUserConnect(userDbId), ddl.c_str());
+		query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"truncate table has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
+	}
+}
+
 UserTable TableUserRepository::toUserTable(QSqlStatement &query)
 {
 	UserTable item;

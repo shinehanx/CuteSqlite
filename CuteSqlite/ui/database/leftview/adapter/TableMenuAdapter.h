@@ -35,6 +35,9 @@ public:
 	void openTable();
 	bool renameTable();
 	bool truncateTable();
+	bool dropTable();
+	bool copyTable();
+	bool shardingTable();
 private:
 	CBrush menuBrush;
 
@@ -43,8 +46,9 @@ private:
 	HICON alterTableIcon = nullptr;
 	HICON renameTableIcon = nullptr;
 	HICON trucateTableIcon = nullptr;
-	HICON dropTableIcon = nullptr;
+	HICON dropTableIcon = nullptr;	
 	HICON copyTableIcon = nullptr;
+	HICON shardingTableIcon = nullptr;
 	HICON exportTableIcon = nullptr;
 	HICON importFromSqlIcon = nullptr;
 	HICON importFromCsvIcon = nullptr;

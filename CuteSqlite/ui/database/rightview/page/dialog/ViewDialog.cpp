@@ -24,7 +24,7 @@
 
 ViewDialog::ViewDialog(HWND parentHwnd)
 {
-	setFormSize(TRIGGER_DIALOG_WIDTH, TRIGGER_DIALOG_HEIGHT);
+	setFormSize(VIEW_DIALOG_WIDTH, VIEW_DIALOG_HEIGHT);
 	caption = S(L"new-view");
 }
 

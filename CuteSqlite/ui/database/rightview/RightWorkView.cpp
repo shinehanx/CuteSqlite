@@ -628,7 +628,8 @@ LRESULT RightWorkView::OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lPara
 		}
 		// query page has properties of TABLE_DATA and  same user db id
 		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
-			if (page->m_hWnd == pageHwnd 
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
 				&& page->getSupplier()->getOperateType() == TABLE_DATA 
 				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
 				return true;
@@ -638,11 +639,13 @@ LRESULT RightWorkView::OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lPara
 		if (iter != queryPagePtrs.end()) {
 			tabView.SetPageTitle(i, newTableName.c_str());
 			(*iter)->getResultTabView().loadTableDatas(newTableName);
+			continue;
 		}
 
 		// database page has properties of TABLE_DATA and  same user db id
 		auto iter2 = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd, &userDbId](TableStructurePage * page) {
-			if (page->m_hWnd == pageHwnd 
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
 				&& page->getSupplier()->getOperateType() == MOD_TABLE 
 				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
 				return true;
@@ -672,7 +675,8 @@ LRESULT RightWorkView::OnClickTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lPa
 		}
 		// query page has properties of TABLE_DATA and  same user db id
 		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
-			if (page->m_hWnd == pageHwnd 
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
 				&& page->getSupplier()->getOperateType() == TABLE_DATA 
 				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
 				return true;
@@ -684,6 +688,68 @@ LRESULT RightWorkView::OnClickTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lPa
 		if (iter != queryPagePtrs.end()) {
 			(*iter)->getResultTabView().loadTableDatas(tblName);
 		}
+	}
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int n = tabView.GetPageCount();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	std::wstring & tblName = databaseSupplier->selectedTable;
+	std::stack<int> delPageStack;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);
+		// same name
+		if (pageTitle != tblName) {
+			continue;
+		}
+		// query page has properties of TABLE_DATA and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == TABLE_DATA 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				page->DestroyWindow();
+				delete page;
+				page = nullptr;
+				return true;
+			}
+			return false;
+		});
+
+		// reload table data
+		if (iter != queryPagePtrs.end()) {
+			queryPagePtrs.erase(iter);
+			delPageStack.push(i);
+			continue;
+		}
+
+		// database page has properties of TABLE_DATA and  same user db id
+		auto iter2 = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&pageHwnd, &userDbId](TableStructurePage * page) {
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == MOD_TABLE 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				page->DestroyWindow();
+				delete page;
+				page = nullptr;
+				return true;
+			}
+			return false;
+		});
+		if (iter2 != tablePagePtrs.end()) {
+			tablePagePtrs.erase(iter2);
+			delPageStack.push(i);	
+		}
+	}
+
+	while (!delPageStack.empty()) {
+		int nPage = delPageStack.top();
+		delPageStack.pop();
+		tabView.RemovePage(nPage);
 	}
 	return 0;
 }

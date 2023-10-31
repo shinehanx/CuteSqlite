@@ -139,9 +139,9 @@ void LeftTreeView::createOrShowTreeView(QTreeViewCtrl & win, CRect & clientRect)
 			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS | TVS_INFOTIP , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 		// create a singleton treeViewAdapter pointer
-		treeViewAdapter = LeftTreeViewAdapter::getInstance(m_hWnd, &win); 
-		databaseMenuAdapter = DatabaseMenuAdapter::getInstance(m_hWnd, &win); 
-		tableMenuAdapter = TableMenuAdapter::getInstance(m_hWnd, &win); 
+		treeViewAdapter = new LeftTreeViewAdapter(m_hWnd, &win); 
+		databaseMenuAdapter =  new DatabaseMenuAdapter(m_hWnd, &win); 
+		tableMenuAdapter = new TableMenuAdapter(m_hWnd, &win);
 		return;
 	}
 	else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
@@ -228,6 +228,8 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bkgBrush = ::CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
+	exportDatabaseAdapter = new ExportDatabaseAdapter(m_hWnd, nullptr);
 	return 0;
 }
 
@@ -570,6 +572,27 @@ void LeftTreeView::OnClickTruncateTableMenu(UINT uNotifyCode, int nID, HWND hwnd
 	}
 }
 
+void LeftTreeView::OnClickDropTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (tableMenuAdapter->dropTable()) {
+		doRefreshDatabase();
+	}
+}
+
+void LeftTreeView::OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (tableMenuAdapter->copyTable()) {
+		doRefreshDatabase();
+	}
+}
+
+void LeftTreeView::OnClickShardingTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (tableMenuAdapter->shardingTable()) {
+		doRefreshDatabase();
+	}
+}
+
 void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {	
 	tableMenuAdapter->openTable();
@@ -640,14 +663,12 @@ void LeftTreeView::doDeleteDatabase()
 
 void LeftTreeView::doExportAsSql()
 {
-	exportDatabaseAdapter = ExportDatabaseAdapter::getInstance(m_hWnd, nullptr);
 	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, exportDatabaseAdapter);
 	exportAsSqlDialog.DoModal(m_hWnd);
 }
 
 void LeftTreeView::doImportFromSql()
 {
-	importDatabaseAdapter = ImportDatabaseAdapter::getInstance(m_hWnd, nullptr);
 	ImportFromSqlDialog dialog(m_hWnd, importDatabaseAdapter);
 	dialog.DoModal(m_hWnd);
 }

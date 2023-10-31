@@ -46,6 +46,7 @@ public:
 
 	// user columns operations
 	ColumnInfoList getUserColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring(), bool isSimple = true);
+	Columns getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 
 	// user indexes operations
 	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
@@ -60,6 +61,7 @@ public:
 
 	void renameTable(uint64_t userDbId, const std::wstring & oldTableName, const std::wstring & newTableName, const std::wstring & schema = std::wstring());
 	void truncateTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+	void dropTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 private:
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();

@@ -78,6 +78,9 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_ALTER_MENU_ID, OnClickAlterTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_RENAME_MENU_ID, OnClickRenameTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_TRUNCATE_MENU_ID, OnClickTruncateTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_MENU_ID, OnClickDropTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_COPY_MENU_ID, OnClickCopyTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_SHARDING_MENU_ID, OnClickShardingTableMenu)
 
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
@@ -171,6 +174,9 @@ private:
 	void OnClickAlterTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickRenameTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickTruncateTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickShardingTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 
 	// MSG

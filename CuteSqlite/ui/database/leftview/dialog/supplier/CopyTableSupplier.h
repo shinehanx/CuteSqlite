@@ -11,27 +11,19 @@
 
  * limitations under the License.
 
- * @file   QPageSupplier.h
- * @brief  The base PageSupplier class.
- *		   It's child class supply to store runtime data and handle functions.
- *         These runtime data is use for multiple pages
+ * @file   CopyTableSupplier.h
+ * @brief  The runtime data shared for CopyTableDialog/ShardingTableExpressDialog
  * 
  * @author Xuehan Qin
- * @date   2023-10-30
+ * @date   2023-11-01
  *********************************************************************/
 #pragma once
-#include "core/entity/Entity.h"
 #include "core/common/supplier/QSupplier.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
 
-class QPageSupplier : public QSupplier {
+class CopyTableSupplier : public QSupplier {
 public:
-	// Getter or setter
-	PageOperateType getOperateType() const { return operateType; }
-	void setOperateType(PageOperateType val) { operateType = val; }
-
-	
-private:
-	PageOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
-
-	
+	CopyTableSupplier(DatabaseSupplier * databaseSupplier);
+	CopyTableSupplier();
+	~CopyTableSupplier();
 };

@@ -73,6 +73,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_ALTER_TABLE_ID, OnClickAlterTableElem)
 		MESSAGE_HANDLER(Config::MSG_RENAME_TABLE_ID, OnClickRenameTable)
 		MESSAGE_HANDLER(Config::MSG_TRUNCATE_TABLE_ID, OnClickTruncateTable)
+		MESSAGE_HANDLER(Config::MSG_DROP_TABLE_ID, OnClickDropTable)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 		REFLECT_NOTIFICATIONS()
@@ -146,6 +147,7 @@ private:
 	LRESULT OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);

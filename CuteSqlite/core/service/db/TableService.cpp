@@ -152,6 +152,17 @@ ColumnInfoList TableService::getUserColumns(uint64_t userDbId, const std::wstrin
 	return result;
 }
 
+Columns TableService::getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	ColumnInfoList columnInfoList = columnUserRepository->getListByTblName(userDbId, tblName, schema);
+	Columns result;
+	for (auto & item : columnInfoList) {
+		result.push_back(item.name);
+	}
+	return result;
+}
+
 UserIndexList TableService::getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
@@ -226,4 +237,14 @@ void TableService::truncateTable(uint64_t userDbId, const std::wstring & tblName
 	}
 
 	tableUserRepository->truncateTable(userDbId, tblName, schema);
+}
+
+void TableService::dropTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema /*= std::wstring()*/)
+{
+	UserTable userTable = tableUserRepository->getTable(userDbId, tblName, schema);
+	if (userTable.name.empty()) {
+		throw QRuntimeException(L"200027");
+	}
+
+	tableUserRepository->dropTable(userDbId, tblName, schema);
 }

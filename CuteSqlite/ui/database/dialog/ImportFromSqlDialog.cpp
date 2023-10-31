@@ -260,10 +260,6 @@ LRESULT ImportFromSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 	if (abortOnErrorCheckbox.IsWindow()) abortOnErrorCheckbox.DestroyWindow();
 
-	if (adapter) {
-		delete adapter;
-		adapter = nullptr;
-	}
 	return 0;
 }
 

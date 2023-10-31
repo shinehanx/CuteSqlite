@@ -187,7 +187,7 @@ void ExportAsSqlDialog::createOrShowTreeView(CTreeViewCtrlEx & win, CRect & rect
 			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS | TVS_CHECKBOXES, WS_EX_CLIENTEDGE, Config::DATABASE_OBJECTS_TREEVIEW_ID);
 			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
 		// create a singleton treeViewAdapter pointer
-		objectsTreeViewAdapter = ObjectsTreeViewAdapter::getInstance(m_hWnd, &win);
+		objectsTreeViewAdapter = new ObjectsTreeViewAdapter(m_hWnd, &win);
 		return;
 	}
 	else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
@@ -201,13 +201,13 @@ void ExportAsSqlDialog::createOrShowStructureAndDataSettingsElems(CRect & client
 {	
 	int x = 300, y = 15 + 32 + 10 + 6 + (20 + 5) * 3 + 20, w = 150, h = 20;
 	CRect rect(x, y, x + w, y + h);
-	createOrShowFormRadio(structureOnlyRadio, Config::EXPORT_SQL_STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
+	createOrShowFormRadio(structureOnlyRadio, Config::STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormRadio(dataOnlyRadio, Config::EXPORT_SQL_DATA_ONLY_RADIO_ID, S(L"data-only"), rect, clientRect);
+	createOrShowFormRadio(dataOnlyRadio, Config::DATA_ONLY_RADIO_ID, S(L"data-only"), rect, clientRect);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormRadio(structureAndDataRadio, Config::EXPORT_SQL_STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
+	createOrShowFormRadio(structureAndDataRadio, Config::STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
 }
 
 
@@ -732,7 +732,7 @@ void ExportAsSqlDialog::OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd)
  */
 LRESULT ExportAsSqlDialog::OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	Q_INFO(L"recieve MSG_EXPORT_DB_AS_SQL_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
+	Q_DEBUG(L"recieve MSG_EXPORT_DB_AS_SQL_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
 
 	if (wParam == 1) { // 1 表示执行完成
 		AppContext * appContext = AppContext::getInstance();

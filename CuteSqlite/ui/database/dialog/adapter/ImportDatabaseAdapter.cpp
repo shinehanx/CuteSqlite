@@ -45,6 +45,7 @@ UserDbList ImportDatabaseAdapter::getDbs()
 void ImportDatabaseAdapter::loadDbs()
 {
 	try {
+		dbs.clear();
 		dbs = databaseService->getAllUserDbs();
 	}
 	catch (QRuntimeException &ex) {

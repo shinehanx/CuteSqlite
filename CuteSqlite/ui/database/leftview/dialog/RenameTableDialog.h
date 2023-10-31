@@ -22,8 +22,8 @@
 #include "core/service/db/TableService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
-#define TRIGGER_DIALOG_WIDTH	300
-#define TRIGGER_DIALOG_HEIGHT	160
+#define RENAME_DIALOG_WIDTH		300
+#define RENAME_DIALOG_HEIGHT	160
 class RenameTableDialog : public QDialog<RenameTableDialog>
 {
 public:

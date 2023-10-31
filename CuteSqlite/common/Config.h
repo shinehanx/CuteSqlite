@@ -102,7 +102,11 @@ typedef enum {
 	TABLE_INDEX_MOVE_DOWN_BUTTON_ID,
 
 	// QPOP ANIMATE
-	QPOP_ANIMATE_CLOSE_BUTTON_ID
+	QPOP_ANIMATE_CLOSE_BUTTON_ID,
+
+	// COPY TABLE DIALOG
+	COPYTABLE_SUFFIX_NUMBER_EXPRESS_BUTTON_ID,
+	COPYTABLE_PREVIEW_SQL_BUTTON_ID
 } ButtonId;
 
 // TabView id
@@ -166,6 +170,15 @@ typedef enum {
 	//VIEW DIALOG
 	VIEWDIALOG_VIEW_NAME_EDIT_ID,
 	VIEWDIALOG_TRIGGER_NAME_EDIT_ID,
+
+	// COPY TABLE DIALOG
+	COPYTABLE_FROM_DB_EDIT_ID,
+	COPYTABLE_FROM_TBL_EDIT_ID,
+	COPYTABLE_TO_TBL_EDIT_ID,
+	COPYTABLE_SHARDING_BEGIN_EDIT_ID,
+	COPYTABLE_SHARDING_END_EDIT_ID,
+	COPYTABLE_SHARDING_RANGE_EDIT_ID,
+	COPYTABLE_SUFFIX_NUMBER_EXPRESS_EDIT_ID,
 } EditorId;
 
 typedef enum {
@@ -190,6 +203,11 @@ typedef enum {
 
 	//IMPORT DABASE FROM SQL
 	IMPORT_ABORT_ON_ERROR_CHECKBOX_ID,
+
+	// COPY TABLE DIALOG
+	COPYTABLE_TO_DB_COMBOBOX_ID,
+	COPYTABLE_SHARDING_ENABLE_CHECKBOX_ID,
+	COPYTABLE_DATA_STRATEGY_ENABLE_CHECKBOX_ID,
 } CheckBoxId;
 
 typedef enum {
@@ -201,9 +219,9 @@ typedef enum {
 	EXPORT_TO_EXCEL_XML_RADIO_ID,
 	EXPORT_TO_SQL_RADIO_ID,
 	// SQL SETTING
-	EXPORT_SQL_STRUCTURE_ONLY_RADIO_ID,
-	EXPORT_SQL_DATA_ONLY_RADIO_ID,
-	EXPORT_SQL_STRUCTURE_DATA_RADIO_ID,
+	STRUCTURE_ONLY_RADIO_ID,
+	DATA_ONLY_RADIO_ID,
+	STRUCTURE_DATA_RADIO_ID,
 
 	// EXPORT DATABASE AS SQL DIALOG
 	EXPORT_RETAIN_TABLE_RADIO_ID,
@@ -263,6 +281,7 @@ typedef enum {
 	TABLE_TRUNCATE_MENU_ID,
 	TABLE_DROP_MENU_ID,
 	TABLE_COPY_MENU_ID,
+	TABLE_SHARDING_MENU_ID,
 	TABLE_EXPORT_MENU_ID,
 	TABLE_IMPORT_SQL_MENU_ID,
 	TABLE_IMPORT_CSV_MENU_ID,
@@ -300,11 +319,13 @@ typedef enum {
 	MSG_TRUNCATE_TABLE_ID, // Send this msg when clicking "Truncate table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_DROP_TABLE_ID, // Send this msg when clicking "Drop table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_COPY_TABLE_ID, // Send this msg when clicking "Copy table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_SHARDING_TABLE_ID, // Send this msg when clicking "Sharding" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_EXPORT_TABLE_ID, // Send this msg when clicking "Export table as..." menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_IMPORT_SQL_ID, // Send this msg when clicking "Import From SQL File" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_IMPORT_CSV_ID, // Send this msg when clicking "Import From CSV File" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_MANAGE_INDEX_ID, // Send this msg when clicking "Manage Indexes" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_PROPERTIES_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_COPY_TABLE_PROCESS_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
 }MessageId;
 
 typedef enum {
