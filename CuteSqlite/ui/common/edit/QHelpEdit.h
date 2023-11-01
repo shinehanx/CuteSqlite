@@ -47,6 +47,7 @@ public:
 	std::wstring getSelText();
 	std::wstring getText();
 	void setText(const std::wstring & text);
+	void addText(const std::wstring & text);
 	void focus();
 	void replaceSelText(std::wstring & text);
 	void clearText();

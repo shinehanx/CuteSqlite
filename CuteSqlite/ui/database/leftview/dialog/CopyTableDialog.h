@@ -36,16 +36,18 @@ public:
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::STRUCTURE_ONLY_RADIO_ID, Config::STRUCTURE_DATA_RADIO_ID, BN_CLICKED, OnClickStructureAndDataRadios)
-		COMMAND_RANGE_CODE_HANDLER_EX(Config::COPYTABLE_SHARDING_BEGIN_EDIT_ID, Config::COPYTABLE_SHARDING_END_EDIT_ID, EN_CHANGE, OnShardingEditChange)
-		COMMAND_HANDLER_EX(Config::COPYTABLE_TO_TBL_EDIT_ID, EN_CHANGE, OnShardingEditChange)
-		COMMAND_HANDLER_EX(Config::COPYTABLE_SHARDING_ENABLE_CHECKBOX_ID, BN_CLICKED, OnClickShardingEnableCheckBox)
-		COMMAND_HANDLER_EX(Config::COPYTABLE_DATA_STRATEGY_ENABLE_CHECKBOX_ID, BN_CLICKED, OnClickDataStrategyEnableCheckBox)
+		COMMAND_RANGE_CODE_HANDLER_EX(Config::COPYTABLE_TBL_SUFFER_BEGIN_EDIT_ID, Config::COPYTABLE_TBL_SUFFER_END_EDIT_ID, EN_CHANGE, OnShardingEditChange)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_TARGET_TABLE_EDIT_ID, EN_CHANGE, OnShardingEditChange)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_TARGET_DB_COMBOBOX_ID, CBN_SELCHANGE, OnTargetDbComboBoxChange)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_ENABLE_TABLE_SHARDING_CHECKBOX_ID, BN_CLICKED, OnClickEnableTableShardingCheckBox)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_ENABLE_SHARDING_STRATEGY_CHECKBOX_ID, BN_CLICKED, OnClickEnableShardingStrategyCheckBox)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_PREVIEW_SQL_BUTTON_ID, BN_CLICKED, OnClickPreviewSqlButton)
 		MESSAGE_HANDLER(Config::MSG_COPY_TABLE_PROCESS_ID, OnProcessCopy); // ÏìÓ¦½ø¶È
 		CHAIN_MSG_MAP(QDialog<CopyTableDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	CopyTableDialog(HWND parentHwnd, bool isSharding = false);
-
+	~CopyTableDialog() {};
 private:
 	bool isNeedReload = true;
 	HWND parentHwnd = nullptr;
@@ -59,15 +61,15 @@ private:
 	QStaticImage copyImage;
 	CStatic copyTextLabel;
 
-	CStatic fromDbLabel;
-	CEdit fromDbEdit;
-	CStatic fromTblLabel;
-	CEdit fromTblEdit;
+	CStatic sourceDbLabel;
+	CEdit sourceDbEdit;
+	CStatic sourceTblLabel;
+	CEdit sourceTblEdit;
 
-	CStatic toDbLabel;
-	CComboBox toDbComboBox;
-	CStatic toTblLabel;
-	CEdit toTblEdit;
+	CStatic targetDbLabel;
+	CComboBox targetDbComboBox;
+	CStatic targetTblLabel;
+	CEdit targetTblEdit;
 
 	// GROUPBOX	
 	CButton structAndDataGroupBox;
@@ -81,18 +83,18 @@ private:
 	std::vector<CButton *> structureAndDataRadioPtrs;
 
 	// sharding table elems
-	CButton shardingEnableCheckBox;
-	CStatic shardingBeginLabel;
-	CEdit shardingBeginEdit;
-	CStatic shardingEndLabel;
-	CEdit shardingEndEdit;
+	CButton enableTableShardingCheckBox;
+	CStatic tblSuffixBeginLabel;
+	CEdit tblSuffixBeginEdit;
+	CStatic tblSuffixEndLabel;
+	CEdit tblSuffixEndEdit;
 	CEdit shardingRangeEdit;
 
 	// advanced options elems
-	CButton dataStrategyEnableCheckBox;
-	CStatic suffixNumberExpressLabel; 
-	CEdit suffixNumberExpressEdit; 
-	CButton suffixNumberExpressButton;
+	CButton enableShardingStrategyCheckBox;
+	CStatic shardingStrategyExpressLabel; 
+	CEdit shardingStrategyExpressEdit; 
+	CButton shardingStrategyExpressButton;
 
 	// PROCESS BAR
 	QProcessBar processBar;
@@ -109,13 +111,13 @@ private:
 	virtual void createOrShowUI();
 	void createOrShowCopyImage(QStaticImage &win, CRect & clientRect);
 	void createOrShowCopyTextLabel(CStatic &win, CRect & clientRect);
-	void createFromElems(CRect & clientRect);
-	void createToElems(CRect & clientRect);
+	void createOrShowSourceElems(CRect & clientRect);
+	void createOrShowTargetElems(CRect & clientRect);
 	void createOrShowGroupBoxes(CRect & clientRect);
 	void createOrShowPreviewSqlButton(CRect & clientRect);
 
 	void createOrShowStructureAndDataSettingsElems(CRect & clientRect);
-	void createOrShowShardingTableElems(CRect & clientRect);
+	void createOrShowTableShardingElems(CRect & clientRect);
 	void createOrShowAdvancedOptionsElems(CRect & clientRect);	
 	void createOrShowProcessBar(QProcessBar &win, CRect & clientRect);
 
@@ -124,6 +126,7 @@ private:
 	void loadToDbComboBox();
 	void loadOnlyForIsSharding();
 	void loadShardingTableElems();
+	void loadAdvancedOptionsElems();
 	void enableShardingTableElems();
 	void enableAdvancedSettingsElems();
 
@@ -135,14 +138,18 @@ private:
 	virtual HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 
 	void OnClickStructureAndDataRadios(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickShardingEnableCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickDataStrategyEnableCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
-
+	void OnClickEnableTableShardingCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickEnableShardingStrategyCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
+	
 	void OnShardingEditChange(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnTargetDbComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd);
 	// Handle the message for export process
 	LRESULT OnProcessCopy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
+	void OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
-	
-	
+
+	bool verifyParams();
+
+
 };

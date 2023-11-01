@@ -53,6 +53,11 @@ void QHelpEdit::setText(const std::wstring & text)
 	editor.setText(text);
 }
 
+void QHelpEdit::addText(const std::wstring & text)
+{
+	editor.addText(text);
+}
+
 void QHelpEdit::focus()
 {
 	editor.SetFocus();

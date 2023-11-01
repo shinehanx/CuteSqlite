@@ -23,6 +23,9 @@ const std::wstring QRuntimeException::getCode() const
 
 const std::wstring QRuntimeException::getMsg() const
 {
+	if (!code.empty() && msg.empty()) {
+		return E(code);
+	}
 	return msg;
 }
 

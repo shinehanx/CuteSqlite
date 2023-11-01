@@ -287,6 +287,13 @@ void QSqlEdit::setText(const std::wstring & text)
 	::free(utf8Str);
 }
 
+void QSqlEdit::addText(const std::wstring & text)
+{
+	char * utf8Str = StringUtil::unicodeToUtf8(text);
+	long charWidth = static_cast<long>(SendMessage(SCI_ADDTEXT, strlen(utf8Str), (LPARAM)utf8Str));
+	::free(utf8Str);
+}
+
 void QSqlEdit::clearText()
 {
 	SendMessage(SCI_CLEARALL, NULL, NULL);

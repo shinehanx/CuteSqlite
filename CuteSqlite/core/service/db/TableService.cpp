@@ -35,26 +35,45 @@ TableService::~TableService()
 
 }
 
-uint64_t TableService::getTableDataCount(uint64_t userDbId, std::wstring tblName, const std::wstring & schema)
+uint64_t TableService::getTableDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
 	return getRepository()->getDataCount(userDbId, tblName, schema);
 }
 
-int TableService::getTableDataPageCount(uint64_t userDbId, std::wstring tblName, int perpage, const std::wstring & schema)
+int TableService::getTableDataPageCount(uint64_t userDbId, const std::wstring & tblName, int perpage, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty() && perpage > 0);
 	uint64_t rowCount = getTableDataCount(userDbId, tblName, schema);
 	return rowCount % perpage ? static_cast<int>(rowCount / perpage + 1) : static_cast<int>(rowCount / perpage);
 }
 
-DataList TableService::getTableDataList(uint64_t userDbId, std::wstring tblName, int page, int perpage, const std::wstring & schema)
+uint64_t TableService::getTableWhereDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty());
+	return getRepository()->getWhereDataCount(userDbId, tblName, whereClause, schema);
+}
+
+int TableService::getTableWhereDataPageCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, int perpage, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty() && perpage > 0);
+	uint64_t rowCount = getTableWhereDataCount(userDbId, tblName ,whereClause, schema);
+	return rowCount % perpage ? static_cast<int>(rowCount / perpage + 1) : static_cast<int>(rowCount / perpage);
+}
+
+DataList TableService::getTableDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty() && page > 0 && perpage > 0);
 	return getRepository()->getPageDataList(userDbId, tblName, page, perpage, schema);
 }
 
-std::pair<Columns, DataList> TableService::getTableDataListWithColumns(uint64_t userDbId, std::wstring tblName, int page, int perpage, const std::wstring & schema)
+DataList TableService::getTableWhereDataList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, int page, int perpage, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !tblName.empty() && page > 0 && perpage > 0);
+	return getRepository()->getWherePageDataList(userDbId, tblName, whereClause, page, perpage, schema);
+}
+
+std::pair<Columns, DataList> TableService::getTableDataListWithColumns(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty() && page > 0 && perpage > 0);
 	std::pair<Columns, DataList> result;

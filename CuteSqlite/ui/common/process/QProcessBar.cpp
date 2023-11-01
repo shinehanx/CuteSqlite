@@ -6,6 +6,16 @@
 void QProcessBar::run(int percent)
 {
 	this->percent = percent;
+	if (percent <= 5) {
+		this->err.clear();
+	}
+	
+	Invalidate(true);
+}
+
+void QProcessBar::error(const std::wstring & err)
+{
+	this->err = err;
 	Invalidate(true);
 }
 
@@ -31,6 +41,7 @@ LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 {
 	bkgBrush = ::CreateSolidBrush(bkgColor);
 	processBrush = ::CreateSolidBrush(processColor);
+	errorBrush = ::CreateSolidBrush(errorColor);
 	textFont = FT(L"process-text-size"); 
 	textPen.CreatePen(PS_SOLID, 1, textColor);
 
@@ -48,6 +59,7 @@ LRESULT QProcessBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 	if (processBrush) ::DeleteObject(processBrush);
+	if (errorBrush) ::DeleteObject(errorBrush);
 	if (textFont) ::DeleteObject(textFont);
 	if (!textPen.IsNull()) textPen.DeleteObject();
 	return 0;
@@ -67,7 +79,12 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	int pixel = int(round(perPixel * percent));
 	int x = clientRect.left, y = clientRect.top, w = pixel, h = clientRect.Height();
 	CRect rect(x, y, x + w, y + h);
-	mdc.FillRect(rect, processBrush);
+	if (err.empty()) {
+		mdc.FillRect(rect, processBrush);
+	} else {
+		mdc.FillRect(rect, errorBrush);
+	}
+	
 
 	// »­ÎÄ×Ö
 	if (percent == 0) {
@@ -83,7 +100,7 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	x = (clientRect.Width() - 80) / 2, y = rect.top + 2, w = 80, h = 20;
 	CRect textRect(x, y, x + w, y + h);
 	COLORREF oldTextColor = mdc.SetTextColor(textColor);
-	COLORREF oldTextBkgColor = mdc.SetBkColor(processColor);
+	COLORREF oldTextBkgColor = mdc.SetBkColor(err.empty() ? processColor : errorColor);
 	mdc.DrawText(text.c_str(), static_cast<int>(text.size()), textRect, uFormat);
 	mdc.SetTextColor(oldTextColor);
 	mdc.SetBkColor(oldTextBkgColor);

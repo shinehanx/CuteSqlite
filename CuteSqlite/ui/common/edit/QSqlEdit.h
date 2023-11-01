@@ -54,6 +54,7 @@ public:
 	// replace selected text to editor
 	void replaceSelText(std::wstring & text);
 	void setText(const std::wstring & text);
+	void addText(const std::wstring & text);
 	void clearText();
 protected:
 

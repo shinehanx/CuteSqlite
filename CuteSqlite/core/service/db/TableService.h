@@ -29,10 +29,13 @@ public:
 	TableService();
 	~TableService();
 
-	uint64_t getTableDataCount(uint64_t userDbId, std::wstring tblName, const std::wstring & schema = std::wstring());
-	int getTableDataPageCount(uint64_t userDbId, std::wstring tblName, int perpage, const std::wstring & schema = std::wstring());
-	DataList getTableDataList(uint64_t userDbId, std::wstring tblName, int page, int perpage, const std::wstring & schema = std::wstring());
-	std::pair<Columns, DataList> getTableDataListWithColumns(uint64_t userDbId, std::wstring tblName, int page, int perpage, const std::wstring & schema = std::wstring());
+	uint64_t getTableDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+	int getTableDataPageCount(uint64_t userDbId, const std::wstring & tblName, int perpage, const std::wstring & schema = std::wstring());
+	uint64_t getTableWhereDataCount(uint64_t userDbId, const std::wstring &  tblName, const std::wstring & whereClause, const std::wstring & schema = std::wstring());
+	int getTableWhereDataPageCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, int perpage, const std::wstring & schema = std::wstring());
+	DataList getTableDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema = std::wstring());
+	DataList getTableWhereDataList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, int page, int perpage, const std::wstring & schema = std::wstring());
+	std::pair<Columns, DataList> getTableDataListWithColumns(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema = std::wstring());
 
 	bool isExistsTblName(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	bool execBySql(uint64_t userDbId, const std::wstring & sql);

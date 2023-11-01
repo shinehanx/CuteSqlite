@@ -300,6 +300,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\dialog\ExportAsSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\adapter\CopyTableAdapter.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\CopyTableDialog.cpp" />
+    <ClCompile Include="ui\database\leftview\dialog\PreviewSqlDialog.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\supplier\CopyTableSupplier.cpp" />
     <ClCompile Include="ui\database\leftview\LeftTreeView.cpp" />
     <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp" />
@@ -415,6 +416,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\dialog\ExportAsSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\dialog\adapter\CopyTableAdapter.h" />
     <ClInclude Include="ui\database\leftview\dialog\CopyTableDialog.h" />
+    <ClInclude Include="ui\database\leftview\dialog\PreviewSqlDialog.h" />
     <ClInclude Include="ui\database\leftview\dialog\supplier\CopyTableSupplier.h" />
     <ClInclude Include="ui\database\leftview\LeftTreeView.h" />
     <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h" />

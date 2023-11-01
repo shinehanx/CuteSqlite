@@ -132,6 +132,68 @@ DataList TableUserRepository::getPageDataList(uint64_t userDbId, const std::wstr
 }
 
 
+uint64_t TableUserRepository::getWhereDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, const std::wstring & schema /*= std::wstring()*/)
+{
+	uint64_t n = 0;
+	// std::wstring sql = "SELECT COUNT(*) AS n FROM  tbl_name"
+	std::wstring sql = L"SELECT COUNT(*) AS n FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"").append(tblName).append(L"\"");
+	} else {
+		sql.append(L"\"").append(tblName).append(L"\"");
+	}
+	
+	if (!whereClause.empty()) {
+		sql.append(L" WHERE ").append(whereClause);
+	}
+
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+
+		if (query.executeStep()) {
+			n = query.getColumn(0).getInt64();
+		}
+		return n;
+	}
+	catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
+	}
+}
+
+DataList TableUserRepository::getWherePageDataList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & whereClause, int page, int perpage, const std::wstring & schema /*= std::wstring()*/)
+{
+	DataList result;
+	QPagePair pagePair = { page, perpage };
+	std::wstring sql = L"SELECT * FROM ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".").append(L"\"").append(tblName).append(L"\"");
+	} else {
+		sql.append(L"\"").append(tblName).append(L"\"");
+	}
+
+	if (!whereClause.empty()) {
+		sql.append(L" WHERE ").append(whereClause);
+	}
+
+	std::wstring limitSql = limitClause(pagePair);
+	sql.append(limitSql);
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+
+		while (query.executeStep()) {
+			RowItem rowItem = toRowItem(query);
+			result.push_back(rowItem);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"200023", L"sorry, system has error when loading databases.");
+	}
+}
+
 void TableUserRepository::execBySql(uint64_t userDbId, const std::wstring & sql)
 {
 	try {
@@ -139,7 +201,7 @@ void TableUserRepository::execBySql(uint64_t userDbId, const std::wstring & sql)
 		query.exec();
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"Execute sql has error:{}, msg:{}", e.getErrorCode(), _err);
+		Q_ERROR(L"Execute sql has error:{}, msg:{}, SQL:{}", e.getErrorCode(), _err, sql);
 		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err);
 		
 		throw ex;
@@ -215,7 +277,7 @@ RowItem TableUserRepository::toRowItem(QSqlStatement &query)
 	RowItem rowItem;
 	int columnCount = query.getColumnCount();
 	for (int i = 0; i < columnCount; i++) {
-		std::wstring val = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
+		std::wstring val = query.getColumn(i).isNull() ? L"[NULL]" : query.getColumn(i).getText();
 		rowItem.push_back(val);
 	}
 	return rowItem;

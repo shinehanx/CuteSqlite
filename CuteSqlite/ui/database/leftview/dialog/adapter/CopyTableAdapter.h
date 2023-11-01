@@ -17,6 +17,7 @@
  * @author Xuehan Qin
  * @date   2023-10-31
  *********************************************************************/
+#pragma once
 #include "ui/common/adapter/QAdapter.h"
 #include <atlwin.h>
 #include "core/entity/Entity.h"
@@ -33,8 +34,27 @@ public:
 
 	UserDbList getDbs();
 	std::wstring getDefaultShardingStrategyExpress(int suffixBegin, int suffixEnd);
+	bool matchDefaultExpress(const std::wstring & str, int & capacity, int & offset);
+	std::wstring getPreviewSqlInSameDb();
+	std::list<std::wstring> getSqlsInSameDb();
+
+	bool verifyParams();
+	bool startCopy();
+
+	CopyTableSupplier * getSupplier() { return supplier; }
+
+	std::wstring generateCreateDdlForTargetTable(uint16_t suffix, const std::wstring & targetTblName);
+	std::wstring genderatePageDataSql(const DataList & pageDataList, const std::wstring & targetTblName);
 private:
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 	CopyTableSupplier * supplier = nullptr;
+
+	// same db
+	bool doExecSqlsInSameDb();
+	std::wstring generateCopyDataSqlInSameDb(uint16_t suffix, const std::wstring & targetTblName);
+
+	// same db
+	bool doExecSqlsInOtherDb();
+	bool doExecCopyDataSqlInOtherDb(uint16_t suffix, const std::wstring & targetTblName);
 };

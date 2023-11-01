@@ -20,15 +20,19 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void run(int percent);
+	void error(const std::wstring & err);
 
 	void setColors(COLORREF bkgColor, COLORREF processColor);
 private:
 	int percent = 0;
+	std::wstring err;
 
 	COLORREF bkgColor =  RGB(192, 192, 192);
 	HBRUSH bkgBrush = nullptr;
 	COLORREF processColor = RGB(49, 139, 202);
+	COLORREF errorColor = RGB(255, 127, 39);
 	HBRUSH processBrush = nullptr;
+	HBRUSH errorBrush = nullptr;
 
 	COLORREF textColor = RGB(255, 255, 255);
 	HFONT textFont = nullptr;

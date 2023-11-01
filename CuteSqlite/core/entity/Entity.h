@@ -187,3 +187,10 @@ typedef enum {
 	MOD_TABLE,
 } PageOperateType;
 
+typedef enum {
+	UNKOWN = 0,
+	STRUCT_ONLY = 1,
+	DATA_ONLY = 2,
+	STRUCTURE_AND_DATA = 3
+}StructAndDataSetting;
+

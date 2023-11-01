@@ -19,7 +19,7 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "CopyTableSupplier.h"
-
+#include "utils/StringUtil.h"
 
 CopyTableSupplier::CopyTableSupplier(DatabaseSupplier * databaseSupplier)
 {
@@ -36,4 +36,31 @@ CopyTableSupplier::CopyTableSupplier()
 CopyTableSupplier::~CopyTableSupplier()
 {
 
+}
+
+/**
+ * Get sharding tables.
+ * 
+ * @return map - first(uint16_t) : table suffix, second(string) : table name
+ */
+ShardingTableMap CopyTableSupplier::getShardingTables()
+{
+	ShardingTableMap result;
+	if (!targetTable.empty() && 
+		(targetTable.find(L"{n}") == std::wstring::npos || !enableTableSharding)) {
+		result[0] = targetTable; // single table
+	}
+
+	if (tblSuffixBegin < 0 || tblSuffixEnd < 0 || 
+		tblSuffixBegin >= tblSuffixEnd || !enableTableSharding ||
+		targetTable.empty() || targetTable.find(L"{n}") == std::wstring::npos) {
+		return result;
+	}
+
+	for (int16_t i = tblSuffixBegin; i <= tblSuffixEnd; i++) {
+		std::wstring tblName = StringUtil::replace(targetTable, L"{n}", std::to_wstring(i));
+		result[i] = tblName;
+	}
+
+	return result;
 }

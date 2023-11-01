@@ -32,7 +32,7 @@ public:
 protected:
 	static T * theInstance;
 	static HWND parentHwnd;
-	static V * dataView;
+	V * dataView;
 };
 
 template <typename T, typename V>
@@ -40,10 +40,6 @@ T * QAdapter<T, V>::theInstance = nullptr; // singleton
 
 template <typename T, typename V>
 HWND QAdapter<T, V>::parentHwnd = nullptr;
-
-template <typename T, typename V>
-V * QAdapter<T, V>::dataView = nullptr;
-
 
 // singleton
 template <typename T, typename V>
@@ -53,6 +49,6 @@ T * QAdapter<T, V>::getInstance(HWND parentHwnd, V * dataView /*= nullptr*/)
 		QAdapter::theInstance = new T(parentHwnd, dataView);
 	}
 	QAdapter::parentHwnd = parentHwnd;
-	QAdapter::dataView = dataView;
+	dataView = dataView;
 	return QAdapter::theInstance;
 }
