@@ -194,3 +194,9 @@ typedef enum {
 	STRUCTURE_AND_DATA = 3
 }StructAndDataSetting;
 
+typedef enum {
+	TABLE_COLUMNS_PAGE = 0,
+	TABLE_INDEXS_PAGE = 1,
+	TABLE_FOREIGN_KEYS_PAGE = 2
+}TableStructurePageType;
+

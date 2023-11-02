@@ -20,8 +20,13 @@
 #include "stdafx.h"
 #include "QSqlExecuteException.h"
 
-QSqlExecuteException::QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg)
+QSqlExecuteException::QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg, const std::wstring &sql)
 	: QRuntimeException(errCode, errMsg)
 {
+	this->sql = sql;
+}
 
+const std::wstring & QSqlExecuteException::getSql() const
+{
+	return sql;
 }

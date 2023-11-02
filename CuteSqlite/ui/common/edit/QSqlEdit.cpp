@@ -275,6 +275,9 @@ std::wstring QSqlEdit::getText()
 
 void QSqlEdit::replaceSelText(std::wstring & text)
 {
+	if (text.empty()) {
+		return;
+	}
 	char * utf8Str = StringUtil::unicodeToUtf8(text);
 	long charWidth = static_cast<long>(SendMessage(SCI_REPLACESEL, NULL, (LPARAM)utf8Str));
 	::free(utf8Str);
@@ -282,6 +285,9 @@ void QSqlEdit::replaceSelText(std::wstring & text)
 
 void QSqlEdit::setText(const std::wstring & text)
 {
+	if (text.empty()) {
+		return;
+	}
 	char * utf8Str = StringUtil::unicodeToUtf8(text);
 	long charWidth = static_cast<long>(SendMessage(SCI_SETTEXT, NULL, (LPARAM)utf8Str));
 	::free(utf8Str);
@@ -289,6 +295,9 @@ void QSqlEdit::setText(const std::wstring & text)
 
 void QSqlEdit::addText(const std::wstring & text)
 {
+	if (text.empty()) {
+		return;
+	}
 	char * utf8Str = StringUtil::unicodeToUtf8(text);
 	long charWidth = static_cast<long>(SendMessage(SCI_ADDTEXT, strlen(utf8Str), (LPARAM)utf8Str));
 	::free(utf8Str);

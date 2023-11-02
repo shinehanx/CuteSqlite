@@ -46,10 +46,14 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 
-	void setup(PageOperateType tblOperateType, const std::wstring &tblName = std::wstring(), const std::wstring & schema = std::wstring());
+	void setup(PageOperateType tblOperateType, const std::wstring &tblName = std::wstring(), 
+		TableStructurePageType activePageType = TABLE_COLUMNS_PAGE, const std::wstring & schema = std::wstring());
 	TableStructureSupplier * getSupplier() { return supplier; };
 	void renameTable(const std::wstring &oldTableName, const std::wstring &newTableName);
+
+	void activePage(TableStructurePageType pageType);
 private:
+	TableStructurePageType activePageType = TABLE_COLUMNS_PAGE;
 	COLORREF editorBkgColor = RGB(238, 238, 238);
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;

@@ -23,7 +23,7 @@
 class QSqlExecuteException : public QRuntimeException
 {
 public:
-	QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg);
+	QSqlExecuteException(const std::wstring errCode, const std::wstring errMsg, const std::wstring &sql = std::wstring());
 
 	uint32_t getErrRow() const { return errRow; }
 	void setErrRow(uint32_t val) { errRow = val; }
@@ -31,9 +31,12 @@ public:
 
 	uint32_t getErrCol() const { return errCol; }
 	void setErrCol(uint32_t val) { errCol = val; }
+
+	const std::wstring & getSql() const ;
 private:
 	// Execute sql has error, will be with error rows and cols
 	uint32_t errRow = 0;
 	uint32_t errCol = 0;
+	std::wstring sql;
 };
 

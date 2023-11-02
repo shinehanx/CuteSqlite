@@ -68,7 +68,7 @@ public:
 	ShardingTableMap getShardingTables();
 	
 private:
-	StructAndDataSetting structAndDataSetting;
+	StructAndDataSetting structAndDataSetting = UNKOWN;
 	uint64_t targetUserDbId = 0;
 	std::wstring targetTable;
 

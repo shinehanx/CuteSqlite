@@ -54,7 +54,17 @@ void QPopAnimate::report(const QRuntimeException & ex)
 
 void QPopAnimate::report(const QSqlExecuteException & ex)
 {
-	QPopAnimate::report(AppContext::getInstance()->getMainFrmHwnd(), ex.getCode(), ex.getMsg());
+	clearPopAnimatePtrs();
+	QPopAnimate * win = new QPopAnimate();
+	popAnimatePtrs.push_back(win);
+
+	win->setup(ex.getCode(), ex.getMsg(),ex.getSql());
+	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
+	std::wstring closeImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close.bmp";
+	win->setImagePath(imagePath);
+	win->setCloseImagePath(closeImagePath);
+	win->Create(AppContext::getInstance()->getMainFrmHwnd());
+	win->ShowWindow(SW_SHOW);
 }
 
 void QPopAnimate::success(HWND parentHwnd, std::wstring & text)
@@ -106,15 +116,20 @@ void QPopAnimate::setup(const std::wstring & text)
 	textFont = Lang::font(L"message-text-size", false);
 }
 
-void QPopAnimate::setup(const std::wstring & code, const std::wstring &text)
+void QPopAnimate::setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql)
 {
 	this->code = code;
 	this->text = text;
+	this->sql = sql;
 	int textSize = Lang::fontSize(L"message-text-size");
 	
 	popType = POP_REPORT_TEXT;
 	width = 500;
 	height = 150;
+	if (popType == POP_REPORT_TEXT && !this->sql.empty()) {
+		height = 250;
+	}
+	
 
 	textFont = Lang::font(L"message-text-size", false);
 }
@@ -211,12 +226,17 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 	}
 	
 	std::wstring reportText = StringUtil::replaceBreak(text);
+	DWORD dwStyle = ES_MULTILINE | ES_AUTOVSCROLL;
 	if (popType == POP_REPORT_TEXT) {
 		reportText.append(L"\r\n\r\n").append(L"Code:").append(code);
+		if (!sql.empty()) {
+			reportText.append(L"\r\n\r\n").append(L"Execute SQL statement: \r\n").append(sql);
+			dwStyle = dwStyle | WS_VSCROLL;
+		}
 	}
 	
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL , true);
-	::SetWindowLong(textEdit.m_hWnd, GWL_STYLE, ::GetWindowLongW(textEdit.m_hWnd, GWL_STYLE) & ~WS_BORDER);
+	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, textFont, dwStyle, true);
+	//::SetWindowLong(textEdit.m_hWnd, GWL_STYLE, ::GetWindowLongW(textEdit.m_hWnd, GWL_STYLE) & ~WS_BORDER);
 }
 
 LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

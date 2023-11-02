@@ -29,6 +29,7 @@
 #include "ui/common/message/QMessageBox.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "ui/database/leftview/dialog/CopyTableDialog.h"
+#include "ui/database/rightview/page/result/dialog/ExportResultDialog.h"
 
 TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
@@ -54,6 +55,7 @@ TableMenuAdapter::~TableMenuAdapter()
 	if (importFromSqlIcon) ::DeleteObject(importFromSqlIcon);
 	if (importFromCsvIcon) ::DeleteObject(importFromCsvIcon);
 	if (manageIndexIcon) ::DeleteObject(manageIndexIcon);
+	if (manageForeignKeyIcon) ::DeleteObject(manageForeignKeyIcon);
 	if (propertiesIcon) ::DeleteObject(propertiesIcon);
 }
 
@@ -74,6 +76,7 @@ void TableMenuAdapter::createImageList()
 	importFromSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-from-sql.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	importFromCsvIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-from-csv.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	manageIndexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manage-index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	manageForeignKeyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manage-foreign-key.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	propertiesIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\properties.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 }
 
@@ -95,6 +98,7 @@ void TableMenuAdapter::createMenu()
 	menu.AppendMenu(MF_STRING, Config::TABLE_IMPORT_CSV_MENU_ID, S(L"table-import-csv").c_str());
 	menu.AppendMenu(MF_SEPARATOR);
 	menu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_INDEX_MENU_ID, S(L"table-manage-index").c_str());
+	menu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, S(L"table-manage-foreign-key").c_str());
 	menu.AppendMenu(MF_SEPARATOR);
 	menu.AppendMenu(MF_STRING, Config::TABLE_PROPERTIES_MENU_ID, S(L"properties").c_str());
 
@@ -118,6 +122,7 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_IMPORT_SQL_MENU_ID, MF_BYCOMMAND, importFromSqlIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_IMPORT_CSV_MENU_ID, MF_BYCOMMAND, importFromCsvIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexIcon);
+	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, MF_BYCOMMAND, manageForeignKeyIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_PROPERTIES_MENU_ID, MF_BYCOMMAND, propertiesIcon);
 	
 }
@@ -201,6 +206,39 @@ bool TableMenuAdapter::shardingTable()
 		return true;
 	}
 	return false;
+}
+
+
+bool TableMenuAdapter::exportTable()
+{
+	ResultListPageAdapter resultAdapter(parentHwnd, nullptr);
+
+	UserTableStrings tblStrings({ supplier->selectedTable });
+	Columns tblColumns = tableService->getUserColumnStrings(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
+	DataList tblDatas = tableService->getTableDataList(supplier->getSelectedUserDbId(), 
+		supplier->selectedTable, 1, 100000000, supplier->selectedSchema);	
+	resultAdapter.setRuntimeUserDbId(supplier->getSelectedUserDbId());
+	resultAdapter.setRuntimeTables(tblStrings);
+	resultAdapter.setRuntimeColumns(tblColumns);
+	resultAdapter.setRuntimeDatas(tblDatas);
+	ExportResultDialog dialog(parentHwnd, &resultAdapter);
+	if (dialog.DoModal(parentHwnd) == Config::QDIALOG_YES_BUTTON_ID) {
+		return true;
+	}
+	return false;
+}
+
+
+void TableMenuAdapter::manageIndex()
+{
+	// wParam == 1, active the Indexes tab page in the TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_INDEXS_PAGE, NULL);
+}
+
+void TableMenuAdapter::manageForeignKey()
+{
+	// wParam == 1, active the Foreign Key tab page in the TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_FOREIGN_KEYS_PAGE, NULL);
 }
 
 void TableMenuAdapter::popupMenu(CPoint & pt)

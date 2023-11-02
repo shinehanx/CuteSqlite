@@ -53,6 +53,7 @@ public:
 
 	TableStructureSupplier * getSupplier() const { return supplier; }
 	void setSupplier(TableStructureSupplier * val) { supplier = val; }
+	void activePage(TableStructurePageType pageType);
 private:
 	bool isNeedReload = true;
 

@@ -21,6 +21,12 @@
 #include "QTabView.h"
 #include "utils/Log.h"
 
+
+void QTabView::enableCloseBtn(bool enabled)
+{
+	m_bTabCloseButton = enabled;
+}
+
 /**
  * Overrideables - add someone to tab control.
  * 

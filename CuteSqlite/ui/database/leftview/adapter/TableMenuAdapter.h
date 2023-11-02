@@ -38,6 +38,10 @@ public:
 	bool dropTable();
 	bool copyTable();
 	bool shardingTable();
+	bool exportTable();
+	void manageIndex();
+	void manageForeignKey();
+
 private:
 	CBrush menuBrush;
 
@@ -53,6 +57,7 @@ private:
 	HICON importFromSqlIcon = nullptr;
 	HICON importFromCsvIcon = nullptr;
 	HICON manageIndexIcon = nullptr;
+	HICON manageForeignKeyIcon = nullptr;
 	HICON propertiesIcon = nullptr;
 	
 	CMenu menu;

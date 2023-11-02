@@ -284,6 +284,8 @@ void ExportResultDialog::loadWindow()
 	}
 
 	isNeedReload = false;
+	yesButton.SetWindowText(S(L"start").c_str());
+
 	loadExportFmtElems();
 	loadCsvSettingsElems();
 	loadExcelSettingsElems();
@@ -904,6 +906,7 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	if (!getExportPath(exportPath)) {
 		return ;
 	}
+	yesButton.EnableWindow(FALSE);
 	saveExportPath(exportPath);
 
 	HWND selHwnd = getSelExportFmtHwnd();
@@ -954,9 +957,19 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 		saveExportSqlParams(sqlParams);
 		fmt = L"SQL";
 	}
-
-	saveExportFmt(fmt);
-	EndDialog(exportRows);
+	
+	saveExportFmt(fmt);	
+	
+	std::wstring msg = StringUtil::replace(S(L"export-success-text"), std::wstring(L"{rows}"), std::to_wstring(exportRows));
+	//QPopAnimate::success(m_hWnd, msg);
+	if (QMessageBox::confirm(m_hWnd, msg, S(L"open-the-file")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {			
+		std::wstring selelctFile = L"/select,"; // ×¢Òâselect,ÒªÓÐ¶ººÅ
+		selelctFile.append(exportPath.c_str());
+		::ShellExecuteW(NULL, L"open", L"Explorer.exe",selelctFile.c_str() , NULL, SW_SHOWDEFAULT);
+	}
+	
+	yesButton.EnableWindow(true);
+	noButton.SetWindowText(S(L"complete").c_str());
 }
 
 void ExportResultDialog::OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd)

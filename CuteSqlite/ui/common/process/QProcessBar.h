@@ -21,6 +21,7 @@ public:
 	END_MSG_MAP()
 	void run(int percent);
 	void error(const std::wstring & err);
+	void reset();
 
 	void setColors(COLORREF bkgColor, COLORREF processColor);
 private:

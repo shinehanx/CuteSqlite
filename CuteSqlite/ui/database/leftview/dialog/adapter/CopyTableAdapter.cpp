@@ -262,13 +262,13 @@ std::wstring CopyTableAdapter::generateCreateDdlForTargetTable(uint16_t suffix, 
 		throw QRuntimeException(L"200001");
 	}
 	// createTableClause is sub string before  character '{', such as "CREATE TABLE tbl_name [IF NOT EXISTS]"
-	std::wstring createTableClause = createTblSql.substr(0, paren_first - 1);
+	std::wstring createTableClause = createTblSql.substr(0, paren_first);
 	// columns and constrains statement, include character '{' and '}'
 	std::wstring columnsAndConstrains = createTblSql.substr(paren_first, paren_end - paren_first + 1);
 
 	createTableClause = StringUtil::replace(createTableClause, sourceTblName, targetTblName);
 	ddl.append(createTableClause).append(columnsAndConstrains).append(L";"); // don;t forget end with character";"
-	return ddl;
+	return ddl; 
 }
 
 

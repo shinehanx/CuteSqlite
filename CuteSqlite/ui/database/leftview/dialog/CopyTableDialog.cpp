@@ -88,7 +88,7 @@ void CopyTableDialog::createOrShowCopyTextLabel(CStatic &win, CRect & clientRect
 
 void CopyTableDialog::createOrShowSourceElems(CRect & clientRect)
 {
-	int x = 20, y = 15 + 32 + 20, w = 170, h = 20;
+	int x = 20, y = 15 + 32 + 20, w = 200, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormLabel(sourceDbLabel, S(L"from-db-name"), rect, clientRect, SS_LEFT); 
 
@@ -106,7 +106,7 @@ void CopyTableDialog::createOrShowSourceElems(CRect & clientRect)
 
 void CopyTableDialog::createOrShowTargetElems(CRect & clientRect)
 {
-	int x = clientRect.right - 30 - 170, y = 15 + 32 + 20, w = 170, h = 20;
+	int x = clientRect.right - 30 - 200, y = 15 + 32 + 20, w = 200, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormLabel(targetDbLabel, S(L"to-db-name"), rect, clientRect, SS_LEFT); 
 
@@ -125,12 +125,12 @@ void CopyTableDialog::createOrShowTargetElems(CRect & clientRect)
 
 void CopyTableDialog::createOrShowGroupBoxes(CRect & clientRect)
 {
-	int x = 20, y = 175, w = 170, h = 130;
+	int x = 20, y = 175, w = 200, h = 130;
 
 	CRect rect = { x, y, x + w, y + h };
 	createOrShowFormGroupBox(structAndDataGroupBox, Config::EXPORT_AS_SQL_STRUCTURE_AND_DATA_GROUPBOX_ID, S(L"structure-and-data-settings"), rect, clientRect);
 
-	x = clientRect.right - 30 - 170;
+	x = clientRect.right - 30 - 200;
 	rect = { x, y, x + w, y + h };
 	createOrShowFormGroupBox(tableShardingGroupBox, 0, S(L"table-sharding-setttings"), rect, clientRect);
 
@@ -141,7 +141,7 @@ void CopyTableDialog::createOrShowGroupBoxes(CRect & clientRect)
 
 void CopyTableDialog::createOrShowStructureAndDataSettingsElems(CRect & clientRect)
 {	
-	int x = 30, y = 195, w = 150, h = 20;
+	int x = 30, y = 195, w = 180, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormRadio(structureOnlyRadio, Config::STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
 	
@@ -152,7 +152,7 @@ void CopyTableDialog::createOrShowStructureAndDataSettingsElems(CRect & clientRe
 	createOrShowFormRadio(structureAndDataRadio, Config::STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
 
 	if (supplier->getStructAndDataSetting() == UNKOWN) {
-		std::wstring structAndDataSetting = settingService->getSysInit(L"copytable-struct-and-data");
+		std::wstring structAndDataSetting = settingService->getSysInit(L"copytable-struct-and-data-setting");
 		StructAndDataSetting setting = structAndDataSetting.empty() ? UNKOWN : (StructAndDataSetting)std::stoi(structAndDataSetting);
 		if (setting == STRUCT_ONLY) structureOnlyRadio.SetCheck(1);
 		if (setting == DATA_ONLY) dataOnlyRadio.SetCheck(1);
@@ -164,19 +164,19 @@ void CopyTableDialog::createOrShowStructureAndDataSettingsElems(CRect & clientRe
 
 void CopyTableDialog::createOrShowTableShardingElems(CRect & clientRect)
 {
-	int x = clientRect.right - 30 - 160, y = 195, w = 150, h = 20;
+	int x = clientRect.right - 30 - 190, y = 195, w = 185, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormCheckBox(enableTableShardingCheckBox, Config::COPYTABLE_ENABLE_TABLE_SHARDING_CHECKBOX_ID, S(L"enable-table-sharding"), rect, clientRect);
 
 	CRect rect1 = rect;
 	rect1.OffsetRect(10, h + 5);
-	rect1 = { rect1.left, rect1.top, rect1.left + 80, rect1.bottom };
+	rect1 = { rect1.left, rect1.top, rect1.left + 90, rect1.bottom };
 	std::wstring tblSuffixBegin = S(L"table-suffix-begin").append(L":");
 	tblSuffixBegin = StringUtil::replace(tblSuffixBegin, L"{suffix}", L"n");
 	createOrShowFormLabel(tblSuffixBeginLabel, tblSuffixBegin, rect1, clientRect);
 
 	CRect rect2 = rect1;
-	rect2.OffsetRect(80 + 5, 0);	
+	rect2.OffsetRect(90 + 5, 0);
 	rect2.right = rect2.left + 60;
 	std::wstring suffixBegin = settingService->getSysInit(L"copytable-suffix-begin");
 	suffixBegin = suffixBegin.empty() ? L"1" : suffixBegin;
@@ -211,8 +211,8 @@ void CopyTableDialog::createOrShowAdvancedOptionsElems(CRect & clientRect)
 	createOrShowFormCheckBox(enableShardingStrategyCheckBox, Config::COPYTABLE_ENABLE_SHARDING_STRATEGY_CHECKBOX_ID, S(L"enable-copy-data-with-strategy"), rect, clientRect);
 
 	rect.OffsetRect(0, h + 5);
-	rect.right = rect.left + 150;
-	createOrShowFormLabel(shardingStrategyExpressLabel, S(L"sharding-strategy-express-text"), rect, clientRect, SS_RIGHT);
+	rect.right = rect.left + 180;
+	createOrShowFormLabel(shardingStrategyExpressLabel, S(L"sharding-strategy-express-text").append(L"="), rect, clientRect, SS_RIGHT);
 
 	rect.OffsetRect(rect.Width() + 2, 0);
 	createOrShowFormEdit(shardingStrategyExpressEdit, Config::COPYTABLE_SHARDING_STRATEGY_EXPRESS_EDIT_ID, L"", L"such as : id % 64 + 1", rect, clientRect, ES_LEFT |ES_AUTOHSCROLL, false);
@@ -257,6 +257,7 @@ void CopyTableDialog::loadWindow()
 	}
 
 	isNeedReload = false;
+	yesButton.SetWindowText(S(L"start").c_str());
 	
 	loadToDbComboBox();
 	loadOnlyForIsSharding(); // only for isSharding == true
@@ -662,6 +663,7 @@ void CopyTableDialog::OnClickShardingStrategyExpressButton(UINT uNotifyCode, int
 
 void CopyTableDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {	
+	processBar.reset();
 	if (!verifyParams()) {
 		return;
 	}
@@ -672,6 +674,8 @@ void CopyTableDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 		settingService->setSysInit(L"copytable-suffix-begin", std::to_wstring(supplier->getTblSuffixBegin()));
 		settingService->setSysInit(L"copytable-suffix-end", std::to_wstring(supplier->getTblSuffixEnd()));
 		QPopAnimate::success(S(L"copy-table-success-text"));
+		noButton.SetWindowText(S(L"complete").c_str());
+		AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 	}
 	yesButton.EnableWindow(true);
 }
@@ -691,7 +695,7 @@ bool CopyTableDialog::verifyParams()
 		return false;
 	}
 
-	if (supplier->getStructAndDataSetting() == UNKOWN) {
+	if (supplier->getStructAndDataSetting() <= UNKOWN) {
 		QPopAnimate::error(S(L"structure-and-data-settings-unknown"));
 		structureOnlyRadio.SetFocus();
 		return false;

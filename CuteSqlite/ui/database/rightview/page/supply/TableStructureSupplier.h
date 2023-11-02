@@ -73,8 +73,10 @@ public:
 	void updateRelatedColumnsIfChangeIndex(const IndexInfo & changeIndexInfo);	
 	void updateRelatedColumnsIfChangeColumnName(std::wstring& origName, const std::wstring& newName);
 	
+	TableStructurePageType getActivePageType() const { return activePageType; }
+	void setActivePageType(TableStructurePageType val) { activePageType = val; }
 private:
-	
+	TableStructurePageType activePageType = TABLE_COLUMNS_PAGE;
 	// store the runtime data of the table column info(s)
 	ColumnInfoList colsRuntimeDatas;
 	// store the runtime data of the index(s) settings

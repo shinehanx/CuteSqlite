@@ -367,9 +367,19 @@ int ResultListPageAdapter::getSelectedItemCount()
 	return dataView->GetSelectedCount();
 }
 
+void ResultListPageAdapter::setRuntimeUserDbId(uint64_t userDbId)
+{
+	runtimeUserDbId = userDbId;
+}
+
 UserTableStrings ResultListPageAdapter::getRuntimeTables()
 {
 	return runtimeTables;
+}
+
+void ResultListPageAdapter::setRuntimeTables(const UserTableStrings & val)
+{
+	runtimeTables = val;
 }
 
 Columns ResultListPageAdapter::getRuntimeColumns()
@@ -377,9 +387,19 @@ Columns ResultListPageAdapter::getRuntimeColumns()
 	return runtimeColumns;
 }
 
+void ResultListPageAdapter::setRuntimeColumns(const Columns & columns)
+{
+	runtimeColumns = columns;
+}
+
 DataList ResultListPageAdapter::getRuntimeDatas()
 {
 	return runtimeDatas;
+}
+
+void ResultListPageAdapter::setRuntimeDatas(const DataList & dataList)
+{
+	runtimeDatas = dataList;
 }
 
 /**

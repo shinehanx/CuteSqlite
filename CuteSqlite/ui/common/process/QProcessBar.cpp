@@ -19,6 +19,13 @@ void QProcessBar::error(const std::wstring & err)
 	Invalidate(true);
 }
 
+void QProcessBar::reset()
+{
+	this->percent = 0;
+	this->err.clear();
+	Invalidate(true);
+}
+
 /**
  * 颜色：背景颜色和进度颜色.
  * 

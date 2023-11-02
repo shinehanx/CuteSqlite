@@ -386,5 +386,3 @@ LRESULT ImportFromSqlDialog::OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lP
 	}
 	return 0;
 }
-
-

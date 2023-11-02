@@ -588,6 +588,7 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		foundPage = i; // found, and active this page and load table data
 		
 		TableStructurePage * tableStructPage = (*iter);
+		tableStructPage->activePage(static_cast<TableStructurePageType>(wParam));
 		databaseSupplier->activeTabPageHwnd = tableStructPage->m_hWnd;
 		tabView.SetActivePage(foundPage);
 		return 0;
@@ -599,7 +600,7 @@ LRESULT RightWorkView::OnClickAlterTableElem(UINT uMsg, WPARAM wParam, LPARAM lP
 		CRect clientRect;
 		GetClientRect(clientRect);
 		TableStructurePage * tableStructPage = new TableStructurePage();
-		tableStructPage->setup(PageOperateType::MOD_TABLE, databaseSupplier->selectedTable);
+		tableStructPage->setup(PageOperateType::MOD_TABLE, databaseSupplier->selectedTable, (TableStructurePageType)wParam);
 		createOrShowTableStructurePage(*tableStructPage, clientRect);
 		tablePagePtrs.push_back(tableStructPage);
 

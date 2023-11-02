@@ -294,6 +294,7 @@ typedef enum {
 	TABLE_IMPORT_SQL_MENU_ID,
 	TABLE_IMPORT_CSV_MENU_ID,
 	TABLE_MANAGE_INDEX_MENU_ID,
+	TABLE_MANAGE_FOREIGNKEY_MENU_ID,
 	TABLE_PROPERTIES_MENU_ID,
 } MenuId;
 
@@ -322,7 +323,7 @@ typedef enum {
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
-	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=TABLE_COLUMNS_PAGE/TABLE_INDEX_PAGE/TABLE_FOREIGN_KEYS_PAGE, lParam=NULL
 	MSG_RENAME_TABLE_ID, // Send this msg when clicking "Rename table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TRUNCATE_TABLE_ID, // Send this msg when clicking "Truncate table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_DROP_TABLE_ID, // Send this msg when clicking "Drop table" menu or toolbar button , wParam=NULL, lParam=NULL

@@ -63,10 +63,14 @@ public:
 	int getFirstSelectdIndex();
 	DataList getSelectedDatas();
 	int getSelectedItemCount();
+	void setRuntimeUserDbId(uint64_t userDbId);
 
 	UserTableStrings getRuntimeTables();
+	void setRuntimeTables(const UserTableStrings & val);
 	Columns getRuntimeColumns();
+	void setRuntimeColumns(const Columns & columns);
 	DataList getRuntimeDatas();
+	void setRuntimeDatas(const DataList & dataList);
 
 	void addListViewChangeVal(SubItemValue &subItemVal);
 

@@ -24,7 +24,7 @@
 
 int ExportResultService::exportToCsv(std::wstring & exportPath, Columns & columns, ExportSelectedColumns & selColumns, DataList & datas, ExportCsvParams & csvParams)
 {
-	ATLASSERT(!exportPath.empty() && !columns.empty() && !selColumns.empty() && !datas.empty());
+	ATLASSERT(!exportPath.empty() && !columns.empty() && !selColumns.empty());
 	std::wstring dirPath = FileUtil::getFileDir(exportPath);
 	FileUtil::createDirectory(dirPath);
 
@@ -322,7 +322,7 @@ int ExportResultService::exportToSql(std::wstring & exportPath,
 		}
 		int i = 0;
 		std::wostringstream dataSql, columnStmt, valuesStmt;
-		dataSql << L"INSERT INTO " << tbl.name << L' ';
+		dataSql << L"INSERT INTO \"" << tbl.name << L"\" ";
 
 		columnStmt << L"(";
 		valuesStmt << L" VALUES (";

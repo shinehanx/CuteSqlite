@@ -27,7 +27,7 @@ class QTabView : public CTabViewImpl<QTabView>
 {
 public:
 	DECLARE_WND_CLASS_EX(_T("QTabView"), 0, COLOR_APPWORKSPACE)
-	
+	void enableCloseBtn(bool enabled);
 
 	// Override ables - add someone to tab control
 	bool CreateTabControl();

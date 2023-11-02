@@ -259,6 +259,7 @@ void ResultTabView::createOrShowTabView(QTabView &win, CRect & clientRect)
 	if (IsWindow() && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, Config::DATABASE_WORK_TAB_VIEW_ID);
 		win.SetImageList(imageList);
+		win.enableCloseBtn(false);
 	}
 	else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);

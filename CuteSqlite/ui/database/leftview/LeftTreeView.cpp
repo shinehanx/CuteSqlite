@@ -538,6 +538,16 @@ void LeftTreeView::OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd
 	doImportFromSql();
 }
 
+void LeftTreeView::OnClickManageIndexMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->manageIndex();
+}
+
+void LeftTreeView::OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->manageForeignKey();
+}
+
 void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewView();
@@ -588,9 +598,12 @@ void LeftTreeView::OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 
 void LeftTreeView::OnClickShardingTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	if (tableMenuAdapter->shardingTable()) {
-		doRefreshDatabase();
-	}
+	tableMenuAdapter->shardingTable();
+}
+
+void LeftTreeView::OnClickExportTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->exportTable();
 }
 
 void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
@@ -690,5 +703,5 @@ void LeftTreeView::doNewTable()
 
 void LeftTreeView::doAlterTable()
 {
-	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, NULL, NULL);
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_COLUMNS_PAGE, NULL);
 }

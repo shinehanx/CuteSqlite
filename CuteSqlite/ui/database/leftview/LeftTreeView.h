@@ -81,6 +81,11 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_MENU_ID, OnClickDropTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_COPY_MENU_ID, OnClickCopyTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_SHARDING_MENU_ID, OnClickShardingTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_EXPORT_MENU_ID, OnClickExportTableMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_SQL_MENU_ID, OnClickImportFromSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_CSV_MENU_ID, OnClickImportFromSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_INDEX_MENU_ID, OnClickManageIndexMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, OnClickManageForeignKeyMenu)
 
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
@@ -164,6 +169,8 @@ private:
 	void OnClickCopyDatabaseMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickManageIndexMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
@@ -177,6 +184,7 @@ private:
 	void OnClickDropTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickShardingTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickExportTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 
 	// MSG

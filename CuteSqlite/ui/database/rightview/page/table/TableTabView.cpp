@@ -56,6 +56,46 @@ TableForeignkeysPage & TableTabView::getTableForeignkeysPage()
 	return tableForeinkeysPage;
 }
 
+
+void TableTabView::activePage(TableStructurePageType pageType)
+{
+	HWND activeHwnd = nullptr;
+	CRect clientRect;
+	GetClientRect(clientRect);
+	supplier->setActivePageType(pageType);
+
+	if (pageType == TABLE_COLUMNS_PAGE) {
+		if (!tableColumnsPage.IsWindow()) {
+			createOrShowTableColumnsPage(tableColumnsPage, clientRect);
+			tabView.AddPage(tableColumnsPage.m_hWnd, StringUtil::blkToTail(S(L"table-columns")).c_str(), 0, &tableColumnsPage);
+		}
+		activeHwnd = tableColumnsPage.m_hWnd;
+	} else if (pageType == TABLE_INDEXS_PAGE) {
+		if (!tableIndexesPage.IsWindow()) {
+			createOrShowTableIndexesPage(tableIndexesPage, clientRect);
+			tabView.AddPage(tableIndexesPage.m_hWnd, StringUtil::blkToTail(S(L"table-indexes")).c_str(), 1, &tableIndexesPage);
+		}
+		activeHwnd = tableIndexesPage.m_hWnd;
+	} else if (pageType == TABLE_FOREIGN_KEYS_PAGE) {
+		if (!tableForeinkeysPage.IsWindow()) {
+			createOrShowTableForeignkeysPage(tableForeinkeysPage, clientRect);
+			tabView.AddPage(tableForeinkeysPage.m_hWnd, StringUtil::blkToTail(S(L"table-foreignkeys")).c_str(), 2, &tableForeinkeysPage);
+		}
+		activeHwnd = tableForeinkeysPage.m_hWnd;
+	}
+	if (!activeHwnd && !::IsWindow(activeHwnd)) {
+		return;
+	}
+	
+	int i = 0;
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		if (tabView.GetPageHWND(i) == activeHwnd) {
+			tabView.SetActivePage(i);
+		}
+	}
+}
+
 void TableTabView::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -102,6 +142,7 @@ void TableTabView::createOrShowTabView(QTabView &win, CRect & clientRect)
 	if (IsWindow() && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, Config::DATABASE_TABLE_TAB_VIEW_ID);
 		win.SetImageList(imageList);
+		win.enableCloseBtn(false);
 	}
 	else if (IsWindow() && tabView.IsWindow()) {
 		win.MoveWindow(rect);
@@ -181,7 +222,8 @@ void TableTabView::loadTabViewPages()
 	tabView.AddPage(tableColumnsPage.m_hWnd, StringUtil::blkToTail(S(L"table-columns")).c_str(), 0, &tableColumnsPage);
 	tabView.AddPage(tableIndexesPage.m_hWnd, StringUtil::blkToTail(S(L"table-indexes")).c_str(), 1, &tableIndexesPage);
 	tabView.AddPage(tableForeinkeysPage.m_hWnd, StringUtil::blkToTail(S(L"table-foreignkeys")).c_str(), 2, &tableForeinkeysPage);
-	tabView.SetActivePage(0);
+
+	tabView.SetActivePage((int)supplier->getActivePageType());
 }
 
 int TableTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)

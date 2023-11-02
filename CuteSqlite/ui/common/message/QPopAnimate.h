@@ -38,7 +38,7 @@ public:
 
 	typedef enum  {
 		POP_COMMON_TEXT,// common text text, close by timer
-		POP_REPORT_TEXT // report code/msg, close by user
+		POP_REPORT_TEXT, // report code/msg/[sql], close by user
 	} PopType;
 
 	static void error(HWND parentHwnd, std::wstring & text);
@@ -56,7 +56,7 @@ public:
 	static void report(const QSqlExecuteException & ex);
 	
 	void setup(const std::wstring & text);
-	void setup(const std::wstring & code, const std::wstring &text);
+	void setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql = std::wstring());
 	void setSize(int w, int h);
 	void createOrShowUI();
 	void setImagePath(const std::wstring & imagePath);
@@ -72,6 +72,7 @@ private:
 	PopType popType = POP_COMMON_TEXT;
 	std::wstring code;
 	std::wstring text;
+	std::wstring sql;
 	std::wstring imagePath;
 	std::wstring closeImagePath;
 
