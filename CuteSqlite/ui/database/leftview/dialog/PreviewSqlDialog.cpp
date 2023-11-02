@@ -27,7 +27,6 @@ PreviewSqlDialog::PreviewSqlDialog(HWND parentHwnd, CopyTableAdapter * adapter)
 {
 	setFormSize(PREVIEW_SQL_DIALOG_WIDTH, PREVIEW_SQL_DIALOG_HEIGHT);
 	caption = S(L"preview-sql");
-	this->sql.clear();
 	this->adapter = adapter;
 	this->supplier = adapter ? adapter->getSupplier() : nullptr;
 }
@@ -55,9 +54,9 @@ void PreviewSqlDialog::createOrShowSqlPreviewEdit(CRect & clientRect)
 void PreviewSqlDialog::createOrShowSqlEditor(QHelpEdit & win, UINT id, const std::wstring & text, CRect & rect, CRect & clientRect, DWORD exStyle /*= 0*/)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		std::wstring editorTitle = L"Source table:" + supplier->getRuntimeTblName() + L", Target table:" +  supplier->getTargetTable();
+		std::wstring editorTitle = L"Source: " + supplier->getRuntimeTblName() + L" ----> Target: " +  supplier->getTargetTable();
 		win.setup(editorTitle, std::wstring(L""));
-		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::TABLE_SQL_PREVIEW_EDIT_ID);		
+		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, id);
 		return;
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);

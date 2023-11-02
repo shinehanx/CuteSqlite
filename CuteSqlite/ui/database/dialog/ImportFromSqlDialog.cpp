@@ -158,7 +158,7 @@ void ImportFromSqlDialog::loadSelectDbComboBox()
 		selectDbComboBox.SetItemData(nItem, item.id);
 		if (item.isActive) {
 			nSelItem = i;
-			settingService->setSysInit(L"import_selected_db_id", std::to_wstring(item.id));
+			settingService->setSysInit(L"import-selected-db-id", std::to_wstring(item.id));
 		}
 	}
 	selectDbComboBox.SetCurSel(nSelItem);
@@ -175,7 +175,7 @@ void ImportFromSqlDialog::loadImportPathEdit()
 	importPathEdit.GetWindowText(str);
 	std::wstring importPath = str.GetString();
 	if (str.IsEmpty()) {
-		importPath = settingService->getSysInit(L"import_from_sql_path");
+		importPath = settingService->getSysInit(L"import-from-sql-path");
 	}
 
 	importPathEdit.SetWindowText(importPath.c_str());
@@ -223,7 +223,7 @@ bool ImportFromSqlDialog::getImportPath(std::wstring & importPath)
 
 void ImportFromSqlDialog::saveImportPath(std::wstring & importPath)
 {
-	settingService->setSysInit(L"import_from_sql_path", importPath);
+	settingService->setSysInit(L"import-from-sql-path", importPath);
 }
 
 LRESULT ImportFromSqlDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -288,11 +288,11 @@ LRESULT ImportFromSqlDialog::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID,
 {
 	int nSelItem = selectDbComboBox.GetCurSel();
 	uint64_t userDbId = static_cast<uint64_t>(selectDbComboBox.GetItemData(nSelItem));
-	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
+	std::wstring exportSelectedDbId = settingService->getSysInit(L"export-selected-db-id");
 	if (userDbId == std::stoull(exportSelectedDbId)) {
 		return 0;
 	}
-	settingService->setSysInit(L"export_selected_db_id", std::to_wstring(userDbId));
+	settingService->setSysInit(L"export-selected-db-id", std::to_wstring(userDbId));
 	
 	return 0;
 }

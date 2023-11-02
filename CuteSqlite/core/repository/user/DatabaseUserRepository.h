@@ -29,4 +29,5 @@ public:
 
 	void create(uint64_t userDbId, std::wstring & userDbPath);
 	void copy(const std::wstring & fromDbPath, const std::wstring & toDbPath);
+	Functions getFunctions(int64_t userDbId);
 };

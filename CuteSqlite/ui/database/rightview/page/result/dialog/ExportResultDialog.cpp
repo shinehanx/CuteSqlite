@@ -184,7 +184,7 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	CRect rect3 = { x3, y3, x3 + w3, y3 + h3 };
 	createOrShowFormCheckBox(csvColumnNameCheckBox, Config::EXPORT_CSV_COLUMN_NAME_CHECKBOX_ID, S(L"add-column-name"), rect3, clientRect);
 
-	bool isEndabled = settingService->getSysInit(L"export_fmt") == L"CSV" ? true : false;
+	bool isEndabled = settingService->getSysInit(L"export-fmt") == L"CSV" ? true : false;
 	csvFieldTerminatedByLabel.EnableWindow(isEndabled);
 	csvFieldTerminatedByEdit.EnableWindow(isEndabled);
 	
@@ -203,7 +203,7 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 
 void ExportResultDialog::createOrShowExcelSettingsElems(CRect & clientRect)
 {
-	bool isReadOnly = settingService->getSysInit(L"export_fmt") == L"EXCEL" ? false : true;
+	bool isReadOnly = settingService->getSysInit(L"export-fmt") == L"EXCEL" ? false : true;
 	bool isEndabled = !isReadOnly;
 
 	// cvs options - Fields
@@ -229,7 +229,7 @@ void ExportResultDialog::createOrShowExcelSettingsElems(CRect & clientRect)
 
 void ExportResultDialog::createOrShowSqlSettingsElems(CRect & clientRect)
 {
-	bool isEnabled = settingService->getSysInit(L"export_fmt") == L"SQL" ? true : false;
+	bool isEnabled = settingService->getSysInit(L"export-fmt") == L"SQL" ? true : false;
 
 	int x = 260, y = 220, w = 140, h = 20;
 	CRect rect(x, y, x + w, y + h);
@@ -295,7 +295,7 @@ void ExportResultDialog::loadWindow()
 
 void ExportResultDialog::loadExportFmtElems()
 {
-	std::wstring exportFmt = settingService->getSysInit(L"export_fmt");
+	std::wstring exportFmt = settingService->getSysInit(L"export-fmt");
 	for (auto ptr : radioPtrs) {
 		if (ptr->m_hWnd == csvRadio.m_hWnd && exportFmt == L"CSV") {
 			ptr->SetCheck(1);
@@ -321,7 +321,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	bool isEnabled = getSelExportFmtHwnd() == csvRadio.m_hWnd;
 
 	if (csvFieldTerminatedByEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_field_terminaated_by");
+		std::wstring val = settingService->getSysInit(L"csv-field-terminated-by");
 		csvFieldTerminatedByEdit.SetWindowText(val.c_str()); 
 
 		csvFieldTerminatedByLabel.EnableWindow(isEnabled);
@@ -329,7 +329,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	}
 
 	if (csvFieldEnclosedByEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_field_enclosed_by");
+		std::wstring val = settingService->getSysInit(L"csv-field-enclosed-by");
 		csvFieldEnclosedByEdit.SetWindowText(val.c_str()); 
 		
 		csvFieldEnclosedByLabel.EnableWindow(isEnabled);
@@ -337,7 +337,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	}
 
 	if (csvFieldEscapedByEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_field_escaped_by");
+		std::wstring val = settingService->getSysInit(L"csv-field-escaped-by");
 		csvFieldEscapedByEdit.SetWindowText(val.c_str()); 
 
 		csvFieldEscapedByLabel.EnableWindow(isEnabled);
@@ -345,7 +345,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	}
 
 	if (csvLineTerminatedByEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_line_terminaated_by");
+		std::wstring val = settingService->getSysInit(L"csv-line-terminated-by");
 		csvLineTerminatedByEdit.SetWindowText(val.c_str()); 
 		
 		csvLineTerminatedByLabel.EnableWindow(isEnabled);
@@ -353,7 +353,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	}
 
 	if (csvCharsetEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_charset");
+		std::wstring val = settingService->getSysInit(L"csv-charset");
 		csvCharsetEdit.SetWindowText(val.c_str()); 
 		
 		csvCharsetLabel.EnableWindow(isEnabled);
@@ -361,7 +361,7 @@ void ExportResultDialog::loadCsvSettingsElems()
 	}
 
 	if (csvColumnNameCheckBox.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"csv_column_name");
+		std::wstring val = settingService->getSysInit(L"csv-column-name");
 		if (val == L"true") {
 			csvColumnNameCheckBox.SetCheck(1);
 		}else {
@@ -376,7 +376,7 @@ void ExportResultDialog::loadExcelSettingsElems()
 {
 	bool isEnabled = getSelExportFmtHwnd() == excelXmlRadio.m_hWnd;
 	if (excelComlumnMaxSizeEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"excel_column_max_size");
+		std::wstring val = settingService->getSysInit(L"excel-column-max-size");
 		excelComlumnMaxSizeEdit.SetWindowText(val.c_str());
 		excelComlumnMaxSizeEdit.SetReadOnly(!isEnabled);
 
@@ -385,7 +385,7 @@ void ExportResultDialog::loadExcelSettingsElems()
 	}
 
 	if (excelDecimalPlacesEdit.IsWindow()) {
-		std::wstring val = settingService->getSysInit(L"excel_decimal_places");
+		std::wstring val = settingService->getSysInit(L"excel-decimal-places");
 		excelDecimalPlacesEdit.SetWindowText(val.c_str());
 		excelDecimalPlacesEdit.SetReadOnly(!isEnabled);
 
@@ -399,7 +399,7 @@ void ExportResultDialog::loadSqlSettingsElems()
 {
 	bool isEnabled = getSelExportFmtHwnd() == sqlRadio.m_hWnd;
 
-	std::wstring sqlExport = settingService->getSysInit(L"sql_export");
+	std::wstring sqlExport = settingService->getSysInit(L"sql-export");
 	for (auto ptr : sqlRadioPtrs) {
 		if (ptr->m_hWnd == structureOnlyRadio.m_hWnd && sqlExport == L"structure-only") {
 			ptr->SetCheck(1);
@@ -441,7 +441,7 @@ void ExportResultDialog::loadExportPathEdit()
 	exportPathEdit.GetWindowText(str);
 	std::wstring exportPath = str.GetString();
 	if (str.IsEmpty()) {
-		exportPath = settingService->getSysInit(L"export_path");
+		exportPath = settingService->getSysInit(L"export-path");
 	} else if (hwnd == csvRadio.m_hWnd) {
 		exportPath = exportResultService->changeExportPathExt(exportPath, L"csv");
 	} else if (hwnd == jsonRadio.m_hWnd) {
@@ -569,35 +569,35 @@ bool ExportResultDialog::getExportExcelParams(ExportExcelParams & params)
 
 void ExportResultDialog::saveExportFmt(std::wstring &exportFmt)
 {
-	settingService->setSysInit(L"export_fmt", exportFmt);
+	settingService->setSysInit(L"export-fmt", exportFmt);
 }
 
 
 void ExportResultDialog::saveExportCsvParams(ExportCsvParams & params)
 {
-	settingService->setSysInit(L"csv_field_terminaated_by", params.csvFieldEnclosedBy);
-	settingService->setSysInit(L"csv_field_enclosed_by", params.csvFieldEnclosedBy);
-	settingService->setSysInit(L"csv_field_escaped_by", params.csvFieldEscapedBy);
-	settingService->setSysInit(L"csv_line_terminaated_by", params.csvLineTerminatedBy);
-	settingService->setSysInit(L"csv_column_name", params.hasColumnOnTop ? L"true" : L"false");
+	settingService->setSysInit(L"csv-field-terminated-by", params.csvFieldTerminatedBy);
+	settingService->setSysInit(L"csv-field-enclosed-by", params.csvFieldEnclosedBy);
+	settingService->setSysInit(L"csv-field-escaped-by", params.csvFieldEscapedBy);
+	settingService->setSysInit(L"csv-line-terminated-by", params.csvLineTerminatedBy);
+	settingService->setSysInit(L"csv-column-name", params.hasColumnOnTop ? L"true" : L"false");
 }
 
 void ExportResultDialog::saveExportExcelParams(ExportExcelParams & params)
 {
-	settingService->setSysInit(L"excel_column_max_size", std::to_wstring(params.excelComlumnMaxSize));
-	settingService->setSysInit(L"excel_decimal_places", std::to_wstring(params.excelDecimalPlaces));
+	settingService->setSysInit(L"excel-column-max-size", std::to_wstring(params.excelComlumnMaxSize));
+	settingService->setSysInit(L"excel-decimal-places", std::to_wstring(params.excelDecimalPlaces));
 }
 
 
 void ExportResultDialog::saveExportSqlParams(ExportSqlParams & params)
 {
-	settingService->setSysInit(L"sql_export", params.sqlSetting);
+	settingService->setSysInit(L"sql-export", params.sqlSetting);
 }
 
 
 void ExportResultDialog::saveExportPath(std::wstring & exportPath)
 {
-	settingService->setSysInit(L"export_path", exportPath);
+	settingService->setSysInit(L"export-path", exportPath);
 }
 
 /**

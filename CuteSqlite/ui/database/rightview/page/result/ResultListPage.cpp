@@ -618,7 +618,7 @@ void ResultListPage::OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd)
 		std::wstring msg = StringUtil::replace(S(L"export-success-text"), std::wstring(L"{rows}"), std::to_wstring(rows));
 		//QPopAnimate::success(m_hWnd, msg);
 		if (QMessageBox::confirm(m_hWnd, msg, S(L"open-the-file")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
-			std::wstring exportPath = SettingService::getInstance()->getSysInit(L"export_path");
+			std::wstring exportPath = SettingService::getInstance()->getSysInit(L"export-path");
 			std::wstring selelctFile = L"/select,"; // ×¢Òâselect,ÒªÓÐ¶ººÅ
 			selelctFile.append(exportPath.c_str());
 			::ShellExecuteW(NULL, L"open", L"Explorer.exe",selelctFile.c_str() , NULL, SW_SHOWDEFAULT);

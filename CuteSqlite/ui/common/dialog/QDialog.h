@@ -66,6 +66,7 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlListBoxColor)
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
+		MSG_WM_CTLCOLORBTN(OnCtlButtonColor)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		COMMAND_HANDLER_EX(Config::QDIALOG_YES_BUTTON_ID, BN_CLICKED, OnClickYesButton)
 		COMMAND_HANDLER_EX(Config::QDIALOG_NO_BUTTON_ID, BN_CLICKED, OnClickNoButton)
@@ -120,6 +121,7 @@ protected:
 	virtual HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	virtual HBRUSH OnCtlListBoxColor(HDC hdc, HWND hwnd);
 	virtual HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
+	virtual HBRUSH OnCtlButtonColor(HDC hdc, HWND hwnd);
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	//用户定义
@@ -127,6 +129,7 @@ protected:
 	virtual void OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd);
 	
 };
+
 
 template <class T>
 LRESULT QDialog<T>::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -445,6 +448,15 @@ HBRUSH QDialog<T>::OnCtlListBoxColor(HDC hdc, HWND hwnd)
 
 template <class T>
 HBRUSH QDialog<T>::OnCtlEditColor(HDC hdc, HWND hwnd)
+{
+	// 字体
+	::SelectObject(hdc, textFont);
+	return (HBRUSH)AtlGetStockBrush(WHITE_BRUSH);
+}
+
+
+template <class T>
+HBRUSH QDialog<T>::OnCtlButtonColor(HDC hdc, HWND hwnd)
 {
 	// 字体
 	::SelectObject(hdc, textFont);

@@ -55,7 +55,7 @@ void ObjectsTreeViewAdapter::loadTreeView()
 	hViewsFolderItem = dataView->InsertItem(S(L"views").c_str(), 0, 0, NULL, TVI_LAST);
 	hTriggersFolderItem = dataView->InsertItem(S(L"triggers").c_str(), 0, 0, NULL, TVI_LAST);
 
-	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
+	std::wstring exportSelectedDbId = settingService->getSysInit(L"export-selected-db-id");
 	if (exportSelectedDbId.empty()) {
 		return;
 	}
@@ -75,11 +75,11 @@ void ObjectsTreeViewAdapter::selectItem(uint64_t userDbId)
 		return ;
 	}
 
-	std::wstring exportSelectedDbId = settingService->getSysInit(L"export_selected_db_id");
+	std::wstring exportSelectedDbId = settingService->getSysInit(L"export-selected-db-id");
 	if (userDbId == std::stoull(exportSelectedDbId)) {
 		return ;
 	}
-	settingService->setSysInit(L"export_selected_db_id", std::to_wstring(userDbId));
+	settingService->setSysInit(L"export-selected-db-id", std::to_wstring(userDbId));
 	loadTreeView();
 }
 

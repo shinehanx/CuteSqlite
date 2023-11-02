@@ -133,7 +133,7 @@ typedef struct {
 typedef std::vector<std::wstring> ExportSelectedColumns;
 
 // the data structure for show in listview or export
-typedef std::vector<std::wstring> RowItem, Columns, UserTableStrings;
+typedef std::vector<std::wstring> RowItem, Columns, Functions, UserTableStrings;
 // data items list
 typedef std::list<RowItem> DataList;
 

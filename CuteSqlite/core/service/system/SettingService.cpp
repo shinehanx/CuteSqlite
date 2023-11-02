@@ -92,7 +92,7 @@ IniSetting SettingService::getAllIniSetting(bool isReload)
 	iniSetting.clear();
 	std::vector<std::wstring> setions;
 	std::wstring binDir = ResourceUtil::getProductBinDir();
-	std::wstring iniFile = getSysInit(L"lang_file");
+	std::wstring iniFile = getSysInit(L"lang-file");
 	std::wstring iniPath = binDir + iniFile;
 
 	if (_waccess(iniPath.c_str(), 0) != 0) {
@@ -169,7 +169,7 @@ std::wstring SettingService::getValBySectionAndKey(const std::wstring & section,
  */
 void SettingService::saveLanguagePath(std::wstring & langIniPath)
 {
-	setSysInit(std::wstring(L"lang_file"), langIniPath);
+	setSysInit(std::wstring(L"lang-file"), langIniPath);
 }
 
 std::wstring SettingService::getGenderIniVal(const std::wstring & key)

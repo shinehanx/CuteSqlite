@@ -21,7 +21,7 @@
 #include "DatabaseUserRepository.h"
 #include <utility>
 #include "utils/ResourceUtil.h"
-#include "core/common/exception/QRuntimeException.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 void DatabaseUserRepository::create(uint64_t userDbId, std::wstring & userDbPath)
 {
@@ -43,4 +43,24 @@ void DatabaseUserRepository::create(uint64_t userDbId, std::wstring & userDbPath
 void DatabaseUserRepository::copy(const std::wstring & fromDbPath, const std::wstring & toDbPath)
 {
 	FileUtil::copy(fromDbPath, toDbPath);
+}
+
+Functions DatabaseUserRepository::getFunctions(int64_t userDbId)
+{
+	std::wstring sql = L"PRAGMA function_list;";
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		
+		Functions result;
+		while (query.executeStep()) {
+			std::wstring item = query.getColumn(L"name").getText();
+			result.push_back(item);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr());
+	}
 }

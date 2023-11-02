@@ -171,7 +171,7 @@ void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRec
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		win.m_cxySplitBar = 2;
 
-		if (win.GetSplitterPos() == 4)
+		if (win.GetSplitterPos() == 4 && supplier->getOperateType() != TABLE_DATA)
 			win.SetSplitterPos(clientRect.Height() * 1 / 3);
 		return;
 	}
@@ -179,7 +179,7 @@ void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRec
 		// show first then move window
 		win.ShowWindow(SW_SHOW);
 		win.MoveWindow(&rect);
-		if (win.GetSplitterPos() == 4)
+		if (win.GetSplitterPos() == 4 && supplier->getOperateType() != TABLE_DATA)
 			win.SetSplitterPos(clientRect.Height() * 1 / 3);
 	}
 }

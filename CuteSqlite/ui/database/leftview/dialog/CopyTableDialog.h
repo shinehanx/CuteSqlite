@@ -21,6 +21,7 @@
 #include "ui/common/dialog/QDialog.h"
 #include "core/service/db/TableService.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/system/SettingService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/leftview/dialog/supplier/CopyTableSupplier.h"
 #include "ui/common/process/QProcessBar.h"
@@ -42,6 +43,7 @@ public:
 		COMMAND_HANDLER_EX(Config::COPYTABLE_ENABLE_TABLE_SHARDING_CHECKBOX_ID, BN_CLICKED, OnClickEnableTableShardingCheckBox)
 		COMMAND_HANDLER_EX(Config::COPYTABLE_ENABLE_SHARDING_STRATEGY_CHECKBOX_ID, BN_CLICKED, OnClickEnableShardingStrategyCheckBox)
 		COMMAND_HANDLER_EX(Config::COPYTABLE_PREVIEW_SQL_BUTTON_ID, BN_CLICKED, OnClickPreviewSqlButton)
+		COMMAND_HANDLER_EX(Config::COPYTABLE_SHARDING_STRATEGY_EXPRESS_BUTTON_ID, BN_CLICKED, OnClickShardingStrategyExpressButton)
 		MESSAGE_HANDLER(Config::MSG_COPY_TABLE_PROCESS_ID, OnProcessCopy); // ÏìÓ¦½ø¶È
 		CHAIN_MSG_MAP(QDialog<CopyTableDialog>)
 		REFLECT_NOTIFICATIONS()
@@ -102,6 +104,7 @@ private:
 	CButton previewSqlButton;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	SettingService * settingService = SettingService::getInstance();
 	TableService * tableService = TableService::getInstance();
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	CopyTableSupplier * supplier = nullptr;
@@ -147,6 +150,7 @@ private:
 	LRESULT OnProcessCopy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	void OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickShardingStrategyExpressButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	bool verifyParams();

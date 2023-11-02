@@ -193,3 +193,9 @@ UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstrin
 	ATLASSERT(userDbId > 0 && !triggerName.empty());
 	return triggerUserRepository->getTrigger(userDbId, triggerName, schema);
 }
+
+Functions DatabaseService::getFunctionsStrings(uint64_t userDbId)
+{
+	ATLASSERT(userDbId > 0);
+	return databaseUserRepository->getFunctions(userDbId);
+}

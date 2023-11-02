@@ -262,7 +262,7 @@ void ExportAsSqlDialog::loadSelectDbComboBox()
 		selectDbComboBox.SetItemData(nItem, item.id);
 		if (item.isActive) {
 			nSelItem = i;
-			settingService->setSysInit(L"export_selected_db_id", std::to_wstring(item.id));
+			settingService->setSysInit(L"export-selected-db-id", std::to_wstring(item.id));
 		}
 	}
 	selectDbComboBox.SetCurSel(nSelItem);
@@ -277,7 +277,7 @@ void ExportAsSqlDialog::loadObjectsTreeView()
 
 void ExportAsSqlDialog::loadStructureAndDataSettingsElems()
 {
-	std::wstring structureAndDataSetting = settingService->getSysInit(L"export_as_sql_structure_and_data");
+	std::wstring structureAndDataSetting = settingService->getSysInit(L"export-as-sql-structure-and-data");
 	for (auto ptr : structureAndDataRadioPtrs) {
 		if (ptr->m_hWnd == structureOnlyRadio.m_hWnd && structureAndDataSetting == L"structure-only") {
 			ptr->SetCheck(1);
@@ -294,17 +294,17 @@ void ExportAsSqlDialog::loadStructureAndDataSettingsElems()
 
 void ExportAsSqlDialog::loadInsertStatementSettingsElems()
 {
-	std::wstring retainColumn = settingService->getSysInit(L"export_as_sql_retain_column");	
+	std::wstring retainColumn = settingService->getSysInit(L"export-as-sql-retain-column");	
 	retainColumn == L"1" ? retainColumnCheckbox.SetCheck(1): retainColumnCheckbox.SetCheck(0);
 
-	std::wstring containMultiRow = settingService->getSysInit(L"export_as_sql_contain_multi_rows");	
+	std::wstring containMultiRow = settingService->getSysInit(L"export-as-sql-contain-multi-rows");	
 	containMultiRow == L"1" ? containMultiRowsCheckbox.SetCheck(1): containMultiRowsCheckbox.SetCheck(0);
 }
 
 
 void ExportAsSqlDialog::loadTblStatementSettingsElems()
 {
-	std::wstring tblStatementSetting = settingService->getSysInit(L"export_as_sql_tbl_statement");
+	std::wstring tblStatementSetting = settingService->getSysInit(L"export-as-sql-tbl-statement");
 	for (auto ptr : tblStatementRadioPtrs) {
 		if (ptr->m_hWnd == retainTableRadio.m_hWnd && tblStatementSetting == L"retain-table") {
 			ptr->SetCheck(1);
@@ -326,7 +326,7 @@ void ExportAsSqlDialog::loadExportPathEdit()
 	exportPathEdit.GetWindowText(str);
 	std::wstring exportPath = str.GetString();
 	if (str.IsEmpty()) {
-		exportPath = settingService->getSysInit(L"export_as_sql_path");
+		exportPath = settingService->getSysInit(L"export-as-sql-path");
 	}
 
 	exportPathEdit.SetWindowText(exportPath.c_str());
@@ -334,25 +334,25 @@ void ExportAsSqlDialog::loadExportPathEdit()
 
 void ExportAsSqlDialog::saveExportStructureAndDataSettings(StructAndDataParams & params)
 {
-	settingService->setSysInit(L"export_as_sql_structure_and_data", params.sqlSetting);
+	settingService->setSysInit(L"export-as-sql-structure-and-data", params.sqlSetting);
 }
 
 
 void ExportAsSqlDialog::saveInsertStatementSettings(InsertStatementParams & params)
 {
-	settingService->setSysInit(L"export_as_sql_retain_column", params.retainColumn ? L"1" : L"0");
-	settingService->setSysInit(L"export_as_sql_contain_multi_rows", params.multiRows ? L"1" : L"0");
+	settingService->setSysInit(L"export-as-sql-retain-column", params.retainColumn ? L"1" : L"0");
+	settingService->setSysInit(L"export-as-sql-contain-multi-rows", params.multiRows ? L"1" : L"0");
 }
 
 
 void ExportAsSqlDialog::saveTblStatementSettings(TblStatementParams & params)
 {
-	settingService->setSysInit(L"export_as_sql_tbl_statement", params.param);
+	settingService->setSysInit(L"export-as-sql-tbl-statement", params.param);
 }
 
 void ExportAsSqlDialog::saveExportPath(std::wstring & exportPath)
 {
-	settingService->setSysInit(L"export_as_sql_path", exportPath);
+	settingService->setSysInit(L"export-as-sql-path", exportPath);
 }
 
 /**
@@ -713,6 +713,7 @@ void ExportAsSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	saveInsertStatementSettings(insertStatementParams);
 	saveTblStatementSettings(tblStatementParams);
 
+	noButton.SetWindowText(S(L"complete").c_str());
 	yesButton.EnableWindow(TRUE);
 }
 

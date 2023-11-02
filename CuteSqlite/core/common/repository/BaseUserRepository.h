@@ -128,6 +128,7 @@ std::wstring BaseUserRepository<T>::initUserDbFile(uint64_t userDbId)
 
 	std::wstring destPath = userDb.path;
 	if (_waccess(destPath.c_str(), 0) != 0) { //文件不存在
+		localDir = localDir = ResourceUtil::getProductBinDir();
 		std::wstring origPath = localDir + L"res\\db\\UserDb.s3db";
 		ATLASSERT(_waccess(origPath.c_str(), 0) == 0);
 

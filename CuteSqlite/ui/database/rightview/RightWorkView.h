@@ -28,7 +28,7 @@
  *                         |                          |-> ResultInfoPage
  *                         |                          |-> ResultTableDataPage
  *                         |-> TableStructurePage
- *					       |       |-> TableTabView
+ *                         |       |-> TableTabView
  *                         |              |->QTabView(tabView)  
  *                         |                    |->TableColumnsPage
  *                         |                    |->TableIndexesPage

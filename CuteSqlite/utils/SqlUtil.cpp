@@ -154,7 +154,7 @@ std::vector<std::wstring> SqlUtil::parseTablesFromTableClause(std::wstring & tbl
 		if (iterator != tableTags.end()) {
 			continue;
 		}
-
+		tag = StringUtil::cutParensAndQuotes(tag);
 		tbls.push_back(tag);
 	}
 	return tbls;

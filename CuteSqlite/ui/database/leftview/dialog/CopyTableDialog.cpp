@@ -24,6 +24,7 @@
 #include "common/AppContext.h"
 #include "utils/SqlUtil.h"
 #include "PreviewSqlDialog.h"
+#include "ExpressDialog.h"
 
 CopyTableDialog::CopyTableDialog(HWND parentHwnd, bool isSharding)
 {
@@ -143,12 +144,21 @@ void CopyTableDialog::createOrShowStructureAndDataSettingsElems(CRect & clientRe
 	int x = 30, y = 195, w = 150, h = 20;
 	CRect rect(x, y, x + w, y + h);
 	createOrShowFormRadio(structureOnlyRadio, Config::STRUCTURE_ONLY_RADIO_ID, S(L"structure-only"), rect, clientRect);
-
+	
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormRadio(dataOnlyRadio, Config::DATA_ONLY_RADIO_ID, S(L"data-only"), rect, clientRect);
 
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormRadio(structureAndDataRadio, Config::STRUCTURE_DATA_RADIO_ID, S(L"structure-and-data"), rect, clientRect);
+
+	if (supplier->getStructAndDataSetting() == UNKOWN) {
+		std::wstring structAndDataSetting = settingService->getSysInit(L"copytable-struct-and-data");
+		StructAndDataSetting setting = structAndDataSetting.empty() ? UNKOWN : (StructAndDataSetting)std::stoi(structAndDataSetting);
+		if (setting == STRUCT_ONLY) structureOnlyRadio.SetCheck(1);
+		if (setting == DATA_ONLY) dataOnlyRadio.SetCheck(1);
+		if (setting == STRUCTURE_AND_DATA) structureAndDataRadio.SetCheck(1);
+		supplier->setStructAndDataSetting(setting);
+	}	
 }
 
 
@@ -168,7 +178,9 @@ void CopyTableDialog::createOrShowTableShardingElems(CRect & clientRect)
 	CRect rect2 = rect1;
 	rect2.OffsetRect(80 + 5, 0);	
 	rect2.right = rect2.left + 60;
-	createOrShowFormEdit(tblSuffixBeginEdit, Config::COPYTABLE_TBL_SUFFER_BEGIN_EDIT_ID, L"1", L"", rect2, clientRect, ES_LEFT | ES_NUMBER, false);
+	std::wstring suffixBegin = settingService->getSysInit(L"copytable-suffix-begin");
+	suffixBegin = suffixBegin.empty() ? L"1" : suffixBegin;
+	createOrShowFormEdit(tblSuffixBeginEdit, Config::COPYTABLE_TBL_SUFFER_BEGIN_EDIT_ID, suffixBegin, L"", rect2, clientRect, ES_LEFT | ES_NUMBER, false);
 	
 	rect1.OffsetRect(0, h + 5);
 	std::wstring tblSuffixEnd = S(L"table-suffix-end").append(L":");
@@ -176,9 +188,12 @@ void CopyTableDialog::createOrShowTableShardingElems(CRect & clientRect)
 	createOrShowFormLabel(tblSuffixEndLabel, tblSuffixEnd, rect1, clientRect);
 
 	rect2.OffsetRect(0, h + 5);
+	std::wstring suffixEnd = settingService->getSysInit(L"copytable-suffix-end");
+	suffixEnd = suffixEnd.empty() ? L"64" : suffixEnd;
 	createOrShowFormEdit(tblSuffixEndEdit, Config::COPYTABLE_TBL_SUFFER_END_EDIT_ID, L"64", L"", rect2, clientRect, ES_LEFT | ES_NUMBER, false);
 
-	std::wstring tblNameRange = databaseSupplier->selectedTable + L"_1 - " + databaseSupplier->selectedTable + L"_64";
+	std::wstring tblNameRange = databaseSupplier->selectedTable;
+	tblNameRange.append(L"_").append(suffixBegin).append(L" - ").append(databaseSupplier->selectedTable).append(L"_").append(suffixEnd);
 	rect.OffsetRect(0, 80);
 	createOrShowFormEdit(shardingRangeEdit, Config::COPYTABLE_SHARDING_RANGE_EDIT_ID, tblNameRange, L"", rect, clientRect, ES_LEFT |ES_AUTOHSCROLL, true);
 	shardingRangeEdit.SetLimitText(1024);
@@ -635,6 +650,16 @@ void CopyTableDialog::OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hw
 	return;
 }
 
+
+void CopyTableDialog::OnClickShardingStrategyExpressButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	ExpressDialog dialog(m_hWnd, adapter);
+	if (dialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+		shardingStrategyExpressEdit.SetWindowText(supplier->getShardingStrategyExpress().c_str());
+	}
+	return;
+}
+
 void CopyTableDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {	
 	if (!verifyParams()) {
@@ -643,6 +668,9 @@ void CopyTableDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 	yesButton.EnableWindow(false);
 	if (adapter->startCopy()) {
+		settingService->setSysInit(L"copytable-struct-and-data-setting", std::to_wstring(supplier->getStructAndDataSetting()));
+		settingService->setSysInit(L"copytable-suffix-begin", std::to_wstring(supplier->getTblSuffixBegin()));
+		settingService->setSysInit(L"copytable-suffix-end", std::to_wstring(supplier->getTblSuffixEnd()));
 		QPopAnimate::success(S(L"copy-table-success-text"));
 	}
 	yesButton.EnableWindow(true);

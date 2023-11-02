@@ -99,7 +99,7 @@ void ExportDatabaseAdapter::exportObjectsToSql(uint64_t userDbId,
 	ofs.close();
 
 	// 3. complete the expert task and send message MSG_EXPORT_DB_AS_SQL_PROCESS_ID to dialog with wParam=1
-	AppContext::getInstance()->dispatch(Config::MSG_EXPORT_DB_AS_SQL_PROCESS_ID, 1, percent); // 进度
+	AppContext::getInstance()->dispatch(Config::MSG_EXPORT_DB_AS_SQL_PROCESS_ID, 1, 100); // 进度
 }
 
 /**

@@ -100,7 +100,9 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	x = (clientRect.Width() - 80) / 2, y = rect.top + 2, w = 80, h = 20;
 	CRect textRect(x, y, x + w, y + h);
 	COLORREF oldTextColor = mdc.SetTextColor(textColor);
-	COLORREF oldTextBkgColor = mdc.SetBkColor(err.empty() ? processColor : errorColor);
+	COLORREF textBkColor = err.empty() ? processColor : errorColor;
+	textBkColor = percent < 60 ? bkgColor : textBkColor;
+	COLORREF oldTextBkgColor = mdc.SetBkColor(textBkColor);
 	mdc.DrawText(text.c_str(), static_cast<int>(text.size()), textRect, uFormat);
 	mdc.SetTextColor(oldTextColor);
 	mdc.SetBkColor(oldTextBkgColor);
