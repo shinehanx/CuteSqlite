@@ -83,7 +83,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_SHARDING_MENU_ID, OnClickShardingTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_EXPORT_MENU_ID, OnClickExportTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_SQL_MENU_ID, OnClickImportFromSqlMenu)
-		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_CSV_MENU_ID, OnClickImportFromSqlMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_CSV_MENU_ID, OnClickImportFromCsvMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_INDEX_MENU_ID, OnClickManageIndexMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, OnClickManageForeignKeyMenu)
 
@@ -185,6 +185,7 @@ private:
 	void OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickShardingTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExportTableMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickImportFromCsvMenu(UINT uNotifyCode, int nID, HWND hwnd);
 
 
 	// MSG
@@ -197,6 +198,7 @@ private:
 	void doCopyDatabase();
 	void doExportAsSql();
 	void doImportFromSql();
+	void doImportFromCsv();
 	void doNewView();
 	void doNewTrigger();
 	void doNewTable();

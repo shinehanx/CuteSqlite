@@ -224,6 +224,34 @@ public:
 		ifs.close();
 		return result;
 	}
+
+	static std::wstring readFirstLine(const std::wstring & path, const std::wstring & encoding = L"UTF-8") 
+	{
+		std::wifstream ifs;
+		if (encoding == L"UTF-16") {
+			auto codeccvt = new std::codecvt_utf16<wchar_t, 0x10ffff, std::codecvt_mode(std::generate_header | std::little_endian)>();
+			std::locale utf16(std::locale("C"), codeccvt);
+			ifs.imbue(utf16);
+		} else {
+			auto codeccvt = new std::codecvt_utf8<wchar_t, 0x10ffff, std::codecvt_mode(std::generate_header | std::little_endian)>();
+			std::locale utf8(std::locale("C"), codeccvt);
+			ifs.imbue(utf8);
+		}
+	
+		ifs.open(path, std::ios::in);
+		if (ifs.bad()) {
+			return L"";
+		}
+		std::wstring line;
+		if (!ifs.eof()) {
+			wchar_t buff[4096] = {0};
+			ifs.getline(buff, 4096);
+			line.append(buff);
+		}
+		ifs.close();
+
+		return line;
+	}
 };
 
 

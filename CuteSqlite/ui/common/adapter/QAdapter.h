@@ -31,15 +31,13 @@ public:
 	static T * getInstance(HWND parentHwnd, V * dataView = nullptr); // singleton
 protected:
 	static T * theInstance;
-	static HWND parentHwnd;
+	HWND parentHwnd;
 	V * dataView;
 };
 
 template <typename T, typename V>
 T * QAdapter<T, V>::theInstance = nullptr; // singleton
 
-template <typename T, typename V>
-HWND QAdapter<T, V>::parentHwnd = nullptr;
 
 // singleton
 template <typename T, typename V>
@@ -48,7 +46,7 @@ T * QAdapter<T, V>::getInstance(HWND parentHwnd, V * dataView /*= nullptr*/)
 	if (QAdapter::theInstance == nullptr) {
 		QAdapter::theInstance = new T(parentHwnd, dataView);
 	}
-	QAdapter::parentHwnd = parentHwnd;
-	dataView = dataView;
+	QAdapter::theInstance->parentHwnd = parentHwnd;
+	QAdapter::theInstance->dataView = dataView;
 	return QAdapter::theInstance;
 }

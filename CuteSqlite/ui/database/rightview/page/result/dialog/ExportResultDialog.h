@@ -73,7 +73,7 @@ private:
 	CButton sqlGroupBox;
 	CButton exportFieldsGroupBox;
 
-	// CSV SETTINGS - Feilds
+	// CSV SETTINGS - Fields
 	CStatic csvFieldTerminatedByLabel;
 	CEdit csvFieldTerminatedByEdit;
 	CStatic csvFieldEnclosedByLabel;

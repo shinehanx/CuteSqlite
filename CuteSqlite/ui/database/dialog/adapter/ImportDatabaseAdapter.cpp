@@ -54,6 +54,7 @@ void ImportDatabaseAdapter::loadDbs()
 	}
 }
 
+
 bool ImportDatabaseAdapter::importFromSql(uint64_t userDbId, const std::wstring & importPath)
 {
 	ATLASSERT(userDbId > 0 && !importPath.empty());
@@ -90,14 +91,14 @@ bool ImportDatabaseAdapter::importFromSql(uint64_t userDbId, const std::wstring 
 			// delete tmp file
 			//_wunlink(tmppath);
 		}
-		AppContext::getInstance()->dispatch(Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, 0, 10);
+		AppContext::getInstance()->dispatch(Config::MSG_IMPORT_PROCESS_ID, 0, 10);
 
 		// 这里需要替换目录分割符,不然奇葩的sqlite3 .read命令不认windows的目录
 		importRepPath = StringUtil::replace(importRepPath, L"\\", L"/");
 		cmdline.append(L"/c ").append(sqlite3exePath).append(L" \"").append(dbPath).append(L"\" \".read ").append(importRepPath).append(L"\"");
 		Q_DEBUG(L"Import file, cmd: [{}]", cmdline);
 		execCommandLine(cmdline.c_str());
-		AppContext::getInstance()->dispatch(Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, 1, 100);
+		AppContext::getInstance()->dispatch(Config::MSG_IMPORT_PROCESS_ID, 1, 100);
 		return true;
 	} catch (QRuntimeException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());

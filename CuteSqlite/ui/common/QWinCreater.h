@@ -226,4 +226,41 @@ public:
 			win.ShowWindow(SW_SHOW);
 		}
 	}
+
+	static void loadComboBox(CComboBox & win, const std::vector<std::wstring> & strs, const std::wstring & val = std::wstring())
+	{
+		if (!win.IsWindow()) {
+			return;
+		}
+		win.ResetContent();
+		for (auto & str : strs) {
+			int nItem = win.AddString(str.c_str());
+			if (!val.empty() && val == str) {
+				win.SetCurSel(nItem);
+			}
+		}
+	}
+
+	/**
+	 * load data to combo box.
+	 * 
+	 * @param win 
+	 * @param strs - string array
+	 * @param len - strs array length
+	 * @param val
+	 */
+	static void loadComboBox(CComboBox & win, std::wstring strs[], int len, const std::wstring & val = std::wstring())
+	{
+		if (!win.IsWindow()) {
+			return;
+		}
+		win.ResetContent();
+		for (int i = 0;  i < len; i++) {
+			const std::wstring & str = strs[i].c_str();
+			int nItem = win.AddString(str.c_str());
+			if (!val.empty() && val == str) {
+				win.SetCurSel(nItem);
+			}
+		}
+	}
 };

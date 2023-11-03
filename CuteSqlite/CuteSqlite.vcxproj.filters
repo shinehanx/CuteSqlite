@@ -330,6 +330,15 @@
     <ClCompile Include="ui\database\leftview\dialog\ExpressDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\dialog\ImportFromCsvDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\supplier\ImportFromCsvSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\dialog\adapter\ImportFromCsvAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -696,6 +705,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\leftview\dialog\ExpressDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\ImportFromCsvDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\supplier\ImportFromCsvSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\dialog\adapter\ImportFromCsvAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

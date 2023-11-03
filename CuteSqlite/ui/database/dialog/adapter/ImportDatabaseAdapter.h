@@ -23,6 +23,7 @@
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/TableService.h"
 #include "core/service/db/SqlService.h"
+#include "ui/common/listview/QListViewCtrl.h"
 
 class ImportDatabaseAdapter : public QAdapter<ImportDatabaseAdapter>
 {
@@ -30,12 +31,12 @@ public:
 	ImportDatabaseAdapter(HWND parentHwnd, ATL::CWindow * view);
 	~ImportDatabaseAdapter();
 
+	//FOR IMPORT AS SQL 
 	UserDbList getDbs();
 	void loadDbs();
-
 	bool importFromSql(uint64_t userDbId, const std::wstring & importPath);
-	
-private:
+
+protected:
 	UserDbList dbs;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();

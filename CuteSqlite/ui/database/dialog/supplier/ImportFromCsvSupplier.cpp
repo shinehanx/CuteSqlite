@@ -11,17 +11,18 @@
 
  * limitations under the License.
 
- * @file   QSupplier.cpp
+ * @file   ImportFromCsvSupplier.cpp
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-11-01
+ * @date   2023-11-03
  *********************************************************************/
 #include "stdafx.h"
-#include "QSupplier.h"
+#include "ImportFromCsvSupplier.h"
 
-
-std::wstring QSupplier::csvFieldSeperators[5] = { L",", L"TAB", L"|", L";",L":" };
-std::wstring QSupplier::csvLineSeperators[3] = { L"CR", L"CRLF", L"LF" };
-std::wstring QSupplier::csvNullAsKeywords[2] = { L"YES", L"NO"};
-std::wstring QSupplier::csvEncodings[2] = { L"UTF-8", L"UTF-16"};
+ImportFromCsvSupplier::ImportFromCsvSupplier(DatabaseSupplier * databaseSupplier)
+{
+	this->runtimeUserDbId = databaseSupplier->getSelectedUserDbId();
+	this->runtimeTblName = databaseSupplier->selectedTable;
+	this->runtimeSchema = databaseSupplier->selectedSchema;
+}

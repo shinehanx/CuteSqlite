@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   ImportFromSqlDialog.h
+ * @file   ImportFromCsvDialog.h
  * @brief  The dialog provide importing the structure and data of the selected database from sql file
  * 
  * @author Xuehan Qin
@@ -19,34 +19,52 @@
  *********************************************************************/
 #pragma once
 #include "ui/common/dialog/QDialog.h"
-#include "ui/database/dialog/adapter/ImportDatabaseAdapter.h"
+#include "ui/database/dialog/adapter/ImportFromCsvAdapter.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/process/QProcessBar.h"
 #include "core/service/system/SettingService.h"
+#include "ui/database/dialog/supplier/ImportFromCsvSupplier.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/common/listview/QListViewCtrl.h"
 
-#define IMPORT_FROM_SQL_DIALOG_WIDTH		500
-#define IMPORT_FROM_SQL_DIALOG_HEIGHT		300
-class ImportFromSqlDialog : public QDialog<ImportFromSqlDialog>
+#define IMPORT_FROM_CSV_DIALOG_WIDTH		820
+#define IMPORT_FROM_CSV_DIALOG_HEIGHT		750
+class ImportFromCsvDialog : public QDialog<ImportFromCsvDialog>
 {
 public:
-	BEGIN_MSG_MAP_EX(ImportFromSqlDialog)
+	BEGIN_MSG_MAP_EX(ImportFromCsvDialog)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
+		
+		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
+		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
+		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
+
+		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
+		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
+		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
+
 		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeSelectDbComboBox)
 		COMMAND_HANDLER_EX(Config::IMPORT_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
 		COMMAND_HANDLER_EX(Config::IMPORT_ABORT_ON_ERROR_CHECKBOX_ID, BN_CLICKED, OnClickAbortOnErrorCheckBox)
+		COMMAND_HANDLER_EX(Config::PREVIEW_SQL_BUTTON_ID, BN_CLICKED, OnClickPreviewSqlButton)
 		MESSAGE_HANDLER(Config::MSG_IMPORT_PROCESS_ID, OnProcessExport); // ÏìÓ¦½ø¶È
-		CHAIN_MSG_MAP(QDialog<ImportFromSqlDialog>)
+		
+		CHAIN_MSG_MAP(QDialog<ImportFromCsvDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	ImportFromSqlDialog(HWND parentHwnd, ImportDatabaseAdapter * adapter);
+	ImportFromCsvDialog(HWND parentHwnd);
 
 private:
 	bool isNeedReload = true;
 	HWND parentHwnd = nullptr;
-	ImportDatabaseAdapter * adapter = nullptr;
+	ImportFromCsvAdapter * adapter = nullptr;
+	ImportFromCsvSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	SettingService * settingService = SettingService::getInstance();
+	TableService * tableService = TableService::getInstance();
+
 
 	COLORREF lineColor = RGB(127, 127, 127);
 	CPen linePen = nullptr;
@@ -56,39 +74,76 @@ private:
 	QStaticImage importImage;
 	CStatic importTextLabel;
 
-	CStatic selectDbLabel;
-	CComboBox selectDbComboBox;
-
-	CButton abortOnErrorCheckbox;
-
-	// PROCESS BAR
-	QProcessBar processBar;
-
 	// EXPORT PATH
 	CStatic importPathLabel;
 	CEdit importPathEdit;
 	CButton openFileButton;
 
+	CStatic targetDbLabel;
+	CComboBox targetDbComboBox;
+	CStatic targetTblLabel;
+	CComboBox targetTblComboBox;
+
+	// GROUPBOX	
+	CButton topGroupBox;
+	CButton csvSettingsGroupBox;
+	CButton columnsSettingsGroupBox;
+	CButton csvDatasGroupBox;
+
+	QListViewCtrl columnListView;
+	QListViewCtrl dataListView;
+
+	// CSV SETTINGS - Fields
+	CStatic csvFieldTerminatedByLabel;
+	CComboBox csvFieldTerminatedByComboBox;
+	CStatic csvFieldEnclosedByLabel;
+	CEdit csvFieldEnclosedByEdit;
+	CStatic csvLineTerminatedByLabel;
+	CComboBox csvLineTerminatedByComboBox;
+	CStatic csvFieldEscapedByLabel;
+	CEdit csvFieldEscapedByEdit;
+	CStatic csvNullAsKeywordLabel;
+	CComboBox csvNullAsKeywordComboBox;
+	CStatic csvCharsetLabel;
+	CComboBox csvCharsetComboBox;
+	// CSV SETTINGS - add column name on top
+	CButton csvColumnNameCheckBox;
+
+	CButton abortOnErrorCheckbox;
+	// PROCESS BAR
+	QProcessBar processBar;
+	CButton previewSqlButton;
+	
+	int columnRowCount = 0;
+	int dataRowCount = 0;
+
 	// create elements when initting dialog
 	void createOrShowUI();
 	void createOrShowImportImage(QStaticImage &win, CRect & clientRect);
 	void createOrShowImportTextLabel(CStatic &win, CRect & clientRect);
-	void createOrShowSelectDbElems(CRect & clientRect);
+	void createOrShowTargetElems(CRect & clientRect);
+	void createOrShowGroupBoxes(CRect & clientRect);
 	void createOrShowImportPathElems(CRect & clientRect);
 	void createOrShowAbortOnErrorElems(CRect & clientRect);
+	void createOrShowListViews(CRect & clientRect);
+	void createOrShowListView(QListViewCtrl & win, UINT id, CRect & rect, CRect & clientRect);
+	void createOrShowCsvSettingsElems(CRect & clientRect);
 	void createOrShowProcessBar(QProcessBar &win, CRect & clientRect);
+	void createOrShowPreviewSqlButton(CRect & clientRect);
 	
-
 	// load data when showing the window visible
 	void loadWindow();
-	void loadSelectDbComboBox();
 	void loadImportPathEdit();
+	void loadTargetDbComboBox();
+	void loadTargetTblComboBox();
+	void loadColumnsListView();
+	void loadCsvSettingsElems();
 	void loadAbortOnErrorCheckBox();
 
 	bool getSelUserDbId(uint64_t & userDbId);
 	bool getImportPath(std::wstring & importPath);
 
-	void saveImportPath(std::wstring & importPath);
+	void saveImportSettings();
 
 	virtual LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -98,9 +153,13 @@ private:
 	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickAbortOnErrorCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
-
+	void OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	// Handle the message for import process
 	LRESULT OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 };

@@ -36,12 +36,7 @@ public:
 		TRIGGER_PAGE
 	} TabPageType;
 
-	// For tabView.SetPageData function
-	typedef struct {
-		TabPageType pageType;
-		HWND pageHwnd;
-	} TabPageData;
-
+	
 	DatabaseSupplier();
 	~DatabaseSupplier() {}
 

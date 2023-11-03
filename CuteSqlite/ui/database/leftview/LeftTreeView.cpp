@@ -27,6 +27,7 @@
 #include "ui/common/message/QMessageBox.h"
 #include "ui/database/dialog/ExportAsSqlDialog.h"
 #include "ui/database/dialog/ImportFromSqlDialog.h"
+#include "ui/database/dialog/ImportFromCsvDialog.h"
 
 #define TREEVIEW_TOPBAR_HEIGHT 30
 #define TREEVIEW_BUTTON_WIDTH 16
@@ -606,6 +607,11 @@ void LeftTreeView::OnClickExportTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	tableMenuAdapter->exportTable();
 }
 
+void LeftTreeView::OnClickImportFromCsvMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doImportFromCsv();
+}
+
 void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {	
 	tableMenuAdapter->openTable();
@@ -683,6 +689,12 @@ void LeftTreeView::doExportAsSql()
 void LeftTreeView::doImportFromSql()
 {
 	ImportFromSqlDialog dialog(m_hWnd, importDatabaseAdapter);
+	dialog.DoModal(m_hWnd);
+}
+
+void LeftTreeView::doImportFromCsv()
+{
+	ImportFromCsvDialog dialog(m_hWnd);
 	dialog.DoModal(m_hWnd);
 }
 

@@ -127,7 +127,6 @@ void TableMenuAdapter::createMenu()
 	
 }
 
-
 bool TableMenuAdapter::renameTable()
 {
 	RenameTableDialog dialog(parentHwnd);

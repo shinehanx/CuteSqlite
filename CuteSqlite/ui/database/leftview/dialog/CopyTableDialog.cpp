@@ -230,7 +230,7 @@ void CopyTableDialog::createOrShowPreviewSqlButton(CRect & clientRect)
 	CRect rcBtn = GdiPlusUtil::GetWindowRelativeRect(yesButton.m_hWnd);
 	int x = 20, y = rcBtn.top, w = rcBtn.Width(), h = rcBtn.Height();
 	CRect rect(x, y, x + w, y + h);
-	createOrShowFormButton(previewSqlButton, Config::COPYTABLE_PREVIEW_SQL_BUTTON_ID, S(L"preview-sql"), rect, clientRect);
+	createOrShowFormButton(previewSqlButton, Config::PREVIEW_SQL_BUTTON_ID, S(L"preview-sql"), rect, clientRect);
 }
 
 void CopyTableDialog::createOrShowProcessBar(QProcessBar &win, CRect & clientRect)
@@ -409,7 +409,7 @@ LRESULT CopyTableDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	linePen.CreatePen(PS_SOLID, 1, lineColor);
 	elemFont = FT(L"elem-size");
 
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_IMPORT_PROCESS_ID);
 
 	structureAndDataRadioPtrs.push_back(&structureOnlyRadio);
 	structureAndDataRadioPtrs.push_back(&dataOnlyRadio);
@@ -650,7 +650,6 @@ void CopyTableDialog::OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hw
 	dialog.DoModal(m_hWnd);
 	return;
 }
-
 
 void CopyTableDialog::OnClickShardingStrategyExpressButton(UINT uNotifyCode, int nID, HWND hwnd)
 {

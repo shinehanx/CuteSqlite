@@ -88,7 +88,7 @@ void ImportFromSqlDialog::createOrShowSelectDbElems(CRect & clientRect)
 	createOrShowFormLabel(selectDbLabel, S(L"select-database").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormComboBox(selectDbComboBox, Config::IMPORT_DB_FROM_SQL_SELECT_DB_COMBOBOX_ID,  L"", rect, clientRect);
+	createOrShowFormComboBox(selectDbComboBox, Config::IMPORT_TARGET_DB_COMBOBOX_ID,  L"", rect, clientRect);
 }
 
 
@@ -99,12 +99,12 @@ void ImportFromSqlDialog::createOrShowImportPathElems(CRect & clientRect)
 	createOrShowFormLabel(importPathLabel, S(L"open-the-file").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormEdit(importPathEdit, Config::IMPORT_DB_FROM_SQL_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
+	createOrShowFormEdit(importPathEdit, Config::IMPORT_SOURCE_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
 	importPathEdit.SetLimitText(1024);
 
 	rect.OffsetRect(w + 10, 0);	
 	rect = { rect.left, rect.top, rect.left + 50, rect.bottom };
-	createOrShowFormButton(openFileButton, Config::IMPORT_DB_FROM_SQL_OPEN_FILE_BUTTON_ID, L"...", rect, clientRect);
+	createOrShowFormButton(openFileButton, Config::IMPORT_OPEN_FILE_BUTTON_ID, L"...", rect, clientRect);
 }
 
 
@@ -231,7 +231,7 @@ LRESULT ImportFromSqlDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lPara
 	linePen.CreatePen(PS_SOLID, 1, lineColor);
 	elemFont = FT(L"elem-size");
 
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_IMPORT_PROCESS_ID);
 
 	QDialog::OnInitDialog(uMsg, wParam, lParam, bHandled); 
 	return 0;
@@ -241,7 +241,7 @@ LRESULT ImportFromSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 {
 	QDialog::OnDestroy(uMsg, wParam, lParam, bHandled);
 
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_IMPORT_DB_FROM_SQL_PROCESS_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_IMPORT_PROCESS_ID);
 
 	if (!linePen.IsNull()) linePen.DeleteObject();
 	if (elemFont) ::DeleteObject(elemFont);

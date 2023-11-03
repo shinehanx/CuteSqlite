@@ -23,6 +23,12 @@
 
 class QSupplier {
 public:
+	// CSV Options
+	static std::wstring csvFieldSeperators[5];
+	static std::wstring csvLineSeperators[3];
+	static std::wstring csvNullAsKeywords[2];
+	static std::wstring csvEncodings[2];
+
 	uint64_t getRuntimeUserDbId() const { return runtimeUserDbId; }
 	void setRuntimeUserDbId(uint64_t val) { runtimeUserDbId = val; }
 
@@ -37,4 +43,6 @@ protected:
 	uint64_t runtimeUserDbId = 0;
 	std::wstring runtimeSchema;
 	std::wstring runtimeTblName;
+
+	
 };
