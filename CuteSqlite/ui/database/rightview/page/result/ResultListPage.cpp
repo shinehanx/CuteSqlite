@@ -262,7 +262,7 @@ void ResultListPage::createOrShowListView(QListViewCtrl & win, CRect & clientRec
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, Config::DATABASE_QUERY_LISTVIEW_ID );
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
+		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_CHECKBOXES);
 		win.setItemHeight(22);
 		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_SQL_RESULT);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {

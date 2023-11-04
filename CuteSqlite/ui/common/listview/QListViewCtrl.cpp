@@ -678,7 +678,6 @@ LRESULT QListViewCtrl::OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hw
 	return 0;
 }
 
-
 LRESULT QListViewCtrl::OnSubItemEditChange(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	if (isVisibleEdit && subItemEdit.IsWindow()) {	
@@ -1169,14 +1168,15 @@ void QListViewCtrl::createImageList()
 		std::wstring checkYesPath = imgDir + L"database\\list\\check-yes.bmp";
 		checkYesBitmap = (HBITMAP)::LoadImageW(ModuleHelper::GetModuleInstance(), checkYesPath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		checkNoBitmap = (HBITMAP)::LoadImageW(ModuleHelper::GetModuleInstance(), checkNoPath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-
+				
 		imageList.Create(16, 16, ILC_COLOR32, 0, 2);
 		imageList.Add(checkNoBitmap);
 		imageList.Add(checkYesBitmap);
-
-		SetImageList(imageList, LVSIL_SMALL);
-		CHeaderCtrl headerCtrl = GetHeader();
-		headerCtrl.SetImageList(imageList);
+		if (hasCheckBox) {
+			SetImageList(imageList, LVSIL_SMALL);
+			CHeaderCtrl headerCtrl = GetHeader();
+			headerCtrl.SetImageList(imageList);
+		}		
 	}
 }
 
@@ -1431,6 +1431,7 @@ void QListViewCtrl::drawSubItems(CDC & mdc,  LPDRAWITEMSTRUCT lpDrawItemStruct)
 		auto buttonIter = subItemButtonMap.end();
 		if(iSubItem == 0) {
 			bool checked = lpDrawItemStruct->itemState & ODS_SELECTED;
+			//BOOL bCheckState = ListView_GetCheckState(m_hWnd, iItem) ;
 			drawFirstSubItem(mdc, iItem, checked, rcSubItem, rcText);
 		} else if ((comboBoxIter = subItemComboBoxMap.find(std::pair<int, int>(iItem, iSubItem))) != subItemComboBoxMap.end()){
 			drawComboBoxInSubItem(mdc, lpDrawItemStruct, comboBoxIter, rcText);
@@ -1454,26 +1455,30 @@ void QListViewCtrl::drawFirstSubItem(CDC &mdc, int iItem, bool checked, CRect &r
 
 	int nleft = 6;
 	int ntop = (rcSubItem.Height() - chkHeight) / 2;
+	if (hasCheckBox) {
+		CDC bitmapDc;
+		bitmapDc.CreateCompatibleDC(NULL);
 
-	CDC bitmapDc;
-	bitmapDc.CreateCompatibleDC(NULL);
-	if (checked) {
-		HBITMAP hbmoldsource = (HBITMAP)::SelectObject(bitmapDc.m_hDC, (HBITMAP)checkYesBitmap);
-		mdc.BitBlt(nleft, ntop, chkWidth, chkHeight, bitmapDc, 0, 0, SRCCOPY);
-		::SelectObject(bitmapDc.m_hDC, hbmoldsource);
-	} else {
-		HBITMAP hbmoldsource = (HBITMAP)::SelectObject(bitmapDc.m_hDC, (HBITMAP)checkNoBitmap);
-		mdc.BitBlt(nleft, ntop, chkWidth, chkHeight, bitmapDc, 0, 0, SRCCOPY);
-		::SelectObject(bitmapDc.m_hDC, hbmoldsource);
+		if (checked) {
+			HBITMAP hbmoldsource = (HBITMAP)::SelectObject(bitmapDc.m_hDC, (HBITMAP)checkYesBitmap);
+			mdc.BitBlt(nleft, ntop, chkWidth, chkHeight, bitmapDc, 0, 0, SRCCOPY);
+			::SelectObject(bitmapDc.m_hDC, hbmoldsource);
+		}
+		else {
+			HBITMAP hbmoldsource = (HBITMAP)::SelectObject(bitmapDc.m_hDC, (HBITMAP)checkNoBitmap);
+			mdc.BitBlt(nleft, ntop, chkWidth, chkHeight, bitmapDc, 0, 0, SRCCOPY);
+			::SelectObject(bitmapDc.m_hDC, hbmoldsource);
+		}
+
+		::DeleteObject(bitmapDc.m_hDC);
 	}
-	::DeleteObject(bitmapDc.m_hDC);
 
 	// 第0列，文本显示的序号（正序还是倒叙, 正序序号从1开始，所以要加1）
 	int id = iItem + 1;
 	std::wstring lineNum = std::to_wstring(id);
 	if (lineNum.size()) {
 		CRect rcLineNum = rcText;
-		rcLineNum.left = nleft + chkWidth + leftMargin + 2;
+		rcLineNum.left = hasCheckBox ? nleft + chkWidth + leftMargin + 2 : nleft;
 		rcLineNum.top = rcText.top;
 		UINT uFormat = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS;
 		CSize lpSize; // GetTextExtentPoint32 函数计算指定文本字符串的宽度和高度。
@@ -1678,4 +1683,10 @@ void QListViewCtrl::DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct)
 
 }
 
+BOOL QListViewCtrl::SelectItem(int nIndex)
+{
+	if(nIndex > -1)
+		SetCheckState(nIndex,TRUE);
+	return CListViewCtrl::SelectItem(nIndex);
+}
 

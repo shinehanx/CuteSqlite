@@ -103,7 +103,7 @@ protected:
 	void createOrShowFormLabel(CStatic & win, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = SS_RIGHT, HFONT  font=nullptr);
 	void createOrShowFormImage(QStaticImage &win, UINT id, CRect & rect, CRect & clientRect);
 	void createOrShowFormEdit(WTL::CEdit & win, UINT id, std::wstring text, std::wstring cueBanner, CRect rect, CRect &clientRect, DWORD exStyle = 0, bool isReadOnly=false);
-	void createOrShowFormComboBox(WTL::CComboBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect);
+	void createOrShowFormComboBox(WTL::CComboBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = CBS_DROPDOWNLIST);
 	void createOrShowFormCheckBox(QCheckBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = BS_OWNERDRAW);
 	void createOrShowFormCheckBox(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void createOrShowFormRadio(CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
@@ -305,10 +305,14 @@ void QDialog<T>::createOrShowFormEdit(WTL::CEdit & win, UINT id, std::wstring te
 }
 
 template <class T>
-void QDialog<T>::createOrShowFormComboBox(WTL::CComboBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect)
+void QDialog<T>::createOrShowFormComboBox(WTL::CComboBox & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle /* = CBS_DROWDNLIST*/)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS , 0, id);
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | CBS_HASSTRINGS | CBS_AUTOHSCROLL;
+		if (exStyle) {
+			dwStyle = dwStyle | exStyle;
+		}
+		win.Create(m_hWnd, rect, text.c_str(), dwStyle , 0, id);
 		HFONT hfont = FT(L"form-text-size");
 		win.SetFont(hfont);
 		::DeleteObject(hfont);

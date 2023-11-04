@@ -29,6 +29,7 @@ public:
 
 	std::wstring importPath;
 	int csvColumnNameOnTop = 0;
+
 	std::wstring csvFieldTerminateBy;
 	std::wstring csvFieldEnclosedBy;
 	std::wstring csvFieldEscapedBy;
@@ -42,7 +43,17 @@ public:
 
 	Columns & getTblRuntimeColumns() { return tblRuntimeColumns; }
 	void setTblRuntimeColumns(const Columns & val) { tblRuntimeColumns = val; }
+
+	Columns & getTblOriginalColumns() { return tblOriginalColumns; }
+	void setTblOriginalColumns(const Columns & val) { tblOriginalColumns = val; }
+
+	DataList & getCsvRuntimeDatas() { return csvRuntimeDatas; }
+	void setCsvRuntimeDatas(const DataList & val) { csvRuntimeDatas = val; }
+	void clearCsvRuntimeDatas() { csvRuntimeDatas.clear(); }
+	void addCsvRuntimeData(const RowItem & item);
 private:
 	Columns csvRuntimeColumns;
 	Columns tblRuntimeColumns;
+	Columns tblOriginalColumns;
+	DataList csvRuntimeDatas;
 };

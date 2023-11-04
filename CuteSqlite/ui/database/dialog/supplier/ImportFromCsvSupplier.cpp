@@ -26,3 +26,8 @@ ImportFromCsvSupplier::ImportFromCsvSupplier(DatabaseSupplier * databaseSupplier
 	this->runtimeTblName = databaseSupplier->selectedTable;
 	this->runtimeSchema = databaseSupplier->selectedSchema;
 }
+
+void ImportFromCsvSupplier::addCsvRuntimeData(const RowItem & item)
+{
+	csvRuntimeDatas.push_back(item);
+}

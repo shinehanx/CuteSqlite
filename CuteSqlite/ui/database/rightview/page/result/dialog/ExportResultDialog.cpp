@@ -157,12 +157,12 @@ void ExportResultDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormLabel(csvFieldEnclosedByLabel, S(L"enclosed-by").append(L":"), rect, clientRect, SS_RIGHT, elemFont);
 	rect2.OffsetRect(0, h + 5);
-	createOrShowFormEdit(csvFieldEnclosedByEdit,Config::EXPORT_CSV_FIELD_ENCLOSED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+	createOrShowFormEdit(csvFieldEnclosedByEdit,Config::CSV_FIELD_ENCLOSED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	rect.OffsetRect(0, h + 5);
 	createOrShowFormLabel(csvFieldEscapedByLabel, S(L"escaped-by").append(L":"), rect, clientRect, SS_RIGHT, elemFont);
 	rect2.OffsetRect(0, h + 5);
-	createOrShowFormEdit(csvFieldEscapedByEdit, Config::EXPORT_CSV_FIELD_ESCAPED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+	createOrShowFormEdit(csvFieldEscapedByEdit, Config::CSV_FIELD_ESCAPED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	// cvs options - Lines
 	y = 203 + 20;

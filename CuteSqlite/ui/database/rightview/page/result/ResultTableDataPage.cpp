@@ -92,7 +92,7 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA | LVS_OWNERDRAWFIXED; 
 
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
+		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_CHECKBOXES);
 		win.setItemHeight(22);
 		adapter = new ResultListPageAdapter(m_hWnd, &win, QUERY_TABLE_DATA);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
@@ -335,6 +335,10 @@ LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &b
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	
 	subItemPos.first = aItem->iItem, subItemPos.second = aItem->iSubItem;
+	if (aItem->iSubItem == 0) {
+		bHandled = 0;
+		return 0;
+	}
 
 	Q_INFO(L"OnDbClickListView, pdi.item.iItem.:{}, pdi.item.iSubItem:{}", aItem->iItem, aItem->iSubItem);
 	

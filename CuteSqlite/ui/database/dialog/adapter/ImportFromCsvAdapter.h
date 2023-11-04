@@ -30,12 +30,16 @@ public:
 	//FOR IMPORT AS CSV
 	UserTableStrings getTables(uint64_t userDbid);
 	void loadHeaderForColumnListView(QListViewCtrl & columnListView);
+	void loadHeaderForDataListView(const Columns & columns, QListViewCtrl & columnListView);
 	int loadCsvFileToColumnListView(const std::wstring &importPath, QListViewCtrl & columnListView);
 	int loadCsvFileToDataListView(const std::wstring & importPath, QListViewCtrl & dataListView);
 	void fillSubItemForColumnListView(NMLVDISPINFO* plvdi, QListViewCtrl & columnListView);
 	void fillSubItemForDataListView(NMLVDISPINFO* plvdi, QListViewCtrl & dataListView);
-	
+	void clickListViewSubItem(NMITEMACTIVATE * clickItem, QListViewCtrl & columnListView);
 private:
 	ImportFromCsvSupplier * supplier = nullptr;
 	bool getIsChecked(QListViewCtrl * listView, int iItem);
+	std::wstring readFirstLineFromCvsFile(const std::wstring & importPath);
+	std::wstring readLineFromCsvFileStream(std::wifstream &ifs);
+	std::vector<std::wstring> splitLineAndConvertStringByCsvSettings(std::wstring line);
 };

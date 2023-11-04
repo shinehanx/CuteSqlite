@@ -48,7 +48,6 @@ void ImportFromCsvDialog::createOrShowUI()
 	createOrShowGroupBoxes(clientRect);	
 	createOrShowListViews(clientRect);
 	createOrShowCsvSettingsElems(clientRect);
-	createOrShowAbortOnErrorElems(clientRect);
 	createOrShowProcessBar(processBar, clientRect);
 	createOrShowPreviewSqlButton(clientRect);
 	yesButton.SetWindowText(S(L"import").c_str());
@@ -138,14 +137,6 @@ void ImportFromCsvDialog::createOrShowGroupBoxes(CRect & clientRect)
 	createOrShowFormGroupBox(csvDatasGroupBox, 0, S(L"csv-data"), rect3, clientRect);
 }
 
-void ImportFromCsvDialog::createOrShowAbortOnErrorElems(CRect & clientRect)
-{
-	int x = 20 , y = clientRect.bottom - QDIALOG_BUTTON_HEIGHT - 10, w = 250, h = 20;
-	CRect rect(x, y, x + w, y + h);
-	createOrShowFormCheckBox(abortOnErrorCheckbox, Config::IMPORT_ABORT_ON_ERROR_CHECKBOX_ID, S(L"abort-on-error-text"), rect, clientRect);
-}
-
-
 void ImportFromCsvDialog::createOrShowListViews(CRect & clientRect)
 {
 	CRect rect1 = GdiPlusUtil::GetWindowRelativeRect(columnsSettingsGroupBox);
@@ -160,10 +151,11 @@ void ImportFromCsvDialog::createOrShowListViews(CRect & clientRect)
 void ImportFromCsvDialog::createOrShowListView(QListViewCtrl & win, UINT id, CRect & rect, CRect & clientRect)
 {
 	if (IsWindow() && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
+		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | LVS_ALIGNLEFT | LVS_REPORT  | LVS_OWNERDATA | LVS_OWNERDRAWFIXED;
+		win.enabledCheckBox(false);
 		win.Create(m_hWnd, rect,NULL,dwStyle , // | LVS_OWNERDATA
 			0, id);
-		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER );
+		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER);
 		win.setItemHeight(22);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
@@ -181,7 +173,7 @@ void ImportFromCsvDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	// cvs options - Add column names on top
 	int x = rcGroupBox.left, y = rcGroupBox.top, w = rcGroupBox.right - 20, h = 20;
 	CRect rect(x, y, x + w, y + h);	
-	createOrShowFormCheckBox(csvColumnNameCheckBox, Config::EXPORT_CSV_COLUMN_NAME_COMBOBOX_ID, S(L"column-name-on-top"), rect, clientRect);
+	createOrShowFormCheckBox(csvColumnNameCheckBox, Config::CSV_COLUMN_NAME_CHECKBOX_ID, S(L"column-name-on-top"), rect, clientRect);
 
 	rect.OffsetRect(0, h + 10);
 	rect.right = rect.left + 200;
@@ -190,33 +182,33 @@ void ImportFromCsvDialog::createOrShowCsvSettingsElems(CRect & clientRect)
 	int x2 = rcGroupBox.right - 60, y2 = rect.top,  w2 = 60, h2 = h;
 	CRect rect2(x2, y2, x2 + w2, y2 + h2); 
 	bool isReadOnly = false;
-	createOrShowFormComboBox(csvFieldTerminatedByComboBox,Config::EXPORT_CSV_FIELD_TERMINAATED_BY_COMBOBOX_ID, L"", rect2, clientRect);
+	createOrShowFormComboBox(csvFieldTerminatedByComboBox,Config::CSV_FIELD_TERMINAATED_BY_COMBOBOX_ID, L"", rect2, clientRect);
 
 	rect.OffsetRect(0, h + 10);
 	createOrShowFormLabel(csvFieldEnclosedByLabel, S(L"field-enclosed-by").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 	rect2.OffsetRect(0, h + 10);
-	createOrShowFormEdit(csvFieldEnclosedByEdit,Config::EXPORT_CSV_FIELD_ENCLOSED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+	createOrShowFormEdit(csvFieldEnclosedByEdit,Config::CSV_FIELD_ENCLOSED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	rect.OffsetRect(0, h + 10);
 	createOrShowFormLabel(csvFieldEscapedByLabel, S(L"field-escaped-by").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 	rect2.OffsetRect(0, h + 10);
-	createOrShowFormEdit(csvFieldEscapedByEdit, Config::EXPORT_CSV_FIELD_ESCAPED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
+	createOrShowFormEdit(csvFieldEscapedByEdit, Config::CSV_FIELD_ESCAPED_BY_EDIT_ID, L"", L"", rect2, clientRect, ES_LEFT, isReadOnly);
 
 	// csv options - Lines
 	rect.OffsetRect(0, h + 10);
 	createOrShowFormLabel(csvLineTerminatedByLabel, S(L"line-terminated-by").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 	rect2.OffsetRect(0, h + 10);
-	createOrShowFormComboBox(csvLineTerminatedByComboBox, Config::EXPORT_CSV_LINE_TERMINAATED_BY_COMBOBOX_ID, L"", rect2, clientRect);
+	createOrShowFormComboBox(csvLineTerminatedByComboBox, Config::CSV_LINE_TERMINAATED_BY_COMBOBOX_ID, L"", rect2, clientRect);
 
 	rect.OffsetRect(0, h + 10);
 	createOrShowFormLabel(csvNullAsKeywordLabel, S(L"csv-null-as-keyword").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 	rect2.OffsetRect(0, h + 10);
-	createOrShowFormComboBox(csvNullAsKeywordComboBox, Config::EXPORT_CSV_NULL_AS_KEYWORD_COMBOBOX_ID, L"", rect2, clientRect);
+	createOrShowFormComboBox(csvNullAsKeywordComboBox, Config::CSV_NULL_AS_KEYWORD_COMBOBOX_ID, L"", rect2, clientRect);
 
 	rect.OffsetRect(0, h + 10);
 	createOrShowFormLabel(csvCharsetLabel, S(L"encoding").append(L":"), rect, clientRect, SS_LEFT, elemFont); 
 	rect2.OffsetRect(0, h + 10);
-	createOrShowFormComboBox(csvCharsetComboBox, Config::EXPORT_CSV_CHARSET_COMBOBOX_ID, L"", rect2, clientRect); 
+	createOrShowFormComboBox(csvCharsetComboBox, Config::CSV_CHARSET_COMBOBOX_ID, L"", rect2, clientRect); 
 }
 
 void ImportFromCsvDialog::createOrShowProcessBar(QProcessBar &win, CRect & clientRect)
@@ -258,7 +250,6 @@ void ImportFromCsvDialog::loadWindow()
 	loadTargetTblComboBox();
 	loadColumnsListView();
 	loadCsvSettingsElems();
-	loadAbortOnErrorCheckBox();
 }
 
 
@@ -285,16 +276,20 @@ void ImportFromCsvDialog::loadTargetTblComboBox()
 	UserTableStrings userTables = tableService->getUserTableStrings(supplier->getRuntimeUserDbId());
 	targetTblComboBox.ResetContent();
 	int n = static_cast<int>(userTables.size());
-	int nSelItem = -1;
+	int nSelItem = 0;
 	for (int i = 0; i< n; i++) {
 		auto item = userTables.at(i);
 		int nItem = targetTblComboBox.AddString(item.c_str());
 		if (item == supplier->getRuntimeTblName()) {
 			nSelItem = i;
-			
 		}
 	}
 	targetTblComboBox.SetCurSel(nSelItem);
+
+	wchar_t str[256] = { 0 };
+	targetTblComboBox.GetLBText(nSelItem, str);
+	supplier->setRuntimeTblName(str);
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
 }
 
 
@@ -387,12 +382,6 @@ void ImportFromCsvDialog::loadImportPathEdit()
 	importPathEdit.SetWindowText(supplier->importPath.c_str());
 }
 
-
-void ImportFromCsvDialog::loadAbortOnErrorCheckBox()
-{
-	abortOnErrorCheckbox.SetCheck(1);
-}
-
 bool ImportFromCsvDialog::getSelUserDbId(uint64_t & userDbId)
 {
 	int nSelItem = targetDbComboBox.GetCurSel();
@@ -483,8 +472,6 @@ LRESULT ImportFromCsvDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	if (csvCharsetComboBox.IsWindow()) csvCharsetComboBox.DestroyWindow();
 	if (csvColumnNameCheckBox.IsWindow()) csvColumnNameCheckBox.DestroyWindow();
 
-	if (abortOnErrorCheckbox.IsWindow()) abortOnErrorCheckbox.DestroyWindow();
-
 	if (processBar.IsWindow()) processBar.DestroyWindow();
 	if (previewSqlButton.IsWindow()) previewSqlButton.DestroyWindow();
 	
@@ -521,16 +508,34 @@ void ImportFromCsvDialog::paintItem(CDC &dc, CRect &paintRect)
 }
 
 
-LRESULT ImportFromCsvDialog::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+LRESULT ImportFromCsvDialog::OnChangeTargetDbComboBox(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	int nSelItem = targetDbComboBox.GetCurSel();
 	uint64_t userDbId = static_cast<uint64_t>(targetDbComboBox.GetItemData(nSelItem));
-	std::wstring exportSelectedDbId = settingService->getSysInit(L"export-selected-db-id");
-	if (userDbId == std::stoull(exportSelectedDbId)) {
+	std::wstring importSelectedDbId = settingService->getSysInit(L"import-selected-db-id");
+	if (importSelectedDbId.empty() || userDbId == std::stoull(importSelectedDbId)) {
 		return 0;
 	}
-	settingService->setSysInit(L"export-selected-db-id", std::to_wstring(userDbId));
-	
+	settingService->setSysInit(L"export-selected-db-id", importSelectedDbId);
+	supplier->setRuntimeUserDbId(userDbId);
+	loadTargetTblComboBox();
+	return 0;
+}
+
+
+LRESULT ImportFromCsvDialog::OnChangeTargetTblComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int nSelItem = targetTblComboBox.GetCurSel();
+	wchar_t str[256] = {0};
+	targetTblComboBox.GetLBText(nSelItem, str);
+	std::wstring selectTbl(str);
+
+	if (selectTbl.empty() || supplier->getRuntimeTblName() == str) {
+		return 0;
+	}
+	supplier->setRuntimeTblName(selectTbl);
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+
 	return 0;
 }
 
@@ -538,11 +543,11 @@ void ImportFromCsvDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND 
 {
 	CString str;
 	importPathEdit.GetWindowText(str);
-	std::wstring exportPath = str;
+	std::wstring importPath = str;
 	std::wstring fileName, fileDir;
 	if (!str.IsEmpty()) {
-		fileName = FileUtil::getFileName(exportPath);
-		fileDir = FileUtil::getFileDir(exportPath);
+		fileName = FileUtil::getFileName(importPath);
+		fileDir = FileUtil::getFileDir(importPath);
 	}
 	wchar_t * szFilter = nullptr;
 	wchar_t * defExt = nullptr;
@@ -557,19 +562,106 @@ void ImportFromCsvDialog::OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND 
 	//fileDlg.m_ofn.lpstrFilter = szFilter;
 	CString path;
 	if (IDOK == fileDlg.DoModal()) {
-		exportPath = fileDlg.m_szFileName;
-		importPathEdit.SetWindowText(exportPath.c_str());
+		importPath = fileDlg.m_szFileName;
+		importPathEdit.SetWindowText(importPath.c_str());
+		supplier->importPath = importPath;
 
-		columnRowCount = adapter->loadCsvFileToColumnListView(exportPath, columnListView);
-		dataRowCount = adapter->loadCsvFileToDataListView(exportPath, dataListView);
+		columnRowCount = adapter->loadCsvFileToColumnListView(importPath, columnListView);
+		dataRowCount = adapter->loadCsvFileToDataListView(importPath, dataListView);
 	}
 }
 
-void ImportFromCsvDialog::OnClickAbortOnErrorCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
+
+void ImportFromCsvDialog::OnClickCsvColumnNameCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	abortOnErrorCheckbox.SetCheck(1);
+	int newCheck = !csvColumnNameCheckBox.GetCheck();
+	csvColumnNameCheckBox.SetCheck(newCheck);
+	supplier->csvColumnNameOnTop = newCheck;
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
 }
 
+
+void ImportFromCsvDialog::OnChangeCsvFieldTerminatedByComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	wchar_t cch[8] = { 0 };
+	int nSelItem = csvFieldTerminatedByComboBox.GetCurSel();
+	csvFieldTerminatedByComboBox.GetLBText(nSelItem, cch);
+	supplier->csvFieldTerminateBy = cch;
+	if (supplier->csvFieldTerminateBy.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
+
+
+void ImportFromCsvDialog::OnChangeCsvFieldEnclosedByEdit(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CString str;
+	csvFieldEnclosedByEdit.GetWindowText(str);
+	supplier->csvFieldEnclosedBy = str.GetString();
+	if (supplier->csvFieldEnclosedBy.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
+
+
+void ImportFromCsvDialog::OnChangeCsvFieldEscapedByEdit(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CString str;
+	csvFieldEscapedByEdit.GetWindowText(str);
+	supplier->csvFieldEscapedBy = str.GetString();
+	if (supplier->csvFieldEscapedBy.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
+
+
+void ImportFromCsvDialog::OnChangeCsvLineTerminatedByComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	wchar_t cch[8] = { 0 };
+	int nSelItem = csvLineTerminatedByComboBox.GetCurSel();
+	csvLineTerminatedByComboBox.GetLBText(nSelItem, cch);
+	supplier->csvLineTerminatedBy = cch;
+	if (supplier->csvLineTerminatedBy.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
+
+
+void ImportFromCsvDialog::OnChangeCsvNullAsKeyWordComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	wchar_t cch[8] = { 0 };
+	int nSelItem = csvNullAsKeywordComboBox.GetCurSel();
+	csvNullAsKeywordComboBox.GetLBText(nSelItem, cch);
+	supplier->csvNullAsKeyword = cch;
+	if (supplier->csvNullAsKeyword.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
+
+
+void ImportFromCsvDialog::OnChangeCsvCharsetComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	wchar_t cch[8] = { 0 };
+	int nSelItem = csvCharsetComboBox.GetCurSel();
+	csvCharsetComboBox.GetLBText(nSelItem, cch);
+	supplier->csvCharset = cch;
+	if (supplier->csvCharset.empty()) {
+		return ;
+	}
+	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	dataRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
+}
 
 void ImportFromCsvDialog::OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
@@ -613,7 +705,7 @@ void ImportFromCsvDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
  * @param bHandled - not use
  * @return 0
  */
-LRESULT ImportFromCsvDialog::OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT ImportFromCsvDialog::OnProcessImport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	Q_INFO(L"recieve MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
 
@@ -672,6 +764,29 @@ LRESULT ImportFromCsvDialog::OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &
 	if (!count || count <= iItem)
 		return -1;
 
+	return 0;
+}
+
+LRESULT ImportFromCsvDialog::OnClickColumnListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	NMITEMACTIVATE * clickItem = (NMITEMACTIVATE *)pnmh; 
+	adapter->clickListViewSubItem(clickItem, columnListView);
+	return 0;
+}
+
+LRESULT ImportFromCsvDialog::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	const SubItemValues & changedVals = columnListView.getChangedVals();
+	for (auto val : changedVals) {
+		// check if duplicated define Primary Key
+		if (val.iSubItem == 2 && val.newVal == supplier->getTblRuntimeColumns().at(val.iItem)) {
+			continue;
+		}
+		supplier->getTblRuntimeColumns().at(val.iItem) = val.newVal;
+		CRect subItemRect;
+		columnListView.GetSubItemRect(val.iItem, val.iSubItem, LVIR_BOUNDS, subItemRect);
+		columnListView.InvalidateRect(subItemRect, false);		
+	}
 	return 0;
 }
 

@@ -71,7 +71,8 @@ public:
 		CHAIN_MSG_MAP_ALT(COwnerDraw<QListViewCtrl>, 1)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
-	
+	void enabledCheckBox(bool val) { hasCheckBox = val; };
+
 	// editor
 	void createOrShowEditor(std::pair<int, int> subItemPos);
 	void createOrShowEditor(int iItem, int iSubItem);
@@ -122,7 +123,7 @@ public:
 	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	int CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct);
 	void DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct);
-	
+	BOOL SelectItem(int nIndex);
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF borderColor = RGB(220, 220, 220);
@@ -144,6 +145,8 @@ private:
 	CPen btnBorderPen;
 	CPen chkBorderPen;
 	CPen selSubItemBorderPen;
+
+	bool hasCheckBox = true;
 
 	// the row item height
 	int itemHeight = 21;

@@ -40,16 +40,26 @@ public:
 		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
+		NOTIFY_HANDLER(Config::IMPORT_COLUMN_LISTVIEW_ID, NM_CLICK, OnClickColumnListView)
+		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 
 		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_GETDISPINFO, OnGetListViewData)
 		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_ODCACHEHINT, OnPrepareListViewData)
 		NOTIFY_HANDLER(Config::IMPORT_DATA_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 
-		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeSelectDbComboBox)
+		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeTargetDbComboBox)
+		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_TBL_COMBOBOX_ID, CBN_SELENDOK, OnChangeTargetTblComboBox)
+		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_TBL_COMBOBOX_ID, CBN_SELENDOK, OnChangeTargetTblComboBox)
 		COMMAND_HANDLER_EX(Config::IMPORT_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
-		COMMAND_HANDLER_EX(Config::IMPORT_ABORT_ON_ERROR_CHECKBOX_ID, BN_CLICKED, OnClickAbortOnErrorCheckBox)
+		COMMAND_HANDLER_EX(Config::CSV_COLUMN_NAME_CHECKBOX_ID, BN_CLICKED, OnClickCsvColumnNameCheckBox)
+		COMMAND_HANDLER_EX(Config::CSV_FIELD_TERMINAATED_BY_COMBOBOX_ID, CBN_SELENDOK, OnChangeCsvFieldTerminatedByComboBox)
+		COMMAND_HANDLER_EX(Config::CSV_FIELD_ENCLOSED_BY_EDIT_ID, EN_CHANGE, OnChangeCsvFieldEnclosedByEdit)
+		COMMAND_HANDLER_EX(Config::CSV_FIELD_ESCAPED_BY_EDIT_ID, EN_CHANGE, OnChangeCsvFieldEscapedByEdit)
+		COMMAND_HANDLER_EX(Config::CSV_LINE_TERMINAATED_BY_COMBOBOX_ID, CBN_SELENDOK, OnChangeCsvLineTerminatedByComboBox)
+		COMMAND_HANDLER_EX(Config::CSV_NULL_AS_KEYWORD_COMBOBOX_ID, CBN_SELENDOK, OnChangeCsvNullAsKeyWordComboBox)
+		COMMAND_HANDLER_EX(Config::CSV_CHARSET_COMBOBOX_ID, CBN_SELENDOK, OnChangeCsvCharsetComboBox)
 		COMMAND_HANDLER_EX(Config::PREVIEW_SQL_BUTTON_ID, BN_CLICKED, OnClickPreviewSqlButton)
-		MESSAGE_HANDLER(Config::MSG_IMPORT_PROCESS_ID, OnProcessExport); // 响应进度
+		MESSAGE_HANDLER(Config::MSG_IMPORT_PROCESS_ID, OnProcessImport); // 响应进度
 		
 		CHAIN_MSG_MAP(QDialog<ImportFromCsvDialog>)
 		REFLECT_NOTIFICATIONS()
@@ -109,7 +119,6 @@ private:
 	// CSV SETTINGS - add column name on top
 	CButton csvColumnNameCheckBox;
 
-	CButton abortOnErrorCheckbox;
 	// PROCESS BAR
 	QProcessBar processBar;
 	CButton previewSqlButton;
@@ -124,7 +133,6 @@ private:
 	void createOrShowTargetElems(CRect & clientRect);
 	void createOrShowGroupBoxes(CRect & clientRect);
 	void createOrShowImportPathElems(CRect & clientRect);
-	void createOrShowAbortOnErrorElems(CRect & clientRect);
 	void createOrShowListViews(CRect & clientRect);
 	void createOrShowListView(QListViewCtrl & win, UINT id, CRect & rect, CRect & clientRect);
 	void createOrShowCsvSettingsElems(CRect & clientRect);
@@ -138,7 +146,6 @@ private:
 	void loadTargetTblComboBox();
 	void loadColumnsListView();
 	void loadCsvSettingsElems();
-	void loadAbortOnErrorCheckBox();
 
 	bool getSelUserDbId(uint64_t & userDbId);
 	bool getImportPath(std::wstring & importPath);
@@ -150,16 +157,25 @@ private:
 	virtual LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual void paintItem(CDC &dc, CRect &paintRect);
 
-	LRESULT OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnChangeTargetDbComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnChangeTargetTblComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickOpenFileButton(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickAbortOnErrorCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCsvColumnNameCheckBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvFieldTerminatedByComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvFieldEnclosedByEdit(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvFieldEscapedByEdit(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvLineTerminatedByComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvNullAsKeyWordComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnChangeCsvCharsetComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	// Handle the message for import process
-	LRESULT OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnProcessImport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnClickColumnListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };
