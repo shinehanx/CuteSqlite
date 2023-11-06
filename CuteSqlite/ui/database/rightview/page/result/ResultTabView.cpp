@@ -214,13 +214,13 @@ void ResultTabView::createImageList()
 	resultIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\result.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	infoIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\info.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	objectIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\object.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tablePropertiesIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-properties.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
+	imageList.Create(16, 16, ILC_COLOR32, 0, 4); 
 	imageList.AddIcon(resultIcon); // 0 - result
 	imageList.AddIcon(infoIcon); // 1 - info
 	imageList.AddIcon(tableDataIcon); // 2 - tableData
-	imageList.AddIcon(objectIcon);// 3 - object
+	imageList.AddIcon(tablePropertiesIcon);// 3 - properties 
 }
 
 CRect ResultTabView::getTabRect(CRect & clientRect)
@@ -236,7 +236,7 @@ CRect ResultTabView::getPageRect(CRect & clientRect)
 void ResultTabView::resetRuntimeResultInfo()
 {
 	runtimeResultInfo.sql.clear();
-	runtimeResultInfo.effectRows = 0;
+	runtimeResultInfo.effectRows = 0; 
 	runtimeResultInfo.execTime.clear();
 	runtimeResultInfo.totalTime.clear();
 	runtimeResultInfo.code = 0;
@@ -250,6 +250,9 @@ void ResultTabView::createOrShowUI()
 	createOrShowTabView(tabView, clientRect);
 	createOrShowResultInfoPage(resultInfoPage, clientRect);
 	createOrShowResultTableDataPage(resultTableDataPage, clientRect);
+	if (supplier->getOperateType() == TABLE_DATA) {
+		createOrShowTablePropertiesPage(tablePropertiesPage, clientRect);
+	}
 }
 
 
@@ -296,6 +299,20 @@ void ResultTabView::createOrShowResultTableDataPage(ResultTableDataPage & win, C
 	}
 }
 
+void ResultTabView::createOrShowTablePropertiesPage(TablePropertiesPage & win, CRect &clientRect)
+{
+	CRect pageRect = getPageRect(clientRect);
+	int x = 1, y = pageRect.top + 1, w = pageRect.Width() - 2, h = pageRect.Height()  - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (IsWindow() && !win.IsWindow()) {
+		win.setup(supplier);
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
+	} else if (IsWindow() && tabView.IsWindow()) {		
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+	}
+}
+
 void ResultTabView::loadWindow()
 {
 	if (!isNeedReload) {
@@ -311,6 +328,9 @@ void ResultTabView::loadTabViewPages()
 {
 	tabView.AddPage(resultInfoPage.m_hWnd, StringUtil::blkToTail(S(L"result-info")).c_str(), 1, &resultInfoPage);
 	tabView.AddPage(resultTableDataPage.m_hWnd, StringUtil::blkToTail(S(L"result-table-data")).c_str(), 2, &resultTableDataPage);
+	if (supplier->getOperateType() == TABLE_DATA) {
+		tabView.AddPage(tablePropertiesPage.m_hWnd, StringUtil::blkToTail(S(L"table-properties")).c_str(), 3, &tablePropertiesPage);
+	}
 	tabView.SetActivePage(0);
 }
 
@@ -329,11 +349,13 @@ int ResultTabView::OnDestroy()
 	
 	if (resultInfoPage.IsWindow()) resultInfoPage.DestroyWindow();
 	if (resultTableDataPage.IsWindow()) resultTableDataPage.DestroyWindow();
+	if (tablePropertiesPage.IsWindow()) tablePropertiesPage.DestroyWindow();
 
 	if (resultIcon) ::DeleteObject(resultIcon);
 	if (infoIcon) ::DeleteObject(infoIcon);
 	if (tableDataIcon) ::DeleteObject(tableDataIcon);
 	if (objectIcon) ::DeleteObject(objectIcon);
+	if (tablePropertiesIcon) ::DeleteObject(tablePropertiesIcon);
 
 	clearResultListPage();
 
@@ -365,4 +387,23 @@ BOOL ResultTabView::OnEraseBkgnd(CDCHandle dc)
 	return TRUE;
 }
 
+void ResultTabView::activeTablePropertiesPage()
+{
+	if (!tablePropertiesPage.IsWindow()) {
+		CRect clientRect;
+		GetClientRect(clientRect);
+		createOrShowTablePropertiesPage(tablePropertiesPage, clientRect);
+		int nPage = tabView.AddPage(tablePropertiesPage.m_hWnd, StringUtil::blkToTail(S(L"table-properties")).c_str(), 3, &tablePropertiesPage);
+		tabView.SetActivePage(nPage);
+		return ;
+	} 
+	
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		if (tabView.GetPageHWND(i) != tablePropertiesPage.m_hWnd) {
+			continue;
+		}
+		tabView.SetActivePage(i);
+	}
+}
 

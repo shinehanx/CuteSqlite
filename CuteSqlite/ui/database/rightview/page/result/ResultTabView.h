@@ -27,6 +27,7 @@
 #include "ui/database/rightview/page/result/ResultInfoPage.h"
 #include "ui/database/rightview/page/result/ResultTableDataPage.h"
 #include "ui/database/rightview/page/supply/QueryPageSupplier.h"
+#include "ui/database/rightview/page/result/TablePropertiesPage.h"
 
 class ResultTabView : public CWindowImpl<ResultTabView>
 {
@@ -60,6 +61,7 @@ public:
 	void activeTableDataPage();
 	void loadTableDatas(std::wstring & table);
 
+	void activeTablePropertiesPage();
 private:
 	bool isNeedReload = true;
 	
@@ -73,12 +75,14 @@ private:
 	ResultInfo runtimeResultInfo;
 	ResultInfoPage resultInfoPage;
 	ResultTableDataPage resultTableDataPage;
+	TablePropertiesPage tablePropertiesPage;
 
 	CImageList imageList;
 	HICON resultIcon = nullptr;
 	HICON infoIcon = nullptr;
 	HICON tableDataIcon = nullptr;
 	HICON objectIcon = nullptr;
+	HICON tablePropertiesIcon = nullptr;
 
 	SqlService * sqlService = SqlService::getInstance();
 	QueryPageSupplier * supplier = nullptr;
@@ -96,6 +100,7 @@ private:
 	void createOrShowFirstResultListPage(CRect &clientRect);
 	void createOrShowResultInfoPage(ResultInfoPage & win, CRect &clientRect);
 	void createOrShowResultTableDataPage(ResultTableDataPage & win, CRect &clientRect);
+	void createOrShowTablePropertiesPage(TablePropertiesPage & win, CRect &clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();
@@ -106,5 +111,4 @@ private:
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
-	
 };

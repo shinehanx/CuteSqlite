@@ -127,6 +127,7 @@ void TableMenuAdapter::createMenu()
 	
 }
 
+
 bool TableMenuAdapter::renameTable()
 {
 	RenameTableDialog dialog(parentHwnd);
@@ -256,4 +257,10 @@ void TableMenuAdapter::popupMenu(CPoint & pt)
 void TableMenuAdapter::openTable()
 {
 	AppContext::getInstance()->dispatch(Config::MSG_SHOW_TABLE_DATA_ID, NULL, NULL);
+}
+
+
+void TableMenuAdapter::showProperties()
+{
+	AppContext::getInstance()->dispatch(Config::MSG_SHOW_TABLE_DATA_ID, 1, NULL);
 }

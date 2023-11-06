@@ -312,6 +312,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\rightview\page\dialog\TriggerDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\ViewDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\HistoryPage.cpp" />
+    <ClCompile Include="ui\database\rightview\page\result\TablePropertiesPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\supply\QueryPageSupplier.cpp" />
     <ClCompile Include="ui\database\rightview\page\TableStructurePage.cpp" />
     <ClCompile Include="ui\database\rightview\page\QueryPage.cpp" />
@@ -435,6 +436,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\page\dialog\TriggerDialog.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\ViewDialog.h" />
     <ClInclude Include="ui\database\rightview\page\HistoryPage.h" />
+    <ClInclude Include="ui\database\rightview\page\result\TablePropertiesPage.h" />
     <ClInclude Include="ui\database\rightview\page\supply\QueryPageSupplier.h" />
     <ClInclude Include="ui\database\rightview\page\TableStructurePage.h" />
     <ClInclude Include="ui\database\rightview\page\QueryPage.h" />

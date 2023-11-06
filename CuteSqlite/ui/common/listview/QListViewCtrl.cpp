@@ -1147,6 +1147,7 @@ void QListViewCtrl::OnSize(UINT nType, CSize size)
 	if (!btnDownBrush) btnDownBrush = ::CreateSolidBrush(btnDownColor);
 	if (!chkBrush) chkBrush = ::CreateSolidBrush(chkColor);
 	if (!selSubItemBorderBrush) chkBrush = ::CreateSolidBrush(selSubItemBorderColor);
+	if (!doubleLineBrush) doubleLineBrush = ::CreateSolidBrush(doubleLineColor);
 	if (!textFont) textFont = FT(L"list-text-size");
 	if (!comboFont) comboFont = FT(L"list-combobox-size");
 	if (!normalFont) normalFont = FT(L"list-text-size");
@@ -1369,7 +1370,12 @@ void QListViewCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	if (lpDrawItemStruct->itemState & ODS_SELECTED)  {
 		hBrush.CreateSolidBrush(RGB(145, 201, 247));
 	} else {
-		hBrush.CreateSolidBrush(RGB(255,255,255));
+		if (iItem % 2) {
+			hBrush.CreateSolidBrush(RGB(240,240,240));
+		}else{
+			hBrush.CreateSolidBrush(RGB(255,255,255));
+		}
+		
 	}
 	mdc.FillRect(CRect(0, 1, rcItem.Width(), rcItem.Height()), hBrush);
 	DeleteObject(hBrush);

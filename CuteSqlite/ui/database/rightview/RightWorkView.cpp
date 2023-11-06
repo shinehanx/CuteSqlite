@@ -23,6 +23,7 @@
  *                         |                          |-> ResultListPage
  *                         |                          |-> ResultInfoPage
  *                         |                          |-> ResultTableDataPage
+ *                         |                          |-> ResultTableInfoPage
  *                         |-> TableStructurePage
  *                         |       |-> TableTabView
  *                         |              |->QTabView(tabView)  
@@ -535,7 +536,13 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		foundQueryPage = i; // found, and active this page and load table data
 		tabView.SetActivePage(foundQueryPage);
 		QueryPage * tableDataPage = (*iter);
-		tableDataPage->getResultTabView().activeTableDataPage(); // active first
+		if (wParam == 1) { // 1- properties page
+			//active table info page
+			tableDataPage->getResultTabView().activeTablePropertiesPage(); // active table properties page first
+		} else {
+			tableDataPage->getResultTabView().activeTableDataPage(); // active table data page first
+		}
+		
 		tableDataPage->getResultTabView().loadTableDatas(databaseSupplier->selectedTable);
 		return 0;
 	}
@@ -556,8 +563,13 @@ LRESULT RightWorkView::OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		foundQueryPage = tabView.GetPageCount() - 1;
 		databaseSupplier->activeTabPageHwnd = tableDataPage->m_hWnd;
 		tabView.SetActivePage(foundQueryPage);	
-		tableDataPage->getResultTabView().activeTableDataPage();
-		tableDataPage->getResultTabView().loadTableDatas(databaseSupplier->selectedTable);
+		if (wParam == 1) { // 1- properties page
+			//active table info page
+			tableDataPage->getResultTabView().activeTablePropertiesPage(); // active table properties page first
+		} else {
+			tableDataPage->getResultTabView().activeTableDataPage(); // active table data page first
+		}
+		tableDataPage->getResultTabView().loadTableDatas(databaseSupplier->selectedTable); 
 	}
 
 	

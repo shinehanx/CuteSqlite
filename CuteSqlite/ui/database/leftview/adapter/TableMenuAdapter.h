@@ -41,6 +41,7 @@ public:
 	bool exportTable();
 	void manageIndex();
 	void manageForeignKey();
+	void showProperties();
 private:
 	CBrush menuBrush;
 
@@ -66,5 +67,5 @@ private:
 
 	void createImageList();
 	void createMenu();
-	
+
 };

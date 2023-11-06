@@ -549,6 +549,11 @@ void LeftTreeView::OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND h
 	tableMenuAdapter->manageForeignKey();
 }
 
+void LeftTreeView::OnClickPropertiesMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->showProperties();
+}
+
 void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewView();

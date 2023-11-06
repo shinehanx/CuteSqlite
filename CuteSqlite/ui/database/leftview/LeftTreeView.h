@@ -86,6 +86,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_IMPORT_CSV_MENU_ID, OnClickImportFromCsvMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_INDEX_MENU_ID, OnClickManageIndexMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, OnClickManageForeignKeyMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_PROPERTIES_MENU_ID, OnClickPropertiesMenu)
 
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
@@ -171,6 +172,7 @@ private:
 	void OnClickImportFromSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickManageIndexMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickPropertiesMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);

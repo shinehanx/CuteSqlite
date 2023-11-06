@@ -345,6 +345,9 @@
     <ClCompile Include="utils\StringUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\result\TablePropertiesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -720,6 +723,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\dialog\adapter\ImportFromCsvAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\result\TablePropertiesPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
