@@ -32,10 +32,10 @@ public:
 	uint64_t getRuntimeUserDbId() const { return runtimeUserDbId; }
 	void setRuntimeUserDbId(uint64_t val) { runtimeUserDbId = val; }
 
-	std::wstring getRuntimeTblName() const { return runtimeTblName; }
+	std::wstring & getRuntimeTblName() { return runtimeTblName; }
 	void setRuntimeTblName(const std::wstring & val) { runtimeTblName = val; }
 
-	std::wstring getRuntimeSchema() const { return runtimeSchema; }
+	std::wstring & getRuntimeSchema() { return runtimeSchema; }
 	void setRuntimeSchema(const std::wstring & val) { runtimeSchema = val; }
 
 protected:

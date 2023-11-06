@@ -349,6 +349,7 @@ void ImportFromSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 	// Export objects(tables/views/triggers) to sql file
 	if (!adapter->importFromSql(userDbId, importPath)) {
+		QPopAnimate::success(S(L"import-success-text"));
 		yesButton.EnableWindow(true);
 		return ;
 	}
@@ -365,7 +366,7 @@ void ImportFromSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
  * @param bHandled - not use
  * @return 0
  */
-LRESULT ImportFromSqlDialog::OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT ImportFromSqlDialog::OnProcessImport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	Q_INFO(L"recieve MSG_IMPORT_DB_FROM_SQL_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
 

@@ -230,7 +230,7 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 	if (popType == POP_REPORT_TEXT) {
 		reportText.append(L"\r\n\r\n").append(L"Code:").append(code);
 		if (!sql.empty()) {
-			reportText.append(L"\r\n\r\n").append(L"Execute SQL statement: \r\n").append(sql);
+			reportText.append(L"\r\n\r\n").append(S(L"execute-sql-statement")).append(L": \r\n").append(sql);
 			dwStyle = dwStyle | WS_VSCROLL;
 		}
 	}

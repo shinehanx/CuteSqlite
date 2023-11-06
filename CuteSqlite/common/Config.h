@@ -337,7 +337,7 @@ typedef enum {
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=TABLE_COLUMNS_PAGE/TABLE_INDEX_PAGE/TABLE_FOREIGN_KEYS_PAGE, lParam=NULL
 	MSG_RENAME_TABLE_ID, // Send this msg when clicking "Rename table" menu or toolbar button , wParam=NULL, lParam=NULL
-	MSG_TRUNCATE_TABLE_ID, // Send this msg when clicking "Truncate table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_REFRESH_SAME_TABLE_DATA_ID, // Send this msg when clicking "Truncate table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_DROP_TABLE_ID, // Send this msg when clicking "Drop table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_COPY_TABLE_ID, // Send this msg when clicking "Copy table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_SHARDING_TABLE_ID, // Send this msg when clicking "Sharding" menu or toolbar button , wParam=NULL, lParam=NULL
@@ -347,6 +347,7 @@ typedef enum {
 	MSG_TABLE_MANAGE_INDEX_ID, // Send this msg when clicking "Manage Indexes" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_PROPERTIES_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_COPY_TABLE_PROCESS_ID, // Table CopyTableDialog progress message, wParam is the completion status, lParam is the percent complete
+	MSG_LOADING_SQL_PREVIEW_EDIT_ID, // When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
 }MessageId;
 
 typedef enum {

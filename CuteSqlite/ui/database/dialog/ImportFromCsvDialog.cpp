@@ -245,11 +245,13 @@ void ImportFromCsvDialog::loadWindow()
 
 	isNeedReload = false;
 	
-	loadImportPathEdit();
+	// [notice] Must load settings first, and then load others
+	loadCsvSettingsElems();
+
+	loadImportPathEdit();	
 	loadTargetDbComboBox();
 	loadTargetTblComboBox();
 	loadColumnsListView();
-	loadCsvSettingsElems();
 }
 
 
@@ -290,6 +292,7 @@ void ImportFromCsvDialog::loadTargetTblComboBox()
 	targetTblComboBox.GetLBText(nSelItem, str);
 	supplier->setRuntimeTblName(str);
 	columnRowCount = adapter->loadCsvFileToColumnListView(supplier->importPath, columnListView);
+	columnRowCount = adapter->loadCsvFileToDataListView(supplier->importPath, dataListView);
 }
 
 
@@ -303,9 +306,10 @@ void ImportFromCsvDialog::loadCsvSettingsElems()
 {
 	if (csvColumnNameCheckBox.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv-column-name");
-		if (val == L"true") {
+		val = val.empty() ? L"1" : val;
+		if (val == L"1") {
 			csvColumnNameCheckBox.SetCheck(1);
-		}else {
+		} else {
 			csvColumnNameCheckBox.SetCheck(0);
 		}
 		supplier->csvColumnNameOnTop = csvColumnNameCheckBox.GetCheck();
@@ -313,7 +317,6 @@ void ImportFromCsvDialog::loadCsvSettingsElems()
 
 	if (csvFieldTerminatedByComboBox.IsWindow()) {		
 		std::wstring val = settingService->getSysInit(L"csv-field-terminated-by");
-		
 		val = val.empty() ? QSupplier::csvFieldSeperators[0] : val;
 		QWinCreater::loadComboBox(csvFieldTerminatedByComboBox, QSupplier::csvFieldSeperators, 5, val);
 		supplier->csvFieldTerminateBy = val;
@@ -340,9 +343,8 @@ void ImportFromCsvDialog::loadCsvSettingsElems()
 
 	if (csvNullAsKeywordComboBox.IsWindow()) {
 		std::wstring val = settingService->getSysInit(L"csv-null-as-keyword");
-		std::wstring strs[] = { L"YES", L"NO"};
-		val = val.empty() ? strs[0] : val;
-		QWinCreater::loadComboBox(csvNullAsKeywordComboBox, strs, 2, val);
+		val = val.empty() ? QSupplier::csvNullAsKeywords[0] : val;
+		QWinCreater::loadComboBox(csvNullAsKeywordComboBox, QSupplier::csvNullAsKeywords, 2, val);
 		supplier->csvNullAsKeyword = val;
 	}
 	
@@ -665,8 +667,10 @@ void ImportFromCsvDialog::OnChangeCsvCharsetComboBox(UINT uNotifyCode, int nID, 
 
 void ImportFromCsvDialog::OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	//PreviewSqlDialog dialog(m_hWnd, adapter);
-	//dialog.DoModal(m_hWnd);
+	std::wstring sql = adapter->getPreviewSql();
+	std::wstring title = L"Import to " + supplier->getRuntimeTblName();
+	PreviewSqlDialog dialog(m_hWnd, sql, title);
+	dialog.DoModal(m_hWnd);
 	return;
 }
 
@@ -688,12 +692,16 @@ void ImportFromCsvDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	yesButton.EnableWindow(false);
 
 	// Export objects(tables/views/triggers) to sql file
-	if (!adapter->importFromSql(userDbId, importPath)) {
+	if (!adapter->importFromRuntimeSqlList()) {
 		yesButton.EnableWindow(true);
 		return ;
 	}
 
+	QPopAnimate::success(S(L"import-success-text"));		
+	noButton.SetWindowText(S(L"complete").c_str());
 	yesButton.EnableWindow(true);
+
+	AppContext::getInstance()->dispatch(Config::MSG_REFRESH_SAME_TABLE_DATA_ID, WPARAM(supplier->getRuntimeUserDbId()), LPARAM(&supplier->getRuntimeTblName()));
 }
 
 /**
@@ -718,10 +726,10 @@ LRESULT ImportFromCsvDialog::OnProcessImport(UINT uMsg, WPARAM wParam, LPARAM lP
 		int percent = static_cast<int>(lParam);
 		processBar.run(percent);
 	} else if (wParam == 2) {
-		QPopAnimate::error(m_hWnd, S(L"import-from-sql-error-text"));
+		processBar.error(S(L"import-error-text"));
 		isRunning = false;
 	} else if (wParam == 3) {
-		QPopAnimate::error(m_hWnd, S(L"file-not-found"));
+		processBar.error(S(L"import-error-text"));
 		isRunning = false;
 	}
 	return 0;
@@ -737,7 +745,6 @@ LRESULT ImportFromCsvDialog::OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &b
 		adapter->fillSubItemForDataListView(plvdi, dataListView);
 	}
 	
-
 	return 0;
 }
 

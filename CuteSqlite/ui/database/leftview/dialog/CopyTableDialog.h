@@ -44,7 +44,10 @@ public:
 		COMMAND_HANDLER_EX(Config::COPYTABLE_ENABLE_SHARDING_STRATEGY_CHECKBOX_ID, BN_CLICKED, OnClickEnableShardingStrategyCheckBox)
 		COMMAND_HANDLER_EX(Config::PREVIEW_SQL_BUTTON_ID, BN_CLICKED, OnClickPreviewSqlButton)
 		COMMAND_HANDLER_EX(Config::COPYTABLE_SHARDING_STRATEGY_EXPRESS_BUTTON_ID, BN_CLICKED, OnClickShardingStrategyExpressButton)
-		MESSAGE_HANDLER(Config::MSG_COPY_TABLE_PROCESS_ID, OnProcessCopy); // 响应进度
+		MESSAGE_HANDLER(Config::MSG_LOADING_SQL_PREVIEW_EDIT_ID, OnLoadingSqlPreviewEdit)
+
+		MESSAGE_HANDLER(Config::MSG_COPY_TABLE_PROCESS_ID, OnProcessCopy) // 响应进度
+		
 		CHAIN_MSG_MAP(QDialog<CopyTableDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -146,8 +149,13 @@ private:
 	
 	void OnShardingEditChange(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnTargetDbComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
+	LRESULT OnLoadingSqlPreviewEdit(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
 	// Handle the message for export process
 	LRESULT OnProcessCopy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	
 
 	void OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickShardingStrategyExpressButton(UINT uNotifyCode, int nID, HWND hwnd);

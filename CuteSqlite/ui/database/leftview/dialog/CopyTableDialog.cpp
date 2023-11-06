@@ -621,6 +621,17 @@ void CopyTableDialog::OnTargetDbComboBoxChange(UINT uNotifyCode, int nID, HWND h
 	supplier->setTargetUserDbId(static_cast<uint64_t>(targetDbComboBox.GetItemData(nSelItem)));
 }
 
+
+LRESULT CopyTableDialog::OnLoadingSqlPreviewEdit(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	QHelpEdit * editPtr = (QHelpEdit *)lParam;
+	if (editPtr == nullptr) {
+		return 0;
+	}
+	adapter->loadSqlForPreviewEdit(editPtr);
+	return 0;
+}
+
 LRESULT CopyTableDialog::OnProcessCopy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	Q_DEBUG(L"recieve MSG_COPY_TABLE_PROCESS_ID, isCompete:{},percent:{}", wParam, lParam);
@@ -646,7 +657,7 @@ LRESULT CopyTableDialog::OnProcessCopy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 void CopyTableDialog::OnClickPreviewSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	PreviewSqlDialog dialog(m_hWnd, adapter);
+	PreviewSqlDialog dialog(m_hWnd, L"", L"For target table:" + supplier->getTargetTable());
 	dialog.DoModal(m_hWnd);
 	return;
 }

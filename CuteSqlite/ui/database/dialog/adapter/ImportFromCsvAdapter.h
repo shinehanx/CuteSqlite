@@ -36,6 +36,13 @@ public:
 	void fillSubItemForColumnListView(NMLVDISPINFO* plvdi, QListViewCtrl & columnListView);
 	void fillSubItemForDataListView(NMLVDISPINFO* plvdi, QListViewCtrl & dataListView);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem, QListViewCtrl & columnListView);
+
+	std::wstring getPreviewSql();
+
+	std::list<std::wstring> getRuntimeSqlList();
+
+	// import action
+	bool importFromRuntimeSqlList();
 private:
 	ImportFromCsvSupplier * supplier = nullptr;
 	bool getIsChecked(QListViewCtrl * listView, int iItem);

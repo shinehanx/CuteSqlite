@@ -24,6 +24,7 @@
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/TableService.h"
 #include "ui/database/leftview/dialog/supplier/CopyTableSupplier.h"
+#include "ui/common/edit/QHelpEdit.h"
 
 class CopyTableAdapter : public QAdapter<CopyTableAdapter>
 {
@@ -45,6 +46,8 @@ public:
 
 	std::wstring generateCreateDdlForTargetTable(uint16_t suffix, const std::wstring & targetTblName);
 	std::wstring genderatePageDataSql(const DataList & pageDataList, const std::wstring & targetTblName);
+	void loadSqlForPreviewEdit(QHelpEdit * editorPtr);
+	
 private:
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
@@ -57,4 +60,8 @@ private:
 	// same db
 	bool doExecSqlsInOtherDb();
 	bool doExecCopyDataSqlInOtherDb(uint16_t suffix, const std::wstring & targetTblName);
+
+	// Preview sql functions
+	void doLoadTargetTableSqlToEditorForOtherDb(QHelpEdit * editorPtr);
+	bool doAppendCopyDataSqlToEditor(QHelpEdit * editorPtr, uint16_t suffix, const std::wstring & targetTblName);
 };

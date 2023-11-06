@@ -36,18 +36,15 @@ public:
 		CHAIN_MSG_MAP(QDialog<PreviewSqlDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	PreviewSqlDialog(HWND parentHwnd, CopyTableAdapter * adapter);
-
+	PreviewSqlDialog(HWND parentHwnd, const std::wstring &content = std::wstring(), const std::wstring &sqlTitle = std::wstring());
+	void addSql(const std::wstring & str);
 private:
 	bool isNeedReload = true;
 	HWND parentHwnd = nullptr;
+	std::wstring sqlTitle; // The top title of sqlPreviewEdit
+	std::wstring content;
 
 	QHelpEdit sqlPreviewEdit;
-
-	CopyTableAdapter * adapter = nullptr;
-	CopyTableSupplier * supplier = nullptr;
-	TableService * tableService = TableService::getInstance();
-	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	// create elements when initialize dialog
 	virtual void createOrShowUI();
@@ -57,9 +54,7 @@ private:
 	// load data when showing the window visible
 	virtual void loadWindow();
 	void loadSqlPreviewEdit();
-	void loadTargetTableSqlForOtherDb();
-	bool doAppendCopyDataSql(uint16_t suffix, const std::wstring & targetTblName);
-
+	
 	virtual LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

@@ -22,13 +22,12 @@
 #include "ui/common/message/QPopAnimate.h"
 #include "utils/SavePointUtil.h"
 
-
-PreviewSqlDialog::PreviewSqlDialog(HWND parentHwnd, CopyTableAdapter * adapter)
+PreviewSqlDialog::PreviewSqlDialog(HWND parentHwnd, const std::wstring &content /*= std::wstring()*/, const std::wstring &sqlTitle)
 {
 	setFormSize(PREVIEW_SQL_DIALOG_WIDTH, PREVIEW_SQL_DIALOG_HEIGHT);
 	caption = S(L"preview-sql");
-	this->adapter = adapter;
-	this->supplier = adapter ? adapter->getSupplier() : nullptr;
+	this->parentHwnd = parentHwnd;
+	this->content = content;
 }
 
 void PreviewSqlDialog::createOrShowUI()
@@ -54,7 +53,7 @@ void PreviewSqlDialog::createOrShowSqlPreviewEdit(CRect & clientRect)
 void PreviewSqlDialog::createOrShowSqlEditor(QHelpEdit & win, UINT id, const std::wstring & text, CRect & rect, CRect & clientRect, DWORD exStyle /*= 0*/)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		std::wstring editorTitle = L"Source: " + supplier->getRuntimeTblName() + L" ----> Target: " +  supplier->getTargetTable();
+		std::wstring editorTitle = L"These sql statement(s) will be executed.";
 		win.setup(editorTitle, std::wstring(L""));
 		win.Create(m_hWnd, rect, text.c_str(), WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, id);
 		return;
@@ -77,86 +76,9 @@ void PreviewSqlDialog::loadWindow()
 
 void PreviewSqlDialog::loadSqlPreviewEdit()
 {
-	if (supplier->getRuntimeUserDbId() == supplier->getTargetUserDbId()) {
-		std::wstring sql = adapter->getPreviewSqlInSameDb();
-		sqlPreviewEdit.setText(sql);
-	} else {
-		loadTargetTableSqlForOtherDb();
-	}
-}
-
-
-void PreviewSqlDialog::loadTargetTableSqlForOtherDb()
-{
-	uint64_t targetUserDbId = supplier->getTargetUserDbId();
-	int percent = 0;
-
-	std::wstring savePoint = SavePointUtil::create(L"copy_table");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";\n";
-	sqlPreviewEdit.addText(sql);
-
-	try {
-		auto tableMap = supplier->getShardingTables();
-
-		for (auto & tblItem : tableMap) {
-			// 1. create table sql
-			sql = adapter->generateCreateDdlForTargetTable(tblItem.first, tblItem.second);
-			if (!sql.empty()) {
-				sqlPreviewEdit.addText(sql);
-				sqlPreviewEdit.addText(L"\n");
-			}
-			
-			// 2. append table data sql
-			doAppendCopyDataSql(tblItem.first, tblItem.second);			
-		}
-		
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE \"" + savePoint + L"\";\n";
-		sqlPreviewEdit.addText(sql);
-	} catch (QSqlExecuteException &ex) {
-		QPopAnimate::report(ex);
-		return ;
-	} catch (QRuntimeException &ex) {
-		QPopAnimate::report(ex);
-		return ;
-	}
-}
-
-bool PreviewSqlDialog::doAppendCopyDataSql(uint16_t suffix, const std::wstring & targetTblName)
-{
-	// SQL : INSERT INTO target_tbl SELECT * FROM source_tbl [WHERE {express} = {suffix}]
-	if (supplier->getStructAndDataSetting() == STRUCT_ONLY 
-		|| supplier->getStructAndDataSetting() == UNKOWN || targetTblName.empty()) {
-		return false;
-	}
-
-	int page = 1;
-	int perpage = 100;
-
-	// Get data from the source table of source database, 
-	// Get data from the source table of source database, 
-	std::wstring whereClause;
-	bool checked1 = supplier->getStructAndDataSetting() == DATA_ONLY || supplier->getStructAndDataSetting() == STRUCTURE_AND_DATA;
-	bool checked2 = supplier->getEnableTableSharding();
-	bool checked3 = supplier->getEnableShardingStrategy();
-	bool checked4 = !supplier->getShardingStrategyExpress().empty();
-	if (checked1 && checked2 && checked3 && checked4) { 
-		whereClause.append(L"(").append(supplier->getShardingStrategyExpress()).append(L")").append(L"=").append(std::to_wstring(suffix));
-	}
-	
-	int totalPage = tableService->getTableWhereDataPageCount(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName(), whereClause, perpage);
-	for (page = 1; page <= totalPage; page++) {
-		// Get data from source table 
-		DataList pageDataList = tableService->getTableWhereDataList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName(), whereClause, page, perpage);
-
-		// Generate a sql statement for the page data list. and then execute the sql statement.
-		std::wstring sql = adapter->genderatePageDataSql(pageDataList, targetTblName);
-		if (!sql.empty()) {
-			sqlPreviewEdit.addText(sql);
-			sqlPreviewEdit.addText(L"\n");
-		}
-	}
-	return true;
+	sqlPreviewEdit.setText(content);
+	// parent window may be handle the message to append this specify sql statements to preview editor
+	::PostMessage(parentHwnd, Config::MSG_LOADING_SQL_PREVIEW_EDIT_ID, (WPARAM)&sqlPreviewEdit, NULL);
 }
 
 LRESULT PreviewSqlDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

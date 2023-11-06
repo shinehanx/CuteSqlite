@@ -226,7 +226,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_REFRESH_SAME_TABLE_DATA_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
@@ -249,7 +249,7 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_REFRESH_SAME_TABLE_DATA_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
@@ -661,35 +661,11 @@ LRESULT RightWorkView::OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lPara
 	return 0;
 }
 
-LRESULT RightWorkView::OnClickTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT RightWorkView::OnClickRrefreshSameTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	int n = tabView.GetPageCount();
-	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
-	std::wstring & tblName = databaseSupplier->selectedTable;
-	for (int i = 0; i < n; i++) {
-		HWND pageHwnd = tabView.GetPageHWND(i);
-		std::wstring pageTitle = tabView.GetPageTitle(i);
-		StringUtil::trim(pageTitle);
-		// same name
-		if (pageTitle != tblName) {
-			continue;
-		}
-		// query page has properties of TABLE_DATA and  same user db id
-		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
-			if (page && page->IsWindow() 
-				&& page->m_hWnd == pageHwnd 
-				&& page->getSupplier()->getOperateType() == TABLE_DATA 
-				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
-				return true;
-			}
-			return false;
-		});
-
-		// reload table data
-		if (iter != queryPagePtrs.end()) {
-			(*iter)->getResultTabView().loadTableDatas(tblName);
-		}
-	}
+	uint64_t userDbId = (uint64_t)wParam;
+	std::wstring tblName = *(std::wstring *)lParam;
+	return doRefreshTableDataForSameDbTablePage(userDbId, tblName);
 	return 0;
 }
 
@@ -774,4 +750,36 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 		UpdateWindow();
 	}
 	return 0;
+}
+
+LRESULT RightWorkView::doRefreshTableDataForSameDbTablePage(uint64_t userDbId, const std::wstring & theTblName)
+{
+	int n = tabView.GetPageCount();
+	userDbId = userDbId ? userDbId : databaseSupplier->getSelectedUserDbId();
+	std::wstring tblName = !theTblName.empty() ? theTblName : databaseSupplier->selectedTable;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);
+		// same name
+		if (pageTitle != tblName) {
+			continue;
+		}
+		// query page has properties of TABLE_DATA and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page && page->IsWindow()
+				&& page->m_hWnd == pageHwnd
+				&& page->getSupplier()->getOperateType() == TABLE_DATA
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				return true;
+			}
+			return false;
+		});
+
+		// reload table data
+		if (iter != queryPagePtrs.end()) {
+			(*iter)->getResultTabView().loadTableDatas(tblName);
+		}
+	}
+	return true;
 }

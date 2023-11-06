@@ -52,8 +52,8 @@ public:
 	void clearCsvRuntimeDatas() { csvRuntimeDatas.clear(); }
 	void addCsvRuntimeData(const RowItem & item);
 private:
-	Columns csvRuntimeColumns;
-	Columns tblRuntimeColumns;
+	Columns csvRuntimeColumns; // source 
+	Columns tblRuntimeColumns; // target
 	Columns tblOriginalColumns;
 	DataList csvRuntimeDatas;
 };

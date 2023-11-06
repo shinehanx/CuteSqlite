@@ -156,7 +156,8 @@ bool TableMenuAdapter::truncateTable()
 	try {
 		tableService->truncateTable(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
 		QPopAnimate::success(S(L"truncate-table-success-text")); 
-		AppContext::getInstance()->dispatch(Config::MSG_TRUNCATE_TABLE_ID, NULL, NULL);
+		AppContext::getInstance()->dispatch(Config::MSG_REFRESH_SAME_TABLE_DATA_ID,
+			WPARAM(supplier->getSelectedUserDbId()), LPARAM(&supplier->selectedTable));
 		return true;
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);

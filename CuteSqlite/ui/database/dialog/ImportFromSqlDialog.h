@@ -36,7 +36,7 @@ public:
 		COMMAND_HANDLER_EX(Config::IMPORT_TARGET_DB_COMBOBOX_ID, CBN_SELENDOK, OnChangeSelectDbComboBox)
 		COMMAND_HANDLER_EX(Config::IMPORT_OPEN_FILE_BUTTON_ID, BN_CLICKED, OnClickOpenFileButton)
 		COMMAND_HANDLER_EX(Config::IMPORT_ABORT_ON_ERROR_CHECKBOX_ID, BN_CLICKED, OnClickAbortOnErrorCheckBox)
-		MESSAGE_HANDLER(Config::MSG_IMPORT_PROCESS_ID, OnProcessExport); // 响应进度
+		MESSAGE_HANDLER(Config::MSG_IMPORT_PROCESS_ID, OnProcessImport); // 响应进度
 		CHAIN_MSG_MAP(QDialog<ImportFromSqlDialog>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -102,5 +102,5 @@ private:
 	virtual void OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	// Handle the message for import process
-	LRESULT OnProcessExport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnProcessImport(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

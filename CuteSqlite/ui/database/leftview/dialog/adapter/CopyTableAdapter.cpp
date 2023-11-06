@@ -183,7 +183,7 @@ bool CopyTableAdapter::doExecSqlsInSameDb()
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 0, percent);
 
 		int n = static_cast<int>(sqls.size());
-		int avgVal = int(round(90.0 / double(n)));
+		int avgVal = int(round(95.0 / double(n)));
 		for (auto & tableSql : sqls) {
 			sql = tableSql;
 			tableService->execBySql(targetUserDbId, tableSql);
@@ -196,15 +196,13 @@ bool CopyTableAdapter::doExecSqlsInSameDb()
 		sql = L"RELEASE \"" + savePoint + L"\";";
 		tableService->execBySql(targetUserDbId, sql);
 		return true;
-	}
-	catch (QSqlExecuteException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
 		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 2, NULL);
 		return false;
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
 		tableService->execBySql(targetUserDbId, sql);
@@ -424,4 +422,90 @@ std::wstring CopyTableAdapter::genderatePageDataSql(const DataList & pageDataLis
 	}
 	sql.append(edl);
 	return sql;
+}
+
+void CopyTableAdapter::loadSqlForPreviewEdit(QHelpEdit * editorPtr)
+{
+	// copy data in same db
+	if (supplier->getRuntimeUserDbId() == supplier->getTargetUserDbId()) {
+		std::wstring sql = getPreviewSqlInSameDb();
+		editorPtr->setText(sql);
+	} else {
+		// copy data from different db 
+		doLoadTargetTableSqlToEditorForOtherDb(editorPtr);
+	}
+}
+
+
+void CopyTableAdapter::doLoadTargetTableSqlToEditorForOtherDb(QHelpEdit * editorPtr)
+{
+	uint64_t targetUserDbId = supplier->getTargetUserDbId();
+	int percent = 0;
+
+	std::wstring savePoint = SavePointUtil::create(L"copy_table");
+	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";\n";
+	editorPtr->addText(sql);
+
+	try {
+		auto tableMap = supplier->getShardingTables();
+
+		for (auto & tblItem : tableMap) {
+			// 1. create table sql
+			sql = generateCreateDdlForTargetTable(tblItem.first, tblItem.second);
+			if (!sql.empty()) {
+				editorPtr->addText(sql);
+				editorPtr->addText(L"\n");
+			}
+			
+			// 2. append table data sql to editor
+			doAppendCopyDataSqlToEditor(editorPtr, tblItem.first, tblItem.second);			
+		}
+		
+		// 4.Release the SAVEPOINT
+		sql = L"RELEASE \"" + savePoint + L"\";\n";
+		editorPtr->addText(sql);
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+		return ;
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+		return ;
+	}
+}
+
+bool CopyTableAdapter::doAppendCopyDataSqlToEditor(QHelpEdit * editorPtr, uint16_t suffix, const std::wstring & targetTblName)
+{
+	// SQL : INSERT INTO target_tbl SELECT * FROM source_tbl [WHERE {express} = {suffix}]
+	if (supplier->getStructAndDataSetting() == STRUCT_ONLY 
+		|| supplier->getStructAndDataSetting() == UNKOWN || targetTblName.empty()) {
+		return false;
+	}
+
+	int page = 1;
+	int perpage = 100;
+
+	// Get data from the source table of source database, 
+	// Get data from the source table of source database, 
+	std::wstring whereClause;
+	bool checked1 = supplier->getStructAndDataSetting() == DATA_ONLY || supplier->getStructAndDataSetting() == STRUCTURE_AND_DATA;
+	bool checked2 = supplier->getEnableTableSharding();
+	bool checked3 = supplier->getEnableShardingStrategy();
+	bool checked4 = !supplier->getShardingStrategyExpress().empty();
+	if (checked1 && checked2 && checked3 && checked4) { 
+		whereClause.append(L"(").append(supplier->getShardingStrategyExpress()).append(L")").append(L"=").append(std::to_wstring(suffix));
+	}
+	
+	int totalPage = tableService->getTableWhereDataPageCount(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName(), whereClause, perpage);
+	for (page = 1; page <= totalPage; page++) {
+		// Get data from source table 
+		DataList pageDataList = tableService->getTableWhereDataList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName(), whereClause, page, perpage);
+
+		// Generate a sql statement for the page data list. and then execute the sql statement.
+		std::wstring sql = genderatePageDataSql(pageDataList, targetTblName);
+		if (!sql.empty()) {
+			editorPtr->addText(sql);
+			editorPtr->addText(L"\n");
+		}
+	}
+	return true;
 }

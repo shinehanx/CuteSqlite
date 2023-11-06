@@ -22,6 +22,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include <strsafe.h>
+#include <utils/SavePointUtil.h>
 
 ImportFromCsvAdapter::ImportFromCsvAdapter(HWND parentHwnd, ImportFromCsvSupplier * supplier)
 	:ImportDatabaseAdapter(parentHwnd, nullptr)
@@ -105,6 +106,12 @@ int ImportFromCsvAdapter::loadCsvFileToColumnListView(const std::wstring &import
 		for (int i = 0; i < (rowCount - targetLen); i++) {
 			targetColumns.push_back(L"");
 		}
+	} else if (targetLen > rowCount) {
+		auto iter = targetColumns.begin();
+		for (int i = 0; i < rowCount; i++) {
+			iter++;
+		}
+		targetColumns.erase(iter, targetColumns.end());
 	}
 	supplier->setTblRuntimeColumns(targetColumns);
 
@@ -162,7 +169,8 @@ int ImportFromCsvAdapter::loadCsvFileToDataListView(const std::wstring & importP
 		
 	while (!ifs.eof()) {
 		line = readLineFromCsvFileStream(ifs);
-		if (line.empty() || *(line.rbegin()) == L'\r' || *(line.rbegin()) == L'\n') {
+		if (line.empty() || 
+			(line.size() <= 2 && (*(line.rbegin()) == L'\r' || *(line.rbegin()) == L'\n'))) {
 			continue;
 		}
 		auto rowItem = splitLineAndConvertStringByCsvSettings(line);
@@ -358,7 +366,7 @@ std::wstring ImportFromCsvAdapter::readLineFromCsvFileStream(std::wifstream &ifs
 			foundLineSeperator = true;
 		}
 
-		// stack用来标识还有包含符号未关闭
+		// stack 用来标识还有包含符号未关闭
 		if (foundLineSeperator && stack.empty()) {
 			break;
 		}
@@ -388,7 +396,7 @@ std::vector<std::wstring> ImportFromCsvAdapter::splitLineAndConvertStringByCsvSe
 	int size = static_cast<int>(line.size());
 	for (int i = 0; i < size; i++) {
 		pos = line.find(pattern, i);
-		if (pos < size) {
+		if (pos < size && pos != std::wstring::npos) {
 			std::wstring s = line.substr(i, pos - i);
 			if (s.empty()) {
 				i = static_cast<int>(pos + pattern.size()) - 1;
@@ -397,11 +405,25 @@ std::vector<std::wstring> ImportFromCsvAdapter::splitLineAndConvertStringByCsvSe
 			
 			// Field value enclose by
 			if (!supplier->csvFieldEnclosedBy.empty()) {
-				size_t _begin = s.find(supplier->csvFieldEnclosedBy);
-				size_t _end = s.rfind(supplier->csvFieldEnclosedBy);
-				if (_begin != std::wstring::npos && _end != std::wstring::npos) {
-					s = s.substr(_begin + 1, _end - _begin - 1);
-				}
+				for (;;) {
+					size_t _begin = s.find(supplier->csvFieldEnclosedBy);
+					size_t _end = s.rfind(supplier->csvFieldEnclosedBy);
+
+					if (_begin != std::wstring::npos && _end != std::wstring::npos && _begin != _end) {
+						s = s.substr(_begin + 1, _end - _begin - 1);
+						break;
+					} else if (_begin != std::wstring::npos && (_end == std::wstring::npos || _begin == _end)) {
+						// 表示分离字符[pattern]，未处于前后两个包含符[csvFieldEnclosedBy]之中
+						// 如 "123456abcd, 只出现前一个包含附双引号，未出现后一个包含附双引号，逗号分隔符还未能处于两个双引号之间
+						pos = line.find(pattern, pos + 1);
+						if (pos == std::wstring::npos) {
+							break;
+						}
+						s = line.substr(i, pos - i);
+					} else {
+						break; // not found any csvFieldEnclosedBy
+					}
+				}				
 			}
 
 			if (!supplier->csvFieldEscapedBy.empty() && !supplier->csvFieldEnclosedBy.empty()) {
@@ -412,7 +434,7 @@ std::vector<std::wstring> ImportFromCsvAdapter::splitLineAndConvertStringByCsvSe
 
 			if (!supplier->csvNullAsKeyword.empty() && supplier->csvNullAsKeyword == L"YES") {
 				if (s == L"NULL" || s == L"null") {
-					s = L"";
+					s = L"[ NULL ]";
 				}
 			}
 
@@ -425,4 +447,110 @@ std::vector<std::wstring> ImportFromCsvAdapter::splitLineAndConvertStringByCsvSe
 		}
 	}
 	return result;
+}
+
+std::wstring ImportFromCsvAdapter::getPreviewSql()
+{	
+	auto sqlList = getRuntimeSqlList();
+	std::wstring result;
+	int i = 0;
+	for (auto & sql : sqlList) {
+		if (i++) {
+			result.append(L"\n");
+		}
+		result.append(sql);
+	}
+
+	return result;
+}
+
+std::list<std::wstring> ImportFromCsvAdapter::getRuntimeSqlList()
+{
+	std::list<std::wstring> result;
+	auto & targetColumns = supplier->getTblRuntimeColumns();
+	auto & csvRuntimeDatas = supplier->getCsvRuntimeDatas();
+	int colLen = static_cast<int>(targetColumns.size());
+	int n = static_cast<int>(csvRuntimeDatas.size());
+	std::wstring insertClause = L"INSERT INTO \"";
+	insertClause.append(supplier->getRuntimeTblName()).append(L"\" ");
+	for (auto & item : csvRuntimeDatas) {
+		std::wstring fieldClause;
+		std::wstring valuesClause;
+		int c = 0; // not empty columns count
+		for (int i = 0; i < colLen; i++) {
+			auto & columnName = targetColumns.at(i);
+			if (columnName.empty()) {
+				continue;
+			}
+			std::wstring val = item.at(i);
+			
+			if (c++) {
+				fieldClause.append(L",");
+				valuesClause.append(L",");
+			}
+			
+			fieldClause.append(L"\"").append(columnName).append(L"\"");
+			val == L"[ NULL ]" ?  valuesClause.append(L"NULL") 
+				: valuesClause.append(L"'").append(StringUtil::escapeSql(val)).append(L"'");
+		}
+
+		if (fieldClause.empty() || valuesClause.empty()) {
+			continue;
+		}
+		// SQL : insert into "tbl_name" ([fieldClause]) VALUES ([valuesClause])
+		std::wstring sql = insertClause;
+		sql.append(L"(").append(fieldClause).append(L") VALUES (").append(valuesClause).append(L");");
+		result.push_back(sql);
+	}
+
+	return result;
+}
+
+bool ImportFromCsvAdapter::importFromRuntimeSqlList()
+{
+	// 1.generate runtime sql statements list
+	auto sqlList = getRuntimeSqlList();
+	if (sqlList.empty()) {
+		QPopAnimate::error(E(L"200028"));
+		return false;
+	}
+	int percent = 5;
+	::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 0, percent);
+
+	// 2.Begin a save point
+	uint64_t targetUserDbId = supplier->getRuntimeUserDbId();
+	std::wstring savePoint = SavePointUtil::create(L"import_from_csv");
+	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	tableService->execBySql(targetUserDbId, sql);
+	
+	try {
+		// 3. begin execute sql statement	
+		int n = static_cast<int>(sqlList.size());
+		int avgVal = int(round(95.0 / double(n)));
+		for (auto & oneSql : sqlList) {
+			sql = oneSql;
+			tableService->execBySql(targetUserDbId, sql);
+			percent += avgVal;
+			::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 0, percent);
+		}
+		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 1, 100);
+
+		// 4.Release the SAVEPOINT
+		sql = L"RELEASE \"" + savePoint + L"\";";
+		tableService->execBySql(targetUserDbId, sql);
+		return true;
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		tableService->execBySql(targetUserDbId, sql);
+		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 2, NULL);
+		return false;
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		tableService->execBySql(targetUserDbId, sql);
+		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 2, NULL);
+		return false;
+	}
+	return false;
 }
