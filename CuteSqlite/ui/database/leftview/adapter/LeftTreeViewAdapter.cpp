@@ -142,7 +142,7 @@ uint64_t LeftTreeViewAdapter::getSeletedItemData()
 	return static_cast<uint64_t>(data);
 }
 
-void LeftTreeViewAdapter::removeSeletedItem()
+void LeftTreeViewAdapter::removeSeletedDbTreeItem()
 {
 	CTreeItem treeItem = getSeletedItem();
 	int nImage = -1, nSeletedImage = -1;
@@ -176,7 +176,7 @@ void LeftTreeViewAdapter::removeSeletedItem()
 	}
 }
 
-void LeftTreeViewAdapter::selectItem(uint64_t userDbId)
+void LeftTreeViewAdapter::selectDbTreeItem(uint64_t userDbId)
 {
 	if (userDbId <= 0) {
 		return ;
@@ -326,10 +326,86 @@ void LeftTreeViewAdapter::createImageList()
 	imageList.Add(databaseBitmap); // 0 - database
 	imageList.Add(folderBitmap); // 1 - folder
 	imageList.Add(tableBitmap); // 2 - table
-	imageList.Add(fieldBitmap); // 3 - field
+	imageList.Add(fieldBitmap); // 3 - field/column
 	imageList.Add(indexBitmap); // 4 - index
 	imageList.Add(viewBitmap);// 5 - view
 	imageList.Add(triggerBitmap);// 6 - trigger
+}
+
+/**
+ * When tree item changing, init the runtime data of DatabaseSupplier object .
+ * 
+ */
+void LeftTreeViewAdapter::initDatabaseSupplier()
+{
+	CTreeItem treeItem = dataView->GetSelectedItem();
+	ATLASSERT(!treeItem.IsNull());
+
+	databaseSupplier->selectedUserDbId = 0;
+	databaseSupplier->selectedSchema.clear();
+	databaseSupplier->selectedTable.clear();
+	databaseSupplier->selectedColumn.clear();
+	databaseSupplier->selectedIndexName.clear();
+	databaseSupplier->selectedViewName.clear();
+	databaseSupplier->selectedTriggerName.clear();
+
+	int nImage = -1, nSelImage = -1;
+	treeItem.GetImage(nImage, nSelImage);
+
+	wchar_t * cch = nullptr;
+	treeItem.GetText(cch);
+	ATLASSERT(cch);
+	if (nImage == 0) { // 0 - database
+		databaseSupplier->selectedUserDbId = (uint64_t)treeItem.GetData();		
+	} else if (nImage == 1) { // 1 - folder
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 2) { // 2 - table
+		databaseSupplier->selectedTable.assign(cch);
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 3) { // 3 - field /column
+		std::wstring columns;
+		columns.assign(cch);
+		size_t pos1 = columns.find_first_of(L'[');
+		size_t pos2 = columns.find_last_of(L']');
+		if (pos1 != std::wstring::npos && pos2 != std::wstring::npos) {
+			columns = columns.substr(0, pos1 - 1);
+			StringUtil::trim(columns);
+			databaseSupplier->selectedColumn = columns;
+		}		
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 4) { // 4 - index
+		databaseSupplier->selectedIndexName.assign(cch);
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 5) { // 5 - view		
+		databaseSupplier->selectedViewName.assign(cch);
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 6) { // 6 - trigger
+		databaseSupplier->selectedTriggerName.assign(cch);
+		doTrackParentTreeItemForSupplier(treeItem);
+	}
+	::SysFreeString(cch);
+}
+
+void LeftTreeViewAdapter::doTrackParentTreeItemForSupplier(CTreeItem &treeItem)
+{
+	CTreeItem pTreeItem = treeItem.GetParent();
+	while (!pTreeItem.IsNull()) {
+		int nImage = -1, nSelImage = -1;
+		pTreeItem.GetImage(nImage, nSelImage);
+		if (nImage == 2) { // 2 - table
+			wchar_t * cch = nullptr;
+			pTreeItem.GetText(cch);
+			if (cch) {
+				databaseSupplier->selectedTable.assign(cch);
+			}
+			::SysFreeString(cch);
+		}
+		else if (nImage == 0) {// 0- database
+			databaseSupplier->selectedUserDbId = (uint64_t)pTreeItem.GetData();
+			break;
+		}
+		pTreeItem = pTreeItem.GetParent();
+	}
 }
 
 /**

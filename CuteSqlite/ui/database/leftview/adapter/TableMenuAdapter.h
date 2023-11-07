@@ -32,6 +32,10 @@ public:
 	~TableMenuAdapter();
 
 	void popupMenu(CPoint & pt);
+	void popupColumnsMenu(CPoint & pt, bool isColumnItem);
+	void popupIndexesMenu(CPoint & pt, bool isIndexItem);
+
+
 	void openTable();
 	bool renameTable();
 	bool truncateTable();
@@ -40,6 +44,9 @@ public:
 	bool shardingTable();
 	bool exportTable();
 	void manageIndex();
+	void manageColumn();
+	void dropColumn();
+	void dropIndex();
 	void manageForeignKey();
 	void showProperties();
 private:
@@ -56,16 +63,25 @@ private:
 	HICON exportTableIcon = nullptr;
 	HICON importFromSqlIcon = nullptr;
 	HICON importFromCsvIcon = nullptr;
-	HICON manageIndexIcon = nullptr;
+	HICON manageIndexesIcon = nullptr;
 	HICON manageForeignKeyIcon = nullptr;
 	HICON propertiesIcon = nullptr;
+
+	// columns
+	HICON manageColumnsIcon = nullptr;
+	HICON dropColumnIcon = nullptr;
+	HICON dropIndexIcon = nullptr;
 	
 	CMenu menu;
+	CMenu columnsMenu;
+	CMenu indexesMenu;
 
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	TableService * tableService = TableService::getInstance();
 
 	void createImageList();
 	void createMenu();
+	void createColumnsMenu();
+	void createIndexesMenu();
 
 };

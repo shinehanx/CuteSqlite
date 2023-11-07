@@ -22,7 +22,7 @@
 #include "ui/common/page/QPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 
-static int cxChar, cyChar, iVscrollPos, vScrollPages=5;
+
 class RowDataFormView : public QPage
 {
 public:
@@ -38,6 +38,8 @@ public:
 		CHAIN_MSG_MAP(QPage)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+
+	static int cxChar, cyChar, iVscrollPos, vScrollPages;
 
 	void setup(ResultListPageAdapter * adapter);
 	void loadFormData(bool readOnly=true);

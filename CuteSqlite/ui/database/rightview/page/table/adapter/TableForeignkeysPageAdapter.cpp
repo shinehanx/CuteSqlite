@@ -68,11 +68,15 @@ void TableForeignkeysPageAdapter::loadHeadersForListView()
 
 int TableForeignkeysPageAdapter::loadEmptyRowsForListView()
 {	
+	/*
+	// test data
 	ForeignKey item1{L"ctsqlite_auto_foreign_key_1", L"Foreign Key", L"class_id", L"analysis_sample_class", L"id", L"CASCADE", L"SET NULL"};
 	ForeignKey item2{L"ctsqlite_auto_foreign_key_2", L"Foreign Key", L"inspection_id", L"analysis_hair_inspection", L"id", L"CASCADE", L"SET NULL"};
 	supplier->setFrkRuntimeDatas(ForeignKeyList({ item1 , item2 }));
 	dataView->SetItemCount(2);
 	return 1;
+	*/
+	return 0;
 }
 
 

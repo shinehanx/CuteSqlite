@@ -22,6 +22,12 @@
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
 
+
+int RowDataFormView::cxChar = 5;
+int RowDataFormView::cyChar = 5;
+int RowDataFormView::iVscrollPos = 5;
+int RowDataFormView::vScrollPages = 5;
+
 void RowDataFormView::setup(ResultListPageAdapter * adapter)
 {
 	this->adapter = adapter;

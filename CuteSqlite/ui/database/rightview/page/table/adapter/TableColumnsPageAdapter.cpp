@@ -48,7 +48,9 @@ int TableColumnsPageAdapter::loadTblColumnsListView()
 	if (supplier->getRuntimeTblName().empty()) {
 		return loadEmptyRowsForListView();
 	}
-	return loadColumnRowsForListView(supplier->getRuntimeUserDbId(), supplier->getRuntimeSchema(), supplier->getRuntimeTblName());
+	int n = loadColumnRowsForListView(supplier->getRuntimeUserDbId(), 
+               supplier->getRuntimeSchema(), supplier->getRuntimeTblName());
+	return n;
 }
 
 void TableColumnsPageAdapter::loadHeadersForListView()
@@ -67,7 +69,8 @@ void TableColumnsPageAdapter::loadHeadersForListView()
 
 int TableColumnsPageAdapter::loadEmptyRowsForListView()
 {
-	std::vector<std::wstring> ss = StringUtil::split(L"id,name,type,class_id,inspection_id,remark,phone,email,created_at,updated_at",L","); // tmp
+	//std::vector<std::wstring> ss = StringUtil::split(L"id,name,type,class_id,inspection_id,remark,phone,email,created_at,updated_at",L","); // tmp
+	std::vector<std::wstring> ss = StringUtil::split(L"NewColumn",L","); // tmp
 	int n = static_cast<int>(ss.size());
 	for (int i = 0; i < n; i++) {
 		ColumnInfo columnInfo;
@@ -454,6 +457,11 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name - 1
 		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		if (supplier->getRuntimeUserDbId() == databaseSupplier->getSelectedUserDbId()
+			&& supplier->getRuntimeTblName() == databaseSupplier->selectedTable
+			&& val == databaseSupplier->selectedColumn) {
+			dataView->SelectItem(iItem);
+		}
 	} else if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT){ // default value - 7
 		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).defVal;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());

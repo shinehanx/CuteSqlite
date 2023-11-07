@@ -25,6 +25,7 @@
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
 
 class TableColumnsPageAdapter : public QAdapter<TableColumnsPageAdapter, QListViewCtrl>
 {
@@ -65,6 +66,7 @@ public:
 	bool existsColumnNameInRuntimeIndexes(const std::wstring & columnName);
 private:
 	TableStructureSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 

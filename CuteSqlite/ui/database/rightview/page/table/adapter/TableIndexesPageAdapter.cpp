@@ -68,19 +68,22 @@ void TableIndexesPageAdapter::loadHeadersForListView()
 
 int TableIndexesPageAdapter::loadEmptyRowsForListView()
 {
-	
-		IndexInfo index1, index2;
-		index1.columns = L"id"; // todo..., remove debug 
-		index1.type = TableStructureSupplier::idxTypeList.at(1); //type 1: Primary
-		index1.seq = std::chrono::system_clock::now(); // seq = current time 
-		supplier->getIdxRuntimeDatas().push_back(index1);
-		index2.columns = L"id,name,created_at,updated_at"; //type : Unique
-		index2.type = TableStructureSupplier::idxTypeList.at(0); //type 0: Unique
-		index2.seq = std::chrono::system_clock::now(); // seq = current time 
-		supplier->getIdxRuntimeDatas().push_back(index2);
-	
+	/*
+	// test data
+	IndexInfo index1, index2;
+	index1.columns = L"id"; // todo..., remove debug 
+	index1.type = TableStructureSupplier::idxTypeList.at(1); //type 1: Primary
+	index1.seq = std::chrono::system_clock::now(); // seq = current time 
+	supplier->getIdxRuntimeDatas().push_back(index1);
+	index2.columns = L"id,name,created_at,updated_at"; //type : Unique
+	index2.type = TableStructureSupplier::idxTypeList.at(0); //type 0: Unique
+	index2.seq = std::chrono::system_clock::now(); // seq = current time 
+	supplier->getIdxRuntimeDatas().push_back(index2);
 	dataView->SetItemCount(2);
-	return 1;
+	return 2;
+	*/
+	dataView->SetItemCount(0);
+	return 0;
 }
 
 

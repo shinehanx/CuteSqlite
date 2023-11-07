@@ -35,8 +35,11 @@ TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = view;
+	menuBrush.CreateSolidBrush(RGB(255,255,255));//RGB(255,128,128));
 	createImageList();
-	createMenu();	
+	createMenu();
+	createColumnsMenu();
+	createIndexesMenu();
 }
 
 TableMenuAdapter::~TableMenuAdapter()
@@ -54,9 +57,13 @@ TableMenuAdapter::~TableMenuAdapter()
 	if (exportTableIcon) ::DeleteObject(exportTableIcon);
 	if (importFromSqlIcon) ::DeleteObject(importFromSqlIcon);
 	if (importFromCsvIcon) ::DeleteObject(importFromCsvIcon);
-	if (manageIndexIcon) ::DeleteObject(manageIndexIcon);
+	if (manageIndexesIcon) ::DeleteObject(manageIndexesIcon);
 	if (manageForeignKeyIcon) ::DeleteObject(manageForeignKeyIcon);
 	if (propertiesIcon) ::DeleteObject(propertiesIcon);
+
+	if (manageColumnsIcon) ::DeleteObject(manageColumnsIcon);
+	if (dropColumnIcon) ::DeleteObject(dropColumnIcon);
+	if (dropIndexIcon) ::DeleteObject(dropIndexIcon);
 }
 
 
@@ -75,9 +82,13 @@ void TableMenuAdapter::createImageList()
 	exportTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\export-as-sql.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	importFromSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-from-sql.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	importFromCsvIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-from-csv.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	manageIndexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manage-index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	manageIndexesIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manage-index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	manageForeignKeyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manage-foreign-key.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	propertiesIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\properties.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+
+	manageColumnsIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\manager-columns.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dropColumnIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\drop-column.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dropIndexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\drop-index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 }
 
 void TableMenuAdapter::createMenu()
@@ -102,7 +113,7 @@ void TableMenuAdapter::createMenu()
 	menu.AppendMenu(MF_SEPARATOR);
 	menu.AppendMenu(MF_STRING, Config::TABLE_PROPERTIES_MENU_ID, S(L"properties").c_str());
 
-	menuBrush.CreateSolidBrush(RGB(255,255,255));//RGB(255,128,128));
+	
 	MENUINFO mi;
 	mi.cbSize = sizeof(MENUINFO);
 	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
@@ -121,12 +132,46 @@ void TableMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_EXPORT_MENU_ID, MF_BYCOMMAND, exportTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_IMPORT_SQL_MENU_ID, MF_BYCOMMAND, importFromSqlIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_IMPORT_CSV_MENU_ID, MF_BYCOMMAND, importFromCsvIcon);
-	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexIcon);
+	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexesIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, MF_BYCOMMAND, manageForeignKeyIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_PROPERTIES_MENU_ID, MF_BYCOMMAND, propertiesIcon);
 	
 }
 
+
+void TableMenuAdapter::createColumnsMenu()
+{
+	columnsMenu.CreatePopupMenu();
+	columnsMenu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_COLUMNS_MENU_ID, S(L"table-manage-columns").c_str()); 
+	columnsMenu.AppendMenu(MF_STRING, Config::TABLE_DROP_COLUMN_MENU_ID, S(L"table-drop-column").c_str());
+
+	MENUINFO mi;
+	mi.cbSize = sizeof(MENUINFO);
+	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
+	mi.hbrBack = (HBRUSH)menuBrush;
+	mi.dwStyle = MNS_CHECKORBMP;
+	::SetMenuInfo((HMENU)(columnsMenu.m_hMenu),&mi);
+
+	MenuUtil::addIconToMenuItem(columnsMenu.m_hMenu, Config::TABLE_MANAGE_COLUMNS_MENU_ID, MF_BYCOMMAND, manageColumnsIcon);
+	MenuUtil::addIconToMenuItem(columnsMenu.m_hMenu, Config::TABLE_DROP_COLUMN_MENU_ID, MF_BYCOMMAND, dropColumnIcon); 
+}
+
+void TableMenuAdapter::createIndexesMenu()
+{
+	indexesMenu.CreatePopupMenu();
+	indexesMenu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_INDEX_MENU_ID, S(L"table-manage-indexes").c_str()); 
+	indexesMenu.AppendMenu(MF_STRING, Config::TABLE_DROP_INDEX_MENU_ID, S(L"table-drop-index").c_str());
+
+	MENUINFO mi;
+	mi.cbSize = sizeof(MENUINFO);
+	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
+	mi.hbrBack = (HBRUSH)menuBrush;
+	mi.dwStyle = MNS_CHECKORBMP;
+	::SetMenuInfo((HMENU)(indexesMenu.m_hMenu),&mi);
+
+	MenuUtil::addIconToMenuItem(indexesMenu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexesIcon);
+	MenuUtil::addIconToMenuItem(indexesMenu.m_hMenu, Config::TABLE_DROP_INDEX_MENU_ID, MF_BYCOMMAND, dropIndexIcon);
+}
 
 bool TableMenuAdapter::renameTable()
 {
@@ -236,6 +281,26 @@ void TableMenuAdapter::manageIndex()
 	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_INDEXS_PAGE, NULL);
 }
 
+
+void TableMenuAdapter::manageColumn()
+{
+	// wParam == 0, active the column tab page in the TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_COLUMNS_PAGE, NULL);
+}
+
+void TableMenuAdapter::dropColumn()
+{
+	// wParam == 0, active the column tab page in the TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_COLUMNS_PAGE, NULL);
+}
+
+
+void TableMenuAdapter::dropIndex()
+{
+	// wParam == 0, active the Indexes tab page in the TableStructurePage
+	AppContext::getInstance()->dispatch(Config::MSG_ALTER_TABLE_ID, TABLE_INDEXS_PAGE, NULL);
+}
+
 void TableMenuAdapter::manageForeignKey()
 {
 	// wParam == 1, active the Foreign Key tab page in the TableStructurePage
@@ -245,6 +310,22 @@ void TableMenuAdapter::manageForeignKey()
 void TableMenuAdapter::popupMenu(CPoint & pt)
 {
 	menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
+}
+
+
+void TableMenuAdapter::popupColumnsMenu(CPoint & pt, bool isColumnItem)
+{
+	UINT uEnable = isColumnItem ? MF_BYCOMMAND | MF_ENABLED : MF_BYCOMMAND | MF_DISABLED;
+	columnsMenu.EnableMenuItem(Config::TABLE_DROP_COLUMN_MENU_ID, uEnable);
+	columnsMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
+}
+
+
+void TableMenuAdapter::popupIndexesMenu(CPoint & pt, bool isIndexItem)
+{
+	UINT uEnable = isIndexItem ? MF_BYCOMMAND | MF_ENABLED : MF_BYCOMMAND | MF_DISABLED;
+	indexesMenu.EnableMenuItem(Config::TABLE_DROP_INDEX_MENU_ID, uEnable);
+	indexesMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
 }
 
 /**

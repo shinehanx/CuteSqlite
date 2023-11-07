@@ -88,6 +88,11 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, OnClickManageForeignKeyMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_PROPERTIES_MENU_ID, OnClickPropertiesMenu)
 
+		// column menu
+		COMMAND_ID_HANDLER_EX(Config::TABLE_MANAGE_COLUMNS_MENU_ID, OnClickManageColumnsMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_COLUMN_MENU_ID, OnClickDropColumnMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_INDEX_MENU_ID, OnClickDropIndexMenu)
+
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -173,7 +178,11 @@ private:
 	void OnClickManageIndexMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickPropertiesMenu(UINT uNotifyCode, int nID, HWND hwnd);
-	
+
+	void OnClickManageColumnsMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropColumnMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropIndexMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	

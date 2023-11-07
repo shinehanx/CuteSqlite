@@ -38,14 +38,15 @@ public:
 	void loadTreeView();
 	CTreeItem getSeletedItem();
 	uint64_t getSeletedItemData();
-	void removeSeletedItem();
-	void selectItem(uint64_t userDbId);
+	void removeSeletedDbTreeItem();
+	void selectDbTreeItem(uint64_t userDbId);
 
 	uint64_t getSeletedUserDbId();
 
 	UserDbList getDbs();
 	void loadDbs();
-	
+	void initDatabaseSupplier();
+
 	HTREEITEM getChildFolderItem(HTREEITEM hTreeItem, const std::wstring & folderName);
 
 	void loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb, bool isLoadColumnsAndIndex = false);
@@ -73,7 +74,7 @@ private:
 
 	void createImageList();
 	
-	
+	void doTrackParentTreeItemForSupplier(CTreeItem &treeItem);
 };
 
 

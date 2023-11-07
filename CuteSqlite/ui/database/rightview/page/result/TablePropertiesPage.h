@@ -22,6 +22,7 @@
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/rightview/page/supply/QueryPageSupplier.h"
 #include "ui/common/image/QStaticImage.h"
+#include "ui/common/button/QImageButton.h"
 
 class TablePropertiesPage : public QTabPage<QueryPageSupplier> {
 public:
@@ -29,7 +30,10 @@ public:
 
 	BEGIN_MSG_MAP_EX(TablePropertiesPage)
 		MSG_WM_CREATE(OnCreate)
-		MSG_WM_DESTROY(OnDestroy)		
+		MSG_WM_DESTROY(OnDestroy)
+		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
+		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
+		COMMAND_HANDLER_EX(Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
 		CHAIN_MSG_MAP(QPage)
@@ -37,12 +41,12 @@ public:
 	END_MSG_MAP()
 	void setup(QueryPageSupplier * supplier);
 
-	void clear();
 protected:
 	COLORREF lineColor = RGB(127, 225, 244);
-	COLORREF headerBkgColor = RGB(127, 225, 244);
-	COLORREF headerTextColor = RGB(50, 50, 50);
+	COLORREF headerBkgColor = RGB(81, 81, 81);
+	COLORREF headerTextColor = RGB(255, 255, 255);
 	COLORREF doubleRowColor = RGB(238, 238, 238);
+	HICON primaryIcon = nullptr;
 
 	HFONT titleFont = nullptr;
 	HFONT sectionFont = nullptr;
@@ -53,15 +57,15 @@ protected:
 
 	QStaticImage titleImage;
 	CEdit titleEdit;
+	QImageButton refreshButton;
 
-	std::vector<CEdit *> headerPtrs;
 	// columns section
 	CEdit columnsSection;
 	CEdit primaryKeyHeader, columnNameHeader, columnTypeHeader;
 	std::vector<CEdit *> primaryKeyPtrs;
 	std::vector<CEdit *> columnNamePtrs;
 	std::vector<CEdit *> columnTypePtrs;
-
+	
 	// indexes section
 	CEdit indexesSection;
 	CEdit idxPrimaryHeader, idxNameHeader, idxColumnsHeader, idxTypeHeader;
@@ -70,14 +74,32 @@ protected:
 	std::vector<CEdit *> idxColumnsPtrs;
 	std::vector<CEdit *> idxTypePtrs;
 
+	CEdit foreignKeySection;
+	CEdit frkNameHeader, frkColumnsHeader, frkReferedTableHeader, 
+		frkReferedColumnsHeader, frkOnUpdateHeader, frkOnDeleteHeader;
+	std::vector<CEdit *> frkNamePtrs, frkColumnsPtrs, frkReferedTablePtrs, 
+		frkReferedColumnsPtrs, frkOnUpdatePtrs, frkOnDeletePtrs;
+
+	 //store CEdit points of the primary key 
+	std::vector<std::pair<CEdit *, int>> primaryBitmapPtrs;
+
 	// ddl section
 	CEdit ddlSection;
 	CEdit ddlHeader;
 	CEdit ddlContent;
 
+	// scroll bar
+	TEXTMETRIC tm;
+	SCROLLINFO si;
+	int nHeightSum = 0;
+	static int cxChar, cyChar, iVscrollPos, vScrollPages;
+	void initScrollBar(CSize & clientSize);
+
+	
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 
+	
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 
@@ -88,6 +110,8 @@ protected:
 	void createOrShowColumnsList(CRect & clientRect);
 	void createOrShowIndexesSectionElems(CRect & clientRect);
 	void createOrShowIndexesList(CRect & clientRect);
+	void createOrShowForeignKeySectionElems(CRect & clientRect);
+	void createOrShowForeignKeyList(CRect & clientRect);
 
 	void createOrShowDdlSectionElems(CRect & clientRect);
 
@@ -95,11 +119,14 @@ protected:
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
+	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 
-	size_t inEditArray(HWND hwnd, const std::vector<CEdit *> & ptrs);
-private:
-	
+	size_t inEditArray(HWND hwnd, const std::vector<CEdit *> & ptrs);	
+	void destroyPtrs(std::vector<CEdit *> & ptrs);
+	void drawPrimaryKey(CDC & dc, CRect & rect, int nItem);
 };

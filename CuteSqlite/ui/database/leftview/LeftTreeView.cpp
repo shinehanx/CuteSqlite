@@ -359,6 +359,9 @@ LRESULT LeftTreeView::OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bH
 		selectComboBox(userDbId);
 	}
 
+	//  When tree item changing, init the runtime data of DatabaseSupplier object .
+	treeViewAdapter->initDatabaseSupplier();
+
 	CTreeItem treeItem = treeViewAdapter->getSeletedItem();
 	int nImage = -1, nSeletedImage = -1;
 	bool ret = treeItem.GetImage(nImage, nSeletedImage);
@@ -451,13 +454,29 @@ LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL 
 		if (nImage == 0) { // 0 - database
 			databaseMenuAdapter->popupMenu(pt);
 		} else if (nImage == 2) { // 2 - table
-			tableMenuAdapter->popupMenu(pt);
-		} else if (nImage == 1) { // 1 - folder
+			tableMenuAdapter->popupMenu(pt); 
+		} else if (nImage == 3) { // 3 - field / column
+			tableMenuAdapter->popupColumnsMenu(pt, true);
+		} else if (nImage == 4) { // 4 - index
+			tableMenuAdapter->popupIndexesMenu(pt, true);
+		}  else if (nImage == 1) { // 1 - folder
 			CTreeItem pTreeItem = treeView.GetParentItem(selItem.m_hTreeItem);
 			int npImage = -1, npSelImage = -1;
 			bool ret = pTreeItem.GetImage(npImage, npSelImage);
-			if (npImage == 0) { // 0 - database
+			wchar_t * cch = nullptr;
+			std::wstring folder;
+			selItem.GetText(cch);
+			if (cch) {
+				folder.assign(cch);
+			}
+			::SysFreeString(cch);
+
+			if (npImage == 0) { // 0 - parent is database
 				databaseMenuAdapter->popupMenu(pt);
+			} else if (npImage == 2 && folder == S(L"columns")) { // 2 - parent is table
+				tableMenuAdapter->popupColumnsMenu(pt, false);
+			} else if (npImage == 2 && folder == S(L"indexes")) { // 2 - parent is table
+				tableMenuAdapter->popupIndexesMenu(pt, false);
 			}
 		}
 	}
@@ -469,7 +488,7 @@ LRESULT LeftTreeView::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND h
 	int nSelItem = selectedDbComboBox.GetCurSel();
 	uint64_t userDbId = static_cast<uint64_t>(selectedDbComboBox.GetItemData(nSelItem));
 
-	treeViewAdapter->selectItem(userDbId);
+	treeViewAdapter->selectDbTreeItem(userDbId);
 
 	// set main caption text, such as "CuteSqlite - f:\path1\path2\xxx.db"
 	std::wstring caption = AppContext::getInstance()->getMainFrmCaption();
@@ -552,6 +571,21 @@ void LeftTreeView::OnClickManageForeignKeyMenu(UINT uNotifyCode, int nID, HWND h
 void LeftTreeView::OnClickPropertiesMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	tableMenuAdapter->showProperties();
+}
+
+void LeftTreeView::OnClickManageColumnsMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->manageColumn();
+}
+
+void LeftTreeView::OnClickDropColumnMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->dropColumn();
+}
+
+void LeftTreeView::OnClickDropIndexMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	tableMenuAdapter->dropIndex();
 }
 
 void LeftTreeView::OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
@@ -681,7 +715,7 @@ void LeftTreeView::doRefreshDatabase()
 
 void LeftTreeView::doDeleteDatabase()
 {
-	treeViewAdapter->removeSeletedItem();
+	treeViewAdapter->removeSeletedDbTreeItem();
 	loadComboBox();
 }
 

@@ -24,40 +24,32 @@
 class DatabaseSupplier
 {
 public:
-	// TabView page type 
-	typedef enum {
-		QUERY_PAGE,
-		HISTORY_PAGE,
-		RESULT_PAGE,
-		INFO_PAGE,
-		TABLE_DATA_PAGE,		
-		TABLE_PAGE,
-		VIEW_PAGE,
-		TRIGGER_PAGE
-	} TabPageType;
-
-	
 	DatabaseSupplier();
 	~DatabaseSupplier() {}
 
 	static DatabaseSupplier * getInstance();
 
-	
-
-	// -----------------------------------
-	// rumtime data
-	// -----------------------------------
+	// -------------------------------------------
+	// singleton runtime data for multiple view
+	// -------------------------------------------
 	// selected user db id
 	uint64_t selectedUserDbId = 0;
+	// selected schema
+	std::wstring selectedSchema;
+	// selected table name
+	std::wstring selectedTable;
+	// selected table column name
+	std::wstring selectedColumn;
+	// selected table index name
+	std::wstring selectedIndexName;
+	// selected database trigger name
+	std::wstring selectedTriggerName;
+	// selected database view name
+	std::wstring selectedViewName;
+	// -------------------------------------------
 
 	HWND activeTabPageHwnd = nullptr;
 	
-	// selected schema
-	std::wstring selectedSchema;
-
-	// selected table name
-	std::wstring selectedTable;
-
 	// New view name	
 	std::wstring newViewName;
 	std::wstring newTriggerName;

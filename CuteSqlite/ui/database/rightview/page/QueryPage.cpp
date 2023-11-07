@@ -254,10 +254,6 @@ LRESULT QueryPage::OnClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	}
 
 	std::wstring selItemText(cch);
-	if (nImage == 2) { // 2 - table
-		databaseSupplier->selectedTable = selItemText;
-	} 
-
 	if (resultTabView.isActiveTableDataPage()  // 1.TableDataPage must be active
 		&& databaseSupplier->activeTabPageHwnd == m_hWnd  // 2.This QueryPage must be active
 		&& !databaseSupplier->selectedTable.empty() // 3.supplier->selectTable must not empty
