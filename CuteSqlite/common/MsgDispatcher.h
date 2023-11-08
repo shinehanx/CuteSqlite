@@ -18,8 +18,10 @@ public:
 	MsgDispatcher();
 	~MsgDispatcher();
 
-	// 消息分发
+	// 消息分发(无返回)
 	void dispatch(UINT msgId, WPARAM wParam = NULL, LPARAM lParam = NULL);
+	// 消息分发(有返回)
+	LRESULT dispatchForResponse(UINT msgId, WPARAM wParam = NULL, LPARAM lParam = NULL);
 
 	// 消息订阅
 	void subscribe(HWND hwnd, UINT msgId);

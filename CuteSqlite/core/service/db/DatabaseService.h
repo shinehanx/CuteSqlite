@@ -44,6 +44,8 @@ public:
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserView getUserView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
+	void dropView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
+	void dropTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema = std::wstring());
 
 	// user triggers operations
 	UserTriggerList getUserTriggers(uint64_t userDbId, const std::wstring & schema = std::wstring());

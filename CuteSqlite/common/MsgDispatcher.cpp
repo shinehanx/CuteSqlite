@@ -14,7 +14,7 @@ MsgDispatcher::~MsgDispatcher()
 }
 
 /**
- * 分发消息.
+ * 分发消息(无返回).
  * 
  * @param msgId 消息ID
  * @param wParam 参数1
@@ -31,6 +31,27 @@ void MsgDispatcher::dispatch(UINT msgId, WPARAM wParam, LPARAM lParam)
 		::PostMessage(hwnd, msgId, wParam, lParam);
 	});
 	
+}
+
+/**
+ * 分发消息(有返回).
+ * 
+ * @param msgId 消息ID
+ * @param wParam 参数1
+ * @param lParam 参数2
+ */
+LRESULT MsgDispatcher::dispatchForResponse(UINT msgId, WPARAM wParam /*= NULL*/, LPARAM lParam /*= NULL*/)
+{
+	if (msgMap.empty() || msgMap.find(msgId) == msgMap.end()) {
+		return 0;
+	}
+
+	HWNDLIST & hwndList = msgMap.at(msgId);
+	LRESULT result = 0;
+	std::for_each(hwndList.begin(), hwndList.end(), [&msgId, &wParam, &lParam, &result](HWND hwnd) {
+		result = ::SendMessage(hwnd, msgId, wParam, lParam);
+	});
+	return result;
 }
 
 /**

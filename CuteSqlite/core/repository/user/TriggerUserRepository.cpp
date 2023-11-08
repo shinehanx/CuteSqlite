@@ -21,6 +21,7 @@
 #include "TriggerUserRepository.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 UserTriggerList TriggerUserRepository::getListByUserDbId(uint64_t userDbId, const std::wstring & schema)
 {
@@ -73,6 +74,26 @@ UserTrigger TriggerUserRepository::getTrigger(uint64_t userDbId, const std::wstr
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
 		throw QRuntimeException(L"200091", L"sorry, system has error when loading databases.");
+	}
+}
+
+void TriggerUserRepository::drop(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema /*= std::wstring()*/)
+{
+	std::wstring sql = L"DROP TRIGGER IF EXISTS ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".");
+	}
+	sql.append(L"\"").append(triggerName).append(L"\"");
+	
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"Execute sql has error:{}, msg:{}, SQL:{}", e.getErrorCode(), _err, sql);
+		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err, sql);
+		
+		throw ex;
 	}
 }
 

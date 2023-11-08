@@ -85,7 +85,7 @@ AppContext::~AppContext()
 }
 
 /**
- * 消息分发.
+ * 消息分发（无返回）.
  * 
  * @param msgId 消息ID
  * @param wParam 参数1
@@ -94,6 +94,18 @@ AppContext::~AppContext()
 void AppContext::dispatch(UINT msgId, WPARAM wParam, LPARAM lParam)
 {
 	msgDispatcher.dispatch(msgId, wParam, lParam);
+}
+
+/**
+ * 消息分发（有返回，等待完成）.
+ * 
+ * @param msgId 消息ID
+ * @param wParam 参数1
+ * @param lParam 参数2
+ */
+LRESULT AppContext::dispatchForResponse(UINT msgId, WPARAM wParam /*= NULL*/, LPARAM lParam /*= NULL*/)
+{
+	return msgDispatcher.dispatchForResponse(msgId, wParam, lParam);
 }
 
 /**

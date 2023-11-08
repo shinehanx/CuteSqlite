@@ -66,6 +66,15 @@ TableMenuAdapter::~TableMenuAdapter()
 	if (dropIndexIcon) ::DeleteObject(dropIndexIcon);
 }
 
+void TableMenuAdapter::initMenuInfo(HMENU hMenu)
+{
+	MENUINFO mi;
+	mi.cbSize = sizeof(MENUINFO);
+	mi.fMask = MIM_BACKGROUND | MIM_STYLE; 
+	mi.hbrBack = (HBRUSH)menuBrush;
+	mi.dwStyle = MNS_CHECKORBMP;
+	::SetMenuInfo(hMenu,&mi);
+}
 
 void TableMenuAdapter::createImageList()
 {
@@ -113,13 +122,7 @@ void TableMenuAdapter::createMenu()
 	menu.AppendMenu(MF_SEPARATOR);
 	menu.AppendMenu(MF_STRING, Config::TABLE_PROPERTIES_MENU_ID, S(L"properties").c_str());
 
-	
-	MENUINFO mi;
-	mi.cbSize = sizeof(MENUINFO);
-	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
-	mi.hbrBack = (HBRUSH)menuBrush;
-	mi.dwStyle = MNS_CHECKORBMP;
-	::SetMenuInfo((HMENU)(menu.m_hMenu),&mi);
+	initMenuInfo(menu.m_hMenu);
 
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_OPEN_MENU_ID, MF_BYCOMMAND, openTableIcon);
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::TABLE_CREATE_MENU_ID, MF_BYCOMMAND, createTableIcon);
@@ -145,12 +148,7 @@ void TableMenuAdapter::createColumnsMenu()
 	columnsMenu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_COLUMNS_MENU_ID, S(L"table-manage-columns").c_str()); 
 	columnsMenu.AppendMenu(MF_STRING, Config::TABLE_DROP_COLUMN_MENU_ID, S(L"table-drop-column").c_str());
 
-	MENUINFO mi;
-	mi.cbSize = sizeof(MENUINFO);
-	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
-	mi.hbrBack = (HBRUSH)menuBrush;
-	mi.dwStyle = MNS_CHECKORBMP;
-	::SetMenuInfo((HMENU)(columnsMenu.m_hMenu),&mi);
+	initMenuInfo(columnsMenu.m_hMenu);
 
 	MenuUtil::addIconToMenuItem(columnsMenu.m_hMenu, Config::TABLE_MANAGE_COLUMNS_MENU_ID, MF_BYCOMMAND, manageColumnsIcon);
 	MenuUtil::addIconToMenuItem(columnsMenu.m_hMenu, Config::TABLE_DROP_COLUMN_MENU_ID, MF_BYCOMMAND, dropColumnIcon); 
@@ -162,12 +160,7 @@ void TableMenuAdapter::createIndexesMenu()
 	indexesMenu.AppendMenu(MF_STRING, Config::TABLE_MANAGE_INDEX_MENU_ID, S(L"table-manage-indexes").c_str()); 
 	indexesMenu.AppendMenu(MF_STRING, Config::TABLE_DROP_INDEX_MENU_ID, S(L"table-drop-index").c_str());
 
-	MENUINFO mi;
-	mi.cbSize = sizeof(MENUINFO);
-	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
-	mi.hbrBack = (HBRUSH)menuBrush;
-	mi.dwStyle = MNS_CHECKORBMP;
-	::SetMenuInfo((HMENU)(indexesMenu.m_hMenu),&mi);
+	initMenuInfo(indexesMenu.m_hMenu);
 
 	MenuUtil::addIconToMenuItem(indexesMenu.m_hMenu, Config::TABLE_MANAGE_INDEX_MENU_ID, MF_BYCOMMAND, manageIndexesIcon);
 	MenuUtil::addIconToMenuItem(indexesMenu.m_hMenu, Config::TABLE_DROP_INDEX_MENU_ID, MF_BYCOMMAND, dropIndexIcon);
@@ -182,7 +175,10 @@ bool TableMenuAdapter::renameTable()
 	try {
 		tableService->renameTable(supplier->getSelectedUserDbId(), supplier->oldTableName, supplier->newTableName, supplier->selectedSchema);
 		QPopAnimate::success(S(L"rename-table-success-text"));
-		AppContext::getInstance()->dispatch(Config::MSG_RENAME_TABLE_ID, NULL, NULL);
+		if (AppContext::getInstance()->dispatchForResponse(Config::MSG_RENAME_TABLE_ID, NULL, NULL)) {
+			CTreeItem selItem = dataView->GetSelectedItem();
+			selItem.SetText(supplier->newTableName.c_str());
+		}
 		return true;
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
@@ -223,7 +219,10 @@ bool TableMenuAdapter::dropTable()
 	try {
 		tableService->dropTable(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
 		QPopAnimate::success(S(L"drop-table-success-text")); 
-		AppContext::getInstance()->dispatch(Config::MSG_DROP_TABLE_ID, NULL, NULL);
+		if (AppContext::getInstance()->dispatchForResponse(Config::MSG_DROP_TABLE_ID, NULL, NULL)) {
+			CTreeItem selItem = dataView->GetSelectedItem();
+			dataView->DeleteItem(selItem.m_hTreeItem);
+		}
 		return true;
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);

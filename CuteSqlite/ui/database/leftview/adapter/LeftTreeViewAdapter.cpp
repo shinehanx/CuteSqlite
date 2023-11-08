@@ -496,9 +496,11 @@ void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hColumnsFolderItem, ui
 void LeftTreeViewAdapter::loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
-		UserIndexList list = tableService->getUserIndexes(userDbId, userTable.name);
-		for (UserTable item : list) {
-			dataView->InsertItem(item.name.c_str(), 4, 4, hIndexesFolderItem, TVI_LAST);
+		IndexInfoList list = tableService->getIndexInfoList(userDbId, userTable.name);
+		for (IndexInfo & item : list) {
+			std::wstring name = !item.name.empty() ? item.name
+				: item.type + L"(" + item.columns + L")";
+			dataView->InsertItem(name.c_str(), 4, 4, hIndexesFolderItem, TVI_LAST);
 		}
 	}
 	catch (QRuntimeException &ex) {
@@ -538,8 +540,9 @@ void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
 		loadTablesForTreeView(hTablesFolderItem, userDb);
 		loadViewsForTreeView(hViewsFolderItem, userDb);
 		loadTriggersForTreeView(hTriggersFolderItem, userDb);
-
+				
 		dataView->Expand(hTablesFolderItem);
+		dataView->SelectItem(hSelTreeItem);
 	} else if (nImage == 2) { // 2- tables
 		UserTable userTable;
 		wchar_t * cch = nullptr;
@@ -567,7 +570,9 @@ void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
 		
 		loadColumsForTreeView(hColumnsFolderItem, userDbId, userTable);		
 		loadIndexesForTreeView(hIndexesFolderItem, userDbId, userTable);
+		
 		dataView->Expand(hColumnsFolderItem);
 		dataView->Expand(hIndexesFolderItem);
+		dataView->SelectItem(hSelTreeItem);
 	}
 }

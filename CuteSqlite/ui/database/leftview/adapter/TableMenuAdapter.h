@@ -35,7 +35,6 @@ public:
 	void popupColumnsMenu(CPoint & pt, bool isColumnItem);
 	void popupIndexesMenu(CPoint & pt, bool isIndexItem);
 
-
 	void openTable();
 	bool renameTable();
 	bool truncateTable();
@@ -79,6 +78,7 @@ private:
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	TableService * tableService = TableService::getInstance();
 
+	void initMenuInfo(HMENU hMenu);
 	void createImageList();
 	void createMenu();
 	void createColumnsMenu();

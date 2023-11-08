@@ -21,6 +21,7 @@
 #include "ViewUserRepository.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId, const std::wstring & schema)
 {
@@ -73,6 +74,26 @@ UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & vie
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
 		throw QRuntimeException(L"200101", L"sorry, system has error when loading databases.");
+	}
+}
+
+void ViewUserRepository::drop(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema /*= std::wstring()*/)
+{
+	std::wstring sql = L"DROP VIEW IF EXISTS ";
+	if (!schema.empty() && schema != L"main") {
+		sql.append(L"\"").append(schema).append(L"\".");
+	}
+	sql.append(L"\"").append(viewName).append(L"\"");
+	
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"Execute sql has error:{}, msg:{}, SQL:{}", e.getErrorCode(), _err, sql);
+		QSqlExecuteException ex(std::to_wstring(e.getErrorCode()), _err, sql);
+		
+		throw ex;
 	}
 }
 

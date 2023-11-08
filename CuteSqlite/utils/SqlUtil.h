@@ -85,9 +85,9 @@ public:
 	static std::wstring replaceNumOfSuffixInTblName(const std::wstring & tblName, const std::wstring & after);
 private:
 	static IndexInfo parseConstraintFromLine(const std::wstring& line);
-	static IndexInfo parseLineToPrimaryKey(const std::wstring& line);
-	static IndexInfo parseLineToUnique(const std::wstring& line);
-	static IndexInfo parseLineToCheck(const std::wstring& line);
+	static IndexInfo parseLineToPrimaryKey(const std::wstring& line, bool isConstaintLine = true);
+	static IndexInfo parseLineToUnique(const std::wstring& line, bool isConstaintLine = true);
+	static IndexInfo parseLineToCheck(const std::wstring& line, bool isConstaintLine = true);
 	static std::pair<std::wstring, uint8_t> getColumnAndAiByPrimaryKeyLine(const std::wstring &line);
 	static std::wstring getColumnsByUniqueLine(const std::wstring &line);
 	static std::wstring getExpressionByCheckLine(const std::wstring &line);

@@ -127,15 +127,18 @@ void TableColumnsPage::loadWindow()
 	QPage::loadWindow();
 
 	if (!isNeedReload) {
+		adapter->selectListViewItemForDelete();
 		return;
 	}
 	isNeedReload = false;	
 	loadListView();
+	adapter->selectListViewItemForDelete();
 }
 
 void TableColumnsPage::loadListView()
 {
 	rowCount = adapter->loadTblColumnsListView();
+	
 }
 
 int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)

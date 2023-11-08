@@ -377,7 +377,7 @@ LRESULT LeftTreeView::OnExpendingTreeViewItem(int wParam, LPNMHDR lParam, BOOL& 
 {
 	auto ptr = (LPNMTREEVIEW)lParam;
 	treeViewAdapter->expandTreeItem(ptr);
-	
+	bHandled = true;
 	return 0;
 }
 
@@ -459,6 +459,10 @@ LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL 
 			tableMenuAdapter->popupColumnsMenu(pt, true);
 		} else if (nImage == 4) { // 4 - index
 			tableMenuAdapter->popupIndexesMenu(pt, true);
+		} else if (nImage == 5) { // 5 - view
+			databaseMenuAdapter->popupViewsMenu(pt, true);
+		} else if (nImage == 6) { // 6 - trigger
+			databaseMenuAdapter->popupTriggersMenu(pt, true);
 		}  else if (nImage == 1) { // 1 - folder
 			CTreeItem pTreeItem = treeView.GetParentItem(selItem.m_hTreeItem);
 			int npImage = -1, npSelImage = -1;
@@ -471,11 +475,15 @@ LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL 
 			}
 			::SysFreeString(cch);
 
-			if (npImage == 0) { // 0 - parent is database
+			if (npImage == 0 && folder == S(L"tables")) { // 0 - parent is database,  folder="Tables"
 				databaseMenuAdapter->popupMenu(pt);
-			} else if (npImage == 2 && folder == S(L"columns")) { // 2 - parent is table
+			} else if (npImage == 0 && folder == S(L"views")) { // 0 - parent is database,  folder="Views"
+				databaseMenuAdapter->popupViewsMenu(pt, false);
+			} else if (npImage == 0 && folder == S(L"triggers")) { // 0 - parent is database,  folder="Trigger"
+				databaseMenuAdapter->popupTriggersMenu(pt, false);
+			} else if (npImage == 2 && folder == S(L"columns")) { // 2 - parent is table,  folder="Columns"
 				tableMenuAdapter->popupColumnsMenu(pt, false);
-			} else if (npImage == 2 && folder == S(L"indexes")) { // 2 - parent is table
+			} else if (npImage == 2 && folder == S(L"indexes")) { // 2 - parent is table,  folder="Indexes"
 				tableMenuAdapter->popupIndexesMenu(pt, false);
 			}
 		}
@@ -598,6 +606,26 @@ void LeftTreeView::OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
 	doNewTrigger();
 }
 
+void LeftTreeView::OnClickOpenViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_OPEN_VIEW_ID, NULL, NULL);
+}
+
+void LeftTreeView::OnClickDropViewMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	databaseMenuAdapter->dropView();
+}
+
+void LeftTreeView::OnClickOpenTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_OPEN_TRIGGER_ID, NULL, NULL);
+}
+
+void LeftTreeView::OnClickDropTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	databaseMenuAdapter->dropTrigger();
+}
+
 void LeftTreeView::OnClickNewTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	doNewTable();
@@ -610,23 +638,17 @@ void LeftTreeView::OnClickAlterTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 
 void LeftTreeView::OnClickRenameTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	if (tableMenuAdapter->renameTable()) {
-		doRefreshDatabase();
-	}
+	tableMenuAdapter->renameTable();
 }
 
 void LeftTreeView::OnClickTruncateTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	if (tableMenuAdapter->truncateTable()) {
-		doRefreshDatabase();
-	}
+	tableMenuAdapter->truncateTable();
 }
 
 void LeftTreeView::OnClickDropTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	if (tableMenuAdapter->dropTable()) {
-		doRefreshDatabase();
-	}
+	tableMenuAdapter->dropTable();
 }
 
 void LeftTreeView::OnClickCopyTableMenu(UINT uNotifyCode, int nID, HWND hwnd)

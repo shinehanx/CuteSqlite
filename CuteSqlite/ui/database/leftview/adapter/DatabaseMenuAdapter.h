@@ -32,6 +32,11 @@ public:
 	~DatabaseMenuAdapter();
 
 	void popupMenu(CPoint & pt);
+	void popupViewsMenu(CPoint & pt, bool isViewItem);
+	void popupTriggersMenu(CPoint & pt, bool isViewItem);
+
+	bool dropView();
+	bool dropTrigger();
 private:
 	CBrush menuBrush ;
 	HICON createDatabaseIcon = nullptr;
@@ -46,9 +51,24 @@ private:
 	HICON newViewIcon = nullptr;
 	HICON newTriggerIcon = nullptr;
 
+	HICON openViewIcon = nullptr;
+	HICON dropViewIcon = nullptr;
+
+	HICON openTriggerIcon = nullptr;
+	HICON dropTriggerIcon = nullptr;
+
 	CMenu menu;
 	CMenu newSubMenu;
+	CMenu viewsMenu;
+	CMenu triggersMenu;
+
+	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
+	DatabaseService * databaseService = DatabaseService::getInstance();
+
 	void createImageList();
+	void initMenuInfo(HMENU hMenu);
 
 	void createMenu();
+	void createViewsMenu();
+	void createTriggersMenu();
 };

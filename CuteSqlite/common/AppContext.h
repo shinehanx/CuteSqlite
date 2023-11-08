@@ -31,8 +31,10 @@ public:
 	void set(std::wstring k, std::wstring v);
 	void set(std::wstring k, int v);
 
-	// 消息分发
+	// 消息分发(无返回)
 	void dispatch(UINT msgId, WPARAM wParam = NULL, LPARAM lParam = NULL);
+	// 消息分发(有返回，等待完成)
+	LRESULT dispatchForResponse(UINT msgId, WPARAM wParam = NULL, LPARAM lParam = NULL);
 
 	// 消息订阅
 	void subscribe(HWND hwnd, UINT msgId);

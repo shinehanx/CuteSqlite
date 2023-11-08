@@ -25,6 +25,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QMessageBox.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "utils/Log.h"
 
 TableColumnsPageAdapter::TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
@@ -99,6 +100,8 @@ int TableColumnsPageAdapter::loadColumnRowsForListView(uint64_t userDbId, const 
 	supplier->setColsOrigDatas(colsRuntimeDatas);
 	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
 	dataView->SetItemCount(n);
+
+	Q_DEBUG(L"column_rows_count£º{}", n);
 	return n;
 }
 
@@ -413,6 +416,8 @@ bool TableColumnsPageAdapter::verifyExistsAutoIncrement()
 /**
  * Fill the item and subitem data value of list view .
  * 
+ * @notice - Don't handle any other control elements but fill data for subitem in list view
+ * 
  * @param pLvdi
  * @return 
  */
@@ -457,11 +462,6 @@ LRESULT TableColumnsPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	} else if (pLvdi->item.iSubItem == 1 && pLvdi->item.mask & LVIF_TEXT){ // column name - 1
 		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).name;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
-		if (supplier->getRuntimeUserDbId() == databaseSupplier->getSelectedUserDbId()
-			&& supplier->getRuntimeTblName() == databaseSupplier->selectedTable
-			&& val == databaseSupplier->selectedColumn) {
-			dataView->SelectItem(iItem);
-		}
 	} else if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT){ // default value - 7
 		std::wstring & val = supplier->getColsRuntimeDatas().at(pLvdi->item.iItem).defVal;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
@@ -765,6 +765,26 @@ bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstrin
 		return true;
 	}
 	return false;
+}
+
+
+void TableColumnsPageAdapter::selectListViewItemForDelete()
+{
+	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
+	int n = static_cast<int>(colsRuntimeDatas.size());
+	// check if send the message of delete columns from LeftTreeView, then select the associated row from this list view
+	if (n > 0 && !databaseSupplier->selectedColumn.empty() 
+		&& supplier->getRuntimeUserDbId() == databaseSupplier->getSelectedUserDbId()
+		&& supplier->getRuntimeTblName() == databaseSupplier->selectedTable) {
+		int i = 0;
+		for (int i = 0; i < n; i++) {
+			auto & item = colsRuntimeDatas.at(i);
+			if (item.name == databaseSupplier->selectedColumn) {
+				dataView->SelectItem(i);
+				break;
+			}
+		}		
+	}
 }
 
 /**

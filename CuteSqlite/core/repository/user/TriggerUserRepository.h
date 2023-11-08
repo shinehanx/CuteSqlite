@@ -29,6 +29,7 @@ public:
 
 	UserTriggerList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserTrigger getTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema = std::wstring());
+	void drop(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema= std::wstring());
 private:
 	UserTrigger toUserTrigger(QSqlStatement &query);
 };

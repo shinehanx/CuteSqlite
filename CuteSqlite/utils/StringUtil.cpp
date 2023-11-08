@@ -321,20 +321,20 @@ std::vector<std::wstring> StringUtil::split(std::wstring str, const std::wstring
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str += pattern; // 扩展字符串以方便操作
-	int size = static_cast<int>(str.size());
-	for (int i = 0; i < size; i++) {
+	size_t size = str.size();
+	for (size_t i = 0; i < size; i++) {
 		pos = str.find(pattern, i);
 		if (pos < size) {
 			std::wstring s = str.substr(i, pos - i);
 			if (s.empty()) {
-				i = static_cast<int>(pos + pattern.size()) - 1;
+				i = pos + pattern.size() - 1;
 				continue;
 			}
 			if (bTrim && !s.empty()) {
 				StringUtil::trim(s);
 			}
 			result.push_back(s);
-			i = static_cast<int>(pos + pattern.size()) - 1;
+			i = pos + pattern.size() - 1;
 		}
 	}
 	return result;
@@ -353,13 +353,13 @@ std::vector<std::wstring> StringUtil::splitCutEnclose(std::wstring str, const st
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str += pattern; // 扩展字符串以方便操作
-	int size = static_cast<int>(str.size());
-	for (int i = 0; i < size; i++) {
+	size_t size = str.size();
+	for (size_t i = 0; i < size; i++) {
 		pos = str.find(pattern, i);
 		if (pos < size) {
 			std::wstring s = str.substr(i, pos - i);
 			if (s.empty()) {
-				i = static_cast<int>(pos + pattern.size()) - 1;
+				i = pos + pattern.size() - 1;
 				continue;
 			}
 			
@@ -375,7 +375,32 @@ std::vector<std::wstring> StringUtil::splitCutEnclose(std::wstring str, const st
 				StringUtil::trim(s);
 			}
 			result.push_back(s);
-			i = static_cast<int>(pos + pattern.size()) - 1;
+			i = pos + pattern.size() - 1;
+		}
+	}
+	return result;
+}
+
+
+std::vector<std::wstring> StringUtil::splitByBlank(std::wstring str, bool bTrim /*= true*/)
+{
+	std::wstring::size_type pos;
+	std::vector<std::wstring> result;
+	str.append(L" ");
+	size_t size = str.size();
+	for (size_t i = 0; i < size; i++) {
+		pos = str.find_first_of(L" \n\t\v\r\f", i);
+		if (pos < size) {
+			std::wstring s = str.substr(i, pos - i);
+			if (s.empty()) {
+				i = pos ;
+				continue;
+			}
+			if (bTrim && !s.empty()) {
+				StringUtil::trim(s);
+			}
+			result.push_back(s);
+			i = pos ;
 		}
 	}
 	return result;

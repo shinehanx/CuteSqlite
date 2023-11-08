@@ -72,6 +72,14 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_VIEW_MENU_ID, OnClickNewViewMenu)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_NEW_TRIGGER_MENU_ID, OnClickNewTriggerMenu)
 
+		// view menus
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_VIEW_MENU_ID, OnClickOpenViewMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_DROP_VIEW_MENU_ID, OnClickDropViewMenu)
+
+		// trigger menus
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_OPEN_TRIGGER_MENU_ID, OnClickOpenTriggerMenu)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_DROP_TRIGGER_MENU_ID, OnClickDropTriggerMenu)
+
 		// table menus
 		COMMAND_ID_HANDLER_EX(Config::TABLE_OPEN_MENU_ID, OnClickOpenTableMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_CREATE_MENU_ID, OnClickNewTableMenu)
@@ -185,6 +193,14 @@ private:
 
 	void OnClickNewViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickNewTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// view menus
+	void OnClickOpenViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropViewMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
+	// trigger menus
+	void OnClickOpenTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropTriggerMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	
 	// table menus
 	void OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd);

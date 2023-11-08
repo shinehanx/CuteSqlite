@@ -97,7 +97,7 @@ LRESULT QMessageBox::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 	noButton.SetFontColors(RGB(0,0,0), RGB(0x12,0x96,0xdb), RGB(153,153,153));
 	noButton.SetFont(btnFont);
 
-	SetTimer(Config::MSG_TIMER_MOVE_ID, 10, NULL);  
+	SetTimer(Config::MSG_TIMER_MOVE_ID, 10, NULL);
 	return 0;
 }
 

@@ -64,6 +64,8 @@ public:
 	bool changeListViewCheckBox(int iItem, int iSubItem);
 
 	bool existsColumnNameInRuntimeIndexes(const std::wstring & columnName);
+
+	void selectListViewItemForDelete();
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();

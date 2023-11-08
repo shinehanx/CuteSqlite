@@ -182,6 +182,18 @@ UserView DatabaseService::getUserView(uint64_t userDbId, const std::wstring & vi
 	return viewUserRepository->getView(userDbId, viewName, schema);
 }
 
+void DatabaseService::dropView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !viewName.empty());
+	viewUserRepository->drop(userDbId, viewName, schema);
+}
+
+void DatabaseService::dropTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema /*= std::wstring()*/)
+{
+	ATLASSERT(userDbId > 0 && !triggerName.empty());
+	triggerUserRepository->drop(userDbId, triggerName, schema);
+}
+
 UserTriggerList DatabaseService::getUserTriggers(uint64_t userDbId, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0);

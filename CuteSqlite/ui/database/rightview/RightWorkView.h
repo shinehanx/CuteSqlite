@@ -67,7 +67,11 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
+		MESSAGE_HANDLER(Config::MSG_OPEN_VIEW_ID, OnClickOpenViewElem)
+		MESSAGE_HANDLER(Config::MSG_DROP_VIEW_ID, OnClickDropViewElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_TRIGGER_ID, OnClickNewTriggerElem)
+		MESSAGE_HANDLER(Config::MSG_OPEN_TRIGGER_ID, OnClickOpenTriggerElem)
+		MESSAGE_HANDLER(Config::MSG_DROP_TRIGGER_ID, OnClickDropTriggerElem)
 		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
 		MESSAGE_HANDLER(Config::MSG_SHOW_TABLE_DATA_ID, OnShowTableData)
 		MESSAGE_HANDLER(Config::MSG_ALTER_TABLE_ID, OnClickAlterTableElem)
@@ -104,7 +108,7 @@ private:
 	HICON tableDataIcon = nullptr;
 
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
-	
+	DatabaseService * databaseService = DatabaseService::getInstance();
 	
 	void createImageList();
 
@@ -138,6 +142,15 @@ private:
 	LRESULT OnClickNewViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	// Click "New trigger" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 	LRESULT OnClickNewTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	// Click "Open View" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickOpenViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Click "Drop View" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickDropViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Click "Open Trigger" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickOpenTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// Click "Drop Trigger" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
+	LRESULT OnClickDropTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
 	// Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	LRESULT OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

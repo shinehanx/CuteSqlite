@@ -40,6 +40,7 @@
 #include "ui/common/QWinCreater.h"
 #include "ui/database/rightview//page/dialog/ViewDialog.h"
 #include "ui/database/rightview//page/dialog/TriggerDialog.h"
+#include <ui/common/message/QPopAnimate.h>
 
 
 #define RIGHTVIEW_TOPBAR_HEIGHT 30
@@ -223,7 +224,11 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_OPEN_VIEW_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_VIEW_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_OPEN_TRIGGER_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_TRIGGER_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
@@ -246,7 +251,11 @@ int RightWorkView::OnDestroy()
 {
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_OPEN_VIEW_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_VIEW_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_OPEN_TRIGGER_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_TRIGGER_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
@@ -441,6 +450,148 @@ LRESULT RightWorkView::OnClickNewTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lP
 {
 	doAddNewTrigger();
 	return 0;
+}
+
+LRESULT RightWorkView::OnClickOpenViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	UserView userView = databaseService->getUserView(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedViewName);
+	if (userView.name.empty()) {
+		QPopAnimate::error(E(L"200004"));
+		return 0;
+	}
+	std::wstring & content = userView.sql;
+	CRect clientRect;
+	GetClientRect(clientRect);
+
+	QueryPage * newViewPage = new QueryPage();
+	newViewPage->setup(MODIFY_VIEW, content);
+	createOrShowQueryPage(*newViewPage, clientRect);
+	queryPagePtrs.push_back(newViewPage);
+
+	// nImage = 3 : view 
+	std::wstring name = L"[View]";
+	name.append(userView.name);
+	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(name).c_str(), 3, newViewPage);
+	databaseSupplier->activeTabPageHwnd = newViewPage->m_hWnd;
+
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickDropViewElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int n = tabView.GetPageCount();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	std::wstring viewName =  L"[View]" + databaseSupplier->selectedViewName;
+	std::stack<int> delPageStack;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);
+		// same name
+		if (pageTitle != viewName) {
+			continue;
+		}
+		// query page has properties of TABLE_DATA and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == MODIFY_VIEW 
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				page->DestroyWindow();
+				delete page;
+				page = nullptr;
+				return true;
+			}
+			return false;
+		});
+
+		// reload table data
+		if (iter != queryPagePtrs.end()) {
+			queryPagePtrs.erase(iter);
+			delPageStack.push(i);
+			continue;
+		}
+	}
+
+	while (!delPageStack.empty()) {
+		int nPage = delPageStack.top();
+		delPageStack.pop();
+		tabView.RemovePage(nPage);
+	}
+	bHandled = 1;
+	return 1;
+}
+
+LRESULT RightWorkView::OnClickOpenTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	UserTrigger userTrigger = databaseService->getUserTrigger(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedTriggerName);
+	if (userTrigger.name.empty()) {
+		QPopAnimate::error(E(L"200004"));
+		return 0;
+	}
+	std::wstring & content = userTrigger.sql;
+	CRect clientRect;
+	GetClientRect(clientRect);
+
+	QueryPage * newViewPage = new QueryPage();
+	newViewPage->setup(MODIFY_TRIGGER, content);
+	createOrShowQueryPage(*newViewPage, clientRect);
+	queryPagePtrs.push_back(newViewPage);
+
+	// nImage = 4 : trigger 
+	std::wstring name = L"[Trigger]";
+	name.append(userTrigger.name);
+	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(name).c_str(), 4, newViewPage);
+	databaseSupplier->activeTabPageHwnd = newViewPage->m_hWnd;
+
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickDropTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int n = tabView.GetPageCount();
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	std::wstring & triggerName = databaseSupplier->selectedTriggerName;
+	std::wstring vname = L"[Trigger]" + triggerName;
+	std::stack<int> delPageStack;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring pageTitle = tabView.GetPageTitle(i);
+		StringUtil::trim(pageTitle);		
+		// same name
+		if (pageTitle != vname) {
+			continue;
+		}
+		// query page has properties of MODIFY_TRIGGER and  same user db id
+		auto iter = std::find_if(queryPagePtrs.begin(), queryPagePtrs.end(), [&pageHwnd, &userDbId](QueryPage * page) {
+			if (page && page->IsWindow() 
+				&& page->m_hWnd == pageHwnd 
+				&& page->getSupplier()->getOperateType() == MODIFY_TRIGGER
+				&& page->getSupplier()->getRuntimeUserDbId() == userDbId) {
+				page->DestroyWindow();
+				delete page;
+				page = nullptr;
+				return true;
+			}
+			return false;
+		});
+
+		// erase from queryPagePtrs
+		if (iter != queryPagePtrs.end()) {
+			queryPagePtrs.erase(iter);
+			delPageStack.push(i);
+			continue;
+		}
+	}
+
+	// erase from tabView pages
+	while (!delPageStack.empty()) {
+		int nPage = delPageStack.top();
+		delPageStack.pop();
+		tabView.RemovePage(nPage);
+	}
+	bHandled = 1;
+	return 1;
 }
 
 void RightWorkView::doAddNewTrigger()
@@ -670,7 +821,8 @@ LRESULT RightWorkView::OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lPara
 			(*iter2)->renameTable(oldTableName, newTableName);
 		}
 	}
-	return 0;
+	bHandled = 1;
+	return 1;
 }
 
 LRESULT RightWorkView::OnClickRrefreshSameTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -740,7 +892,8 @@ LRESULT RightWorkView::OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam,
 		delPageStack.pop();
 		tabView.RemovePage(nPage);
 	}
-	return 0;
+	bHandled = 1;
+	return 1;
 }
 
 LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)

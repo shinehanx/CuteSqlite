@@ -462,7 +462,13 @@ IndexInfoList SqlUtil::parseConstraints(const std::wstring & createTblSql)
 		if (indexInfo.columns.empty()) {
 			continue;
 		}
-		result.push_back(indexInfo);
+		// Get rid of the duplicated indexes
+		auto iter = std::find_if(result.begin(), result.end(), [&indexInfo](IndexInfo & item) {
+			return item.type == indexInfo.type && item.columns == indexInfo.columns;
+		});
+		if (iter == result.end()) {
+			result.push_back(indexInfo);
+		}		
 	}
 	return result;
 }
@@ -492,7 +498,7 @@ IndexInfo SqlUtil::parseConstraintsForPrimaryKey(const std::wstring & createTblS
 	for (auto & line : lineList) {
 		std::wstring upline = StringUtil::toupper(line);
 		if (upline.find(L"PRIMARY") != std::wstring::npos) {
-			return SqlUtil::parseLineToPrimaryKey(line);
+			return SqlUtil::parseLineToPrimaryKey(line, true);
 		}		
 	}
 	return IndexInfo();
@@ -583,86 +589,127 @@ IndexInfo SqlUtil::parseConstraintFromLine(const std::wstring& line)
 	IndexInfo result;
 	std::wstring upline = StringUtil::toupper(line);
 	if (upline.find(L"PRIMARY") != std::wstring::npos) {
-		return SqlUtil::parseLineToPrimaryKey(line);
+		IndexInfo indexInfo = SqlUtil::parseLineToPrimaryKey(line, true); // from constrain only
+		if (indexInfo.name.empty() && indexInfo.type.empty()) {
+			indexInfo = SqlUtil::parseLineToPrimaryKey(line, false); // from column only
+		}
+		return indexInfo;
 	}
 	if (upline.find(L"UNIQUE") != std::wstring::npos) {
-		return SqlUtil::parseLineToUnique(line);
+		return SqlUtil::parseLineToUnique(line, true);
 	}
 
 	if (upline.find(L"CHECK") != std::wstring::npos) {
-		return SqlUtil::parseLineToCheck(line);
+		return SqlUtil::parseLineToCheck(line, true);
 	}
 	return result;
 }
 
-IndexInfo SqlUtil::parseLineToPrimaryKey(const std::wstring& line)
+/**
+ * Parse the primary key line, you can parse the column line or the constraint line through specified isConstainLine.
+ * 
+ * @param line
+ * @param isConstaintLine - true : parse the constraint line only, false : parse the column line only
+ * @return 
+ */
+IndexInfo SqlUtil::parseLineToPrimaryKey(const std::wstring& line, bool isConstaintLine)
 {
 	if (line.empty()) {
 		return IndexInfo();
 	}
-	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
+	std::vector<std::wstring> words = StringUtil::splitByBlank(line, true);
 	if (words.empty()) {
 		return IndexInfo();
 	}
 
 	IndexInfo result;
 	std::wstring first = StringUtil::toupper(words.at(0));
-	if (first == L"CONSTRAINT") {
+	if (isConstaintLine && first == L"CONSTRAINT") {
 		// such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
 		result.name = StringUtil::cutParensAndQuotes(words.at(1));
 	} 
 	
 	bool isFound = false;
-	if ((first == L"PRIMARY") // such as : Primary Key("id" AUTOINCREMENT)
-		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"PRIMARY")){ // such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
+	if (isConstaintLine) { // parse the constraint line only
+		if ((first == L"PRIMARY" || first.find(L"PRIMARY") == 0) // such as : Primary Key("id" AUTOINCREMENT)
+			|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"PRIMARY")){ // such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
+			result.type = L"Primary Key";
+			result.pk = 1;
+			auto pair = getColumnAndAiByPrimaryKeyLine(line);
+			if (pair.first.empty()) {
+				return IndexInfo();
+			}
+			result.columns = pair.first;
+			result.ai = pair.second;
+			isFound = true;
+		} else {
+			return IndexInfo();
+		}
+	} else { // parse the column line only
+		std::wstring upline = StringUtil::toupper(line);		
+		// the column line contains PRIMARY KEY, such as : "id" INTEGER NOT NULL PRIMARY KEY
+		result.columns = StringUtil::cutParensAndQuotes(words.at(0));
 		result.type = L"Primary Key";
 		result.pk = 1;
-		auto pair = getColumnAndAiByPrimaryKeyLine(line);
-		if (pair.first.empty()) {
-			return IndexInfo();
+		if (upline.find(L"AUTOINCREMENT") != std::wstring::npos) {
+			result.ai = 1;
 		}
-		result.columns = pair.first;
-		result.ai = pair.second;
-		isFound = true;
-	} else {
-		return IndexInfo();
-	}
-
-	result.sql = line;
-	result.seq = std::chrono::system_clock::now();
-	return result;
-
-}
-
-
-IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line)
-{
-	if (line.empty()) {
-		return IndexInfo();
-	}
-	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
-	if (words.empty()) {
-		return IndexInfo();
-	}
-
-	IndexInfo result;
-	std::wstring first = StringUtil::toupper(words.at(0));
-	if (first == L"CONSTRAINT") {
-		// such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
-		result.name = StringUtil::cutParensAndQuotes(words.at(1));
 	}
 	
-	if ( (first == L"UNIQUE") // such as : UNIQUE("id","name"...)
-		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"UNIQUE") ) { // such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
-		result.type = L"Unique";
-		result.un = 1;
-		auto columns = getColumnsByUniqueLine(line);
-		if (columns.empty()) {
+
+	result.sql = line;
+	result.seq = std::chrono::system_clock::now();
+	return result;
+
+}
+
+/**
+ * Parse the Unique line, you can parse the column line or the constraint line with specified isConstainLine=true/false.
+ * 
+ * @param line
+ * @param isConstaintLine - true : parse the constraint line only, false : parse the column line only
+ * @return 
+ */
+IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line, bool isConstaintLine)
+{
+	if (line.empty()) {
+		return IndexInfo();
+	}
+	std::vector<std::wstring> words = StringUtil::splitByBlank(line, true);
+	if (words.empty()) {
+		return IndexInfo();
+	}
+
+	IndexInfo result;
+	std::wstring first = StringUtil::toupper(words.at(0));
+	if (isConstaintLine && first == L"CONSTRAINT") {
+		// such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
+		result.name = StringUtil::cutParensAndQuotes(words.at(1));	}
+	
+	if (isConstaintLine) { // parse the constraint line only
+		if ( (first == L"UNIQUE" || first.find(L"UNIQUE") == 0) // such as : UNIQUE("id","name"...)
+			|| (words.size() > 2  && StringUtil::toupper(words.at(2)).find(L"UNIQUE") == 0)) { // such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
+			result.type = L"Unique";
+			result.un = 1;
+			auto columns = getColumnsByUniqueLine(line);
+			if (columns.empty()) {
+				return IndexInfo();
+			}
+			result.columns = columns;
+		} else {
 			return IndexInfo();
 		}
-		result.columns = columns;
-	} else {
-		return IndexInfo();
+	} else { // parse the column line only
+		// the column line contains UNIQUE, such as : "id" INTEGER NOT NULL PRIMARY KEY
+		result.columns = StringUtil::cutParensAndQuotes(words.at(0));
+		result.type = L"Unique";
+		result.un = 1;
+		std::wstring upline = StringUtil::toupper(line);
+		if (upline.find(L"AUTOINCREMENT") != std::wstring::npos) {
+			return IndexInfo();
+		} else if (upline.find(L"PRIMARY") != std::wstring::npos) {
+			return IndexInfo();
+		}			
 	}
 
 	result.sql = line;
@@ -671,35 +718,56 @@ IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line)
 
 }
 
-
-IndexInfo SqlUtil::parseLineToCheck(const std::wstring& line)
+/**
+ * Parse the Check line, you can parse the column line or the constraint line with specified isConstainLine=true/false.
+ * 
+ * @param line
+ * @param isConstaintLine - true : parse the constraint line only, false : parse the column line only
+ * @return 
+ */
+IndexInfo SqlUtil::parseLineToCheck(const std::wstring& line, bool isConstaintLine)
 {
 	if (line.empty()) {
 		return IndexInfo();
 	}
-	std::vector<std::wstring> words = StringUtil::split(line, L" ", true);
+	std::vector<std::wstring> words = StringUtil::splitByBlank(line, true);
 	if (words.empty()) {
 		return IndexInfo();
 	}
 
 	IndexInfo result;
 	std::wstring first = StringUtil::toupper(words.at(0));
-	if (first == L"CONSTRAINT") {
+	if (isConstaintLine && first == L"CONSTRAINT") {
 		// such as : CONSTRAINT "idx_chk"  CHECK("id" > 8)
 		result.name = StringUtil::cutParensAndQuotes(words.at(1));
 	}
 	
-	if ( (first == L"CHECK") // such as : UNIQUE("id","name"...)
-		|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"CHECK") ) { // such as : CONSTRAINT "idx_check"  CHECK("id" > 8)
-		result.type = L"Check";
-		result.un = 1;
-		auto expression = getExpressionByCheckLine(line);
-		if (expression.empty()) {
+	if (isConstaintLine) { // parse the constraint line only
+		if ( (first == L"CHECK") // such as : UNIQUE("id","name"...)
+			|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"CHECK") ) { // such as : CONSTRAINT "idx_check"  CHECK("id" > 8)
+			result.type = L"Check";
+			result.ck = 1;
+			auto expression = getExpressionByCheckLine(line);
+			if (expression.empty()) {
+				return IndexInfo();
+			}
+			result.columns = expression;
+		} else {
 			return IndexInfo();
 		}
-		result.columns = expression;
-	} else {
-		return IndexInfo();
+	} else { // parse the column line only
+		std::wstring upline = StringUtil::toupper(line);		
+		// the column line contains PRIMARY KEY, such as : "id" INTEGER NOT NULL PRIMARY KEY
+		result.columns = StringUtil::cutParensAndQuotes(words.at(0));
+		result.type = L"Check";
+		result.ck = 1;
+		if (upline.find(L"AUTOINCREMENT") != std::wstring::npos) {
+			return IndexInfo();
+		} else if (upline.find(L"PRIMARY") != std::wstring::npos) {
+			return IndexInfo();
+		} else if (upline.find(L"UNIQUE") != std::wstring::npos) {
+			return IndexInfo();
+		}			
 	}
 
 	result.sql = line;
@@ -729,7 +797,7 @@ std::pair<std::wstring, uint8_t> SqlUtil::getColumnAndAiByPrimaryKeyLine(const s
 	}
 
 	std::wstring parenClause = line.substr(paren_first + 1, paren_end - paren_first - 1);
-	std::vector<std::wstring> words = StringUtil::split(parenClause, L" ", true);
+	std::vector<std::wstring> words = StringUtil::splitByBlank(parenClause, true);
 	if (words.empty()) {
 		return std::pair<std::wstring, int>();
 	}
@@ -805,7 +873,7 @@ std::wstring SqlUtil::getExpressionByCheckLine(const std::wstring &line)
 	}
 
 	std::wstring parenClause = line.substr(paren_first + 1, paren_end - paren_first - 1);
-	std::vector<std::wstring> words = StringUtil::split(parenClause, L",", true);
+	std::vector<std::wstring> words = StringUtil::splitByBlank(parenClause, true);
 	if (words.empty()) {
 		return L"";
 	}
@@ -830,7 +898,7 @@ ColumnInfo SqlUtil::parseColumnFromLine(const std::wstring& line)
 {
 	ColumnInfo result;
 	std::wstring upline = StringUtil::toupper(line);
-	auto words = StringUtil::split(line, L" ");
+	auto words = StringUtil::splitByBlank(line, true);
 	if (words.empty() || words.at(0).empty()) {
 		return result;
 	}
@@ -925,7 +993,7 @@ ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
 {
 	ForeignKey result;
 	std::wstring upline = StringUtil::toupper(line);
-	auto words = StringUtil::split(line, L" ");
+	auto words = StringUtil::splitByBlank(line, true);
 	if (words.empty() || words.at(0).empty()) {
 		return result;
 	}

@@ -46,11 +46,10 @@ void QueryPage::setup(PageOperateType operateType, const std::wstring & content,
 	if (!supplier) {
 		supplier = new QueryPageSupplier();
 	}
-
+	supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
 	supplier->setOperateType(operateType);
 	if (operateType == TABLE_DATA) {
-		// persistent store the three runtime data
-		supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
+		// persistent store the three runtime data		
 		supplier->setRuntimeTblName(databaseSupplier->selectedTable);
 		supplier->setRuntimeSchema(databaseSupplier->selectedSchema);
 	}

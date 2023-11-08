@@ -142,6 +142,14 @@ public:
 	static std::vector<std::wstring> splitCutEnclose(std::wstring str, const std::wstring & pattern, std::wstring & cutEnclose, bool bTrim = true);
 
 	/**
+	 * Ê¹ÓÃ¿Õ×Ö·û´®·Ö¸îº¯Êý.
+	 * 
+	 * @param str ´ý·ÖÀë×Ö·û´®
+	 * @return 
+	 */
+	static std::vector<std::wstring> splitByBlank(std::wstring str, bool bTrim = true);
+
+	/**
 	 * implode strings with symbol character.
 	 * 
 	 * @param strVec

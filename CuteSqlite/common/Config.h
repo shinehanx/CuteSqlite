@@ -297,6 +297,14 @@ typedef enum {
 	DATABASE_NEW_VIEW_MENU_ID,
 	DATABASE_NEW_TRIGGER_MENU_ID,
 
+	// treeview popup menu for views
+	DATABASE_OPEN_VIEW_MENU_ID,
+	DATABASE_DROP_VIEW_MENU_ID,
+
+	// treeview popup menu for views
+	DATABASE_OPEN_TRIGGER_MENU_ID,
+	DATABASE_DROP_TRIGGER_MENU_ID,
+
 	// treeview popup menu for table
 	TABLE_OPEN_MENU_ID,
 	TABLE_CREATE_MENU_ID,
@@ -334,7 +342,11 @@ typedef enum {
 	MSG_IMPORT_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_VIEW_ID, // Send this msg when clicking "New view" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_OPEN_VIEW_ID, // Send this msg when clicking "Open view" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_DROP_VIEW_ID, // Send this msg when clicking "Drop view" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_TRIGGER_ID, // Send this msg when clicking "New trigger" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_OPEN_TRIGGER_ID, // Send this msg when clicking "Open trigger" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_DROP_TRIGGER_ID, // Send this msg when clicking "Drop trigger" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, // Send this msg when changing table columns index from the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
 	MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, // Send this msg when changing column from the TableColumnsPage to TableIndexesPage, wParam=oldColumnName, lParam=newColumnName
 	MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, // Send this msg when deleting column from the TableColumnsPage to TableIndexesPage, wParam=iItem, lParam=iSubItem

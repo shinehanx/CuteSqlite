@@ -29,6 +29,7 @@ public:
 
 	UserViewList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserView getView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
+	void drop(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
 private:
 	UserView toUserView(QSqlStatement &query);
 };
