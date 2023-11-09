@@ -502,7 +502,7 @@ LRESULT LeftTreeView::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND h
 	std::wstring caption = AppContext::getInstance()->getMainFrmCaption();
 	UserDb userDb = databaseService->getUserDb(userDbId);
 	AppContext::getInstance()->appendMainFrmCaption(userDb.path);
-
+	databaseSupplier->setSeletedUserDbId(userDbId);
 	return 0;
 }
 

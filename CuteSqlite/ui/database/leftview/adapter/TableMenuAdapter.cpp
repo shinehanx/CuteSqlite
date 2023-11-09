@@ -178,6 +178,7 @@ bool TableMenuAdapter::renameTable()
 		if (AppContext::getInstance()->dispatchForResponse(Config::MSG_RENAME_TABLE_ID, NULL, NULL)) {
 			CTreeItem selItem = dataView->GetSelectedItem();
 			selItem.SetText(supplier->newTableName.c_str());
+			supplier->selectedTable = supplier->newTableName;
 		}
 		return true;
 	} catch (QSqlExecuteException &ex) {

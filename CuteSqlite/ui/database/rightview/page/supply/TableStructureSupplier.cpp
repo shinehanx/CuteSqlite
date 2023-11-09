@@ -38,13 +38,9 @@ const std::vector<int> TableStructureSupplier::frkHeadFormats = { LVCFMT_LEFT, L
 const std::vector<std::wstring> TableStructureSupplier::frkOnUpdateTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"};
 const std::vector<std::wstring> TableStructureSupplier::frkOnDeleteTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"}; 
 
-
-
 ColumnInfo & TableStructureSupplier::getColsRuntimeData(int nSelItem)
 {
-	if (nSelItem >= static_cast<int>(colsRuntimeDatas.size())) {
-		return std::move(ColumnInfo());
-	}
+	ATLASSERT(nSelItem < static_cast<int>(colsRuntimeDatas.size()));
 	return colsRuntimeDatas.at(nSelItem);
 }
 
@@ -76,9 +72,7 @@ void TableStructureSupplier::eraseColsOrigData(int nSelItem)
 
 IndexInfo & TableStructureSupplier::getIdxRuntimeData(int nSelItem)
 {
-	if (nSelItem >= static_cast<int>(idxRuntimeDatas.size())) {
-		return std::move(IndexInfo());
-	}
+	ATLASSERT(nSelItem < static_cast<int>(idxRuntimeDatas.size()));
 	return idxRuntimeDatas.at(nSelItem);
 }
 
@@ -96,12 +90,9 @@ void TableStructureSupplier::eraseIdxRuntimeData(int nSelItem)
 
 ForeignKey & TableStructureSupplier::getFrkRuntimeData(int nSelItem)
 {
-	if (nSelItem >= static_cast<int>(frkRuntimeDatas.size())) {
-		return std::move(ForeignKey());
-	}
+	ATLASSERT(nSelItem < static_cast<int>(frkRuntimeDatas.size()));
 	return frkRuntimeDatas.at(nSelItem);
 }
-
 
 void TableStructureSupplier::eraseFrkRuntimeData(int nSelItem)
 {

@@ -79,15 +79,10 @@ LRESULT HistoryPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lPa
 		return 0;
 	}
 	
-	
-	CString infoText;
-	infoEdit.GetWindowText(infoText);
-
-	std::wstring str = infoText;
-	str.append(DateUtil::getCurrentDateTime());
-	str.append(L" Execute sql:\r\n --------------------------------------------------------------------- \r\n");
-	str.append(runtimeResultInfo->sql);
-	str.append(L"\r\n ============================= \r\n\r\n");
+	std::wstring str = DateUtil::getCurrentDateTime();
+	str.append(L" - ");
+	str.append(StringUtil::formatBreak(runtimeResultInfo->sql));
+	str.append(L"\r\n\r\n");
 	if (runtimeResultInfo->code || !runtimeResultInfo->msg.empty()) {
 		str.append(S(L"result")).append(L": [").append(std::to_wstring(runtimeResultInfo->code)).append(L"] ")
 			.append(runtimeResultInfo->msg).append(L" \r\n\r\n");
@@ -97,7 +92,11 @@ LRESULT HistoryPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lPa
 		.append(S(L"transfer-time")).append(L": ").append(runtimeResultInfo->transferTime).append(L"\r\n")
 		.append(S(L"total-time")).append(L": ").append(runtimeResultInfo->totalTime);
 	str.append(L"\r\n --------------------------------------------------------------------- \r\n\r\n");
-	infoEdit.SetWindowText(str.c_str());
+
+	CString text;
+	infoEdit.GetWindowText(text);
+	text.Append(str.c_str());
+	infoEdit.SetWindowText(text);
 	infoEdit.UpdateWindow();
 	return 0;
 }

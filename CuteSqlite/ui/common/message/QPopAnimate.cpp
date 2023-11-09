@@ -54,7 +54,7 @@ void QPopAnimate::report(const QRuntimeException & ex)
 
 void QPopAnimate::report(const QSqlExecuteException & ex)
 {
-	clearPopAnimatePtrs();
+	//clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
 	popAnimatePtrs.push_back(win);
 
@@ -120,7 +120,7 @@ void QPopAnimate::setup(const std::wstring & code, const std::wstring &text, con
 {
 	this->code = code;
 	this->text = text;
-	this->sql = sql;
+	this->sql = StringUtil::formatBreak(sql);
 	int textSize = Lang::fontSize(L"message-text-size");
 	
 	popType = POP_REPORT_TEXT;

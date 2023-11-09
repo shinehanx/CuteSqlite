@@ -63,6 +63,8 @@ public:
 	int getFirstSelectdIndex();
 	DataList getSelectedDatas();
 	int getSelectedItemCount();
+	
+	uint64_t getRuntimeUserDbId() { return runtimeUserDbId; }
 	void setRuntimeUserDbId(uint64_t userDbId);
 
 	UserTableStrings getRuntimeTables();
@@ -109,7 +111,8 @@ public:
 
 	// query result info
 	ResultInfo & getRuntimeResultInfo();
-	void sendExecSqlMessage(ResultInfo & resultInfo);
+	void sendExecSqlMessage(ResultInfo & resultInfo);	
+	std::wstring & getRuntimeSql() { return runtimeSql; }
 private:
 	SqlService * sqlService = SqlService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

@@ -53,7 +53,7 @@ HBRUSH QHelpPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	if (hwnd == helpLabel.m_hWnd) {
 		::SetTextColor(hdc, RGB(0x2c, 0x2c, 0x2c)); //文本区域前景色
-		::SetBkColor(hdc, RGB(255, 255, 255)); // 文本区域背景色		
+		::SetBkColor(hdc, RGB(238, 238, 239)); // 文本区域背景色		
 		return staticBrush; // 整个CStatic的Client区域背景色
 	}
 

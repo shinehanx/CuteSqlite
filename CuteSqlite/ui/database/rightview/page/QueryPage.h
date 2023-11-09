@@ -44,7 +44,7 @@ public:
 
 	QHelpEdit & getSqlEditor();
 	ResultTabView & getResultTabView();
-	void execAndShow();
+	void execAndShow(bool select = false);
 private:
 	std::wstring viewName;
 	std::wstring tplPath;
@@ -52,7 +52,7 @@ private:
 
 	bool isSpliterReload = true;
 	
-	QHelpEdit sqlEditor;	
+	QHelpEdit sqlEditor;
 	ResultTabView resultTabView;
 	CHorSplitterWindow splitter;// Horizontal splitter
 
@@ -72,6 +72,5 @@ private:
 	// 双击LeftTreeView::treeView的选中项，发送该消息，接收方wParam为CTreeViewCtrlEx *指针, lParam 是HTREEITEM指针，接收方通过lParam获得需要的数据
 	LRESULT OnDbClickTreeview(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);	
 
-	
 	
 };

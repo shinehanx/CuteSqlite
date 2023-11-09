@@ -355,7 +355,7 @@ LRESULT RightWorkView::OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd
 	HWND activeHwnd = tabView.GetPageHWND(nPage);
 	for (auto pagePtr : queryPagePtrs) {
 		if (pagePtr && pagePtr->IsWindow () && activeHwnd == pagePtr->m_hWnd) {
-			pagePtr->execAndShow();
+			pagePtr->execAndShow(true);
 		}		
 	}
 	// execute sql statements from supplier->sqlVector
@@ -364,6 +364,17 @@ LRESULT RightWorkView::OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd
 
 LRESULT RightWorkView::OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return 0;
+	}
+	HWND activeHwnd = tabView.GetPageHWND(nPage);
+	for (auto pagePtr : queryPagePtrs) {
+		if (pagePtr && pagePtr->IsWindow () && activeHwnd == pagePtr->m_hWnd) {
+			pagePtr->execAndShow(false);
+		}		
+	}
+	
 	return 0;
 }
 

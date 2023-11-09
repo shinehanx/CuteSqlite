@@ -36,7 +36,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void setup(QueryPageSupplier * supplier);
-
+	LRESULT addResultInfo(ResultInfo * runtimeResultInfo);
 	void clear();
 protected:
 	HFONT textFont = nullptr;

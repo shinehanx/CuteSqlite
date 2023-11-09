@@ -69,6 +69,7 @@ public:
 	END_MSG_MAP()
 
 	virtual void setup(QueryPageSupplier * supplier, std::wstring & sql);
+	void loadListView();
 protected:
 	bool isNeedReload = true;
 	std::wstring sql;
@@ -99,12 +100,11 @@ protected:
 	CMultiPaneStatusBarCtrl statusBar;
 
 	ResultListPageAdapter * adapter = nullptr;
+	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	virtual void createOrShowUI();
-
 	virtual void loadWindow();
-	void loadListView();
-
+	
 	CRect getLeftListRect(CRect & clientRect);
 	CRect getRightFormRect(CRect & clientRect);
 	CRect getBottomStatusRect(CRect & clientRect);
@@ -160,6 +160,9 @@ protected:
 	void changeFilterButtonStatus(bool hasRedIcon);
 
 	// display the result rows and exec time in the status bar
+	void displayStatusBarPanels(ResultInfo & resultInfo);
+	void displayRuntimeSql();
+	void displayDatabase();
 	void displayResultRows();
 	void displayExecTime(ResultInfo & resultInfo);
 };

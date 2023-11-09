@@ -75,6 +75,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		runtimeResultInfo.msg = _err;
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), _err, runtimeSql);
 	}
 	
 	return 0;
@@ -111,6 +112,7 @@ int ResultListPageAdapter::loadFilterListView()
 		runtimeResultInfo.msg = _err;
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), _err, runtimeSql);
 	}
 	return 0;
 }
@@ -869,8 +871,14 @@ bool ResultListPageAdapter::saveNewRows()
 	if (!errorNewRows.empty()) {
 		runtimeNewRows = errorNewRows;
 		return false;
-	} 
-	loadFilterListView();
+	}
+
+	try {
+		loadFilterListView();
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+	}
+	
 	return true;
 }
 

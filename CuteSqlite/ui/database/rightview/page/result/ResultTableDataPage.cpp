@@ -53,6 +53,7 @@ void ResultTableDataPage::loadTableDatas()
 	}
 	saveLimitParams();
 	loadListView();
+	isNeedReload = false;
 }
 
 void ResultTableDataPage::createOrShowUI()
@@ -70,11 +71,6 @@ void ResultTableDataPage::loadWindow()
 	if (!databaseSupplier || databaseSupplier->selectedTable.empty()) {
 		return ;
 	}
-	/*
-	if (supplier->selectTable != table) {
-		setup(supplier->selectTable);
-		loadTableDatas();
-	}*/
 }
 
 /**

@@ -27,7 +27,6 @@
 #include "ui/database/leftview/adapter/LeftTreeViewAdapter.h"
 #include "ui/database/leftview/adapter/DatabaseMenuAdapter.h"
 #include "ui/database/leftview/adapter/TableMenuAdapter.h"
-#include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/dialog/adapter/ExportDatabaseAdapter.h"
 #include "ui/database/dialog/adapter/ImportDatabaseAdapter.h"
 #include "ui/common/treeview/QTreeViewCtrl.h"
@@ -130,7 +129,7 @@ private:
 	ImportDatabaseAdapter * importDatabaseAdapter = nullptr;
 	TableMenuAdapter * tableMenuAdapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
-	ResultListPageAdapter * resultListPageAdapter = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	CRect getTopRect(CRect & clientRect);
 	CRect getTreeRect(CRect & clientRect);

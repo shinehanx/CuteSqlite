@@ -28,9 +28,10 @@ void QueryPageSupplier::splitToSqlVector(std::wstring sql)
 		return;
 	}
 	
-	if (sql.find(L':') == -1) {
+	if (sql.find(L';') == std::wstring::npos) {
 		sqlVector.push_back(sql);
+		return ;
 	}
 
-	sqlVector = StringUtil::split(sql, L";");
+	sqlVector = StringUtil::splitNotIn(sql, L";", L"BEGIN", L"END", L"TRANSACTION", true);
 }

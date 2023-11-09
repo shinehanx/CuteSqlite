@@ -52,7 +52,9 @@ public:
 
 	void clearResultListPage();
 	void clearMessage();
-	void addResultListPage(std::wstring & sql, int tabNo);
+	ResultListPage * addResultToListPage(std::wstring & sql, int tabNo);	
+	void removeResultListPageFrom(int nSelectSqlCount);
+
 	bool execSqlToInfoPage(const std::wstring & sql);
 	int getPageIndex(HWND hwnd);
 	void setActivePage(int pageIndex);
@@ -62,6 +64,8 @@ public:
 	void loadTableDatas(std::wstring & table);
 
 	void activeTablePropertiesPage();
+	
+	ResultInfo & getRuntimeResultInfo() { return runtimeResultInfo; }
 private:
 	bool isNeedReload = true;
 	

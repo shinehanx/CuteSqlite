@@ -108,7 +108,7 @@ void ResultTabView::loadTableDatas(std::wstring & table)
 
 void ResultTabView::clearResultListPage()
 {
-	// destry window and delete ptr from resultListPage vector
+	// destroy window and delete ptr from resultListPage vector
 	for (auto & resultListPagePtr : resultListPagePtrs) {
 		if (resultListPagePtr && resultListPagePtr->IsWindow()) {
 			int idx = getPageIndex(resultListPagePtr->m_hWnd);
@@ -133,7 +133,7 @@ void ResultTabView::clearMessage()
 	resultInfoPage.clear();
 }
 
-void ResultTabView::addResultListPage(std::wstring & sql, int tabNo)
+ResultListPage * ResultTabView::addResultToListPage(std::wstring & sql, int tabNo)
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
@@ -141,15 +141,56 @@ void ResultTabView::addResultListPage(std::wstring & sql, int tabNo)
 	int x = 1, y = pageRect.top, w = pageRect.Width() - 2, h = pageRect.Height();
 	CRect rect(x, y, x + w, y + h);
 
-	ResultListPage * resultListPagePtr = new ResultListPage();
-	resultListPagePtr->setup(supplier, sql);
-	resultListPagePtr->Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
-	std::wstring pageTitle = S(L"result-list").append(L" ").append(std::to_wstring(tabNo));
-	int nInsert = static_cast<int>(resultListPagePtrs.size());
-	tabView.InsertPage(nInsert, resultListPagePtr->m_hWnd, pageTitle.c_str(), 0, resultListPagePtr);
-	resultListPagePtrs.push_back(resultListPagePtr);
+	ResultListPage * resultListPagePtr = nullptr;
+	int n = static_cast<int>(resultListPagePtrs.size());
+	if (tabNo-1 < n) {
+		resultListPagePtr = resultListPagePtrs.at(tabNo -1);
+		resultListPagePtr->setup(supplier, sql);
+		resultListPagePtr->loadListView();
+	} else {
+		resultListPagePtr = new ResultListPage();
+		resultListPagePtr->setup(supplier, sql);
+		resultListPagePtr->Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
+		std::wstring pageTitle = S(L"result-list").append(L" ").append(std::to_wstring(tabNo));
+		int nInsert = static_cast<int>(resultListPagePtrs.size());
+		tabView.InsertPage(nInsert, resultListPagePtr->m_hWnd, pageTitle.c_str(), 0, resultListPagePtr);
+		resultListPagePtrs.push_back(resultListPagePtr);
+	}
+	
 	resultListPagePtr->MoveWindow(rect);
 	resultListPagePtr->ShowWindow(SW_SHOW);
+	return resultListPagePtr;
+}
+
+
+void ResultTabView::removeResultListPageFrom(int nSelectSqlCount)
+{
+	int n = static_cast<int>(resultListPagePtrs.size());
+	if (n <= nSelectSqlCount) {
+		return;
+	}
+	for (int i = n - 1; i >= nSelectSqlCount ; i--) {
+		auto ptr = resultListPagePtrs.at(i);
+		if (ptr && ptr->IsWindow()) {
+			for (int j = tabView.GetPageCount() -1; j >=0; j--) {
+				if (ptr->m_hWnd == tabView.GetPageHWND(j)) {
+					tabView.RemovePage(j); //  will destroy page window
+					break;
+				}
+			}
+			// Notice : tabView.RemovePage(j) has DestroyWindow
+			if (ptr->IsWindow()) {
+				ptr->DestroyWindow();
+			}
+			delete ptr;
+			ptr = nullptr;
+		} else if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+
+		resultListPagePtrs.erase(resultListPagePtrs.begin() + i);
+	}
 }
 
 /**
@@ -169,12 +210,11 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		runtimeResultInfo.totalTime = PerformUtil::end(bt);
 		runtimeResultInfo.msg = S(L"execute-sql-success");
-		QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
-		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&runtimeResultInfo));
+		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
 		return true;
 	} catch (QSqlExecuteException & ex) {
-		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
-		QPopAnimate::error(m_hWnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
 
 		runtimeResultInfo.code = std::stoi(ex.getCode());
 		runtimeResultInfo.sql = sql;
@@ -182,7 +222,7 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		runtimeResultInfo.totalTime = PerformUtil::end(bt);
 		runtimeResultInfo.msg = ex.getMsg();
-		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&runtimeResultInfo));
+		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
 	}
 	return false;
 }
@@ -250,7 +290,7 @@ void ResultTabView::createOrShowUI()
 	createOrShowTabView(tabView, clientRect);
 	createOrShowResultInfoPage(resultInfoPage, clientRect);
 	createOrShowResultTableDataPage(resultTableDataPage, clientRect);
-	if (supplier->getOperateType() == TABLE_DATA) {
+	if (supplier && supplier->getOperateType() == TABLE_DATA) {
 		createOrShowTablePropertiesPage(tablePropertiesPage, clientRect);
 	}
 }
@@ -406,4 +446,5 @@ void ResultTabView::activeTablePropertiesPage()
 		tabView.SetActivePage(i);
 	}
 }
+
 

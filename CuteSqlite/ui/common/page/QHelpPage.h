@@ -43,7 +43,7 @@ public:
 
 	void setup(std::wstring & helpText);
 protected:
-	COLORREF staticColor = RGB(255, 255, 255);
+	COLORREF staticColor = RGB(238, 238, 238);
 	HBRUSH staticBrush = nullptr;
 
 	CStatic helpLabel;

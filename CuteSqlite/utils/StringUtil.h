@@ -95,6 +95,14 @@ public:
 	static std::wstring replaceBreak(const std::wstring & str);
 
 	/**
+	 * Format the the line break : \n  -> \r\n.
+	 * 
+	 * @param str
+	 * @return 
+	 */
+	static std::wstring formatBreak(const std::wstring & str);
+
+	/**
 	 * search if the "search" string is exists in the "str" string..
 	 * 
 	 * @param str - original text
@@ -148,6 +156,21 @@ public:
 	 * @return 
 	 */
 	static std::vector<std::wstring> splitByBlank(std::wstring str, bool bTrim = true);
+
+	/**
+	 * 字符串分割函数，pattern不包含在notBegin, notEnd.
+	 * 
+	 * @param str 待分离字符串
+	 * @param pattern 分离字符串,如逗号
+	 * @param notBegin 分离字符串不包含在此字符串开始（开始和结束前遇到pattern字符串，则忽略）
+	 * @param notEnd 分离字符串不包含在此字符串结束（开始和结束前遇到pattern字符串，则忽略）
+	 * @param notContain notBegin和notEnd之间如果存在notContain字符串，则忽略本次的notBegin和notEnd
+	 * @param bTrim
+	 * @return 
+	 */
+	static std::vector<std::wstring> splitNotIn(std::wstring str, const std::wstring & pattern, 
+		const std::wstring & notBegin, const std::wstring & notEnd, 
+		const std::wstring & notContainIn, bool bTrim = true);
 
 	/**
 	 * implode strings with symbol character.

@@ -31,7 +31,7 @@ void ResultInfoPage::setup(QueryPageSupplier * supplier)
 
 void ResultInfoPage::clear()
 {
-	infoEdit.Clear();
+	infoEdit.SetWindowText(L"");
 }
 
 void ResultInfoPage::createOrShowUI()
@@ -80,6 +80,11 @@ int ResultInfoPage::OnDestroy()
 LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	auto runtimeResultInfo = (ResultInfo *)lParam;
+	return addResultInfo(runtimeResultInfo);
+}
+
+LRESULT ResultInfoPage::addResultInfo(ResultInfo * runtimeResultInfo)
+{
 	if (runtimeResultInfo == nullptr) {
 		return 0;
 	}
@@ -88,11 +93,11 @@ LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM 
 	if (databaseSupplier->activeTabPageHwnd != pHwnd) {
 		return 0;
 	}
-	
+
 	std::wstring str = DateUtil::getCurrentDateTime();
-	str.append(L" Execute sql:\r\n --------------------------------------------------------------------- \r\n");
-	str.append(runtimeResultInfo->sql);
-	str.append(L"\r\n ============================= \r\n\r\n");
+	str.append(L" - ");
+	str.append(StringUtil::formatBreak(runtimeResultInfo->sql));
+	str.append(L"\r\n\r\n");
 	if (runtimeResultInfo->code || !runtimeResultInfo->msg.empty()) {
 		str.append(S(L"result")).append(L": [").append(std::to_wstring(runtimeResultInfo->code)).append(L"] ")
 			.append(runtimeResultInfo->msg).append(L" \r\n\r\n");
@@ -102,10 +107,15 @@ LRESULT ResultInfoPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM 
 		.append(S(L"transfer-time")).append(L": ").append(runtimeResultInfo->transferTime).append(L"\r\n")
 		.append(S(L"total-time")).append(L": ").append(runtimeResultInfo->totalTime);
 	str.append(L"\r\n --------------------------------------------------------------------- \r\n\r\n");
-	infoEdit.SetWindowText(str.c_str());
+
+	CString text;
+	infoEdit.GetWindowText(text);
+	text.Append(str.c_str());
+	infoEdit.SetWindowText(text);
 	infoEdit.UpdateWindow();
 	return 0;
 }
+
 
 HBRUSH ResultInfoPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {

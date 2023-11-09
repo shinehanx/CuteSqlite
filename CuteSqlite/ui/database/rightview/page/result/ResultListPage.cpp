@@ -206,15 +206,19 @@ void ResultListPage::loadListView()
 		return;
 	}
 	
-	statusBar.SetPaneText(Config::RESULT_STATUSBAR_SQL_PANE_ID, this->sql.c_str());
 	auto _begin = PerformUtil::begin();
-	rowCount = adapter->loadListView(userDbId, sql);
+	try {
+		rowCount = adapter->loadListView(userDbId, sql);
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+		rowCount = 0;
+	}
+	
 	ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
 	resultInfo.totalTime = PerformUtil::end(_begin);
 
-	adapter->sendExecSqlMessage(resultInfo);
-	displayResultRows();
-	displayExecTime(resultInfo);
+	// display status bar panels 
+	displayStatusBarPanels(resultInfo);
 
 	int checkedFormView = formViewCheckBox.GetCheck();
 	if (checkedFormView) {
@@ -301,19 +305,22 @@ void ResultListPage::createOrShowStatusBar(CMultiPaneStatusBarCtrl & win, CRect 
 		win.Create(m_hWnd, sql.c_str(), dwStyle);
 		int anPanes[] = {
 			Config::RESULT_STATUSBAR_SQL_PANE_ID, 
+			Config::RESULT_STATUSBAR_DATABASE_PANE_ID,
 			Config::RESULT_STATUSBAR_ROWS_PANE_ID,
 			Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID,
 		};
-		 win.SetPanes (anPanes, 3, false);
+		 win.SetPanes (anPanes, 4, false);
 		 win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 350);
-		 win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
-		 win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 550);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, 150);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 100);
+		 win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 600);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 		win.SetPaneWidth(Config::RESULT_STATUSBAR_EXEC_TIME_PANE_ID, 350);
-		win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 200);
-		win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 550);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_ROWS_PANE_ID, 100);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, 150);
+		win.SetPaneWidth(Config::RESULT_STATUSBAR_SQL_PANE_ID, rect.Width() - 600);
 	}
 }
 
@@ -700,31 +707,40 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 	
 	if (resultFilterDialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
 		auto _bt = PerformUtil::begin();
-		rowCount = adapter->loadFilterListView();
+		try {
+			rowCount = adapter->loadFilterListView();
+		} catch (QSqlExecuteException &ex) {
+			rowCount = 0;
+			QPopAnimate::report(ex);
+		}
+		
 		
 		ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
 		resultInfo.totalTime = PerformUtil::end(_bt);
-		adapter->sendExecSqlMessage(resultInfo);
-		displayResultRows();
-		displayExecTime(resultInfo);
+		// display status bar panels 
+		displayStatusBarPanels(resultInfo);
 	}
 	
 	bool hasRedIcon = !adapter->isRuntimeFiltersEmpty();
 	// change the filterButton to red
-	changeFilterButtonStatus(hasRedIcon);	
+	changeFilterButtonStatus(hasRedIcon);
 }
 
 void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	saveLimitParams();
 	auto _bt = PerformUtil::begin();
-	rowCount = adapter->loadFilterListView();
+	try {
+		rowCount = adapter->loadFilterListView();
+	} catch (QSqlExecuteException &ex) {
+		QPopAnimate::report(ex);
+		rowCount = 0;
+	}
 	ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
 	resultInfo.totalTime = PerformUtil::end(_bt);
 
-	adapter->sendExecSqlMessage(resultInfo);
-	displayResultRows();
-	displayExecTime(resultInfo);
+	// display status bar panels 
+	displayStatusBarPanels(resultInfo);
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
@@ -746,6 +762,27 @@ HBRUSH ResultListPage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
+}
+
+
+void ResultListPage::displayStatusBarPanels(ResultInfo & resultInfo)
+{
+	adapter->sendExecSqlMessage(resultInfo);
+	displayRuntimeSql();
+	displayDatabase();
+	displayResultRows();
+	displayExecTime(resultInfo);
+}
+
+void ResultListPage::displayRuntimeSql()
+{
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_SQL_PANE_ID, adapter->getRuntimeSql().c_str());
+}
+
+void ResultListPage::displayDatabase()
+{
+	UserDb userDb = databaseService->getUserDb(adapter->getRuntimeUserDbId());
+	statusBar.SetPaneText(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, userDb.name.c_str());
 }
 
 void ResultListPage::displayResultRows()

@@ -68,34 +68,53 @@ ResultTabView & QueryPage::getResultTabView()
 	return resultTabView;
 }
 
-void QueryPage::execAndShow()
+void QueryPage::execAndShow(bool select)
 {
-	std::wstring sqls = getSqlEditor().getText();
+	std::wstring sqls;
+	if (select) {
+		sqls = getSqlEditor().getSelText();
+		if (sqls.empty()) {
+			sqls = getSqlEditor().getText();
+		}
+	}else {
+		sqls = getSqlEditor().getText();
+	}
+
 	if (sqls.empty()) {
 		QPopAnimate::warn(m_hWnd, S(L"no-sql-statement"));
 		sqlEditor.focus();
 		return;
 	}
+	if (supplier->getRuntimeUserDbId() != databaseSupplier->getSelectedUserDbId()) {
+		supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
+	}
+	resultTabView.clearMessage();
 	if (supplier->getOperateType() == QUERY_DATA || supplier->getOperateType() == TABLE_DATA) {
-		supplier->splitToSqlVector(sqls);
-		resultTabView.clearResultListPage();
-		resultTabView.clearMessage();
+		supplier->splitToSqlVector(sqls);		
 		std::vector<std::wstring> & sqlVector = supplier->sqlVector;
 		int n = static_cast<int>(sqlVector.size());
 		int nSelectSqlCount = 0;
 		for (int i = 0; i < n; i++) {
 			auto sql = sqlVector.at(i);
 			if (SqlUtil::isSelectSql(sql)) {
-				resultTabView.addResultListPage(sql, i+1); 
+				resultTabView.addResultToListPage(sql, i+1);
 				nSelectSqlCount++;
+			} else {
+				bool ret = resultTabView.execSqlToInfoPage(sql);
+				if (ret) {
+					QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
+				}
 			}
 		}
 		if (nSelectSqlCount) {
+			// if the count of ptrs has more than nSelectSqlCount in ResultTabView object, Get gid of them.
+			resultTabView.removeResultListPageFrom(nSelectSqlCount);
 			resultTabView.setActivePage(0);
 		}
 	} else {
 		bool ret = resultTabView.execSqlToInfoPage(sqls);
 		if (ret) {
+			QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
 			if (supplier->getOperateType() != QUERY_DATA && supplier->getOperateType() != TABLE_DATA) {
 				//Send message to refresh database when creating a table or altering a table , wParam = NULL, lParam=NULL 
 				AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);

@@ -259,6 +259,19 @@ std::wstring StringUtil::replaceBreak(const std::wstring & str)
 }
 
 /**
+ *  Format the the line break : \n  -> \r\n..
+ * 
+ * @param str
+ * @return 
+ */
+std::wstring StringUtil::formatBreak(const std::wstring & str)
+{
+	std::wstring res = replace(str, L"\r\n", L"\n");
+	res = replace(res, L"\n", L"\r\n");
+	return res;
+}
+
+/**
 * search if the "search" string is exists in the "str" string.
 * 
 * @param str - original text
@@ -381,7 +394,6 @@ std::vector<std::wstring> StringUtil::splitCutEnclose(std::wstring str, const st
 	return result;
 }
 
-
 std::vector<std::wstring> StringUtil::splitByBlank(std::wstring str, bool bTrim /*= true*/)
 {
 	std::wstring::size_type pos;
@@ -401,6 +413,65 @@ std::vector<std::wstring> StringUtil::splitByBlank(std::wstring str, bool bTrim 
 			}
 			result.push_back(s);
 			i = pos ;
+		}
+	}
+	return result;
+}
+
+/**
+* 字符串分割函数，pattern不包含在notBegin, notEnd之间
+* 
+* @param str 待分离字符串
+* @param pattern 分离字符串,如逗号
+* @param notBegin 分离字符串不包含在此字符串开始（开始和结束前遇到pattern字符串，则忽略）
+* @param notEnd 分离字符串不包含在此字符串结束（开始和结束前遇到pattern字符串，则忽略）
+* @param bTrim
+* @return 
+*/
+std::vector<std::wstring> StringUtil::splitNotIn(std::wstring str, const std::wstring & pattern, 
+	const std::wstring & notBegin, const std::wstring & notEnd, 
+	const std::wstring & notContain, bool bTrim /*= true*/)
+{
+	std::wstring::size_type pos;
+	std::vector<std::wstring> result;
+	str += pattern; // 扩展字符串以方便操作
+	std::wstring upstr = StringUtil::toupper(str); // 大写
+	std::wstring upNotBegin = StringUtil::toupper(notBegin); // 大写
+	std::wstring upNotEnd = StringUtil::toupper(notEnd); // 大写
+	std::wstring upNotContain = StringUtil::toupper(notContain); // 大写
+	size_t size = str.size();
+	size_t subPos = 0; // 用来记录截取字符串的开始位置
+	for (size_t i = 0; i < size; i++) {
+		pos = str.find(pattern, i);
+		if (pos < size) {
+			std::wstring s = str.substr(subPos, pos - subPos);
+			if (s.empty()) {
+				i = pos + pattern.size() - 1;
+				subPos = pos + pattern.size();
+				continue;
+			}
+			
+			// 返回的字符串数组中的字符串，不包含在关闭字符串中
+			if (!notBegin.empty() && !notEnd.empty()) {
+				size_t _begin = upstr.find(upNotBegin, i);
+				size_t _end = upstr.find(upNotEnd,i);
+				size_t _contain = upstr.find(upNotContain,i); //notContain 要保证不在notBegin到notEnd 字符串中
+				if (_begin != std::wstring::npos && _end != std::wstring::npos && 
+					(_contain == std::wstring::npos || _contain < _begin || _contain >_end)
+					) {
+					if (pos >= _begin && pos <= _end) {
+						i = _end + notEnd.size() - 1;
+						// 此时，subPos保持不变，查找的字符串继续往下找
+						continue;
+					}
+				}
+			}
+			if (bTrim && !s.empty()) {
+				StringUtil::trim(s);
+			}
+			result.push_back(s);
+			i = pos + pattern.size() - 1;
+			subPos = pos + pattern.size(); // 下次截取字符串的位置
 		}
 	}
 	return result;
