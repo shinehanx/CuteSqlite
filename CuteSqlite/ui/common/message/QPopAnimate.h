@@ -56,7 +56,7 @@ public:
 	static void report(const QSqlExecuteException & ex);
 	
 	void setup(const std::wstring & text);
-	void setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql = std::wstring());
+	void setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql = std::wstring(), bool rollBack = false);
 	void setSize(int w, int h);
 	void createOrShowUI();
 	void setImagePath(const std::wstring & imagePath);
@@ -73,6 +73,7 @@ private:
 	std::wstring code;
 	std::wstring text;
 	std::wstring sql;
+	bool rollBack = false;
 	std::wstring imagePath;
 	std::wstring closeImagePath;
 

@@ -40,6 +40,11 @@ BOOL ResultTabView::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	}
 
+	for (auto & ptr : resultListPagePtrs) {
+		if (ptr->IsWindow() && ptr->PreTranslateMessage(pMsg)) {
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -204,7 +209,7 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 	resetRuntimeResultInfo();
 	auto bt = PerformUtil::begin();
 	try {		
-		sqlService->executeSql(databaseSupplier->getSelectedUserDbId(), sql);
+		runtimeResultInfo.effectRows = sqlService->executeSql(databaseSupplier->getSelectedUserDbId(), sql);
 		runtimeResultInfo.sql = sql;
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
@@ -214,10 +219,12 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 		return true;
 	} catch (QSqlExecuteException & ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		ex.setRollBack(true);
 		QPopAnimate::report(ex);
 
 		runtimeResultInfo.code = std::stoi(ex.getCode());
 		runtimeResultInfo.sql = sql;
+		runtimeResultInfo.effectRows = 0;
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		runtimeResultInfo.totalTime = PerformUtil::end(bt);
@@ -241,6 +248,17 @@ int ResultTabView::getPageIndex(HWND hwnd)
 void ResultTabView::setActivePage(int pageIndex)
 {
 	tabView.SetActivePage(pageIndex);
+}
+
+void ResultTabView::activeResultInfoPage()
+{
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		if (tabView.GetPageHWND(i) != resultInfoPage.m_hWnd) {
+			continue;
+		}
+		tabView.SetActivePage(i);
+	}
 }
 
 void ResultTabView::createImageList()

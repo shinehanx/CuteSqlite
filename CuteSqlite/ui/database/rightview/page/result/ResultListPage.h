@@ -26,7 +26,7 @@
 #include "ui/common/button/QDropButton.h"
 #include "ui/common/checkbox/QCheckBox.h"
 #include "ui/database/rightview/common/QTabPage.h"
-#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/rightview/page/result/form/RowDataFormView.h"
 #include "ui/common/listview/QListViewCtrl.h"

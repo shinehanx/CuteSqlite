@@ -11,27 +11,17 @@
 
  * limitations under the License.
 
- * @file   QueryPageSupplier.cpp
- * @brief  
+ * @file   QHelpEditAdapter.h
+ * @brief  Base class of help edit adapters, you can inherited this class to implement abstract functions
  * 
  * @author Xuehan Qin
- * @date   2023-10-30
+ * @date   2023-11-11
  *********************************************************************/
-#include "stdafx.h"
-#include "QueryPageSupplier.h"
-#include "utils/StringUtil.h"
+#pragma once
+#include <vector>
+#include <string>
 
-void QueryPageSupplier::splitToSqlVector(std::wstring sql)
-{
-	sqlVector.clear();
-	if (sql.empty()) {
-		return;
-	}
-	
-	if (sql.find(L';') == std::wstring::npos) {
-		sqlVector.push_back(sql);
-		return ;
-	}
-
-	sqlVector = StringUtil::splitNotIn(sql, L";", L"BEGIN", L"END", L"TRANSACTION", true);
-}
+class QHelpEditAdapter {
+public:
+	virtual std::vector<std::wstring> getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word) = 0; 
+};

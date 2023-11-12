@@ -83,6 +83,10 @@ public:
 	static ForeignKeyList parseForeignKeysByTableDDL(const std::wstring & createTblSql);
 
 	static std::wstring replaceNumOfSuffixInTblName(const std::wstring & tblName, const std::wstring & after);
+
+	// parse table clause from sql, such as "SELECT * FROM [tbl_1 as name_1, tbl_2 as name_2] WHERE ..."
+	static TableAliasVector parseTableClauseFromSelectSql(const std::wstring & upSelectSql);
+	static TableAliasVector parseTableClauseFromUpdateSql(const std::wstring & upSelectSql);
 private:
 	static IndexInfo parseConstraintFromLine(const std::wstring& line);
 	static IndexInfo parseLineToPrimaryKey(const std::wstring& line, bool isConstaintLine = true);

@@ -33,10 +33,14 @@ public:
 	void setErrCol(uint32_t val) { errCol = val; }
 
 	const std::wstring & getSql() const ;
+
+	bool getRollBack() const { return rollBack; }
+	void setRollBack(bool val) { rollBack = val; }
 private:
 	// Execute sql has error, will be with error rows and cols
 	uint32_t errRow = 0;
 	uint32_t errCol = 0;
+	bool rollBack = false;
 	std::wstring sql;
 };
 

@@ -24,7 +24,7 @@
 #include "core/service/db/TableService.h"
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 #define NEW_TBL_EMPTY_INDEX_SIZE 6
 

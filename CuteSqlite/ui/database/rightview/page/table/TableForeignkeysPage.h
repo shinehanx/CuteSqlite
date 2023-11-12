@@ -26,7 +26,7 @@
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
 #include "ui/database/rightview/page/table/adapter/TableForeignkeysPageAdapter.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 class TableForeignkeysPage : public QPage 
 {

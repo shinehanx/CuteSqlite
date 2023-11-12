@@ -32,10 +32,11 @@ BOOL QHelpEdit::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
-void QHelpEdit::setup(std::wstring & helpText, std::wstring & content)
+void QHelpEdit::setup(std::wstring & helpText, std::wstring & content, QHelpEditAdapter * adapter)
 {
 	QHelpPage::setup(helpText);
 	this->content = content;
+	this->adapter = adapter;
 }
 
 std::wstring QHelpEdit::getSelText()
@@ -143,9 +144,30 @@ LRESULT QHelpEdit::OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHand
 		editor.toggleFold(n);
 	}
 	break;
-	case SCN_UPDATEUI://界面更新(单击鼠标，按下箭头等)
+	case SCN_UPDATEUI ://界面更新(单击鼠标，按下箭头等)
+		break;
+
+	case SCN_CHARADDED :// 字符输入 
+		OnHandleScnCharAdded(uMsg, wParam, lParam, bHandled);
+		break;
+	
+	case SCN_AUTOCSELECTION : // 提示选择
+		editor.autoReplaceWord();
 		break;
 	}
-
 	return 0;
+}
+
+void QHelpEdit::OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	ATLASSERT(adapter);
+	std::wstring line, preline, word;
+	line = editor.getCurLineText();
+	if (line.empty()) {
+		return ;
+	}
+	preline = editor.getCurPreLineText();
+	word = editor.getCurWord();
+	std::vector<std::wstring> tags = adapter->getTags(line, preline, word);
+	editor.autoShow(word.size(), tags);
 }

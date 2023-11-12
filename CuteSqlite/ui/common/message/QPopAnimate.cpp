@@ -58,7 +58,7 @@ void QPopAnimate::report(const QSqlExecuteException & ex)
 	QPopAnimate * win = new QPopAnimate();
 	popAnimatePtrs.push_back(win);
 
-	win->setup(ex.getCode(), ex.getMsg(),ex.getSql());
+	win->setup(ex.getCode(), ex.getMsg(),ex.getSql(), ex.getRollBack());
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	std::wstring closeImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close.bmp";
 	win->setImagePath(imagePath);
@@ -116,11 +116,12 @@ void QPopAnimate::setup(const std::wstring & text)
 	textFont = Lang::font(L"message-text-size", false);
 }
 
-void QPopAnimate::setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql)
+void QPopAnimate::setup(const std::wstring & code, const std::wstring &text, const std::wstring & sql, bool rollBack)
 {
 	this->code = code;
 	this->text = text;
 	this->sql = StringUtil::formatBreak(sql);
+	this->rollBack = rollBack;
 	int textSize = Lang::fontSize(L"message-text-size");
 	
 	popType = POP_REPORT_TEXT;
@@ -229,8 +230,11 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 	DWORD dwStyle = ES_MULTILINE | ES_AUTOVSCROLL;
 	if (popType == POP_REPORT_TEXT) {
 		reportText.append(L"\r\n\r\n").append(L"Code:").append(code);
+		if (rollBack) {
+			reportText.append(L"\r\n\r\nROLLBACK ALL");
+		}
 		if (!sql.empty()) {
-			reportText.append(L"\r\n\r\n").append(S(L"execute-sql-statement")).append(L": \r\n").append(sql);
+			reportText.append(L"\r\n\r\n").append(S(L"incorrect-sql-statement")).append(L": \r\n").append(sql);
 			dwStyle = dwStyle | WS_VSCROLL;
 		}
 	}

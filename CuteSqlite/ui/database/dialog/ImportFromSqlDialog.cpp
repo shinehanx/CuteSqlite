@@ -36,7 +36,6 @@ ImportFromSqlDialog::ImportFromSqlDialog(HWND parentHwnd, ImportDatabaseAdapter 
 
 void ImportFromSqlDialog::createOrShowUI()
 {
-	QDialog::createOrShowUI();
 	CRect clientRect;
 	GetClientRect(clientRect);
 
@@ -47,6 +46,7 @@ void ImportFromSqlDialog::createOrShowUI()
 	createOrShowAbortOnErrorElems(clientRect);
 	createOrShowProcessBar(processBar, clientRect);
 
+	QDialog::createOrShowUI();
 	yesButton.SetWindowText(S(L"import").c_str());
 }
 

@@ -25,7 +25,7 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 class TableColumnsPage : public QPage 
 {

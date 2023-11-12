@@ -29,39 +29,54 @@
 
 BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 {
+	UINT	msg = pMsg->message;
+	WPARAM	key = pMsg->wParam;
+	HWND	hwnd = pMsg->hwnd;
 	// press enter key or the mouse wheel
-	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->hwnd == subItemEdit.m_hWnd) {
+	if (msg == WM_KEYDOWN && key == VK_RETURN && pMsg->hwnd == subItemEdit.m_hWnd) {
 		changeSubItemText();
-	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB) // press tab on subItemEdit  
-		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB) // press tab on subItemComboBox  
-		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB) ) { // press tab on ListView  
+	} else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_TAB) // press tab on subItemEdit  
+		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_TAB) // press tab on subItemComboBox  
+		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_TAB) ) { // press tab on ListView  
 		// if pressed shift + tab
-		if ( (GetKeyState(VK_SHIFT) & (1 << (sizeof(SHORT)*8-1))) != 0) { 
+		if ( (::GetKeyState(VK_SHIFT) & (1 << (sizeof(SHORT)*8-1))) != 0) { 
 			pressedShiftTabToMoveEditor(); //has press shift 
 		} else { 
 			pressedTabToMoveEditor(); // no press shift
 		}		
-	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemEdit  
-		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) // press up on subItemComboBox  
-		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_UP) ) { // press up on ListView  		
+	} else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_UP) // press up on subItemEdit  
+		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_UP) // press up on subItemComboBox  
+		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_UP) ) { // press up on ListView  		
 		return pressedUpToMoveEditor();
 		
-	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemEdit  
-		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) // press down on subItemComboBox  
-		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_DOWN) ) { // press down on ListView  		
+	} else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_DOWN) // press down on subItemEdit  
+		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_DOWN) // press down on subItemComboBox  
+		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_DOWN) ) { // press down on ListView  		
 		return pressedDownToMoveEditor();
-	} else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemEdit  
-		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) // press left on subItemComboBox  
-		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_LEFT) ) { // press left on ListView  		
+	} else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) // press left on subItemEdit  
+		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) // press left on subItemComboBox  
+		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) ) { // press left on ListView  		
 		pressedShiftTabToMoveEditor();	// left == shift + tab	
-	}else if ( (pMsg->hwnd == subItemEdit.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) // press right on subItemEdit  
-		|| (pMsg->hwnd == subItemComboBox.m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) // press right on subItemComboBox  
-		|| (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RIGHT) ) { // press right on ListView  		
+	}else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) // press right on subItemEdit  
+		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) // press right on subItemComboBox  
+		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) ) { // press right on ListView  		
 		pressedTabToMoveEditor();	// left == shift + tab	
-	}  else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_SPACE) { // press space on ListView  
+	} else if (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN) { 
+		::TranslateMessage(pMsg);
+		::DispatchMessage(pMsg);
+		return FALSE;
+	}  else if (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_SPACE) { // press space on ListView  
 		pressedSpaceToCheckbox();
-	} else if (pMsg->hwnd == m_hWnd && pMsg->message == WM_MOUSEWHEEL) { // mouse wheel
+	} else if (hwnd == m_hWnd && msg == WM_MOUSEWHEEL) { // mouse wheel
 		changeSubItemText();
+	} else if ((hwnd == m_hWnd || pMsg->hwnd == GetHeader().m_hWnd) && msg == WM_KEYDOWN 
+		&& ((GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)) { // CTRL + A
+		::TranslateMessage(pMsg);
+		::DispatchMessage(pMsg);
+		if (key == _T('A')) {
+			checkedAllItems();
+		}
+		return FALSE;
 	}
 
 	return FALSE;

@@ -24,7 +24,7 @@
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
 #include "ui/database/rightview/page/table/TableTabView.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 class TableStructurePage : public QTabPage<TableStructureSupplier> {
 public:

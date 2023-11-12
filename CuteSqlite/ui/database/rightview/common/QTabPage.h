@@ -13,7 +13,7 @@
 
  * @file   QTabPage.h
  * @brief  The base TabPage class for CTabView.
- *		   It's child class supply to store runtime data and handle functions.
+ *		   It's child class supplier to store runtime data and handle functions.
  * 
  * @author Xuehan Qin
  * @date   2023-10-30

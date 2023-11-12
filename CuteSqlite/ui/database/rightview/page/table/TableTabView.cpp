@@ -33,6 +33,10 @@ BOOL TableTabView::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	}
 
+	if (tableForeinkeysPage.IsWindow() && tableForeinkeysPage.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
 	return false;
 }
 

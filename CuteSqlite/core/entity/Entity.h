@@ -200,3 +200,10 @@ typedef enum {
 	TABLE_FOREIGN_KEYS_PAGE = 2
 }TableStructurePageType;
 
+// use for select statement such as "tbl1 as m1 left join tbl2 as m2"
+typedef struct {
+	std::wstring tbl;
+	std::wstring alias;
+} TableAlias;
+
+typedef std::vector<TableAlias> TableAliasVector;

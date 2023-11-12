@@ -61,6 +61,10 @@ BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 			return TRUE;
 		}
 	}
+
+	if (historyPage.IsWindow() && historyPage.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
 	return FALSE;
 }
 

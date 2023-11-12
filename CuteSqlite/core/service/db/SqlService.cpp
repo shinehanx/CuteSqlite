@@ -25,7 +25,7 @@ QSqlStatement SqlService::tryExecuteSql(uint64_t userDbId, const std::wstring &s
 	return getRepository()->tryExecSql(userDbId, sql);
 }
 
-void SqlService::executeSql(uint64_t userDbId, const std::wstring &sql)
+int SqlService::executeSql(uint64_t userDbId, const std::wstring &sql)
 {
-	getRepository()->execSql(userDbId, sql);
+	return getRepository()->execSql(userDbId, sql);
 }

@@ -35,8 +35,7 @@ ExportResultDialog::ExportResultDialog(HWND parentHwnd, ResultListPageAdapter * 
 
 
 void ExportResultDialog::createOrShowUI()
-{
-	QDialog::createOrShowUI();
+{	
 	CRect clientRect;
 	GetClientRect(clientRect);
 
@@ -51,6 +50,8 @@ void ExportResultDialog::createOrShowUI()
 	createOrShowSqlSettingsElems(clientRect);
 	createOrShowSelectFieldsElems(clientRect);
 	createOrShowExportPathElems(clientRect);
+
+	QDialog::createOrShowUI();
 }
 
 

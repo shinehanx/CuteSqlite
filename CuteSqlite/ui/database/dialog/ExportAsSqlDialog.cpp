@@ -36,8 +36,7 @@ ExportAsSqlDialog::ExportAsSqlDialog(HWND parentHwnd, ExportDatabaseAdapter * ad
 
 
 void ExportAsSqlDialog::createOrShowUI()
-{
-	QDialog::createOrShowUI();
+{	
 	CRect clientRect;
 	GetClientRect(clientRect);
 
@@ -67,6 +66,7 @@ void ExportAsSqlDialog::createOrShowUI()
 	// process bar 
 	createOrShowProcessBar(processBar, clientRect);
 
+	QDialog::createOrShowUI();
 	yesButton.SetWindowText(S(L"export").c_str());
 }
 

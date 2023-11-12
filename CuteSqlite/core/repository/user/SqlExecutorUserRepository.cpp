@@ -36,11 +36,11 @@ QSqlStatement SqlExecutorUserRepository::tryExecSql(uint64_t userDbId, const std
 	}
 }
 
-void SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sql)
+int SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sql)
 {
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
-		query.exec();		
+		return query.exec();		
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
@@ -49,4 +49,5 @@ void SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &s
 		ex.setErrCol(200);
 		throw ex;
 	}
+	return 0;
 }

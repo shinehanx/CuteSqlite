@@ -303,13 +303,7 @@
     <ClCompile Include="ui\database\leftview\dialog\RenameTableDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\database\rightview\page\supply\TableStructureSupplier.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui\database\rightview\common\QPageSupplier.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\database\rightview\page\supply\QueryPageSupplier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ui\database\leftview\dialog\CopyTableDialog.cpp">
@@ -346,6 +340,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ui\database\rightview\page\result\TablePropertiesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\adapter\SqlEditorAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\supplier\QueryPageSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\supplier\TableStructureSupplier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -686,16 +689,10 @@
     <ClInclude Include="ui\database\leftview\dialog\RenameTableDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui\database\rightview\page\supply\TableStructureSupplier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ui\database\rightview\common\QPageSupplier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\common\QTabPage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\database\rightview\page\supply\QueryPageSupplier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\leftview\dialog\CopyTableDialog.h">
@@ -726,6 +723,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\result\TablePropertiesPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\common\edit\adapter\QHelpEditAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\adapter\SqlEditorAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\supplier\QueryPageSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\supplier\TableStructureSupplier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

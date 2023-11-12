@@ -26,6 +26,7 @@
 #include <atltypes.h>
 #include "ui/common/page/QHelpPage.h"
 #include "QSqlEdit.h"
+#include "adapter/QHelpEditAdapter.h"
 
 class QHelpEdit : public QHelpPage
 {
@@ -43,7 +44,7 @@ public:
 		// REFLECT_NOTIFICATIONS() 
 	END_MSG_MAP()
 
-	void setup(std::wstring & helpText, std::wstring & content);
+	void setup(std::wstring & helpText, std::wstring & content, QHelpEditAdapter * adapter = nullptr);
 	std::wstring getSelText();
 	std::wstring getText();
 	void setText(const std::wstring & text);
@@ -54,6 +55,7 @@ public:
 protected:
 	QSqlEdit editor;
 	std::wstring content;
+	QHelpEditAdapter * adapter = nullptr;
 
 	virtual void createOrShowUI();
 	void crateOrShowEditor(QSqlEdit &win, CRect &clientRect);
@@ -62,4 +64,5 @@ protected:
 	virtual int OnDestroy();
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 	LRESULT OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

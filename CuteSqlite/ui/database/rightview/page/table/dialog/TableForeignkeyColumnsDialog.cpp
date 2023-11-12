@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "TableForeignkeyColumnsDialog.h"
 #include "ui/common/message/QPopAnimate.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 TableForeignkeyColumnsDialog::TableForeignkeyColumnsDialog(
 	HWND parentHwnd, 

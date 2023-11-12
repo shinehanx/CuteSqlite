@@ -34,6 +34,16 @@
 
 BOOL ResultListPage::PreTranslateMessage(MSG* pMsg)
 {
+	UINT	msg = pMsg->message;
+	WPARAM	key = pMsg->wParam;
+	HWND	hwnd = pMsg->hwnd;
+	if ((hwnd == listView.m_hWnd || hwnd == listView.GetHeader().m_hWnd) && msg == WM_KEYDOWN
+		&& ((GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)) { //CTRL + C 
+		if (key == _T('C')) {
+			adapter->copyAllRowsToClipboard();
+		}
+	}
+
 	if (listView.IsWindow() && listView.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}

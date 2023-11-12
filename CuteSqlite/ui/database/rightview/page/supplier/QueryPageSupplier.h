@@ -28,4 +28,20 @@ public:
 
 	// Using semicolons to separate a SQL statement becomes a member variable sqlVector
 	void splitToSqlVector(std::wstring sql);
+
+	static const std::vector<std::wstring> sqlTags;
+
+	// tables
+	UserTableStrings & getCacheUserTableStrings(uint64_t userDbId);
+	void setCacheUserTableStrings(uint64_t userDbId, UserTableStrings & tblStrs);
+
+	// table columns
+	Columns & getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName);
+	void setCacheTableColumns(uint64_t userDbId, const std::wstring & tblName, const Columns & columns);
+private:
+	// template params: first - userDbId, second - user table strings
+	std::map<uint64_t, UserTableStrings> cacheUserTableMap;
+	
+	// template params:  first - userDbId, second - table name, third - columns strings
+	std::map<std::pair<uint64_t, std::wstring>, Columns> cacheTableColumnsMap;
 };

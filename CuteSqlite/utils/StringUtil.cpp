@@ -41,7 +41,7 @@ char * StringUtil::unicodeToUtf8(const std::wstring& widestring)
 	int convresult = ::WideCharToMultiByte(CP_UTF8, 0, widestring.c_str(), -1, buff, utf8size, NULL, NULL);
 	if (convresult != utf8size)
 	{
-		throw std::exception("La falla!");
+		throw std::exception("Error in conversion.");
 	}
 	buff[utf8size] = '\0';
 		
@@ -63,7 +63,7 @@ wchar_t * StringUtil::utf8ToUnicode(const char * utf8str)
 	//转换
 	int convresult =::MultiByteToWideChar(CP_UTF8, NULL, utf8str, len, buff, wcsLen);
 	if (convresult != wcsLen) {
-		throw std::exception("La falla!");
+		throw std::exception("Error in conversion.");
 	}
 	//最后加上'\0'
 	buff[wcsLen] = '\0';
@@ -77,19 +77,16 @@ std::wstring StringUtil::utf82Unicode(const std::string& utf8string)
 		return std::wstring(L"");
 	}
 	int widesize = ::MultiByteToWideChar(CP_UTF8, 0, utf8string.c_str(), -1, NULL, 0);
-	if (widesize == ERROR_NO_UNICODE_TRANSLATION)
-	{
+	if (widesize == ERROR_NO_UNICODE_TRANSLATION) {
 		throw std::exception("Invalid UTF-8 sequence.");
 	}
-	if (widesize == 0)
-	{
+	if (widesize == 0) {
 		throw std::exception("Error in conversion.");
 	}
 	std::vector<wchar_t> resultstring(widesize);
 	int convresult = ::MultiByteToWideChar(CP_UTF8, 0, utf8string.c_str(), -1, &resultstring[0], widesize);
-	if (convresult != widesize)
-	{
-		throw std::exception("La falla!");
+	if (convresult != widesize) {
+		throw std::exception("Error in conversion.");
 	}
 	return std::wstring(&resultstring[0]);
 }
@@ -101,15 +98,13 @@ std::string StringUtil::unicode2Utf8(const std::wstring& widestring)
 		return std::string("");
 	}
 	int utf8size = ::WideCharToMultiByte(CP_UTF8, 0, widestring.c_str(), -1, NULL, 0, NULL, NULL); 
-	if (utf8size == 0) 
-	{ 
+	if (utf8size == 0)  { 
 		throw std::exception("Error in conversion."); 
 	} 
 	std::vector<char> resultstring(utf8size); 
 	int convresult = ::WideCharToMultiByte(CP_UTF8, 0, widestring.c_str(), -1, &resultstring[0], utf8size, NULL, NULL); 
-	if (convresult != utf8size) 
-	{ 
-		throw std::exception("La falla!"); 
+	if (convresult != utf8size)  { 
+		throw std::exception("Error in conversion."); 
 	} 
 		
 	return std::string(&resultstring[0]);
@@ -133,19 +128,16 @@ std::string StringUtil::wideByte2Ascii(std::wstring& wstrcode)
 		return std::string("");
 	}
 	int asciisize = ::WideCharToMultiByte(CP_OEMCP, 0, wstrcode.c_str(), -1, NULL, 0, NULL, NULL); 
-	if (asciisize == ERROR_NO_UNICODE_TRANSLATION) 
-	{ 
+	if (asciisize == ERROR_NO_UNICODE_TRANSLATION)  { 
 		throw std::exception("Invalid UTF-8 sequence."); 
 	} 
-	if (asciisize == 0) 
-	{ 
-	throw std::exception("Error in conversion."); 
+	if (asciisize == 0)  { 
+		throw std::exception("Error in conversion."); 
 	} 
 	std::vector<char> resultstring(asciisize); 
 	int convresult =::WideCharToMultiByte(CP_OEMCP, 0, wstrcode.c_str(), -1, &resultstring[0], asciisize, NULL, NULL); 
-	if (convresult != asciisize) 
-	{ 
-	throw std::exception("La falla!"); 
+	if (convresult != asciisize)  { 
+		throw std::exception("Error in conversion."); 
 	} 
 	return std::string(&resultstring[0]); 
 } 
@@ -180,7 +172,7 @@ std::wstring StringUtil::ascii2WideByte(std::string& strascii)
 	int convresult = MultiByteToWideChar (CP_ACP, 0, (char*)strascii.c_str(), -1, &resultstring[0], widesize); 
 	if (convresult != widesize) 
 	{ 
-		throw std::exception("La falla!"); 
+		throw std::exception("Error in conversion."); 
 	} 
 	return std::wstring(&resultstring[0]); 
 }
@@ -331,6 +323,9 @@ CSize StringUtil::getTextSize(const wchar_t * str, HFONT font)
 */
 std::vector<std::wstring> StringUtil::split(std::wstring str, const std::wstring & pattern, bool bTrim /*= true*/)
 {
+	if (str.empty() || pattern.empty()) {
+		return std::vector<std::wstring>();
+	}
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str += pattern; // 扩展字符串以方便操作
@@ -363,6 +358,10 @@ std::vector<std::wstring> StringUtil::split(std::wstring str, const std::wstring
  */
 std::vector<std::wstring> StringUtil::splitCutEnclose(std::wstring str, const std::wstring & pattern, std::wstring & cutEnclose, bool bTrim /*= true*/)
 {
+	if (str.empty() || pattern.empty()) {
+		return std::vector<std::wstring>();
+	}
+
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str += pattern; // 扩展字符串以方便操作
@@ -396,6 +395,9 @@ std::vector<std::wstring> StringUtil::splitCutEnclose(std::wstring str, const st
 
 std::vector<std::wstring> StringUtil::splitByBlank(std::wstring str, bool bTrim /*= true*/)
 {
+	if (str.empty()) {
+		return std::vector<std::wstring>();
+	}
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str.append(L" ");
@@ -432,6 +434,10 @@ std::vector<std::wstring> StringUtil::splitNotIn(std::wstring str, const std::ws
 	const std::wstring & notBegin, const std::wstring & notEnd, 
 	const std::wstring & notContain, bool bTrim /*= true*/)
 {
+	if (str.empty() || pattern.empty()) {
+		return std::vector<std::wstring>();
+	}
+
 	std::wstring::size_type pos;
 	std::vector<std::wstring> result;
 	str += pattern; // 扩展字符串以方便操作
@@ -466,10 +472,14 @@ std::vector<std::wstring> StringUtil::splitNotIn(std::wstring str, const std::ws
 					}
 				}
 			}
+
 			if (bTrim && !s.empty()) {
 				StringUtil::trim(s);
 			}
-			result.push_back(s);
+
+			if (!s.empty()) {
+				result.push_back(s);
+			}			
 			i = pos + pattern.size() - 1;
 			subPos = pos + pattern.size(); // 下次截取字符串的位置
 		}
@@ -719,4 +729,19 @@ wchar_t StringUtil::nextNotBlankChar(const std::wstring & line, wchar_t * word, 
 	}
 		
 	return nextChar;
+}
+
+/**
+ *  Convert std::wstring vector to std::string vector.
+ * 
+ * @param tags
+ * @return 
+ */
+std::vector<std::string> StringUtil::wstringsToStrings(const std::vector<std::wstring> & wstrs)
+{
+	std::vector<std::string> result;
+	for (auto wstr : wstrs) {
+		result.push_back(wideByte2Ascii(wstr));
+	}
+	return result;
 }

@@ -19,6 +19,7 @@
  *********************************************************************/
 #pragma once
 #include <string>
+#include <vector>
 #include <atlwin.h>
 #include <atlcrack.h>
 #include <atltypes.h>
@@ -50,12 +51,20 @@ public:
 
 	std::wstring getSelText();
 	std::wstring getText();
+	std::wstring getCurLineText();
+	std::wstring getCurPreLineText();
+	std::wstring getCurWord();
 
 	// replace selected text to editor
 	void replaceSelText(std::wstring & text);
 	void setText(const std::wstring & text);
 	void addText(const std::wstring & text);
 	void clearText();
+
+	// SCI_AUTOSHOW
+	void autoShow(size_t lengthEntered, const std::vector<std::wstring> & tags);
+	void autoComplete();
+	void autoReplaceWord();
 protected:
 
 	COLORREF bkgColor = RGB(255, 255, 255);

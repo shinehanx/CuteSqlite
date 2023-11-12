@@ -36,8 +36,7 @@ ImportFromCsvDialog::ImportFromCsvDialog(HWND parentHwnd)
 
 
 void ImportFromCsvDialog::createOrShowUI()
-{
-	QDialog::createOrShowUI();
+{	
 	CRect clientRect;
 	GetClientRect(clientRect);
 
@@ -50,6 +49,8 @@ void ImportFromCsvDialog::createOrShowUI()
 	createOrShowCsvSettingsElems(clientRect);
 	createOrShowProcessBar(processBar, clientRect);
 	createOrShowPreviewSqlButton(clientRect);
+	
+	QDialog::createOrShowUI();
 	yesButton.SetWindowText(S(L"import").c_str());
 }
 

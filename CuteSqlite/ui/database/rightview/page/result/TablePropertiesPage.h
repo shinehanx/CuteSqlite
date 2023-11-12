@@ -20,7 +20,7 @@
 #pragma once
 #include "ui/database/rightview/common/QTabPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
-#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/button/QImageButton.h"
 

@@ -26,7 +26,7 @@
 #include "ui/database/rightview/page/result/ResultListPage.h"
 #include "ui/database/rightview/page/result/ResultInfoPage.h"
 #include "ui/database/rightview/page/result/ResultTableDataPage.h"
-#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/result/TablePropertiesPage.h"
 
 class ResultTabView : public CWindowImpl<ResultTabView>
@@ -58,9 +58,11 @@ public:
 	bool execSqlToInfoPage(const std::wstring & sql);
 	int getPageIndex(HWND hwnd);
 	void setActivePage(int pageIndex);
+	void activeResultInfoPage();
 
 	bool isActiveTableDataPage();
 	void activeTableDataPage();
+	
 	void loadTableDatas(std::wstring & table);
 
 	void activeTablePropertiesPage();

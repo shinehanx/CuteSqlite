@@ -228,6 +228,14 @@ public:
 	 * @return 
 	 */
 	static wchar_t nextNotBlankChar(const std::wstring & line, wchar_t * word, size_t offset = 0);
+
+	/**
+	 * Convert std::wstring vector to std::string vector.
+	 * 
+	 * @param tags
+	 * @return 
+	 */
+	static std::vector<std::string> wstringsToStrings(const std::vector<std::wstring> & wstrs);
 };
 
 

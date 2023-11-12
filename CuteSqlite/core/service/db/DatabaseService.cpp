@@ -24,6 +24,8 @@
 #include "utils/SqlUtil.h"
 #include "core/common/exception/QRuntimeException.h"
 
+Functions DatabaseService::functions;
+
 DatabaseService::DatabaseService()
 {
 
@@ -206,8 +208,23 @@ UserTrigger DatabaseService::getUserTrigger(uint64_t userDbId, const std::wstrin
 	return triggerUserRepository->getTrigger(userDbId, triggerName, schema);
 }
 
-Functions DatabaseService::getFunctionsStrings(uint64_t userDbId)
+Functions DatabaseService::getFunctionsStrings(uint64_t userDbId, bool upcase)
 {
 	ATLASSERT(userDbId > 0);
-	return databaseUserRepository->getFunctions(userDbId);
+	
+	if (functions.empty()) {
+		functions = databaseUserRepository->getFunctions(userDbId);
+	}
+		
+	if (!upcase) {
+		return functions;
+	}
+
+	for (auto & fun : functions) {
+		fun = StringUtil::toupper(fun);
+	}
+
+	return functions;
 }
+
+

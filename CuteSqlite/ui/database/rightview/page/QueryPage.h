@@ -20,10 +20,11 @@
 #pragma once
 #include <atlsplit.h>
 #include "ui/database/rightview/common/QTabPage.h"
-#include "ui/database/rightview/page/supply/QueryPageSupplier.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/database/rightview/page/adapter/SqlEditorAdapter.h"
 
 class QueryPage : public QTabPage<QueryPageSupplier> {
 public:
@@ -55,6 +56,9 @@ private:
 	QHelpEdit sqlEditor;
 	ResultTabView resultTabView;
 	CHorSplitterWindow splitter;// Horizontal splitter
+
+	SqlService * sqlService = SqlService::getInstance();
+	SqlEditorAdapter * sqlEditorAdapter = nullptr;
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

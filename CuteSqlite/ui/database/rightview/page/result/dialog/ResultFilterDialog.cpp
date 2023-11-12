@@ -69,9 +69,9 @@ void ResultFilterDialog::createOrShowClearButton(CButton & win, CRect &clientRec
 void ResultFilterDialog::createOrShowUI()
 {
 	initWindowRect();
-	QDialog::createOrShowUI();
-
 	createOrShowElems();
+
+	QDialog::createOrShowUI();
 }
 
 

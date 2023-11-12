@@ -51,9 +51,11 @@ public:
 	UserTriggerList getUserTriggers(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserTrigger getUserTrigger(uint64_t userDbId, const std::wstring & triggerName, const std::wstring & schema = std::wstring());
 
-	Functions getFunctionsStrings(uint64_t userDbId);
+	Functions getFunctionsStrings(uint64_t userDbId, bool upcase = false);
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();
 	ViewUserRepository * viewUserRepository = ViewUserRepository::getInstance();
 	TriggerUserRepository * triggerUserRepository = TriggerUserRepository::getInstance();
+
+	static Functions functions;
 };

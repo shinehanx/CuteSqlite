@@ -20,9 +20,27 @@
 
 #include "stdafx.h"
 #include "HistoryPage.h"
+#include <WinUser.h>
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
 #include "common/AppContext.h"
+
+BOOL HistoryPage::PreTranslateMessage(MSG* pMsg)
+{
+	UINT msg = pMsg->message;
+	WPARAM key = pMsg->wParam;
+
+	if (pMsg->hwnd == infoEdit.m_hWnd && msg == WM_KEYDOWN
+		&& (key == _T('C') || key == _T('V')|| key == _T('X') || key == _T('A')) 
+		&& ((GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)) {
+		::TranslateMessage(pMsg);
+		::DispatchMessage(pMsg);
+		if (key == _T('A')) {
+			infoEdit.SetSel(0, -1);
+		}
+	}
+	return FALSE;
+}
 
 void HistoryPage::clear()
 {

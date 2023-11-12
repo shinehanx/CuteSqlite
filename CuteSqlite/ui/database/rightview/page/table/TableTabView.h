@@ -26,7 +26,7 @@
 #include "ui/database/rightview/page/table/TableColumnsPage.h"
 #include "ui/database/rightview/page/table/TableIndexesPage.h"
 #include "ui/database/rightview/page/table/TableForeignkeysPage.h"
-#include "ui/database/rightview/page/supply/TableStructureSupplier.h"
+#include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
 
 class TableTabView : public CWindowImpl<TableTabView>
 {

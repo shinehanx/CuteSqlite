@@ -12,10 +12,34 @@
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
+	if (m_view.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
+	// Here CFrameWindowImpl will handle the Ctrl+C/V/X key that be defined in the CuteSqlite.rc file
+	// CuteSqlite.rc show in VC++ Developer View chain: Resource View - CuteSqlite - Accelerator - IDR_MAINFRAME
+	// Define as :
+	// 	IDR_MAINFRAME ACCELERATORS
+	// 	BEGIN
+	// 		"N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+	// 		"O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+	// 		"S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+	// 		"P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
+	// 		"Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
+	// 		"X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
+	// 		"C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
+	// 		"V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
+	// 		VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
+	// 		VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
+	// 		VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
+	// 		VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
+	// 		VK_F6,          ID_NEXT_PANE,           VIRTKEY 
+	// 		VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+	// 	END
 	if(CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
 		return TRUE;
 
-	return m_view.PreTranslateMessage(pMsg);
+	return FALSE;
 }
 
 BOOL CMainFrame::OnIdle()

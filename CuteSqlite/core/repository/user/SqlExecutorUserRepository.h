@@ -31,5 +31,5 @@ public:
 
 	QSqlStatement tryExecSql(uint64_t userDbId, const std::wstring &sql);
 
-	void execSql(uint64_t userDbId, const std::wstring &sql);
+	int execSql(uint64_t userDbId, const std::wstring &sql);
 };

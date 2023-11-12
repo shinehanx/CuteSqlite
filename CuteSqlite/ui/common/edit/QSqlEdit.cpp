@@ -77,9 +77,20 @@ const char sqlKeyWords[] =
 "year "
 "zone";
 
+const char separator = '\x1E';
+const char autoStopChars[] = "[\x1E(\x1E>\x1E=\x1E+\x1E*\x1E/\x1E)\x1E]";
+// ºöÂÔCTRL+[key]...µÄ¹¦ÄÜ
+const char ignoreCtrlKey[] = "SFBNLKHGPOREWQ";
+
 BOOL QSqlEdit::PreTranslateMessage(MSG* pMsg)
 {
-	
+	UINT msg = pMsg->message;
+	WPARAM key = pMsg->wParam;
+// 	if (pMsg->hwnd == m_hWnd && msg == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00
+// 		&& key == 0xdc3) {
+// 		::TranslateMessage(pMsg);
+// 		::DispatchMessage(pMsg);
+// 	}
 	return FALSE;
 }
 
@@ -128,6 +139,13 @@ void QSqlEdit::init()
 	SendMessage(SCI_SETCARETLINEVISIBLE, TRUE, 0);
 	SendMessage(SCI_SETCARETLINEBACK, RGB(232, 232, 255), 0);
 	SendMessage(SCI_SETCARETLINEBACKALPHA, 100, 0);
+	
+	// ignore the cmd key for CTRL+[key]
+	int  n = static_cast<int>(sizeof(ignoreCtrlKey));
+	for (int i = 0; i < n; i++) {
+		SendMessage(SCI_CLEARCMDKEY, WPARAM(ignoreCtrlKey[i] + (SCMOD_CTRL << 16)), 0);	
+	}
+	
 }
 
 
@@ -273,6 +291,75 @@ std::wstring QSqlEdit::getText()
 	return text;
 }
 
+std::wstring QSqlEdit::getCurLineText()
+{
+	std::wstring text;
+	int len = static_cast<int>(SendMessage(SCI_GETCURLINE, 0, 0));
+	if (!len) {
+		return text;
+	}
+	char * buffer = new char[len];
+	memset(buffer, 0, len);
+	SendMessage(SCI_GETCURLINE, len, LPARAM(buffer));
+	wchar_t * unicodeStr = StringUtil::utf8ToUnicode(buffer);
+	if (unicodeStr == nullptr) {
+		return text;
+	}
+	text = unicodeStr;
+	free(unicodeStr);
+	delete[] buffer;
+	return text;
+}
+
+std::wstring QSqlEdit::getCurPreLineText()
+{
+	std::wstring text;
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int lineNumber = static_cast<int>(SendMessage(SCI_LINEFROMPOSITION, WPARAM(curPos), 0));
+	int lineStart = static_cast<int>(SendMessage(SCI_POSITIONFROMLINE, WPARAM(lineNumber), 0));
+	if (curPos == lineStart) {
+		return text;
+	}
+	// one line max length is 1024
+	char buffer[1024] = {0};
+	Sci_TextRange tr;
+	tr.chrg.cpMin = lineStart;
+	tr.chrg.cpMax = curPos;
+	tr.lpstrText = buffer;
+	SendMessage(SCI_GETTEXTRANGE, 0, LPARAM(&tr));
+	wchar_t * unicodeStr = StringUtil::utf8ToUnicode(buffer);
+	if (unicodeStr == nullptr) {
+		return text;
+	}
+	text = unicodeStr;
+	free(unicodeStr);
+	return text;
+}
+
+std::wstring QSqlEdit::getCurWord()
+{
+	std::wstring text;
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int start = static_cast<int>(SendMessage(SCI_WORDSTARTPOSITION, WPARAM(curPos), LPARAM(1)));
+	int end = static_cast<int>(SendMessage(SCI_WORDENDPOSITION, WPARAM(curPos), LPARAM(1)));
+	if (end == start) {
+		return text;
+	}
+	char buffer[256] = {0};
+	Sci_TextRange tr;
+	tr.chrg.cpMin = start;
+	tr.chrg.cpMax = end;
+	tr.lpstrText = buffer;
+	SendMessage(SCI_GETTEXTRANGE, 0, LPARAM(&tr));
+	wchar_t * unicodeStr = StringUtil::utf8ToUnicode(buffer);
+	if (unicodeStr == nullptr) {
+		return text;
+	}
+	text = unicodeStr;
+	free(unicodeStr);
+	return text;
+}
+
 void QSqlEdit::replaceSelText(std::wstring & text)
 {
 	if (text.empty()) {
@@ -306,6 +393,63 @@ void QSqlEdit::addText(const std::wstring & text)
 void QSqlEdit::clearText()
 {
 	SendMessage(SCI_CLEARALL, NULL, NULL);
+}
+
+void QSqlEdit::autoShow(size_t lengthEntered, const std::vector<std::wstring> & tags)
+{
+	if (tags.empty()) {
+		return;
+	}
+	size_t n = tags.size();
+	std::vector<std::string> cctags = StringUtil::wstringsToStrings(tags);
+	size_t sum = 0;
+	std::for_each(cctags.begin(), cctags.end(), [&sum](std::string & str) {
+		sum += str.size();
+	});
+
+	char* itemList = new char[cctags.size() + sum];
+	memset(itemList, 0, cctags.size() + sum);
+	char * ptr = itemList;
+	for (size_t i = 0; i < n; i++) {
+		std::string tag = cctags.at(i);
+		if (i < n - 1) {
+			tag += separator;
+		}		
+		memcpy(ptr, tag.c_str(), tag.size());
+		ptr += tag.size();
+	}
+
+	SendMessage(SCI_AUTOCSETSEPARATOR, WPARAM(separator), 0);
+	SendMessage(SCI_AUTOCSETIGNORECASE, WPARAM(1), 0);
+	SendMessage(SCI_AUTOCSETCASEINSENSITIVEBEHAVIOUR, WPARAM(1), 0);
+	SendMessage(SCI_AUTOCSTOPS, 0,  LPARAM(autoStopChars));
+	SendMessage(SCI_AUTOCSHOW, WPARAM(0), LPARAM(itemList));
+	
+	delete[] itemList;
+}
+
+void QSqlEdit::autoComplete()
+{
+	LRESULT ret = SendMessage(SCI_AUTOCCOMPLETE, 0, 0);
+}
+
+void QSqlEdit::autoReplaceWord()
+{
+
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int start = static_cast<int>(SendMessage(SCI_WORDSTARTPOSITION, WPARAM(curPos), LPARAM(1)));
+	int end = static_cast<int>(SendMessage(SCI_WORDENDPOSITION, WPARAM(curPos), LPARAM(1)));
+	
+	SendMessage(SCI_SETSEL, WPARAM(start), LPARAM(end));
+
+	char selText[256] = { 0 };
+	
+	SendMessage(SCI_AUTOCGETCURRENTTEXT, 0, WPARAM(selText));
+	wchar_t * wstr = StringUtil::utf8ToUnicode(selText);
+	std::wstring selstr = wstr;
+	free(wstr);
+	replaceSelText(selstr);
+	SendMessage(SCI_AUTOCCANCEL, 0, 0);
 }
 
 long QSqlEdit::lineFromPosition(long pos)

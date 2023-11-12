@@ -27,6 +27,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/database/leftview/adapter/LeftTreeViewAdapter.h"
+#include <utils/SavePointUtil.h>
 
 BOOL QueryPage::PreTranslateMessage(MSG* pMsg)
 {
@@ -93,23 +94,40 @@ void QueryPage::execAndShow(bool select)
 		supplier->splitToSqlVector(sqls);		
 		std::vector<std::wstring> & sqlVector = supplier->sqlVector;
 		int n = static_cast<int>(sqlVector.size());
-		int nSelectSqlCount = 0;
+		int nSelectSqlCount = 0, nNotSelectSqlCount = 0;
+		std::wstring savePoint = SavePointUtil::create(L"execute_sqls");
+
+		// BEGIN a save point 
+		std::wstring spSql = L"SAVEPOINT " + savePoint;
+		sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+		bool hasError = false;
 		for (int i = 0; i < n; i++) {
 			auto sql = sqlVector.at(i);
 			if (SqlUtil::isSelectSql(sql)) {
-				resultTabView.addResultToListPage(sql, i+1);
+				resultTabView.addResultToListPage(sql, nSelectSqlCount+1);
 				nSelectSqlCount++;
 			} else {
+				nNotSelectSqlCount++;
 				bool ret = resultTabView.execSqlToInfoPage(sql);
-				if (ret) {
-					QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
-				}
+				if (!ret) {
+					hasError = true;
+					spSql = L"ROLLBACK TO " + savePoint; // ROLLBACK
+					sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);					
+					break;
+				}				
 			}
 		}
+		
 		if (nSelectSqlCount) {
 			// if the count of ptrs has more than nSelectSqlCount in ResultTabView object, Get gid of them.
 			resultTabView.removeResultListPageFrom(nSelectSqlCount);
 			resultTabView.setActivePage(0);
+		} else if (nNotSelectSqlCount){
+			resultTabView.activeResultInfoPage();
+		}
+		if (!hasError) {
+			spSql = L"RELEASE " + savePoint; //RELEASE SAVE POINT, COMMIT
+			QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
 		}
 	} else {
 		bool ret = resultTabView.execSqlToInfoPage(sqls);
@@ -208,7 +226,8 @@ void QueryPage::createOrShowSqlEditor(QHelpEdit & win, CRect & clientRect)
 	CRect rect(0, 0, 1, 1);
 	Q_INFO(L"QueryPage,clientRect.w{}:{},clientRect.h:{}", clientRect.Width(), clientRect.Height());
 	if (::IsWindow(splitter.m_hWnd) && !win.IsWindow()) {
-		win.setup(S(L"query-page-help"), std::wstring(L""));
+		sqlEditorAdapter = new SqlEditorAdapter(supplier);
+		win.setup(S(L"query-page-help"), std::wstring(L""), sqlEditorAdapter);
 		win.Create(splitter.m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::DATABASE_QUERY_EDITOR_ID);
 		return;
 	}
@@ -246,6 +265,11 @@ int QueryPage::OnDestroy()
 	if (supplier) {
 		delete supplier;
 		supplier = nullptr;
+	}
+
+	if (sqlEditorAdapter) {
+		delete sqlEditorAdapter;
+		sqlEditorAdapter = nullptr;
 	}
 	return ret;
 }
