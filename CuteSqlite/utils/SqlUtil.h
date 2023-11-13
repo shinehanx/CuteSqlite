@@ -54,6 +54,7 @@ public:
 
 	// parse sql 
 	static bool isSelectSql(std::wstring & sql);
+	static bool isPragmaStmt(std::wstring & sql, bool excludeEqual);
 	static bool hasLimitClause(std::wstring & sql);
 	static std::wstring getColumnName(std::wstring & str);
 	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);

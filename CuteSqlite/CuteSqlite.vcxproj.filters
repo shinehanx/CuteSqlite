@@ -342,13 +342,16 @@
     <ClCompile Include="ui\database\rightview\page\result\TablePropertiesPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\database\rightview\page\adapter\SqlEditorAdapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui\database\rightview\page\supplier\QueryPageSupplier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ui\database\rightview\page\supplier\TableStructureSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\editor\QueryPageEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\database\rightview\page\editor\adapter\QueryPageEditorAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -728,13 +731,16 @@
     <ClInclude Include="ui\common\edit\adapter\QHelpEditAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui\database\rightview\page\adapter\SqlEditorAdapter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ui\database\rightview\page\supplier\QueryPageSupplier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\supplier\TableStructureSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\editor\QueryPageEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\page\editor\adapter\QueryPageEditorAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

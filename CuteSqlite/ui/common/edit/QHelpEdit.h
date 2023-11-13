@@ -65,4 +65,11 @@ protected:
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 	LRESULT OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	void OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnHandleScnFocusIn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnHandleScnDoubleClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnHandleScnKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnHandleScnAutoCSelection(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	void selectAllCurWord();
+
 };

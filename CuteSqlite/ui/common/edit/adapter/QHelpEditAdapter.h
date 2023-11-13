@@ -24,4 +24,6 @@
 class QHelpEditAdapter {
 public:
 	virtual std::vector<std::wstring> getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine) = 0; 
+	virtual std::vector<std::wstring> & getCacheUserTableStrings(uint64_t userDbId) = 0;
+	virtual uint64_t getCurrentUserDbId() = 0;
 };

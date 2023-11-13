@@ -41,10 +41,10 @@ DatabaseMenuAdapter::DatabaseMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view
 
 DatabaseMenuAdapter::~DatabaseMenuAdapter()
 {
-	menu.DestroyMenu();
-	newSubMenu.DestroyMenu();
-	viewsMenu.DestroyMenu();
-	triggersMenu.DestroyMenu();
+	if (menu.IsMenu()) menu.DestroyMenu();
+	if (newSubMenu.IsMenu()) newSubMenu.DestroyMenu();
+	if (viewsMenu.IsMenu()) viewsMenu.DestroyMenu();
+	if (triggersMenu.IsMenu()) triggersMenu.DestroyMenu();
 
 	if (!menuBrush.IsNull()) menuBrush.DeleteObject();
 	if (createDatabaseIcon) ::DeleteObject(createDatabaseIcon);

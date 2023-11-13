@@ -50,7 +50,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		return 0;
 	}
 
-	if (!SqlUtil::hasLimitClause(originSql)) {
+	if (!SqlUtil::isPragmaStmt(originSql, false) && !SqlUtil::hasLimitClause(originSql)) {
 		LimitParams limitParams;
 		loadLimitParams(limitParams);
 		if (limitParams.checked) {

@@ -11,22 +11,31 @@
 
  * limitations under the License.
 
- * @file   SqlEditorAdapter.cpp
+ * @file   QueryPageEditorAdapter.cpp
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-11-11
+ * @date   2023-11-13
  *********************************************************************/
 #include "stdafx.h"
-#include "SqlEditorAdapter.h"
-#include "utils/StringUtil.h"
-#include "utils/SqlUtil.h"
+#include "QueryPageEditorAdapter.h"
+#include "utils\SqlUtil.h"
+#include "core\common\Lang.h"
 
 
-
-SqlEditorAdapter::SqlEditorAdapter(QueryPageSupplier * supplier)
+QueryPageEditorAdapter::QueryPageEditorAdapter(HWND parentHwnd, QueryPageSupplier * supplier)
 {
 	this->supplier = supplier;
+	this->parentHwnd = parentHwnd;
+	
+}
+
+
+QueryPageEditorAdapter::~QueryPageEditorAdapter()
+{
+	if (templatesMenu.IsMenu()) templatesMenu.DestroyMenu();
+	if (pragmasMenu.IsMenu()) pragmasMenu.DestroyMenu();
+	if (sqlLogMenu.IsMenu()) sqlLogMenu.DestroyMenu();
 }
 
 /**
@@ -38,7 +47,7 @@ SqlEditorAdapter::SqlEditorAdapter(QueryPageSupplier * supplier)
  * @param curPosInLine - The current position in the line
  * @return 
  */
-std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine)
+std::vector<std::wstring> QueryPageEditorAdapter::getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine)
 {
 	if (word.empty() || line.empty() || preline.empty()) {
 		return std::vector<std::wstring>();
@@ -87,7 +96,7 @@ std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, c
  * @param curPosInLine - The current position in the line
  * @return 
  */
-std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
+std::vector<std::wstring> QueryPageEditorAdapter::getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
 {
 	ATLASSERT(!upline.empty() && !upPreline.empty());
 	std::vector<std::wstring> tags, selTags;
@@ -172,7 +181,7 @@ std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & u
  * @param curPosInLine - The current position in the line
  * @return 
  */
-std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
+std::vector<std::wstring> QueryPageEditorAdapter::getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
 {
 	ATLASSERT(!upline.empty() && !upPreline.empty());
 	std::vector<std::wstring> tags, selTags;
@@ -244,7 +253,7 @@ std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & u
 	return selTags;
 }
 
-UserTableStrings & SqlEditorAdapter::getCacheUserTableStrings(uint64_t userDbId)
+std::vector<std::wstring> & QueryPageEditorAdapter::getCacheUserTableStrings(uint64_t userDbId)
 {
 	auto & tblStrs = supplier->getCacheUserTableStrings(userDbId);
 	if (tblStrs.empty()) {
@@ -255,7 +264,13 @@ UserTableStrings & SqlEditorAdapter::getCacheUserTableStrings(uint64_t userDbId)
 	return tblStrs;
 }
 
-Columns & SqlEditorAdapter::getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName)
+
+uint64_t QueryPageEditorAdapter::getCurrentUserDbId()
+{
+	return supplier->getRuntimeUserDbId();
+}
+
+Columns & QueryPageEditorAdapter::getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName)
 {
 	auto & columns = supplier->getCacheTableColumns(userDbId, tblName);
 	if (columns.empty()) {
@@ -265,3 +280,80 @@ Columns & SqlEditorAdapter::getCacheTableColumns(uint64_t userDbId, const std::w
 	return columns;
 }
 
+
+/**
+ * Create toolbar menus.
+ * 
+ */
+void QueryPageEditorAdapter::createMenus()
+{
+	createTemplatesMenu();
+	createPragmasMenu();
+	createSqlLogMenu();
+}
+
+
+void QueryPageEditorAdapter::createTemplatesMenu()
+{
+	if (!templatesMenu.IsNull() && templatesMenu.IsMenu()) {
+		return ;
+	}
+
+	templatesMenu.CreatePopupMenu();
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_SELECT_STMT_MEMU_ID, L"SELECT <columns> FROM ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_INSERT_STMT_MEMU_ID,  L"INSERT INTO ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_UPDATE_STMT_MEMU_ID,  L"UPDATE <table> SET ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DELETE_STMT_MEMU_ID, L"DELETE FROM ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_REPLACE_STMT_MEMU_ID, L"REPLACE INTO ...");
+	templatesMenu.AppendMenu(MF_SEPARATOR);
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_CREATE_TABLE_STMT_MEMU_ID,  L"CREATE TABLE ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DROP_TABLE_STMT_MEMU_ID,  L"DROP TABLE ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_ALTER_TABLE_STMT_MEMU_ID, L"ALTER TABLE...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_RENAME_TABLE_STMT_MEMU_ID,  L"RENAME TABLE...");
+	
+	templatesMenu.AppendMenu(MF_SEPARATOR);
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_CREATE_INDEX_STMT_MEMU_ID, L"CREATE INDEX ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DROP_INDEX_STMT_MEMU_ID, L"DROP INDEX ...");
+	templatesMenu.AppendMenu(MF_SEPARATOR);
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_CREATE_VIEW_STMT_MEMU_ID, L"CREATE VIEW ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DROP_VIEW_STMT_MEMU_ID, L"DROP VIEW ...");
+	templatesMenu.AppendMenu(MF_SEPARATOR);
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_CREATE_TRIGGER_STMT_MEMU_ID, L"CREATE TRIGGER ...");
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DROP_TRIGGER_STMT_MEMU_ID, L"DROP TRIGGER ...");
+	templatesMenu.AppendMenu(MF_SEPARATOR);
+	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_WITH_STMT_MEMU_ID, L"WITH ... AS ...");
+}
+
+void QueryPageEditorAdapter::createPragmasMenu()
+{
+	if (pragmasMenu.IsMenu()) {
+		return ;
+	}
+
+	pragmasMenu.CreatePopupMenu();
+	for (auto & item : supplier->pragmas) {
+		pragmasMenu.AppendMenu(MF_STRING, WM_USER + std::get<0>(item), std::get<1>(item).c_str());
+	}
+	
+}
+
+void QueryPageEditorAdapter::createSqlLogMenu()
+{
+
+}
+
+void QueryPageEditorAdapter::popupTemplatesMenu(CPoint & pt)
+{
+	if (!templatesMenu.IsMenu()) {
+		return;
+	}
+	templatesMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
+}
+
+void QueryPageEditorAdapter::popupPragmasMenu(CPoint & pt)
+{
+	if (!pragmasMenu.IsMenu()) {
+		return;
+	}
+	pragmasMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
+}

@@ -44,7 +44,7 @@ TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 
 TableMenuAdapter::~TableMenuAdapter()
 {
-	menu.DestroyMenu();
+	if (menu.IsMenu()) menu.DestroyMenu();
 	if (!menuBrush.IsNull()) menuBrush.DeleteObject();
 	if (openTableIcon) ::DeleteObject(openTableIcon);
 	if (createTableIcon) ::DeleteObject(createTableIcon);

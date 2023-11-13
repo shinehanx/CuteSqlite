@@ -24,7 +24,7 @@
 #include "ui/database/rightview/page/result/ResultTabView.h"
 #include "ui/common/edit/QHelpEdit.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
-#include "ui/database/rightview/page/adapter/SqlEditorAdapter.h"
+#include "ui/database/rightview/page/editor/QueryPageEditor.h"
 
 class QueryPage : public QTabPage<QueryPageSupplier> {
 public:
@@ -53,19 +53,18 @@ private:
 
 	bool isSpliterReload = true;
 	
-	QHelpEdit sqlEditor;
+	QueryPageEditor sqlEditor;
 	ResultTabView resultTabView;
 	CHorSplitterWindow splitter;// Horizontal splitter
 
 	SqlService * sqlService = SqlService::getInstance();
-	SqlEditorAdapter * sqlEditorAdapter = nullptr;
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 	void loadSqlEditor();
 
 	void createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRect);
-	void createOrShowSqlEditor(QHelpEdit & win, CRect & clientRect);
+	void createOrShowSqlEditor(QueryPageEditor & win, CRect & clientRect);
 	void createOrShowResultTabView(ResultTabView & win, CRect & clientRect);
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);

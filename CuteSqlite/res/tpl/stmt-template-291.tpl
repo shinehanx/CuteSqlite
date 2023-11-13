@@ -1,0 +1,2 @@
+CREATE INDEX IF EXISTS <index> ;
+	

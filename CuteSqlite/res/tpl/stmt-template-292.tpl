@@ -1,0 +1,3 @@
+CREATE VIEW IF NOT EXISTS <view>
+	AS
+SELECT * FROM <table> WHERE <where> ;

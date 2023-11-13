@@ -1,0 +1,1 @@
+UPDATE <table> SET <column>=<value> WHERE <where> ;

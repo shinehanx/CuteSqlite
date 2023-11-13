@@ -360,6 +360,30 @@ std::wstring QSqlEdit::getCurWord()
 	return text;
 }
 
+std::wstring QSqlEdit::getCurMaxWord()
+{
+	std::wstring text;
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int start = static_cast<int>(SendMessage(SCI_WORDSTARTPOSITION, WPARAM(curPos), LPARAM(1)));
+	int end = static_cast<int>(SendMessage(SCI_WORDENDPOSITION, WPARAM(curPos), LPARAM(1)));
+	if (end == start) {
+		return text;
+	}
+	char buffer[256] = {0};
+	Sci_TextRange tr;
+	tr.chrg.cpMin = start - 1;
+	tr.chrg.cpMax = end + 1;
+	tr.lpstrText = buffer;
+	SendMessage(SCI_GETTEXTRANGE, 0, LPARAM(&tr));
+	wchar_t * unicodeStr = StringUtil::utf8ToUnicode(buffer);
+	if (unicodeStr == nullptr) {
+		return text;
+	}
+	text = unicodeStr;
+	free(unicodeStr);
+	return text;
+}
+
 
 size_t QSqlEdit::getCurPosInLine()
 {
@@ -371,6 +395,21 @@ size_t QSqlEdit::getCurPosInLine()
 	}
 
 	return curPos - lineStart;
+}
+
+/**
+ * Select all the current word include character <>.
+ * 
+ */
+void QSqlEdit::selectCurMaxWord()
+{
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int start = static_cast<int>(SendMessage(SCI_WORDSTARTPOSITION, WPARAM(curPos), LPARAM(1)));
+	int end = static_cast<int>(SendMessage(SCI_WORDENDPOSITION, WPARAM(curPos), LPARAM(1)));
+	if (end == start) {
+		return ;
+	}
+	SendMessage(SCI_SETSEL, WPARAM(start - 1), LPARAM(end + 1));
 }
 
 void QSqlEdit::replaceSelText(std::wstring & text)
@@ -408,7 +447,7 @@ void QSqlEdit::clearText()
 	SendMessage(SCI_CLEARALL, NULL, NULL);
 }
 
-void QSqlEdit::autoShow(size_t lengthEntered, const std::vector<std::wstring> & tags)
+void QSqlEdit::autoShow(const std::vector<std::wstring> & tags)
 {
 	if (tags.empty()) {
 		return;
@@ -448,7 +487,6 @@ void QSqlEdit::autoComplete()
 
 void QSqlEdit::autoReplaceWord()
 {
-
 	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
 	int start = static_cast<int>(SendMessage(SCI_WORDSTARTPOSITION, WPARAM(curPos), LPARAM(1)));
 	int end = static_cast<int>(SendMessage(SCI_WORDENDPOSITION, WPARAM(curPos), LPARAM(1)));
@@ -457,6 +495,17 @@ void QSqlEdit::autoReplaceWord()
 
 	char selText[256] = { 0 };
 	
+	SendMessage(SCI_AUTOCGETCURRENTTEXT, 0, WPARAM(selText));
+	wchar_t * wstr = StringUtil::utf8ToUnicode(selText);
+	std::wstring selstr = wstr;
+	free(wstr);
+	replaceSelText(selstr);
+	SendMessage(SCI_AUTOCCANCEL, 0, 0);
+}
+
+void QSqlEdit::autoReplaceSelectTag()
+{
+	char selText[256] = { 0 };	
 	SendMessage(SCI_AUTOCGETCURRENTTEXT, 0, WPARAM(selText));
 	wchar_t * wstr = StringUtil::utf8ToUnicode(selText);
 	std::wstring selstr = wstr;

@@ -11,34 +11,49 @@
 
  * limitations under the License.
 
- * @file   SqlEditorAdapter.h
+ * @file   QueryPageEditorAdapter.h
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-11-11
+ * @date   2023-11-13
  *********************************************************************/
 #pragma once
-#include "ui/common/edit/adapter/QHelpEditAdapter.h"
-#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "core/service/db/TableService.h"
 #include "core/service/db/DatabaseService.h"
+#include "ui/common/adapter/QAdapter.h"
+#include "ui/common/edit/adapter/QHelpEditAdapter.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 
-class SqlEditorAdapter : public QHelpEditAdapter {
+class QueryPageEditorAdapter : public QAdapter<QueryPageEditorAdapter>, public QHelpEditAdapter
+{
 public:
-	SqlEditorAdapter(QueryPageSupplier * supplier);
+	QueryPageEditorAdapter(HWND parentHwnd, QueryPageSupplier * supplier);
+	~QueryPageEditorAdapter();
 	virtual std::vector<std::wstring> getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine);
-	
+	virtual std::vector<std::wstring> & getCacheUserTableStrings(uint64_t userDbId);
+	virtual uint64_t getCurrentUserDbId();
+
+	// For menus
+	void createMenus();	
+	void createTemplatesMenu();
+	void createPragmasMenu();
+	void createSqlLogMenu();
+	// Pop up menu
+	void popupTemplatesMenu(CPoint & pt);
+	void popupPragmasMenu(CPoint & pt);
 private:
-	
+	HWND parentHwnd;
+	CMenu templatesMenu;
+	CMenu pragmasMenu;
+	CMenu sqlLogMenu;
+
 	QueryPageSupplier * supplier = nullptr;
 	TableService * tableService = TableService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
+	// For auto complete
 	std::vector<std::wstring> getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine);
-
-	UserTableStrings & getCacheUserTableStrings(uint64_t userDbId);
-
+	
 	std::vector<std::wstring> getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine);
-
 	Columns& getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName);
 };

@@ -103,7 +103,7 @@ void QueryPage::execAndShow(bool select)
 		bool hasError = false;
 		for (int i = 0; i < n; i++) {
 			auto sql = sqlVector.at(i);
-			if (SqlUtil::isSelectSql(sql)) {
+			if (SqlUtil::isSelectSql(sql) || SqlUtil::isPragmaStmt(sql, true)) {
 				resultTabView.addResultToListPage(sql, nSelectSqlCount+1);
 				nSelectSqlCount++;
 			} else {
@@ -127,7 +127,9 @@ void QueryPage::execAndShow(bool select)
 		}
 		if (!hasError) {
 			spSql = L"RELEASE " + savePoint; //RELEASE SAVE POINT, COMMIT
-			QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
+			if (!nSelectSqlCount || nNotSelectSqlCount) {
+				QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
+			}			
 		}
 	} else {
 		bool ret = resultTabView.execSqlToInfoPage(sqls);
@@ -221,13 +223,12 @@ void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRec
 }
 
 
-void QueryPage::createOrShowSqlEditor(QHelpEdit & win, CRect & clientRect)
+void QueryPage::createOrShowSqlEditor(QueryPageEditor & win, CRect & clientRect)
 {
 	CRect rect(0, 0, 1, 1);
 	Q_INFO(L"QueryPage,clientRect.w{}:{},clientRect.h:{}", clientRect.Width(), clientRect.Height());
-	if (::IsWindow(splitter.m_hWnd) && !win.IsWindow()) {
-		sqlEditorAdapter = new SqlEditorAdapter(supplier);
-		win.setup(S(L"query-page-help"), std::wstring(L""), sqlEditorAdapter);
+	if (::IsWindow(splitter.m_hWnd) && !win.IsWindow()) {		
+		win.setup(supplier);
 		win.Create(splitter.m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, Config::DATABASE_QUERY_EDITOR_ID);
 		return;
 	}
@@ -267,10 +268,6 @@ int QueryPage::OnDestroy()
 		supplier = nullptr;
 	}
 
-	if (sqlEditorAdapter) {
-		delete sqlEditorAdapter;
-		sqlEditorAdapter = nullptr;
-	}
 	return ret;
 }
 

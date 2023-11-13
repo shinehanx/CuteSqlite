@@ -487,7 +487,7 @@ int ResultListPage::OnDestroy()
 	if (offsetEdit.IsWindow()) offsetEdit.DestroyWindow();
 	if (rowsLabel.IsWindow()) rowsLabel.DestroyWindow();
 	if (rowsEdit.IsWindow()) rowsEdit.DestroyWindow();
-	copyMenu.DestroyMenu();
+	if (copyMenu.IsMenu()) copyMenu.DestroyMenu();
 
 	if (listView.IsWindow()) listView.DestroyWindow();
 	if (formView.IsWindow()) formView.DestroyWindow();

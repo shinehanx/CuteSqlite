@@ -1,0 +1,1 @@
+REPLACE INTO <table> (<columns>) VALUES (<values>) ;

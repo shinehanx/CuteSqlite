@@ -54,6 +54,18 @@ bool SqlUtil::isSelectSql(std::wstring & sql)
 	return false;
 }
 
+bool SqlUtil::isPragmaStmt(std::wstring & sql, bool excludeEqual)
+{
+	if (sql.empty()) {
+		return false;
+	}
+	std::wstring upsql = StringUtil::toupper(sql);
+	if (excludeEqual) {
+		return upsql.find(L"PRAGMA") == 0 && upsql.find_last_of(L'=') == std::wstring::npos;		
+	}
+	return upsql.find(L"PRAGMA") == 0;
+}
+
 bool SqlUtil::hasLimitClause(std::wstring & sql)
 {
 	if (sql.empty()) {

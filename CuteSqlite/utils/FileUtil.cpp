@@ -223,9 +223,9 @@ std::wstring FileUtil::readFile(const std::wstring & path)
 	std::wstring result;
 	wchar_t buff[257];
 	while (!ifs.eof()) {
-		wmemset(buff, 0, 256);
+		wmemset(buff, 0, 257);
 		ifs.read(buff, 256);
-		result.append(buff);
+		result.append(buff); 
 	}
 
 	ifs.close();

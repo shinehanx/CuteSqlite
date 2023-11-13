@@ -40,7 +40,7 @@
 #include "ui/common/QWinCreater.h"
 #include "ui/database/rightview//page/dialog/ViewDialog.h"
 #include "ui/database/rightview//page/dialog/TriggerDialog.h"
-#include <ui/common/message/QPopAnimate.h>
+#include "ui/common/message/QPopAnimate.h"
 
 
 #define RIGHTVIEW_TOPBAR_HEIGHT 30

@@ -150,9 +150,17 @@ LRESULT QHelpEdit::OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHand
 	case SCN_CHARADDED :// 字符输入 
 		OnHandleScnCharAdded(uMsg, wParam, lParam, bHandled);
 		break;
-	
+	case SCN_FOCUSIN :// 获取焦点
+		OnHandleScnFocusIn(uMsg, wParam, lParam, bHandled);
+		break;
+	case SCN_DOUBLECLICK :// 获取焦点
+		OnHandleScnDoubleClick(uMsg, wParam, lParam, bHandled);
+		break;
+	case SCN_KEY :// 获取焦点
+		OnHandleScnKey(uMsg, wParam, lParam, bHandled);
+		break;
 	case SCN_AUTOCSELECTION : // 提示选择
-		editor.autoReplaceWord();
+		OnHandleScnAutoCSelection(uMsg, wParam, lParam, bHandled);
 		break;
 	}
 	return 0;
@@ -170,5 +178,55 @@ void QHelpEdit::OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	word = editor.getCurWord();
 	size_t curPosInLine = editor.getCurPosInLine();
 	std::vector<std::wstring> tags = adapter->getTags(line, preline, word, curPosInLine);
-	editor.autoShow(word.size(), tags);
+	editor.autoShow(tags);
+}
+
+void QHelpEdit::OnHandleScnFocusIn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	selectAllCurWord();
+}
+
+void QHelpEdit::OnHandleScnDoubleClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	selectAllCurWord();
+}
+
+void QHelpEdit::OnHandleScnKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	SCNotification* scn = (struct SCNotification*)lParam;
+	if (scn->ch != SCK_DOWN && scn->ch != SCK_UP && scn->ch != SCK_LEFT && scn->ch != SCK_RIGHT) {
+		return;
+	}
+	selectAllCurWord();
+}
+
+void QHelpEdit::OnHandleScnAutoCSelection(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	std::wstring selText = editor.getSelText();
+	if (selText.empty()) {
+		editor.autoReplaceWord();
+		return;
+	}
+	if (selText.front() == L'<' && selText.back() == L'>') {
+		editor.autoReplaceSelectTag();
+		return;
+	}
+	editor.autoReplaceWord();
+}
+
+void QHelpEdit::selectAllCurWord()
+{
+	std::wstring maxWord = editor.getCurMaxWord();
+	if (maxWord.empty()) {
+		return;
+	}
+	if (maxWord.front() == L'<' && maxWord.back() == L'>') {
+		editor.selectCurMaxWord();
+
+		if (maxWord == L"<table>") {
+			auto tags = adapter->getCacheUserTableStrings(adapter->getCurrentUserDbId());
+			editor.autoShow(tags);
+		}
+		
+	}
 }
