@@ -1109,25 +1109,27 @@ TableAliasVector SqlUtil::parseTableClauseFromSelectSql(const std::wstring & upS
 		return result;
 	}
 	size_t npos = std::wstring::npos;
-	size_t fromPos = upSql.find(L"FROM");
-	size_t wherePos, groupPos, orderPos, limitPos;
+	size_t fromPos = upSql.find(L" FROM ");
+	size_t onPos, wherePos, groupPos, orderPos, limitPos;
 	if (fromPos == npos) {
 		return result;
 	}
 
 	std::wstring tblClause;
 	size_t endPos = upSql.size() -1;
-	if ((wherePos = upSql.rfind(L"WHERE")) != npos && wherePos > fromPos) {
+	if ((onPos = upSql.rfind(L" ON ")) != npos && onPos > fromPos) {
+		endPos = onPos;
+	}else if ((wherePos = upSql.rfind(L" WHERE ")) != npos && wherePos > fromPos) {
 		endPos = wherePos;
-	} else if ((groupPos = upSql.rfind(L"GROUP")) != npos && groupPos > fromPos) {
+	} else if ((groupPos = upSql.rfind(L" GROUP ")) != npos && groupPos > fromPos) {
 		endPos = groupPos;
-	} else if ((orderPos = upSql.rfind(L"ORDER")) != npos && orderPos > fromPos) {
+	} else if ((orderPos = upSql.rfind(L" ORDER ")) != npos && orderPos > fromPos) {
 		endPos = orderPos;
-	} else if ((limitPos = upSql.rfind(L"LIMIT")) != npos && limitPos > fromPos) {
+	} else if ((limitPos = upSql.rfind(L" LIMIT ")) != npos && limitPos > fromPos) {
 		endPos = limitPos;
 	}
 
-	tblClause = upSql.substr(fromPos + 4, endPos - fromPos - 5);
+	tblClause = upSql.substr(fromPos + 6, endPos - fromPos - 6);  // 4 - size of " FROM "
 	StringUtil::trim(tblClause);
 
 	if (tblClause.empty()) {
@@ -1137,18 +1139,23 @@ TableAliasVector SqlUtil::parseTableClauseFromSelectSql(const std::wstring & upS
 	std::wstring pattern;
 	if (tblClause.find(L",") != std::wstring::npos ) {
 		pattern = L",";
-	} else if (tblClause.find(L"JOIN") != std::wstring::npos ) {
-		pattern = L"JOIN";
-	} else {
-		result.push_back({StringUtil::cutParensAndQuotes(tblClause), L""});
-		return result;
+	} else if (tblClause.find(L" JOIN ") != std::wstring::npos ) {
+		pattern = L" JOIN ";
 	}
-	auto tbls = StringUtil::split(tblClause, pattern); //[tbl_1 as alias_1, tbl_2 as alias_2]
+
+	std::vector<std::wstring> tbls;
+	if (!pattern.empty()) {
+		// [tbl_1 as alias_1, tbl_2 as alias_2]; [tbl_1 as alias_1 left join tbl_2 as alias_2]
+		tbls = StringUtil::split(tblClause, pattern); 
+	} else {
+		tbls.push_back(tblClause);
+	}
+	
 	for (auto & tbl : tbls) {
 		TableAlias item;
 		auto tblWords = StringUtil::splitByBlank(tbl); // tbl_1
 		item.tbl = StringUtil::cutParensAndQuotes(tblWords.at(0));
-		if (tblWords.size() > 2) { // tbl_1 as alias_1
+		if (tblWords.size() > 2 && tblWords.at(1) == L"AS") { // tbl_1 as alias_1
 			item.alias = StringUtil::cutParensAndQuotes(tblWords.at(2));
 		} else if (tblWords.size() > 1) { // tbl_1 alias_1
 			item.alias = StringUtil::cutParensAndQuotes(tblWords.at(1));
@@ -1173,18 +1180,20 @@ TableAliasVector SqlUtil::parseTableClauseFromUpdateSql(const std::wstring & upS
 	}
 	size_t npos = std::wstring::npos;
 	size_t updatePos = upSql.find(L"UPDATE");
-	size_t setPos;
 	if (updatePos == npos) {
 		return result;
 	}
 
+	size_t onPos, setPos;
 	std::wstring tblClause;
 	size_t endPos = upSql.size() -1;
-	if ((setPos = upSql.rfind(L"SET")) != npos && setPos > updatePos) {
+	if ((onPos = upSql.rfind(L" ON ")) != npos && onPos > updatePos) {
+		endPos = onPos;
+	}else if ((setPos = upSql.rfind(L" SET ")) != npos && setPos > updatePos) {
 		endPos = setPos;
 	}
 
-	tblClause = upSql.substr(updatePos + 6, endPos - updatePos - 6);
+	tblClause = upSql.substr(updatePos + 6, endPos - updatePos - 6); // 6 - size of "UPDATE"
 	StringUtil::trim(tblClause);
 
 	if (tblClause.empty()) {
@@ -1194,21 +1203,24 @@ TableAliasVector SqlUtil::parseTableClauseFromUpdateSql(const std::wstring & upS
 	std::wstring pattern;
 	if (tblClause.find(L",") != std::wstring::npos ) {
 		pattern = L",";
-	} else {
-		result.push_back({StringUtil::cutParensAndQuotes(tblClause), L""});
-		return result;
-	}
+	} 
 
-	auto tbls = StringUtil::split(tblClause, pattern); //[tbl_1 as alias_1, tbl_2 as alias_2]
+	std::vector<std::wstring> tbls;
+	if (!pattern.empty()) {
+		// [tbl_1 as alias_1, tbl_2 as alias_2];
+		tbls = StringUtil::split(tblClause, pattern); 
+	} else {
+		tbls.push_back(tblClause);
+	}
 	for (auto & tbl : tbls) {
 		TableAlias item;
 		auto tblWords = StringUtil::splitByBlank(tbl); // tbl_1
 		item.tbl = StringUtil::cutParensAndQuotes(tblWords.at(0));
-		if (tblWords.size() > 2) { // tbl_1 as alias_1
+		if (tblWords.size() > 2 && tblWords.at(1) == L"AS") { // tbl_1 as alias_1
 			item.alias = StringUtil::cutParensAndQuotes(tblWords.at(2));
 		} else if (tblWords.size() > 1) { // tbl_1 alias_1
 			item.alias = StringUtil::cutParensAndQuotes(tblWords.at(1));
-		}
+		} 
 		result.push_back(item);
 	}
 	return result;

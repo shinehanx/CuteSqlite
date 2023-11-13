@@ -79,33 +79,36 @@ std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & u
 	int n = static_cast<int>(words.size());
 	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	std::wstring & lastWord = words.back();
-	wchar_t lastChar = upword.back();
-	wchar_t prevLastChar = 0;
-	std::wstring prevLastWord;
+	wchar_t lastCharOfLastWord = upword.back();
+	wchar_t lastCharOfPrevWord = 0;
+	std::wstring prevWord;
 	if (n > 1) {
-		prevLastWord = words.at(n - 2);
-		prevLastChar = prevLastWord.back();
+		prevWord = words.at(n - 2);
+		lastCharOfPrevWord = prevWord.back();
 	}
 	auto tblService = tableService;
 	
-	if (lastWord == L"FROM" || prevLastWord == L"FROM") { // columns
+	if (lastWord == L"FROM" || prevWord == L"FROM") { // columns
 		tags = getCacheUserTableStrings(userDbId);
-	} else if (lastWord == L"ON" || prevLastWord == L"ON" 
-		|| lastWord == L"WHERE" || prevLastWord == L"WHERE"
-		|| lastWord == L"BY" || prevLastWord == L"BY"
-		|| lastWord == L"AND" || prevLastWord == L"AND"
-		|| lastWord == L">" || prevLastWord == L">" || lastChar == L'>' || prevLastChar == L'>'
-		|| lastWord == L"=" || prevLastWord == L"=" || lastChar == L'=' || prevLastChar == L'='  
-		|| lastWord == L"<" || prevLastWord == L"<" || lastChar == L'<' || prevLastChar == L'<'
-		|| lastWord == L">=" || prevLastWord == L">="
-		|| lastWord == L"<=" || prevLastWord == L"<="
-		|| lastWord == L"OR" || prevLastWord == L"OR") { // fields
+	} else if (lastWord == L"ON" || prevWord == L"ON" 
+		|| lastWord == L"WHERE" || prevWord == L"WHERE"
+		|| lastWord == L"BY" || prevWord == L"BY"
+		|| lastWord == L"AND" || prevWord == L"AND"
+		|| lastWord == L"OR" || prevWord == L"OR"
+		|| lastCharOfLastWord == L'.' || lastCharOfPrevWord == L'.'
+		|| lastCharOfLastWord == L'>' || lastCharOfPrevWord == L'>'
+		|| lastCharOfLastWord == L'=' || lastCharOfPrevWord == L'='  
+		|| lastCharOfLastWord == L'<' || lastCharOfPrevWord == L'<'
+		|| lastWord == L">=" || prevWord == L">="
+		|| lastWord == L"<=" || prevWord == L"<=") { // fields
 		TableAliasVector tblAliasVec = SqlUtil::parseTableClauseFromSelectSql(upline);
 		if (tblAliasVec.empty()) {
 			return selTags;
 		}
-		if (lastChar == L'.') {
-			std::wstring tblAlias = upword.substr(0, upword.size() - 1);
+		size_t dotPos = lastWord.find_last_of(L".") ;
+		if (lastCharOfLastWord == L'.' || lastCharOfPrevWord == L'.'
+			|| dotPos != std::wstring::npos) {
+			std::wstring tblAlias = lastWord.substr(0, dotPos);
 			for(TableAlias & item : tblAliasVec) {
 				if (item.tbl == tblAlias || item.alias == tblAlias) {
 					tags = getCacheTableColumns(userDbId, item.tbl);
@@ -140,37 +143,40 @@ std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & u
 	int n = static_cast<int>(words.size());
 	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	std::wstring & lastWord = words.back();
-	wchar_t lastChar = upword.back();
+	wchar_t lastCharOfLastWord = upword.back();
 	
-	std::wstring prevLastWord;
-	wchar_t prevLastChar = 0;
+	std::wstring prevWord;
+	wchar_t lastCharOfPrevWord = 0;
 	if (n > 1) {
-		prevLastWord = words.at(n - 2);
-		prevLastChar = prevLastWord.back();
+		prevWord = words.at(n - 2);
+		lastCharOfPrevWord = prevWord.back();
 	}
 
 	auto tblService = tableService;
-	if (lastWord == L"UPDATE" || prevLastWord == L"UPDATE") {
+	if (lastWord == L"UPDATE" || prevWord == L"UPDATE") {
 		tags = getCacheUserTableStrings(userDbId);
-	} else if (lastWord == L"ON" || prevLastWord == L"ON"
-		|| lastWord == L"WHERE" || prevLastWord == L"WHERE"
-		|| lastWord == L"BY" || prevLastWord == L"BY"
-		|| lastWord == L"AND" || prevLastWord == L"AND"
-		|| lastWord == L"SET" || prevLastWord == L"SET"
-		|| lastChar == L',' || prevLastChar == L','
-		|| lastChar == L'>' || prevLastChar == L'>'
-		|| lastChar == L'=' || prevLastChar == L'='  
-		|| lastChar == L'<' || prevLastChar == L'<'
-		|| lastWord == L">=" || prevLastWord == L">="
-		|| lastWord == L"<=" || prevLastWord == L"<="
-		|| lastWord == L"OR" || prevLastWord == L"OR") { // fields
+	} else if (lastWord == L"ON" || prevWord == L"ON"
+		|| lastWord == L"WHERE" || prevWord == L"WHERE"
+		|| lastWord == L"BY" || prevWord == L"BY"
+		|| lastWord == L"AND" || prevWord == L"AND"
+		|| lastWord == L"OR" || prevWord == L"OR"
+		|| lastWord == L"SET" || prevWord == L"SET"
+		|| lastCharOfLastWord == L',' || lastCharOfPrevWord == L','
+		|| lastCharOfLastWord == L'.' || lastCharOfPrevWord == L'.'
+		|| lastCharOfLastWord == L'>' || lastCharOfPrevWord == L'>'
+		|| lastCharOfLastWord == L'=' || lastCharOfPrevWord == L'='  
+		|| lastCharOfLastWord == L'<' || lastCharOfPrevWord == L'<'
+		|| lastWord == L">=" || prevWord == L">="
+		|| lastWord == L"<=" || prevWord == L"<=") { // fields
 
 		TableAliasVector tblAliasVec = SqlUtil::parseTableClauseFromUpdateSql(upline);
 		if (tblAliasVec.empty()) {
 			return selTags;
 		}
-		if (lastChar == L'.') {			
-			std::wstring tblAlias = upword.substr(0, upword.size() - 1);
+		size_t dotPos = lastWord.find_last_of(L".") ;
+		if (lastCharOfLastWord == L'.' || lastCharOfPrevWord == L'.'
+			|| dotPos != std::wstring::npos) {			
+			std::wstring tblAlias = lastWord.substr(0, dotPos);
 			for(TableAlias & item : tblAliasVec) {
 				if (item.tbl == tblAlias || item.alias == tblAlias) {
 					tags = getCacheTableColumns(userDbId, item.tbl);
