@@ -168,6 +168,7 @@ void QHelpEdit::OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	}
 	preline = editor.getCurPreLineText();
 	word = editor.getCurWord();
-	std::vector<std::wstring> tags = adapter->getTags(line, preline, word);
+	size_t curPosInLine = editor.getCurPosInLine();
+	std::vector<std::wstring> tags = adapter->getTags(line, preline, word, curPosInLine);
 	editor.autoShow(word.size(), tags);
 }

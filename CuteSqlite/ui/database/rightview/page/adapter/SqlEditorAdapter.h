@@ -26,7 +26,7 @@
 class SqlEditorAdapter : public QHelpEditAdapter {
 public:
 	SqlEditorAdapter(QueryPageSupplier * supplier);
-	virtual std::vector<std::wstring> getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word);
+	virtual std::vector<std::wstring> getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine);
 	
 private:
 	
@@ -34,11 +34,11 @@ private:
 	TableService * tableService = TableService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
-	std::vector<std::wstring> getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword);
+	std::vector<std::wstring> getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine);
 
 	UserTableStrings & getCacheUserTableStrings(uint64_t userDbId);
 
-	std::vector<std::wstring> getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword);
+	std::vector<std::wstring> getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine);
 
 	Columns& getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName);
 };

@@ -360,6 +360,19 @@ std::wstring QSqlEdit::getCurWord()
 	return text;
 }
 
+
+size_t QSqlEdit::getCurPosInLine()
+{
+	int curPos = static_cast<int>(SendMessage(SCI_GETCURRENTPOS, 0, 0));
+	int lineNumber = static_cast<int>(SendMessage(SCI_LINEFROMPOSITION, WPARAM(curPos), 0));
+	int lineStart = static_cast<int>(SendMessage(SCI_POSITIONFROMLINE, WPARAM(lineNumber), 0));
+	if (curPos == lineStart) {
+		return 0;
+	}
+
+	return curPos - lineStart;
+}
+
 void QSqlEdit::replaceSelText(std::wstring & text)
 {
 	if (text.empty()) {
@@ -451,6 +464,7 @@ void QSqlEdit::autoReplaceWord()
 	replaceSelText(selstr);
 	SendMessage(SCI_AUTOCCANCEL, 0, 0);
 }
+
 
 long QSqlEdit::lineFromPosition(long pos)
 {

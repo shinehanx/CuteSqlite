@@ -54,6 +54,7 @@ public:
 	std::wstring getCurLineText();
 	std::wstring getCurPreLineText();
 	std::wstring getCurWord();
+	size_t getCurPosInLine();
 
 	// replace selected text to editor
 	void replaceSelText(std::wstring & text);
@@ -65,6 +66,7 @@ public:
 	void autoShow(size_t lengthEntered, const std::vector<std::wstring> & tags);
 	void autoComplete();
 	void autoReplaceWord();
+	
 protected:
 
 	COLORREF bkgColor = RGB(255, 255, 255);

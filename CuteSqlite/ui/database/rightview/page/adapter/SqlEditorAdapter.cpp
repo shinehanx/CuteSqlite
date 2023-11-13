@@ -29,7 +29,16 @@ SqlEditorAdapter::SqlEditorAdapter(QueryPageSupplier * supplier)
 	this->supplier = supplier;
 }
 
-std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word)
+/**
+ * Get tags for different SQL statement such as select sql statement or delete sql statement or update sql statement.
+ * 
+ * @param line - the current line string
+ * @param preline - the string before current position 
+ * @param word - current word
+ * @param curPosInLine - The current position in the line
+ * @return 
+ */
+std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, const std::wstring & preline, const std::wstring & word, size_t curPosInLine)
 {
 	if (word.empty() || line.empty() || preline.empty()) {
 		return std::vector<std::wstring>();
@@ -43,13 +52,14 @@ std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, c
 	std::wstring upword = StringUtil::toupper(word);
 
 	std::vector<std::wstring> selTags;
-	if (upPreline.find(L"SELECT") != std::wstring::npos || upPreline.find(L"DELETE") != std::wstring::npos) {
-		selTags = getSelectTags(upline, upPreline, upword);
+	if (upPreline.find(L"SELECT") != std::wstring::npos 
+		|| upPreline.find(L"DELETE") != std::wstring::npos) {
+		selTags = getSelectTags(upline, upPreline, upword, curPosInLine);
 		if (!selTags.empty()) {
 			return selTags;
 		}
 	} else if (upPreline.find(L"UPDATE") != std::wstring::npos) {
-		selTags = getUpdateTags(upline, upPreline, upword);
+		selTags = getUpdateTags(upline, upPreline, upword, curPosInLine);
 		if (!selTags.empty()) {
 			return selTags;
 		}
@@ -68,7 +78,16 @@ std::vector<std::wstring> SqlEditorAdapter::getTags(const std::wstring & line, c
 	return selTags;
 }
 
-std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword)
+/**
+ * Get tags for select SQL statement and delete SQL statement
+ * 
+ * @param line - the current line string
+ * @param preline - the string before current position 
+ * @param word - current word
+ * @param curPosInLine - The current position in the line
+ * @return 
+ */
+std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
 {
 	ATLASSERT(!upline.empty() && !upPreline.empty());
 	std::vector<std::wstring> tags, selTags;
@@ -88,7 +107,21 @@ std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & u
 	}
 	auto tblService = tableService;
 	
-	if (lastWord == L"FROM" || prevWord == L"FROM") { // columns
+	size_t fromPos, wherePos, groupPos, orderPos, limitPos, npos;
+	npos = std::wstring::npos;
+	fromPos = upline.find(L" FROM ");
+	wherePos = upline.find(L" WHERE ");
+	groupPos = upline.find(L" GROUP ");
+	orderPos = upline.find(L" ORDER ");	
+	limitPos = upline.find(L" LIMIT ");
+	if (lastWord == L"FROM" || prevWord == L"FROM"
+		|| (wherePos != npos && curPosInLine < wherePos)
+		|| (wherePos == npos && groupPos != npos && curPosInLine < groupPos)
+		|| (wherePos == npos && groupPos == npos 
+			&& orderPos != npos && curPosInLine < orderPos)
+		|| (wherePos == npos && groupPos == npos && orderPos == npos 
+			&& limitPos != npos  && curPosInLine < limitPos)
+		|| (wherePos == npos && groupPos == npos && orderPos == npos  && limitPos == npos)) { // columns
 		tags = getCacheUserTableStrings(userDbId);
 	} else if (lastWord == L"ON" || prevWord == L"ON" 
 		|| lastWord == L"WHERE" || prevWord == L"WHERE"
@@ -130,8 +163,16 @@ std::vector<std::wstring> SqlEditorAdapter::getSelectTags(const std::wstring & u
 	return selTags;
 }
 
-
-std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword)
+/**
+ * Get tags for select SQL statement and delete SQL statement.
+ * 
+ * @param line - the current line string
+ * @param preline - the string before current position 
+ * @param word - current word
+ * @param curPosInLine - The current position in the line
+ * @return 
+ */
+std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & upline, const std::wstring & upPreline, const std::wstring & upword, size_t curPosInLine)
 {
 	ATLASSERT(!upline.empty() && !upPreline.empty());
 	std::vector<std::wstring> tags, selTags;
@@ -153,7 +194,12 @@ std::vector<std::wstring> SqlEditorAdapter::getUpdateTags(const std::wstring & u
 	}
 
 	auto tblService = tableService;
-	if (lastWord == L"UPDATE" || prevWord == L"UPDATE") {
+	size_t npos = std::wstring::npos;
+	size_t setPos = upline.find(L" SET ");
+	size_t wherePos = upline.find(L" WHERE ");
+	if (lastWord == L"UPDATE" || prevWord == L"UPDATE"  || 
+		(setPos != npos && curPosInLine < setPos) || 
+		(setPos == npos && wherePos == npos)) {
 		tags = getCacheUserTableStrings(userDbId);
 	} else if (lastWord == L"ON" || prevWord == L"ON"
 		|| lastWord == L"WHERE" || prevWord == L"WHERE"
