@@ -61,18 +61,12 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) // press right on subItemComboBox  
 		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) ) { // press right on ListView  		
 		pressedTabToMoveEditor();	// left == shift + tab	
-	} else if (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN) { 
-		::TranslateMessage(pMsg);
-		::DispatchMessage(pMsg);
-		return FALSE;
 	}  else if (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_SPACE) { // press space on ListView  
 		pressedSpaceToCheckbox();
 	} else if (hwnd == m_hWnd && msg == WM_MOUSEWHEEL) { // mouse wheel
 		changeSubItemText();
 	} else if ((hwnd == m_hWnd || pMsg->hwnd == GetHeader().m_hWnd) && msg == WM_KEYDOWN 
 		&& ((GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)) { // CTRL + A
-		::TranslateMessage(pMsg);
-		::DispatchMessage(pMsg);
 		if (key == _T('A')) {
 			checkedAllItems();
 		}

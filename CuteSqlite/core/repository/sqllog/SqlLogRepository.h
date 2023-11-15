@@ -11,17 +11,31 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
- * @brief  
+ * @file   SqlLogRepository.h
+ * @brief  Store the sql log 
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2023-11-15
  *********************************************************************/
 #pragma once
+#include <string>
 #include "core/entity/Entity.h"
+#include "core/common/repository/BaseRepository.h"
 
-class EntityUtil {
+#define LIMIT_MAX 1000
+class SqlLogRepository : public BaseRepository<SqlLogRepository> {
 public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
+	SqlLogRepository() {};
+	~SqlLogRepository() {};
+
+	uint64_t create(SqlLog & item);
+	bool remove(uint64_t id);
+	SqlLog getById(uint64_t id);
+	SqlLogList  getAll(uint64_t limit = LIMIT_MAX);
+	uint64_t  getCount();
+	std::vector<uint64_t>  getFrontIds(uint64_t limit = LIMIT_MAX);
+	bool removeByBiggerId(uint64_t id);
+private:
+	void queryBind(QSqlStatement &query, SqlLog &item, bool isUpdate = false);
+	SqlLog toSqlLog(QSqlStatement &query);
 };

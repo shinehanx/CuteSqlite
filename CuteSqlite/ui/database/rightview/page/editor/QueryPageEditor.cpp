@@ -23,7 +23,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
 #include "ui/common/message/QPopAnimate.h"
-
+#include "ui/database/rightview/page/editor/dialog/SqlLogDialog.h"
 
 void QueryPageEditor::setup(QueryPageSupplier * supplier)
 {
@@ -112,6 +112,7 @@ int QueryPageEditor::OnDestroy()
 	int ret = QHelpEdit::OnDestroy();
 	if (templatesButton.IsWindow()) templatesButton.DestroyWindow();
 	if (pragmasButton.IsWindow()) pragmasButton.DestroyWindow();
+	if (clearAllButton.IsWindow()) clearAllButton.DestroyWindow();
 	if (sqlLogButton.IsWindow()) sqlLogButton.DestroyWindow();
 
 	if (adapter) {
@@ -146,6 +147,17 @@ void QueryPageEditor::OnClickPragmasButton(UINT uNotifyCode, int nID, HWND hwnd)
 void QueryPageEditor::OnClickClearAllButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	editor.clearText();
+}
+
+
+void QueryPageEditor::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CRect winRect;
+	sqlLogButton.GetWindowRect(winRect);
+
+	SqlLogDialog dialog;	
+	dialog.setup(m_hWnd, (QueryPageEditorAdapter *)adapter, winRect);		
+	dialog.DoModal();
 }
 
 void QueryPageEditor::OnClickTemplatesMenu(UINT uNotifyCode, int nID, HWND hwnd)

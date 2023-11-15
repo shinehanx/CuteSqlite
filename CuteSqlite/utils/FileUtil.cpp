@@ -95,7 +95,7 @@ std::wstring FileUtil::getFileName(const std::wstring &filePath, bool includeExt
 		std::wstring fileName = filePath.substr(p+1, -1);
 		return fileName;
 	}else if (p != std::wstring::npos && !includeExt) {
-		size_t p2 = filePath.find_first_of(L'.');
+		size_t p2 = filePath.find_last_of(L'.');
 		if (p2 > p) {
 			return filePath.substr(p+1, p2 - p - 1);
 		}

@@ -19,7 +19,7 @@
  *********************************************************************/
 #pragma once
 #include "ui/database/rightview/common/QTabPage.h"
-#include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
+#include "core/service/sqllog/SqlLogService.h" 
 
 class HistoryPage : public QTabPage<QPageSupplier> {
 public:
@@ -41,7 +41,7 @@ protected:
 	HFONT textFont = nullptr;
 
 	CEdit infoEdit;
-	ResultListPageAdapter * adapter = nullptr;
+	SqlLogService * sqlLogService = SqlLogService::getInstance();
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

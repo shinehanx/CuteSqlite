@@ -117,6 +117,15 @@ typedef enum {
 	EDITOR_PRAGMAS_BUTTON_ID,
 	EDITOR_SQL_LOG_BUTTON_ID,
 	EDITOR_CLEAR_ALL_BUTTON_ID,
+
+	// COMMON SEARCH EDIT
+	COMMON_SEARCH_BUTTON_ID,
+	
+	// SQL LOG LIST ITEM
+	SQL_LOG_ITEM_USE_BUTTON_ID,
+	SQL_LOG_ITEM_EXPLAIN_BUTTON_ID,
+	SQL_LOG_ITEM_TOP_BUTTON_ID,
+	SQL_LOG_ITEM_DELELE_BUTTON_ID,
 } ButtonId;
 
 // TabView id
@@ -201,6 +210,10 @@ typedef enum {
 	PREVIEW_SQL_EDITOR_ID,
 	// COPY DATA - EXPRESS DIALOG
 	EXPRESS_EDITOR_ID,
+
+	// SEARCH EDIT
+	SEARCH_EDIT_ID
+
 } EditorId;
 
 typedef enum {
@@ -282,6 +295,9 @@ typedef enum {
 	// COPY TABLE - EXPRESS DIALOG
 	EXPRESS_FUNCTIONS_LISTBOX_ID,
 	EXPRESS_COLUMNS_LISTBOX_ID,
+
+	// SQL LOG DIALOG
+	DIALOG_SQL_LOG_LIST_ID,
 } ListBoxId;
 
 typedef enum {
@@ -398,6 +414,7 @@ typedef enum {
 	MSG_TABLE_PROPERTIES_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_COPY_TABLE_PROCESS_ID, // Table CopyTableDialog progress message, wParam is the completion status, lParam is the percent complete
 	MSG_LOADING_SQL_PREVIEW_EDIT_ID, // When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
+	MSG_SEARCH_BUTTON_ID, // When search edit button has clicked, send this msg to parent window, wParam=NULL, lParam = NULL
 }MessageId;
 
 typedef enum {
@@ -426,4 +443,5 @@ typedef enum {
 	PRAGMAS_MENU_ID_START = WM_USER + 1713,
 	PRAGMAS_MENU_ID_END = WM_USER + 1900,
 } MenuIdRank;
+
 };

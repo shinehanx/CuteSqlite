@@ -104,7 +104,6 @@ bool TableService::execBySql(uint64_t userDbId, const std::wstring & sql)
 		getRepository()->execBySql(userDbId, sql);
 	} catch (QSqlExecuteException & ex) {
 		throw ex;
-		return false;
 	}
 	return true;
 }

@@ -507,6 +507,14 @@ void TableColumnsPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 	dataView->InvalidateRect(subItemRect, false);
 }
 
+
+void TableColumnsPageAdapter::invalidateRow(int iItem)
+{
+	CRect itemRect;
+	dataView->GetItemRect(iItem, itemRect, LVIR_BOUNDS);
+	dataView->InvalidateRect(itemRect, false);
+}
+
 void TableColumnsPageAdapter::createNewColumn()
 {
 	// 1.create a empty row and push it to runtimeDatas list
@@ -617,9 +625,10 @@ bool TableColumnsPageAdapter::moveUpSelColumns()
 			if (nSelItem - 1 >= 0 ) {
 				dataView->SelectItem(nSelItem - 1);
 			}
-		}		
+		}
+		invalidateRow(nSelItem);
 	}
-
+	refreshPreviewSql();
 	return true;
 }
 
@@ -665,16 +674,18 @@ bool TableColumnsPageAdapter::moveDownSelColumns()
 			if (nSelItem + 1 < maxRows ) {
 				dataView->SelectItem(nSelItem + 1);
 			}
-		}		
+		}
+		invalidateRow(nSelItem);
 	}
-
+	refreshPreviewSql();
 	return true;
 }
 
 
 void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
-	if (clickItem->iSubItem == 0 || (clickItem->iSubItem >= 2 && clickItem->iSubItem <= 6)) {
+	if ((clickItem->iSubItem == 0 || (clickItem->iSubItem >= 2 && clickItem->iSubItem <= 6)) 
+		&& clickItem->iItem >=0) {
 		if (clickItem->iSubItem == 2) {
 			dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, TableStructureSupplier::colsDataTypeList, true);
 		} else if (clickItem->iSubItem >= 3 && clickItem->iSubItem <= 6) {
@@ -687,8 +698,19 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 		return ;
 	}
 
-	// show the editor
-	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	if (clickItem->iItem >= 0) {
+		// show the editor
+		dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	}
+	
+
+	CPoint pt = clickItem->ptAction;
+	CRect lastRowRect;
+	dataView->GetItemRect(dataView->GetItemCount() - 1, lastRowRect, LVIR_BOUNDS);
+	lastRowRect.OffsetRect(0, lastRowRect.Height());
+	if (lastRowRect.PtInRect(pt)) {
+		createNewColumn();
+	}
 }
 
 /**
@@ -742,13 +764,17 @@ bool TableColumnsPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
 		::PostMessage(pHwnd, Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, NULL, NULL);
 	}
 
-	// send msg to TableStructurePage, class chain : TableColumnsPage($parentHwnd)->QTabView($tabView)->TableTabView->TableStructurePage
-	HWND pHwnd = ::GetParent(::GetParent(::GetParent(parentHwnd)));
-	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
-
+	refreshPreviewSql();
 	return true;
 }
 
+
+void TableColumnsPageAdapter::refreshPreviewSql()
+{
+	// send msg to TableStructurePage, class chain : TableColumnsPage($parentHwnd)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = ::GetParent(::GetParent(::GetParent(parentHwnd)));
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+}
 
 bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstring & columnName)
 {

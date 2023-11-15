@@ -207,6 +207,8 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 {
 	ATLASSERT(!sql.empty());
 	resetRuntimeResultInfo();
+
+	runtimeResultInfo.userDbId = databaseSupplier->getSelectedUserDbId();
 	auto bt = PerformUtil::begin();
 	try {		
 		runtimeResultInfo.effectRows = sqlService->executeSql(databaseSupplier->getSelectedUserDbId(), sql);

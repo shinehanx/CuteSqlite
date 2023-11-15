@@ -45,6 +45,19 @@ public:
 		}
 	}
 
+	static void createOrShowButton(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0)
+	{
+		if (::IsWindow(hwnd) && !win.IsWindow()) {
+			DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS ; 
+			if (exStyle) dwStyle = dwStyle | exStyle;
+			win.Create(hwnd, rect, text.c_str(), dwStyle , 0, id);
+			return ;
+		} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
+			win.MoveWindow(&rect);
+			win.ShowWindow(SW_SHOW);
+		}
+	}
+
 	static void createOrShowDropButton(HWND hwnd, QDropButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = BS_OWNERDRAW)
 	{
 		if (::IsWindow(hwnd) && !win.IsWindow()) {

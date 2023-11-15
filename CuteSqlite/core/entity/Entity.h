@@ -132,7 +132,7 @@ typedef struct {
 
 typedef std::vector<std::wstring> ExportSelectedColumns;
 
-// the data structure for show in listview or export
+// the data structure for show in list view or export
 typedef std::vector<std::wstring> RowItem, Columns, Functions, UserTableStrings;
 // data items list
 typedef std::list<RowItem> DataList;
@@ -164,7 +164,7 @@ typedef struct {
 } TblStatementParams;
 
 // Execute sql result
-typedef struct {
+typedef struct {	
 	int effectRows = 0;
 	std::wstring execTime;
 	std::wstring transferTime;
@@ -172,7 +172,16 @@ typedef struct {
 	std::wstring sql;
 	int code = 0;
 	std::wstring msg;
-} ResultInfo;
+
+	// Extend for sql log
+	uint64_t id = 0;
+	uint64_t userDbId = 0;
+	int top = 0;
+	std::wstring createdAt;
+	DWORD data = 0;
+} ResultInfo, SqlLog;
+// Store the sql log list for execute result
+typedef std::list<SqlLog> SqlLogList;
 #endif
 
 // Support create/modify table

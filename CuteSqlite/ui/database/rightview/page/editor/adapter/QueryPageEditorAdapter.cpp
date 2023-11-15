@@ -26,8 +26,7 @@
 QueryPageEditorAdapter::QueryPageEditorAdapter(HWND parentHwnd, QueryPageSupplier * supplier)
 {
 	this->supplier = supplier;
-	this->parentHwnd = parentHwnd;
-	
+	this->parentHwnd = parentHwnd;	
 }
 
 
@@ -322,6 +321,7 @@ void QueryPageEditorAdapter::createTemplatesMenu()
 	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_DROP_TRIGGER_STMT_MEMU_ID, L"DROP TRIGGER ...");
 	templatesMenu.AppendMenu(MF_SEPARATOR);
 	templatesMenu.AppendMenu(MF_STRING, Config::TEMPLATES_WITH_STMT_MEMU_ID, L"WITH ... AS ...");
+	initMenuInfo(templatesMenu.m_hMenu);
 }
 
 void QueryPageEditorAdapter::createPragmasMenu()
@@ -334,7 +334,7 @@ void QueryPageEditorAdapter::createPragmasMenu()
 	for (auto & item : supplier->pragmas) {
 		pragmasMenu.AppendMenu(MF_STRING, WM_USER + std::get<0>(item), std::get<1>(item).c_str());
 	}
-	
+	initMenuInfo(pragmasMenu.m_hMenu);
 }
 
 void QueryPageEditorAdapter::createSqlLogMenu()

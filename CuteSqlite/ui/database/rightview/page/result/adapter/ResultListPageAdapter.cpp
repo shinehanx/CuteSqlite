@@ -58,6 +58,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 				.append(L" OFFSET ").append(std::to_wstring(limitParams.offset));
 		}		
 	}
+	runtimeResultInfo.userDbId = userDbId;
 	runtimeResultInfo.sql = runtimeSql;
 	auto bt = PerformUtil::begin();
 	try {		
@@ -95,6 +96,7 @@ int ResultListPageAdapter::loadFilterListView()
 	}
 	runtimeSql = buildRungtimeSqlWithFilters();
 	runtimeResultInfo.sql = runtimeSql;
+	runtimeResultInfo.userDbId = runtimeUserDbId;
 	auto bt = PerformUtil::begin();
 	try {		
 		QSqlStatement query = sqlService->tryExecuteSql(runtimeUserDbId, runtimeSql);

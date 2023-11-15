@@ -11,17 +11,26 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
- * @brief  
+ * @file   SqlLogService.h
+ * @brief  Store the sql log for executed in QueryPage
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2023-11-15
  *********************************************************************/
 #pragma once
-#include "core/entity/Entity.h"
 
-class EntityUtil {
+#include "core/entity/Entity.h"
+#include "core/common/service/BaseService.h"
+#include "core/repository/sqllog/SqlLogRepository.h"
+
+class SqlLogService : public BaseService<SqlLogService, SqlLogRepository>
+{
 public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
+	SqlLogService() {};
+	~SqlLogService() {};
+
+	uint64_t createSqlLog(SqlLog & sqlLog);
+	SqlLogList getAllSqlLog();
+	void clearOldSqlLog();
 };
+

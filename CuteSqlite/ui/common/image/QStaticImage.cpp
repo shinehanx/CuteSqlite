@@ -109,6 +109,7 @@ LRESULT QStaticImage::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	if (bkgIconBrush != nullptr) DeleteObject(bkgIconBrush);
 	if (bkgIconPen != nullptr) DeleteObject(bkgIconPen);
 	if (!cornerIcon.IsNull()) cornerIcon.DeleteObject();
+	if (tipFont) ::DeleteObject(tipFont);
 	return 0;
 }
 

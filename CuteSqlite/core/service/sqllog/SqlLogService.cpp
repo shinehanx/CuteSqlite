@@ -11,17 +11,36 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
+ * @file   SqlLogService.cpp
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2023-11-15
  *********************************************************************/
-#pragma once
-#include "core/entity/Entity.h"
+#include "stdafx.h"
+#include "SqlLogService.h"
 
-class EntityUtil {
-public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
-};
+uint64_t SqlLogService::createSqlLog(SqlLog & sqlLog)
+{
+	return getRepository()->create(sqlLog);
+}
+
+SqlLogList SqlLogService::getAllSqlLog()
+{
+	return getRepository()->getAll();
+}
+
+void SqlLogService::clearOldSqlLog()
+{
+	uint64_t totalNums = getRepository()->getCount();
+	if (totalNums < LIMIT_MAX) { // limit max 1000 records for sql log
+		return;
+	}
+
+	auto ids = getRepository()->getFrontIds(LIMIT_MAX);
+	if (ids.empty()) {
+		return;
+	}
+	auto maxId = ids.back();
+	getRepository()->removeByBiggerId(maxId);
+}

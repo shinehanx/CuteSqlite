@@ -197,7 +197,9 @@ void TableStructureSupplier::updateRelatedColumnsIfChangeColumnName(std::wstring
  */
 void TableStructureSupplier::updateColumnNameInIdxRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName)
 {
-	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
+	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
+		return;
+	}
 	IndexInfoList & indexes = getIdxRuntimeDatas();
 	int n = static_cast<int>(indexes.size());
 	for (int i = 0; i < n; i++) {
@@ -220,7 +222,9 @@ void TableStructureSupplier::updateColumnNameInIdxRuntimeDatas(const std::wstrin
  */
 void TableStructureSupplier::updateColumnNameInFrkRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName)
 {
-	ATLASSERT(!oldColumnName.empty() && !newColumnName.empty() && oldColumnName != newColumnName);
+	if (oldColumnName.empty() || newColumnName.empty() || oldColumnName == newColumnName) {
+		return;
+	}
 	ForeignKeyList & foreignKeys = getFrkRuntimeDatas();
 	int n = static_cast<int>(foreignKeys.size());
 	for (int i = 0; i < n; i++) {

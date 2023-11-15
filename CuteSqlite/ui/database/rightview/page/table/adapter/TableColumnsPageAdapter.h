@@ -38,6 +38,7 @@ public:
 
 	void changeRuntimeDatasItem(int iItem, int iSubItem, const std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
+	void invalidateRow(int iItem);
 
 	// create/copy a new column row operation
 	void createNewColumn();
@@ -87,4 +88,6 @@ private:
 	void invalidExistsPrimaryKeyInOtherRow(int iItem);
 	void invalidExistsAutoIncrementInSameRow(int iItem);
 	
+	void refreshPreviewSql();
+
 };

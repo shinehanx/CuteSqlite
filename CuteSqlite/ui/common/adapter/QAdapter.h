@@ -29,11 +29,26 @@ class QAdapter
 {
 public:
 	static T * getInstance(HWND parentHwnd, V * dataView = nullptr); // singleton
-protected:
+	void initMenuInfo(HMENU hMenu);
+protected:	
 	static T * theInstance;
 	HWND parentHwnd;
+	CBrush menuBrush ;
 	V * dataView;
 };
+
+template <typename T, typename V /*= ATL::CWindow*/>
+void QAdapter<T, V>::initMenuInfo(HMENU hMenu)
+{
+	MENUINFO mi;
+	menuBrush.CreateSolidBrush(RGB(255,255,255));//RGB(255,128,128));
+	mi.cbSize = sizeof(MENUINFO);
+	mi.fMask = MIM_BACKGROUND | MIM_STYLE; 
+	mi.hbrBack = (HBRUSH)menuBrush;
+	mi.dwStyle = MNS_CHECKORBMP;
+	::SetMenuInfo(hMenu,&mi);
+	menuBrush.DeleteObject();
+}
 
 template <typename T, typename V>
 T * QAdapter<T, V>::theInstance = nullptr; // singleton

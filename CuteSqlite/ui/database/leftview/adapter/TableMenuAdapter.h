@@ -49,8 +49,6 @@ public:
 	void manageForeignKey();
 	void showProperties();
 private:
-	CBrush menuBrush;
-
 	HICON openTableIcon = nullptr;
 	HICON createTableIcon = nullptr;
 	HICON alterTableIcon = nullptr;
@@ -78,7 +76,6 @@ private:
 	DatabaseSupplier * supplier = DatabaseSupplier::getInstance();
 	TableService * tableService = TableService::getInstance();
 
-	void initMenuInfo(HMENU hMenu);
 	void createImageList();
 	void createMenu();
 	void createColumnsMenu();

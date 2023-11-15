@@ -127,6 +127,7 @@ void QueryPage::execAndShow(bool select)
 		}
 		if (!hasError) {
 			spSql = L"RELEASE " + savePoint; //RELEASE SAVE POINT, COMMIT
+			sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
 			if (!nSelectSqlCount || nNotSelectSqlCount) {
 				QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
 			}			

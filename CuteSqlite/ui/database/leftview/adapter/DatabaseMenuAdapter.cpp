@@ -31,8 +31,7 @@ DatabaseMenuAdapter::DatabaseMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = view;
-	menuBrush.CreateSolidBrush(RGB(255,255,255));//RGB(255,128,128));
-
+	
 	createImageList();
 	createMenu();
 	createViewsMenu();
@@ -46,7 +45,6 @@ DatabaseMenuAdapter::~DatabaseMenuAdapter()
 	if (viewsMenu.IsMenu()) viewsMenu.DestroyMenu();
 	if (triggersMenu.IsMenu()) triggersMenu.DestroyMenu();
 
-	if (!menuBrush.IsNull()) menuBrush.DeleteObject();
 	if (createDatabaseIcon) ::DeleteObject(createDatabaseIcon);
 	if (openDatabaseIcon) ::DeleteObject(openDatabaseIcon);
 	if (refreshDatabaseIcon) ::DeleteObject(refreshDatabaseIcon);
@@ -90,16 +88,6 @@ void DatabaseMenuAdapter::createImageList()
 	dropTriggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\drop-trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 }
 
-
-void DatabaseMenuAdapter::initMenuInfo(HMENU hMenu)
-{
-	MENUINFO mi;
-	mi.cbSize = sizeof(MENUINFO);
-	mi.fMask = MIM_BACKGROUND | MIM_STYLE; 
-	mi.hbrBack = (HBRUSH)menuBrush;
-	mi.dwStyle = MNS_CHECKORBMP;
-	::SetMenuInfo(hMenu,&mi);
-}
 
 void DatabaseMenuAdapter::createMenu()
 {

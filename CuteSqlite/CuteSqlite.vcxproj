@@ -249,6 +249,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\common\repository\QSqlStatement.cpp" />
     <ClCompile Include="core\common\supplier\QSupplier.cpp" />
     <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
+    <ClCompile Include="core\repository\sqllog\SqlLogRepository.cpp" />
     <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
     <ClCompile Include="core\repository\user\DatabaseUserRepository.cpp" />
     <ClCompile Include="core\repository\user\ColumnUserRepository.cpp" />
@@ -262,6 +263,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\service\db\TableService.cpp" />
     <ClCompile Include="core\service\export\ExportDatabaseObjectsService.cpp" />
     <ClCompile Include="core\service\export\ExportResultService.cpp" />
+    <ClCompile Include="core\service\sqllog\SqlLogService.cpp" />
     <ClCompile Include="core\service\system\SettingService.cpp" />
     <ClCompile Include="CuteSqlite.cpp" />
     <ClCompile Include="MainFrm.cpp" />
@@ -277,6 +279,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\button\QImageButton.cpp" />
     <ClCompile Include="ui\common\checkbox\QCheckBox.cpp" />
     <ClCompile Include="ui\common\edit\QHelpEdit.cpp" />
+    <ClCompile Include="ui\common\edit\QSearchEdit.cpp" />
     <ClCompile Include="ui\common\edit\QSqlEdit.cpp" />
     <ClCompile Include="ui\common\image\QImage.cpp" />
     <ClCompile Include="ui\common\image\QImageList.cpp" />
@@ -312,6 +315,9 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\rightview\page\dialog\TriggerDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\dialog\ViewDialog.cpp" />
     <ClCompile Include="ui\database\rightview\page\editor\adapter\QueryPageEditorAdapter.cpp" />
+    <ClCompile Include="ui\database\rightview\page\editor\dialog\SqlLogDialog.cpp" />
+    <ClCompile Include="ui\database\rightview\page\editor\list\SqlLogListBox.cpp" />
+    <ClCompile Include="ui\database\rightview\page\editor\list\SqlLogListItem.cpp" />
     <ClCompile Include="ui\database\rightview\page\editor\QueryPageEditor.cpp" />
     <ClCompile Include="ui\database\rightview\page\HistoryPage.cpp" />
     <ClCompile Include="ui\database\rightview\page\result\TablePropertiesPage.cpp" />
@@ -376,6 +382,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\common\supplier\QSupplier.h" />
     <ClInclude Include="core\entity\Entity.h" />
     <ClInclude Include="core\repository\db\UserDbRepository.h" />
+    <ClInclude Include="core\repository\sqllog\SqlLogRepository.h" />
     <ClInclude Include="core\repository\system\SysInitRepository.h" />
     <ClInclude Include="core\repository\user\DatabaseUserRepository.h" />
     <ClInclude Include="core\repository\user\ColumnUserRepository.h" />
@@ -390,6 +397,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\service\export\ExportDatabaseObjectsService.h" />
     <ClInclude Include="core\service\export\ExportResultService.h" />
     <ClInclude Include="core\service\system\SettingService.h" />
+    <ClInclude Include="core\service\sqllog\SqlLogService.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -402,6 +410,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\dialog\QDialog.h" />
     <ClInclude Include="ui\common\edit\adapter\QHelpEditAdapter.h" />
     <ClInclude Include="ui\common\edit\QHelpEdit.h" />
+    <ClInclude Include="ui\common\edit\QSearchEdit.h" />
     <ClInclude Include="ui\common\edit\QSqlEdit.h" />
     <ClInclude Include="ui\common\image\QImage.h" />
     <ClInclude Include="ui\common\image\QImageList.h" />
@@ -439,6 +448,9 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\page\dialog\TriggerDialog.h" />
     <ClInclude Include="ui\database\rightview\page\dialog\ViewDialog.h" />
     <ClInclude Include="ui\database\rightview\page\editor\adapter\QueryPageEditorAdapter.h" />
+    <ClInclude Include="ui\database\rightview\page\editor\dialog\SqlLogDialog.h" />
+    <ClInclude Include="ui\database\rightview\page\editor\list\SqlLogListBox.h" />
+    <ClInclude Include="ui\database\rightview\page\editor\list\SqlLogListItem.h" />
     <ClInclude Include="ui\database\rightview\page\editor\QueryPageEditor.h" />
     <ClInclude Include="ui\database\rightview\page\HistoryPage.h" />
     <ClInclude Include="ui\database\rightview\page\result\TablePropertiesPage.h" />

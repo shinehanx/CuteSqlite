@@ -33,10 +33,11 @@ public:
 		COMMAND_HANDLER_EX(Config::EDITOR_TEMPLATES_BUTTON_ID, BN_CLICKED, OnClickTemplatesButton)
 		COMMAND_HANDLER_EX(Config::EDITOR_PRAGMAS_BUTTON_ID, BN_CLICKED, OnClickPragmasButton)
 		COMMAND_HANDLER_EX(Config::EDITOR_CLEAR_ALL_BUTTON_ID, BN_CLICKED, OnClickClearAllButton)
+		COMMAND_HANDLER_EX(Config::EDITOR_SQL_LOG_BUTTON_ID, BN_CLICKED, OnClickSqlLogButton)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::TEMPLATES_SELECT_STMT_MEMU_ID, Config::TEMPLATES_WITH_STMT_MEMU_ID, BN_CLICKED, OnClickTemplatesMenu)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::PRAGMAS_MENU_ID_START, Config::PRAGMAS_MENU_ID_END, BN_CLICKED, OnClickPragmasMenu)
 		CHAIN_MSG_MAP(QHelpEdit)
-		// REFLECT_NOTIFICATIONS() 
+		// REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void setup(QueryPageSupplier * supplier);
 private:
@@ -44,9 +45,9 @@ private:
 
 	QDropButton templatesButton;
 	QDropButton pragmasButton;
-	QDropButton sqlLogButton;
 	QDropButton clearAllButton;
-
+	QDropButton sqlLogButton;
+	
 	QueryPageSupplier * supplier = nullptr;
 
 	virtual void createOrShowUI();
@@ -56,6 +57,7 @@ private:
 	void OnClickTemplatesButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickPragmasButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickClearAllButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	void OnClickTemplatesMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickPragmasMenu(UINT uNotifyCode, int nID, HWND hwnd);

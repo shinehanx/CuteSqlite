@@ -35,7 +35,6 @@ TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = view;
-	menuBrush.CreateSolidBrush(RGB(255,255,255));//RGB(255,128,128));
 	createImageList();
 	createMenu();
 	createColumnsMenu();
@@ -45,7 +44,6 @@ TableMenuAdapter::TableMenuAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 TableMenuAdapter::~TableMenuAdapter()
 {
 	if (menu.IsMenu()) menu.DestroyMenu();
-	if (!menuBrush.IsNull()) menuBrush.DeleteObject();
 	if (openTableIcon) ::DeleteObject(openTableIcon);
 	if (createTableIcon) ::DeleteObject(createTableIcon);
 	if (alterTableIcon) ::DeleteObject(alterTableIcon);
@@ -64,16 +62,6 @@ TableMenuAdapter::~TableMenuAdapter()
 	if (manageColumnsIcon) ::DeleteObject(manageColumnsIcon);
 	if (dropColumnIcon) ::DeleteObject(dropColumnIcon);
 	if (dropIndexIcon) ::DeleteObject(dropIndexIcon);
-}
-
-void TableMenuAdapter::initMenuInfo(HMENU hMenu)
-{
-	MENUINFO mi;
-	mi.cbSize = sizeof(MENUINFO);
-	mi.fMask = MIM_BACKGROUND | MIM_STYLE; 
-	mi.hbrBack = (HBRUSH)menuBrush;
-	mi.dwStyle = MNS_CHECKORBMP;
-	::SetMenuInfo(hMenu,&mi);
 }
 
 void TableMenuAdapter::createImageList()

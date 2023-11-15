@@ -32,7 +32,7 @@ uint64_t UserDbRepository::create(UserDb & item)
 		queryBind(query, item);
 
 		query.exec();
-		Q_INFO(L"create analysis_sample_class success.");
+		Q_INFO(L"create user_db success.");
 		return getSysConnect()->getLastInsertRowid();
 	}
 	catch (SQLite::QSqlException &e) {
@@ -82,7 +82,7 @@ UserDb UserDbRepository::getById(uint64_t id)
 			return UserDb();
 		}
 
-		Q_INFO(L"Get db detail success");
+		Q_INFO(L"Get user_db detail success");
 		UserDb item = toUserDb(query);
 		return item;
 	}

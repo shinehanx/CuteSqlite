@@ -37,8 +37,7 @@ public:
 
 	bool dropView();
 	bool dropTrigger();
-private:
-	CBrush menuBrush ;
+private:	
 	HICON createDatabaseIcon = nullptr;
 	HICON openDatabaseIcon = nullptr;
 	HICON refreshDatabaseIcon = nullptr;
@@ -66,8 +65,6 @@ private:
 	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	void createImageList();
-	void initMenuInfo(HMENU hMenu);
-
 	void createMenu();
 	void createViewsMenu();
 	void createTriggersMenu();

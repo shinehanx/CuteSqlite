@@ -1,0 +1,81 @@
+/*****************************************************************//**
+ * Copyright 2023 Xuehan Qin 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+
+ * limitations under the License.
+
+ * @file   SqlLogDialog.h
+ * @brief  This dialog for show the sql log
+ * 
+ * @author Xuehan Qin
+ * @date   2023-11-14
+ *********************************************************************/
+#pragma once
+#include <atlcrack.h>
+#include "resource.h"
+#include "core/service/db/DatabaseService.h"
+#include "ui/database/rightview/page/editor/adapter/QueryPageEditorAdapter.h"
+#include "ui/common/button/QImageButton.h"
+#include "ui/common/edit/QSearchEdit.h"
+#include "ui/database/rightview/page/editor/list/SqlLogListBox.h"
+#include "core/service/sqllog/SqlLogService.h"
+
+#define  SQL_LOG_DIALOG_WIDTH 500
+#define  SQL_LOG_DIALOG_HEIGHT 600
+class SqlLogDialog : public CDialogImpl<SqlLogDialog> {
+public:
+	enum { IDD = IDD_QFORM_DIALOG };
+
+	BEGIN_MSG_MAP_EX(SqlLogDialog)
+		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(WM_SIZE, OnSize)
+		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
+		MESSAGE_HANDLER(WM_PAINT, OnPaint)
+		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
+		MSG_WM_CTLCOLORSTATIC(OnCtlEditColor)
+		COMMAND_HANDLER_EX(Config::QPOP_ANIMATE_CLOSE_BUTTON_ID, BN_CLICKED, OnClickCloseButton)
+		REFLECT_NOTIFICATIONS()
+	END_MSG_MAP()
+	void setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect);
+private:
+	bool isNeedReload = true;
+	CRect winRect;
+	HWND parentHwnd = 0;
+
+	COLORREF textColor = RGB(8, 8, 8);
+	COLORREF bkgColor = RGB(219, 219, 219);
+	HBRUSH bkgBrush = nullptr;
+	HFONT textFont = nullptr;
+
+	QImageButton closeButton;
+	QSearchEdit searchEdit;
+	SqlLogListBox sqlLogListBox;
+
+	QueryPageEditorAdapter * adapter = nullptr;
+	DatabaseService * databaseService = DatabaseService::getInstance();
+	SqlLogService * sqlLogService = SqlLogService::getInstance();
+
+	void createOrShowUI();
+	void createOrShowCloseButton(CRect & clientRect);
+	void createOrShowSearchEdit(QSearchEdit & win, CRect & clientRect);
+	void createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRect);
+
+	void loadWindow();
+	void loadSqlLogListBox();
+
+	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
+	LRESULT OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd);
+};

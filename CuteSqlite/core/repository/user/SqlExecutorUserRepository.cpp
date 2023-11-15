@@ -45,8 +45,6 @@ int SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sq
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);
 		QSqlExecuteException ex(std::to_wstring( e.getErrorCode()), _err, sql);
-		ex.setErrRow(1);
-		ex.setErrCol(200);
 		throw ex;
 	}
 	return 0;

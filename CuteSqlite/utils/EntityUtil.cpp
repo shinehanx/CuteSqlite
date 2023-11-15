@@ -37,3 +37,19 @@ IndexInfo EntityUtil::copy(const IndexInfo & item)
 
 	return result;
 }
+
+ResultInfo EntityUtil::copy(const ResultInfo & item)
+{
+	ResultInfo result;	
+	result.id = item.id;
+	result.createdAt = item.createdAt;
+	result.effectRows = item.effectRows;
+	result.code = item.code;
+	result.msg = item.msg;
+	result.sql = item.sql;
+	result.top = item.top;
+	result.execTime = item.execTime;
+	result.transferTime = item.transferTime;
+	result.totalTime = item.totalTime;
+	return result;
+}
