@@ -11,33 +11,37 @@
 
  * limitations under the License.
 
- * @file   SqlLogService.h
- * @brief  Store the sql log for executed in QueryPage
+ * @file   CliboardUtil.cpp
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-11-15
+ * @date   2023-11-16
  *********************************************************************/
-#pragma once
+#include "stdafx.h"
+#include "CliboardUtil.h"
 
-#include "core/entity/Entity.h"
-#include "core/common/service/BaseService.h"
-#include "core/repository/sqllog/SqlLogRepository.h"
-
-class SqlLogService : public BaseService<SqlLogService, SqlLogRepository>
+bool CliboardUtil::copyString(const ATL::CString & str)
 {
-public:
-	SqlLogService() {};
-	~SqlLogService() {};
-
-	uint64_t createSqlLog(SqlLog & sqlLog);
-	SqlLogList getAllSqlLog();
-	SqlLogList getTopSqlLog();
-	void clearOldSqlLog();
-	std::vector<std::wstring> getDatesFromList(const SqlLogList &list);
-
-	SqlLogList getFilteredListByDate(const SqlLogList &list, const std::wstring & date);
-
-	void topSqlLog(uint64_t id);
-	void removeSqlLog(uint64_t id);
-};
-
+	if (!::OpenClipboard(NULL))
+    {
+        return FALSE;
+    }
+ 
+    ATL::CString src = str;
+    ::EmptyClipboard();
+    int len = src.GetLength();
+    int size = (len + 1) * 2;
+    HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, size);
+    if (!clipbuffer)
+    {
+        ::CloseClipboard();
+        return FALSE;
+    }
+    char *buffer = (char*)::GlobalLock(clipbuffer);
+    memcpy(buffer, src.GetBuffer(), size);
+    src.ReleaseBuffer();
+    ::GlobalUnlock(clipbuffer);
+    ::SetClipboardData(CF_UNICODETEXT, clipbuffer);
+    ::CloseClipboard();
+    return TRUE;
+}

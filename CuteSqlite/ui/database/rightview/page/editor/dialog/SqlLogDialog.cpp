@@ -21,9 +21,11 @@
 #include "SqlLogDialog.h"
 #include <atltypes.h>
 #include "ui/common/QWinCreater.h"
-#include <core/common/Lang.h>
+#include "core/common/Lang.h"
+#include "ui/common/message/QPopAnimate.h"
+#include "ui/common/message/QMessageBox.h"
 
-void SqlLogDialog::setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect)
+void SqlLogDialog::setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect) 
 {
 	int x = parentWinRect.right - SQL_LOG_DIALOG_WIDTH,
 		y = parentWinRect.bottom + 5,
@@ -87,6 +89,7 @@ void SqlLogDialog::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & client
 	int x = 2, y = rcLast.bottom + 10, w = clientRect.Width() - 4, h = clientRect.Height() - y - 13;
 	CRect rect = { x, y, x + w, y + h }; 
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		win.setup(adapter->getSupplier());
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL, 0, Config::DIALOG_SQL_LOG_LIST_ID);
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
@@ -108,11 +111,30 @@ void SqlLogDialog::loadWindow()
 
 void SqlLogDialog::loadSqlLogListBox()
 {
+	sqlLogListBox.clearAllItems();
+	SqlLogList topList = sqlLogService->getTopSqlLog();
 	SqlLogList list = sqlLogService->getAllSqlLog();
+	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
 
-	for (auto & item : list) {
-		sqlLogListBox.addItem(item);
+	if (!topList.empty()) {
+		sqlLogListBox.addGroup(L"Top");
+		for (auto & item : topList) {
+			sqlLogListBox.addItem(item);
+		}
 	}
+
+	for (auto & date : dates) {
+		if (date.empty()) {
+			continue;
+		}
+		std::wstring fmtDate = formatDateForDisplay(date);
+		sqlLogListBox.addGroup(fmtDate);
+		SqlLogList dateList = sqlLogService->getFilteredListByDate(list, date);
+		for (auto & item : dateList) {
+			sqlLogListBox.addItem(item);
+		}		
+	}
+	sqlLogListBox.reloadVScroll();
 }
 
 LRESULT SqlLogDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -176,4 +198,81 @@ LRESULT SqlLogDialog::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	EndDialog(0);
 	return 0;
+}
+
+LRESULT SqlLogDialog::OnClickUseButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	EndDialog(Config::QDIALOG_YES_BUTTON_ID);
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t id = static_cast<uint64_t>(wParam);
+	if (!id) {
+		return 0;
+	}
+	try {
+		sqlLogService->topSqlLog(id);
+		loadSqlLogListBox();
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+	}
+	
+	return 0;
+}
+
+LRESULT SqlLogDialog::OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t id = static_cast<uint64_t>(wParam);
+	if (!id) {
+		return 0;
+	}
+	if (QMessageBox::confirm(m_hWnd, S(L"delete-sql-log-confirm-text")) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		return 0;
+	}
+
+	try {
+		sqlLogService->removeSqlLog(id);
+		loadSqlLogListBox();
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+	}
+	
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	try {
+		loadSqlLogListBox();
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+	}
+	
+	return 0;
+}
+
+std::wstring SqlLogDialog::formatDateForDisplay(const std::wstring & date)
+{
+	if (date.empty()) {
+		return date;
+	}
+	std::wstring result;
+	std::wstring curdate = DateUtil::getCurrentDate();
+	if (curdate == date) {
+		std::wstring week = DateUtil::getWeekDay(CTime::GetCurrentTime());
+		result = S(L"today");
+		result.append(L" - ").append(date).append(L" ").append(week);
+	} else if (date == DateUtil::getYestoday()) {
+		std::wstring week = DateUtil::getWeekDay(DateUtil::getYestodayTime());
+		result = S(L"yestoday");
+		result.append(L" - ").append(date).append(L" ").append(week);
+	}  else {
+		std::wstring week = DateUtil::getWeekDay(DateUtil::getTimeFromString(date + L" 00:00:00"));
+		result.append(date).append(L" ").append(week);
+	}
+	return result;
 }

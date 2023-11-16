@@ -33,6 +33,8 @@ public:
 	virtual std::vector<std::wstring> & getCacheUserTableStrings(uint64_t userDbId);
 	virtual uint64_t getCurrentUserDbId();
 
+	QueryPageSupplier * getSupplier() { return supplier; }
+
 	// For menus
 	void createMenus();	
 	void createTemplatesMenu();
@@ -41,6 +43,11 @@ public:
 	// Pop up menu
 	void popupTemplatesMenu(CPoint & pt);
 	void popupPragmasMenu(CPoint & pt);
+
+	// Use sql log
+	void clearUseSql();
+	void setUseSql(const std::wstring & useSql);
+	std::wstring & getUseSql() const;
 private:
 	HWND parentHwnd;
 	CMenu templatesMenu;

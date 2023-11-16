@@ -20,28 +20,30 @@
 #pragma once
 #include "stdafx.h"
 #include "SqlLogListItem.h"
+#include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "utils/EntityUtil.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
 #include "utils/FontUtil.h"
+#include "utils/CliboardUtil.h"
+#include <utils/StringUtil.h>
 
-SqlLogListItem::SqlLogListItem(ResultInfo & info)
+
+SqlLogListItem::SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier)
 {
 	this->info = EntityUtil::copy(info);
+	this->supplier = supplier;
 }
 
 void SqlLogListItem::select(bool state)
 {
 	selectState = state;
-	if (selectState) {
-		bkgColor = bkgSelectColor;
-	} else {
-		bkgColor = RGB(255, 255, 255);
-	}
+	COLORREF brushColor = selectState ? bkgSelectColor : bkgColor;
+	
 	if (bkgBrush) {
 		::DeleteObject(bkgBrush);
-		bkgBrush = ::CreateSolidBrush(bkgColor);
+		bkgBrush = ::CreateSolidBrush(brushColor);
 	}
 	Invalidate(true);
 }
@@ -69,6 +71,7 @@ int SqlLogListItem::OnDestroy()
 	if (useButton.IsWindow()) useButton.DestroyWindow();
 	if (topButton.IsWindow()) topButton.DestroyWindow();
 	if (explainButton.IsWindow()) explainButton.DestroyWindow();
+	if (copyButton.IsWindow()) copyButton.DestroyWindow();
 	if (deleteButton.IsWindow()) deleteButton.DestroyWindow();
 	return 0;
 }
@@ -121,6 +124,76 @@ HBRUSH SqlLogListItem::OnCtlBtnColor(HDC hdc, HWND hwnd)
 	return bkgBrush;
 }
 
+void SqlLogListItem::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (!bTracking) {  
+        TRACKMOUSEEVENT tme;  
+        tme.cbSize = sizeof(TRACKMOUSEEVENT);  
+        tme.dwFlags = TME_LEAVE | TME_HOVER;//要触发的消息类型  
+        tme.hwndTrack = m_hWnd;  
+        tme.dwHoverTime = 10;// 如果不设此参数,无法触发mouseHover  
+  
+		 //MOUSELEAVE|MOUSEHOVER消息由此函数触发.  
+        if (::_TrackMouseEvent(&tme)) {  
+            bTracking = true;     
+        }  
+    }
+}
+
+void SqlLogListItem::OnMouseHover(WPARAM wParam, CPoint ptPos)
+{
+	//select(false);
+}
+
+void SqlLogListItem::OnMouseLeave()
+{
+	//select(false);
+}
+
+void SqlLogListItem::OnClickUseButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	supplier->setCacheUseSql(info.sql.c_str());
+
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd;
+	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_USE_SQL_ID, NULL, NULL);
+}
+
+void SqlLogListItem::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CString str;
+	sqlEdit.GetWindowText(str);
+	CliboardUtil::copyString(str);
+}
+
+void SqlLogListItem::OnClickExplainButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	std::wstring sql = info.sql;
+	std::wstring upline = StringUtil::toupper(info.sql);
+	if (!upline.empty() && upline.find(L"EXPLAIN") != 0) {
+		sql = L"EXPLAIN " + info.sql;
+	}
+	supplier->setCacheUseSql(sql.c_str());
+
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd;
+	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_USE_SQL_ID, NULL, NULL);
+}
+
+void SqlLogListItem::OnClickTopButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd;
+	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_TOP_SQL_LOG_ID, WPARAM(info.id), NULL);
+}
+
+void SqlLogListItem::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd;
+	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_DEL_SQL_LOG_ID, WPARAM(info.id), NULL);
+}
+
 void SqlLogListItem::createOrShowUI()
 {
 	CRect clientRect;
@@ -137,7 +210,7 @@ void SqlLogListItem::createTopElems(CRect & clientRect)
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowLabel(m_hWnd, createdAtLabel, info.createdAt, rect, clientRect, SS_LEFT, 10);
 
-	x = clientRect.right - 10, w = 12, h = 12;
+	x = clientRect.right - 20, w = 12, h = 12;
 	if (info.top) {
 		rect = { x, y, x + w, y + h };
 		std::wstring imgDir = ResourceUtil::getProductImagesDir();
@@ -193,18 +266,21 @@ void SqlLogListItem::createMiddleElems(CRect & clientRect)
 void SqlLogListItem::createBottomElems(CRect & clientRect)
 {
 	CRect rcMid = GdiPlusUtil::GetWindowRelativeRect(execTimeLabel);
-	int x = clientRect.right - 4 * (50 + 10) - 20, y = rcMid.bottom + 5, w = 50, h = 20;
+	int x = clientRect.right - 5 * (50 + 10) - 20, y = rcMid.bottom + 5, w = 50, h = 20; 
 	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowButton(m_hWnd, useButton, Config::SQL_LOG_ITEM_USE_BUTTON_ID, L"Use", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, useButton, Config::SQL_LOG_ITEM_USE_BUTTON_ID, S(L"use"), rect, clientRect);
 
 	rect.OffsetRect(w + 10, 0);
-	QWinCreater::createOrShowButton(m_hWnd, explainButton, Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID, L"Explain", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, explainButton, Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID,S( L"explain"), rect, clientRect);
 
 	rect.OffsetRect(w + 10, 0);
-	QWinCreater::createOrShowButton(m_hWnd, topButton, Config::SQL_LOG_ITEM_TOP_BUTTON_ID, L"Top", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, topButton, Config::SQL_LOG_ITEM_TOP_BUTTON_ID, S(L"top"), rect, clientRect);
 
 	rect.OffsetRect(w + 10, 0);
-	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::SQL_LOG_ITEM_DELELE_BUTTON_ID, L"Delete", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, copyButton, Config::SQL_LOG_ITEM_COPY_BUTTON_ID, S(L"copy"), rect, clientRect);
+
+	rect.OffsetRect(w + 10, 0);
+	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::SQL_LOG_ITEM_DELELE_BUTTON_ID, S(L"delete"), rect, clientRect);
 }
 
 void SqlLogListItem::loadWindow()

@@ -357,3 +357,19 @@ void QueryPageEditorAdapter::popupPragmasMenu(CPoint & pt)
 	}
 	pragmasMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
 }
+
+void QueryPageEditorAdapter::clearUseSql()
+{
+	supplier->clearCacheUseSql();
+}
+
+
+void QueryPageEditorAdapter::setUseSql(const std::wstring & useSql)
+{
+	supplier->setCacheUseSql(useSql);
+}
+
+std::wstring & QueryPageEditorAdapter::getUseSql() const
+{
+	return supplier->getCacheUseSql();
+}

@@ -92,7 +92,7 @@ LRESULT TablePropertiesPage::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);
 
 	if (iVscrollPos != si.nPos) {
-		::ScrollWindow(m_hWnd, 0, cyChar * (iVscrollPos - si.nPos), nullptr, nullptr);
+		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
 		Invalidate(true);
 	}
 	 return 0;

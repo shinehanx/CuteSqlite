@@ -125,6 +125,7 @@ typedef enum {
 	SQL_LOG_ITEM_USE_BUTTON_ID,
 	SQL_LOG_ITEM_EXPLAIN_BUTTON_ID,
 	SQL_LOG_ITEM_TOP_BUTTON_ID,
+	SQL_LOG_ITEM_COPY_BUTTON_ID,
 	SQL_LOG_ITEM_DELELE_BUTTON_ID,
 } ButtonId;
 
@@ -415,6 +416,9 @@ typedef enum {
 	MSG_COPY_TABLE_PROCESS_ID, // Table CopyTableDialog progress message, wParam is the completion status, lParam is the percent complete
 	MSG_LOADING_SQL_PREVIEW_EDIT_ID, // When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
 	MSG_SEARCH_BUTTON_ID, // When search edit button has clicked, send this msg to parent window, wParam=NULL, lParam = NULL
+	MSG_QUERY_PAGE_USE_SQL_ID, // When use button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=NULL, lParam = NULL
+	MSG_QUERY_PAGE_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam = NULL
+	MSG_QUERY_PAGE_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam= NULL
 }MessageId;
 
 typedef enum {

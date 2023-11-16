@@ -24,6 +24,7 @@
 #include "core/entity/Entity.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/button/QImageButton.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 
 class  SqlLogListItem : public CWindowImpl<SqlLogListItem>
 {
@@ -35,16 +36,25 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MSG_WM_MOUSEMOVE(OnMouseMove)
+		MSG_WM_MOUSEHOVER(OnMouseHover)
+		MSG_WM_MOUSELEAVE(OnMouseLeave)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_USE_BUTTON_ID, BN_CLICKED, OnClickUseButton)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID, BN_CLICKED, OnClickExplainButton)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_COPY_BUTTON_ID, BN_CLICKED, OnClickCopyButton)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_TOP_BUTTON_ID, BN_CLICKED, OnClickTopButton)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_DELELE_BUTTON_ID, BN_CLICKED, OnClickDeleteButton)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
-	SqlLogListItem(ResultInfo & info);
+	SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier);
 	void select(bool state);	
 private:
 	ResultInfo info;
 	bool selectState = false;
+	bool bTracking = false;
 
 	COLORREF bkgColor = RGB(238, 238, 238);
 	COLORREF bkgMouseOverColor = RGB(238, 238, 238);
@@ -71,7 +81,10 @@ private:
 	CButton useButton;
 	CButton topButton;
 	CButton explainButton;
+	CButton copyButton;
 	CButton deleteButton;
+
+	QueryPageSupplier * supplier = nullptr;
 
 	void createOrShowUI();
 	void createTopElems(CRect & clientRect);
@@ -88,4 +101,12 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlBtnColor(HDC hdc, HWND hwnd);
+	void OnMouseMove(UINT nFlags, CPoint point);
+	void OnMouseHover(WPARAM wParam, CPoint ptPos);
+	void OnMouseLeave();
+	void OnClickUseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickExplainButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickTopButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDeleteButton(UINT uNotifyCode, int nID, HWND hwnd);
 };

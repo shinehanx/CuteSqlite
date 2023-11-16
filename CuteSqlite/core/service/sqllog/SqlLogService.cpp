@@ -30,6 +30,12 @@ SqlLogList SqlLogService::getAllSqlLog()
 	return getRepository()->getAll();
 }
 
+
+SqlLogList SqlLogService::getTopSqlLog()
+{
+	return getRepository()->getTopList();
+}
+
 void SqlLogService::clearOldSqlLog()
 {
 	uint64_t totalNums = getRepository()->getCount();
@@ -43,4 +49,44 @@ void SqlLogService::clearOldSqlLog()
 	}
 	auto maxId = ids.back();
 	getRepository()->removeByBiggerId(maxId);
+}
+
+std::vector<std::wstring> SqlLogService::getDatesFromList(const SqlLogList &list)
+{
+	std::vector<std::wstring> result;
+	if (list.empty()) {
+		return result;
+	}
+
+	for (auto & item : list) {
+		std::wstring date = DateUtil::getDateFromDateTime(item.createdAt);
+		if (std::find(result.begin(), result.end(), date) == result.end()) {
+			result.push_back(date);
+		}
+	}
+	return result;
+}
+
+SqlLogList SqlLogService::getFilteredListByDate(const SqlLogList &list, const std::wstring & date)
+{
+	SqlLogList result;
+	if (list.empty() || date.empty()) {
+		return result;
+	}
+	for (auto & item : list) {
+		if (date == DateUtil::getDateFromDateTime(item.createdAt)) {
+			result.push_back(item);
+		}
+	}
+	return result;
+}
+
+void SqlLogService::topSqlLog(uint64_t id)
+{
+	getRepository()->topById(id);
+}
+
+void SqlLogService::removeSqlLog(uint64_t id)
+{
+	getRepository()->remove(id);
 }

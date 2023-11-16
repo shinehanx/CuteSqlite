@@ -36,6 +36,7 @@ public:
 		COMMAND_HANDLER_EX(Config::EDITOR_SQL_LOG_BUTTON_ID, BN_CLICKED, OnClickSqlLogButton)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::TEMPLATES_SELECT_STMT_MEMU_ID, Config::TEMPLATES_WITH_STMT_MEMU_ID, BN_CLICKED, OnClickTemplatesMenu)
 		COMMAND_RANGE_CODE_HANDLER_EX(Config::PRAGMAS_MENU_ID_START, Config::PRAGMAS_MENU_ID_END, BN_CLICKED, OnClickPragmasMenu)
+		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_USE_SQL_ID, OnHandleUseSql)
 		CHAIN_MSG_MAP(QHelpEdit)
 		// REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -61,4 +62,6 @@ private:
 
 	void OnClickTemplatesMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickPragmasMenu(UINT uNotifyCode, int nID, HWND hwnd);
+
+	LRESULT OnHandleUseSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

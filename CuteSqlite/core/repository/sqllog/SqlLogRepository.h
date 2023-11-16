@@ -29,12 +29,14 @@ public:
 	~SqlLogRepository() {};
 
 	uint64_t create(SqlLog & item);
-	bool remove(uint64_t id);
+	int remove(uint64_t id);
 	SqlLog getById(uint64_t id);
 	SqlLogList  getAll(uint64_t limit = LIMIT_MAX);
+	SqlLogList  getTopList(uint64_t limit = LIMIT_MAX);
 	uint64_t  getCount();
 	std::vector<uint64_t>  getFrontIds(uint64_t limit = LIMIT_MAX);
-	bool removeByBiggerId(uint64_t id);
+	int removeByBiggerId(uint64_t id);
+	int topById(uint64_t id);
 private:
 	void queryBind(QSqlStatement &query, SqlLog &item, bool isUpdate = false);
 	SqlLog toSqlLog(QSqlStatement &query);

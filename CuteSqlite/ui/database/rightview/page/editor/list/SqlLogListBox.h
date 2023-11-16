@@ -20,6 +20,7 @@
 #pragma once
 #include <atlwin.h>
 #include "ui/database/rightview/page/editor/list/SqlLogListItem.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 
 class SqlLogListBox : public CWindowImpl<SqlLogListBox> 
 {
@@ -35,9 +36,13 @@ public:
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
-	SqlLogListBox();
+	void setup(QueryPageSupplier * supplier);
+
 	void addGroup(const std::wstring & group);
 	void addItem(ResultInfo & info);
+	void reloadVScroll();
+
+	void clearAllItems();
 	void selectItem(int nItem);
 	void removeItem(int nItem);
 private:
@@ -46,6 +51,9 @@ private:
 
 	std::vector<CStatic *> groups;
 	std::vector<SqlLogListItem *> items;
+	std::vector<HWND> winHwnds;
+
+	QueryPageSupplier * supplier = nullptr;
 
 	// scroll bar
 	TEXTMETRIC tm;
@@ -61,6 +69,10 @@ private:
 	
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	int OnDestroy();
+
+	void clearGroups();
+	void clearItems();
+
 	void OnSize(UINT nType, CSize size);
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);

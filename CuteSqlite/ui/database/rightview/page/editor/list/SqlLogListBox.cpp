@@ -24,14 +24,14 @@
 #define SQL_LOG_LISTBOX_ITEM_HEIGHT 150
 #define SQL_LOG_LISTBOX_GRROUP_HEIGHT 20
 
-int SqlLogListBox::cxChar = 5;
-int SqlLogListBox::cyChar = 5;
+int SqlLogListBox::cxChar = 5; // Need initialize in OnCreate
+int SqlLogListBox::cyChar = 5; // Need initialize in OnCreate
 int SqlLogListBox::iVscrollPos = 5;
 int SqlLogListBox::vScrollPages = 5;
 
-SqlLogListBox::SqlLogListBox()
+void SqlLogListBox::setup(QueryPageSupplier * supplier)
 {
-
+	this->supplier = supplier;
 }
 
 void SqlLogListBox::addGroup(const std::wstring & group)
@@ -45,16 +45,17 @@ void SqlLogListBox::addGroup(const std::wstring & group)
 	CStatic * groupLabel = new CStatic();
 	int x = 0, y = 0, w = clientRect.Width(), h = 20;
 	CRect rect;
-	if (!items.empty()) {
-		auto lastItem = items.back();
-		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(lastItem->m_hWnd);
+	if (!winHwnds.empty()) {
+		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
 		y = rcLast.bottom + 5;
 	} else {
-		y = 5;
+		y = 0;
 	}
 	rect = { x, y, x + w, y + h };
-	createOrShowGroupLabel(*groupLabel, group, rect, clientRect);
+	std::wstring fmtgrp = L"  " + group;
+	createOrShowGroupLabel(*groupLabel, fmtgrp, rect, clientRect);
 	groups.push_back(groupLabel);
+	winHwnds.push_back(groupLabel->m_hWnd);
 }
 
 void SqlLogListBox::addItem(ResultInfo & info)
@@ -62,12 +63,11 @@ void SqlLogListBox::addItem(ResultInfo & info)
 	CRect clientRect;
 	GetClientRect(clientRect);
 
-	SqlLogListItem * item = new SqlLogListItem(info);
+	SqlLogListItem * item = new SqlLogListItem(info, supplier);
 	int x = 0, y = 0, w = clientRect.Width(), h = SQL_LOG_LISTBOX_ITEM_HEIGHT;
 	CRect rect;
-	if (!items.empty()) {
-		auto lastItem = items.back();
-		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(lastItem->m_hWnd);
+	if (!winHwnds.empty()) {
+		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
 		y = rcLast.bottom + 5;
 	} else {
 		y = 0;
@@ -75,11 +75,33 @@ void SqlLogListBox::addItem(ResultInfo & info)
 	rect = { x, y, x + w, y + h };
 	createOrShowItem(*item, rect, clientRect);
 	items.push_back(item);
+	winHwnds.push_back(item->m_hWnd);
+}
+
+
+void SqlLogListBox::reloadVScroll()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+
+	CRect rcLast;
+	if (!winHwnds.empty()) {
+		rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
+	} else {
+		rcLast = clientRect;
+	}
 
 	//scroll bar
-	nHeightSum = rect.bottom + 100;	
+	nHeightSum = rcLast.bottom + 50;
 	CSize size(clientRect.Width(), clientRect.Height());
 	initScrollBar(size);
+}
+
+void SqlLogListBox::clearAllItems()
+{
+	clearItems();
+	clearGroups();
+	winHwnds.clear();
 }
 
 void SqlLogListBox::selectItem(int nItem)
@@ -99,15 +121,11 @@ void SqlLogListBox::createOrShowUI()
 	GetClientRect(clientRect);
 
 	// calc the scrollbar sum height
-	if (!items.empty()) {
-		auto lastItem = items.back();
-		nHeightSum = GdiPlusUtil::GetWindowRelativeRect(lastItem->m_hWnd).bottom + 100;
+	if (!winHwnds.empty()) {
+		nHeightSum = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back()).bottom + 50;
 	} else {
 		nHeightSum = clientRect.bottom;
 	}
-
-	CSize size(clientRect.Width(), clientRect.Height());
-	initScrollBar(size);
 }
 
 void SqlLogListBox::createOrShowGroupLabel(CStatic & win, std::wstring text, CRect & rect, CRect & clientRect)
@@ -130,6 +148,14 @@ void SqlLogListBox::createOrShowItem(SqlLogListItem & win, CRect & rect, CRect &
 int SqlLogListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bkgBrush = ::CreateSolidBrush(bkgColor);
+
+	// Init the scrollbar params 
+	HDC hdc  = ::GetDC(m_hWnd);
+	::GetTextMetrics(hdc, &tm);
+	cxChar = tm.tmAveCharWidth;
+	cyChar = tm.tmHeight + tm.tmExternalLeading;
+	::ReleaseDC(m_hWnd, hdc);
+
 	return 0;
 }
 
@@ -137,35 +163,48 @@ int SqlLogListBox::OnDestroy()
 {
 	if (bkgBrush) ::DeleteObject(bkgBrush);
 
-	for (auto item : items) {
-		if (item && item->IsWindow()) {
-			item->DestroyWindow();
-			delete item;
-			item = nullptr;
-		} else if (item) {
-			delete item;
-			item = nullptr;
-		}
-	}
-	items.clear();
+	clearItems();
+	clearGroups();
+	return 0;
+}
 
-	for (auto group : groups) {
+
+void SqlLogListBox::clearGroups()
+{
+	for (auto & group : groups) {
 		if (group && group->IsWindow()) {
 			group->DestroyWindow();
 			delete group;
 			group = nullptr;
-		} else if (group) {
+		}
+		else if (group) {
 			delete group;
 			group = nullptr;
 		}
 	}
 	groups.clear();
-	return 0;
+}
+
+void SqlLogListBox::clearItems()
+{
+	for (auto & item : items) {
+		if (item && item->IsWindow()) {
+			item->DestroyWindow();
+			delete item;
+			item = nullptr;
+		}
+		else if (item) {
+			delete item;
+			item = nullptr;
+		}
+	}
+	items.clear();
 }
 
 void SqlLogListBox::OnSize(UINT nType, CSize size)
 {
 	createOrShowUI();
+	initScrollBar(size);
 }
 
 void SqlLogListBox::OnShowWindow(BOOL bShow, UINT nStatus)
@@ -207,7 +246,7 @@ void SqlLogListBox::initScrollBar(CSize & clientSize)
 	si.nPos = 0; // must set si.fMask = SIF_POS
 
 	// must set si.fMask = SIF_PAGE
-	si.nPage = si.nMax % pageNums ? 
+	si.nPage = si.nMax % pageNums ?  
 		si.nMax / pageNums + 1 : si.nMax / pageNums;
 
 	vScrollPages = si.nPage;
@@ -247,8 +286,10 @@ LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);
 
+	CRect clientRect;
+	GetClientRect(clientRect);
 	if (iVscrollPos != si.nPos) {
-		::ScrollWindow(m_hWnd, 0, cyChar * (iVscrollPos - si.nPos), nullptr, nullptr);
+		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
 		Invalidate(true);
 	}
 	 return 0;

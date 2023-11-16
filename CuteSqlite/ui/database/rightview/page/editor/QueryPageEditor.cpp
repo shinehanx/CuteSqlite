@@ -24,6 +24,7 @@
 #include "ui/common/QWinCreater.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/database/rightview/page/editor/dialog/SqlLogDialog.h"
+#include "common/AppContext.h"
 
 void QueryPageEditor::setup(QueryPageSupplier * supplier)
 {
@@ -104,11 +105,14 @@ int QueryPageEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	int ret = QHelpEdit::OnCreate(lpCreateStruct);
 
 	adapter = new QueryPageEditorAdapter(m_hWnd, supplier);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_QUERY_PAGE_USE_SQL_ID);
 	return ret;
 }
 
 int QueryPageEditor::OnDestroy()
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_QUERY_PAGE_USE_SQL_ID);
+
 	int ret = QHelpEdit::OnDestroy();
 	if (templatesButton.IsWindow()) templatesButton.DestroyWindow();
 	if (pragmasButton.IsWindow()) pragmasButton.DestroyWindow();
@@ -154,10 +158,16 @@ void QueryPageEditor::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	CRect winRect;
 	sqlLogButton.GetWindowRect(winRect);
+	supplier->clearCacheUseSql();
 
 	SqlLogDialog dialog;	
 	dialog.setup(m_hWnd, (QueryPageEditorAdapter *)adapter, winRect);		
-	dialog.DoModal();
+	if (dialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+		std::wstring useSql = supplier->getCacheUseSql();
+		if (!useSql.empty()) {
+			replaceSelText(useSql);
+		}
+	}
 }
 
 void QueryPageEditor::OnClickTemplatesMenu(UINT uNotifyCode, int nID, HWND hwnd)
@@ -196,4 +206,15 @@ void QueryPageEditor::OnClickPragmasMenu(UINT uNotifyCode, int nID, HWND hwnd)
 		return;
 	}
 	replaceSelText(content);
+}
+
+LRESULT QueryPageEditor::OnHandleUseSql(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	std::wstring sql = (const wchar_t *)wParam;
+	HWND hwnd = (HWND)lParam;
+	if (hwnd != m_hWnd || sql.empty()) {
+		return 0;
+	}
+	replaceSelText(sql);
+	return 0;
 }

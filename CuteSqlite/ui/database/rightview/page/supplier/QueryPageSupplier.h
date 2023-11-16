@@ -39,10 +39,18 @@ public:
 	// table columns
 	Columns & getCacheTableColumns(uint64_t userDbId, const std::wstring & tblName);
 	void setCacheTableColumns(uint64_t userDbId, const std::wstring & tblName, const Columns & columns);
+
+	std::wstring & getCacheUseSql() { return cacheUseSql; }
+	void setCacheUseSql(const std::wstring & val) { cacheUseSql = val; }
+	void clearCacheUseSql() { cacheUseSql.clear(); }
+
 private:
 	// template params: first - userDbId, second - user table strings
 	std::map<uint64_t, UserTableStrings> cacheUserTableMap;
 	
 	// template params:  first - userDbId, second - table name, third - columns strings
 	std::map<std::pair<uint64_t, std::wstring>, Columns> cacheTableColumnsMap;
+
+	// 
+	std::wstring cacheUseSql;
 };

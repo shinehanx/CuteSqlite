@@ -41,7 +41,7 @@ uint64_t SqlLogRepository::create(SqlLog & item)
 }
 
 
-bool SqlLogRepository::remove(uint64_t id)
+int SqlLogRepository::remove(uint64_t id)
 {
 	if (id <= 0) {
 		return false;
@@ -52,9 +52,8 @@ bool SqlLogRepository::remove(uint64_t id)
 		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":id", id);
 
-		query.exec();
 		Q_DEBUG(L"delete sql_log success.");
-		return true;
+		return query.exec();
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
@@ -107,10 +106,30 @@ SqlLogList SqlLogRepository::getAll(uint64_t limit)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000024", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
 	}
 }
 
+
+SqlLogList SqlLogRepository::getTopList(uint64_t limit /*= LIMIT_MAX*/)
+{
+	SqlLogList result;
+	std::wstring sql = L"SELECT * FROM sql_log WHERE top=1 ORDER BY id DESC LIMIT :limit";
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+		query.bind(L":limit", limit);
+
+		while (query.executeStep()) {
+			SqlLog item = toSqlLog(query);
+			result.push_back(item);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"000035", L"sorry, system has error when getting sql log.");
+	}
+}
 
 uint64_t SqlLogRepository::getCount()
 {
@@ -127,7 +146,7 @@ uint64_t SqlLogRepository::getCount()
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log count has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000025", L"sorry, system has error when getting total from sql_log");
+		throw QRuntimeException(L"000036", L"sorry, system has error when getting total from sql_log");
 	}
 }
 
@@ -147,17 +166,38 @@ std::vector<uint64_t> SqlLogRepository::getFrontIds(uint64_t limit)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000026", L"sorry, system has error when getting ids of sql_log .");
+		throw QRuntimeException(L"000037", L"sorry, system has error when getting ids of sql_log .");
 	}
 }
 
-bool SqlLogRepository::removeByBiggerId(uint64_t id)
+int SqlLogRepository::removeByBiggerId(uint64_t id)
+{
+	if (id <= 0) {
+		return 0;
+	}
+	//sql
+	std::wstring sql = L"DELETE FROM sql_log WHERE id>:id ";
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+		query.bind(L":id", id);
+
+		Q_DEBUG(L"delete sql_log success.");
+		return query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
+		throw QRuntimeException(L"000038", L"sorry, system has error when remove by bigger id.");
+	}
+}
+
+
+int SqlLogRepository::topById(uint64_t id)
 {
 	if (id <= 0) {
 		return false;
 	}
 	//sql
-	std::wstring sql = L"DELETE FROM sql_log WHERE id>:id ";
+	std::wstring sql = L"UPDATE sql_log SET top=1 WHERE id=:id ";	
 	try {
 		QSqlStatement query(getSysConnect(), sql.c_str());
 		query.bind(L":id", id);
@@ -168,7 +208,7 @@ bool SqlLogRepository::removeByBiggerId(uint64_t id)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
-		throw QRuntimeException(L"000025", L"sorry, system has error when remove by bigger id.");
+		throw QRuntimeException(L"000039", L"sorry, system has error when top by id.");
 	}
 }
 

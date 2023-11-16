@@ -42,6 +42,10 @@ public:
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
 		MSG_WM_CTLCOLORSTATIC(OnCtlEditColor)
 		COMMAND_HANDLER_EX(Config::QPOP_ANIMATE_CLOSE_BUTTON_ID, BN_CLICKED, OnClickCloseButton)
+		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_USE_SQL_ID, OnClickUseButton)
+		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_TOP_SQL_LOG_ID, OnClickTopButton)
+		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_DEL_SQL_LOG_ID, OnClickDeleteButton)
+		MESSAGE_HANDLER_EX(Config::MSG_SEARCH_BUTTON_ID, OnClickSearchButton)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect);
@@ -78,4 +82,10 @@ private:
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
 	LRESULT OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickUseButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	std::wstring formatDateForDisplay(const std::wstring & date);
 };

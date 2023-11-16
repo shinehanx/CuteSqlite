@@ -372,6 +372,9 @@
     <ClCompile Include="ui\database\rightview\page\editor\list\SqlLogListItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\CliboardUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -777,6 +780,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\database\rightview\page\editor\list\SqlLogListItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\CliboardUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

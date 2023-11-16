@@ -137,7 +137,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 		newRowButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
 	QWinCreater::createOrShowButton(m_hWnd, newRowButton, Config::LISTVIEW_NEW_ROW_BUTTON_ID, L"", rect, clientRect);
-	newRowButton.SetToolTip(S(L"new-row"));
+	newRowButton.SetToolTip(S(L"new-row-tip"));
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!copyRowButton.IsWindow()) {
@@ -147,7 +147,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 		copyRowButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
 	QWinCreater::createOrShowButton(m_hWnd, copyRowButton, Config::LISTVIEW_COPY_ROW_BUTTON_ID, L"", rect, clientRect);
-	copyRowButton.SetToolTip(S(L"copy-row"));
+	copyRowButton.SetToolTip(S(L"copy-row-tip"));
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!saveButton.IsWindow()) {
@@ -157,7 +157,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 		saveButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	} 
 	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::LISTVIEW_SAVE_BUTTON_ID, L"", rect, clientRect);
-	saveButton.SetToolTip(S(L"save"));
+	saveButton.SetToolTip(S(L"save-tip"));
 	enableSaveButton();
 	
 	rect.OffsetRect(16 + 10, 0);
@@ -172,7 +172,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 		enabledDelete = deleteButton.IsWindowEnabled();
 	}
 	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::LISTVIEW_DELETE_BUTTON_ID, L"", rect, clientRect);
-	deleteButton.SetToolTip(S(L"delete"));
+	deleteButton.SetToolTip(S(L"delete-tip"));
 	enableDeleteButton(enabledDelete);
 
 	rect.OffsetRect(16 + 10, 0);
@@ -183,7 +183,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 		cancelButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
 	}
 	QWinCreater::createOrShowButton(m_hWnd, cancelButton, Config::LISTVIEW_CANCEL_BUTTON_ID, L"", rect, clientRect);
-	cancelButton.SetToolTip(S(L"cancel"));
+	cancelButton.SetToolTip(S(L"cancel-tip"));
 	enableCancelButton();
 }
 
