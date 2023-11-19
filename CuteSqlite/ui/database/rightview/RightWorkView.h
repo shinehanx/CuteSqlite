@@ -86,10 +86,10 @@ public:
 private:
 	bool isNeedReload = true;
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	COLORREF topbarColor = RGB(238, 238, 238);
-	HBRUSH topbarBrush = nullptr;
+	CBrush topbarBrush ;
 
 	QImageButton execSqlButton;
 	QImageButton execAllButton;

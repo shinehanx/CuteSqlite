@@ -30,14 +30,18 @@ public:
 	~SqlLogService() {};
 
 	uint64_t createSqlLog(SqlLog & sqlLog);
-	SqlLogList getAllSqlLog();
-	SqlLogList getTopSqlLog();
 	void clearOldSqlLog();
 	std::vector<std::wstring> getDatesFromList(const SqlLogList &list);
 
 	SqlLogList getFilteredListByDate(const SqlLogList &list, const std::wstring & date);
 
-	void topSqlLog(uint64_t id);
+	void topSqlLog(uint64_t id, int topVal);
 	void removeSqlLog(uint64_t id);
+
+	SqlLogList getAllSqlLog();
+	SqlLogList getTopSqlLog();
+	SqlLogList getPageSqlLog(int page, int perPage);
+	SqlLogList getTopSqlLogByKeyword(const std::wstring & keyword);
+	SqlLogList getPageSqlLogByKeyword(const std::wstring & keyword, int page, int perPage);
 };
 

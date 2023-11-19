@@ -224,7 +224,7 @@ HBRUSH TableForeignkeysPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 HBRUSH TableForeignkeysPage::OnCtlColorListBox(HDC hdc, HWND hwnd)

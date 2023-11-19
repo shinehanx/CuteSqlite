@@ -703,7 +703,7 @@ void TableColumnsPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 		dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
 	}
 	
-
+	// Clicked the next row of bottom item , will insert a new column row
 	CPoint pt = clickItem->ptAction;
 	CRect lastRowRect;
 	dataView->GetItemRect(dataView->GetItemCount() - 1, lastRowRect, LVIR_BOUNDS);

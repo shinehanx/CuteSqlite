@@ -22,7 +22,7 @@
 #include "core/entity/Entity.h"
 #include "core/common/repository/BaseRepository.h"
 
-#define LIMIT_MAX 1000
+#define LIMIT_MAX 5000
 class SqlLogRepository : public BaseRepository<SqlLogRepository> {
 public:
 	SqlLogRepository() {};
@@ -36,8 +36,13 @@ public:
 	uint64_t  getCount();
 	std::vector<uint64_t>  getFrontIds(uint64_t limit = LIMIT_MAX);
 	int removeByBiggerId(uint64_t id);
-	int topById(uint64_t id);
+	int topById(uint64_t id, int topVal);
+
+	SqlLogList getPage(int page, int perPage);
+	SqlLogList getTopByKeyword(const std::wstring & keyword);
+	SqlLogList getPageByKeyword(const std::wstring & keyword, int page, int perPage);
 private:
 	void queryBind(QSqlStatement &query, SqlLog &item, bool isUpdate = false);
 	SqlLog toSqlLog(QSqlStatement &query);
+
 };

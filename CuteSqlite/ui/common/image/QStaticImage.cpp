@@ -4,6 +4,14 @@
 #include "utils/Log.h"
 
 
+BOOL QStaticImage::PreTranslateMessage(MSG* pMsg)
+{
+	if (tooltipCtrl.IsWindow()) {
+		tooltipCtrl.RelayEvent(pMsg);
+	}
+	return FALSE;
+}
+
 QStaticImage::QStaticImage() : QImage()
 {
 
@@ -89,6 +97,41 @@ void QStaticImage::setTip(const wchar_t * text, HFONT font)
 	tipFont = font;
 }
 
+void QStaticImage::setToolTip(const wchar_t * text)
+{
+	toolTipText = text;
+
+	if(toolTipText.empty()) {
+		if(tooltipCtrl.IsWindow())
+			tooltipCtrl.Activate(FALSE);
+		return ;
+	}
+
+	if(tooltipCtrl.IsWindow()) {
+		tooltipCtrl.Pop();
+		tooltipCtrl.Activate(TRUE);
+		tooltipCtrl.AddTool(this->m_hWnd, toolTipText.c_str());
+	}
+}
+
+/**
+ * 捕捉这个消息是参考CBitmapButton的思路弹出tooltip.
+ * 
+ * @param uMsg
+ * @param wParam
+ * @param lParam
+ * @param bHandled
+ * @return 
+ */
+LRESULT QStaticImage::OnMouseMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	MSG msg = { this->m_hWnd, uMsg, wParam, lParam };
+	if(tooltipCtrl.IsWindow())
+		tooltipCtrl.RelayEvent(&msg);
+	bHandled = FALSE;
+	return 1;
+}
+
 QStaticImage::~QStaticImage()
 {
 
@@ -97,8 +140,15 @@ QStaticImage::~QStaticImage()
 LRESULT QStaticImage::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	QImage::OnCreate(uMsg, wParam, lParam, bHandled);
-	bkgIconBrush = ::CreateSolidBrush(RGB(177, 177, 177));
+	bkgIconBrush.CreateSolidBrush(RGB(177, 177, 177));
 	bkgIconPen = ::CreatePen(PS_SOLID, 1, RGB(177, 177, 177));
+
+	tooltipCtrl.Create(this->m_hWnd);
+	ATLASSERT(tooltipCtrl.IsWindow());
+	if(tooltipCtrl.IsWindow() && (toolTipText.empty() != false)) {
+		tooltipCtrl.Activate(TRUE);
+		tooltipCtrl.AddTool(this->m_hWnd, toolTipText.c_str());
+	}
 	return true;
 }
 
@@ -106,10 +156,15 @@ LRESULT QStaticImage::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 {
 	QImage::OnDestroy(uMsg, wParam, lParam, bHandled);
 
-	if (bkgIconBrush != nullptr) DeleteObject(bkgIconBrush);
+	if (!bkgIconBrush.IsNull()) bkgIconBrush.DeleteObject();
 	if (bkgIconPen != nullptr) DeleteObject(bkgIconPen);
 	if (!cornerIcon.IsNull()) cornerIcon.DeleteObject();
 	if (tipFont) ::DeleteObject(tipFont);
+
+	if(tooltipCtrl.IsWindow()) {
+		tooltipCtrl.DestroyWindow();
+		tooltipCtrl.m_hWnd = NULL;
+	}
 	return 0;
 }
 
@@ -172,7 +227,7 @@ void QStaticImage::paintItem(CDC & dc, CRect & rect)
 			{rect.right, rect.bottom - 55} 
 		};
 		cornerIconRect = {rect.right - 55, rect.bottom - 55, rect.right, rect.bottom};
-		HBRUSH oldBrush = dc.SelectBrush(bkgIconBrush);
+		HBRUSH oldBrush = dc.SelectBrush(bkgIconBrush.m_hBrush);
 		HPEN oldPen = dc.SelectPen(bkgIconPen);
 		dc.Polygon(points, 4); //画三角形
 		dc.SelectBrush(oldBrush);

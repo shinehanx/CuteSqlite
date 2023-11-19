@@ -182,6 +182,12 @@ public:
 	 */
 	static std::wstring implode(const std::vector<std::wstring> & strVec, const std::wstring & symbol, bool bTrim = true);
 
+	/**
+	 * add a character in front of every word and back of every word. the words is split by splitSymbol
+	 * such as "id,name,gender" => "'id','name','word'"
+	 */
+	static std::wstring addSymbolToWords(const std::wstring & str, const std::wstring & splitSymbol, const std::wstring & addSymbol);
+
 	// Remove leading and trailing whitespace
 	static void trim(std::wstring &inout_str);
 

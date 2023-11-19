@@ -58,7 +58,7 @@ private:
 	bool isNeedReload = true;
 
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	QTabView tabView;
 	TableColumnsPage tableColumnsPage;

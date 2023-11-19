@@ -48,10 +48,10 @@ void ImportFromCsvDialog::createOrShowUI()
 	createOrShowListViews(clientRect);
 	createOrShowCsvSettingsElems(clientRect);
 	createOrShowProcessBar(processBar, clientRect);
-	createOrShowPreviewSqlButton(clientRect);
 	
 	QDialog::createOrShowUI();
 	yesButton.SetWindowText(S(L"import").c_str());
+	createOrShowPreviewSqlButton(clientRect);
 }
 
 

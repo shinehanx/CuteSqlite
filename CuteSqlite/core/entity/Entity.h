@@ -86,13 +86,14 @@ typedef std::vector<ColumnInfo> ColumnInfoList;
 
 typedef struct {
 	std::wstring name; // constrain name
-	std::wstring type; // Primary Key,Unique,Foreign Key,Checks
+	std::wstring type; // Primary Key,Unique,Foreign Key,Checks,Index
 	uint8_t pk = 0;  // primary key
 	uint8_t ai = 0; // Auto increment
 	uint8_t un = 0; // unique
 	uint8_t fk = 0; // foreign key
 	uint8_t ck = 0; // checks
 	std::wstring columns; // columns
+	std::wstring partialClause; // The partial index clause
 	std::wstring sql;
 	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } IndexInfo;
@@ -106,6 +107,7 @@ typedef struct  {
 	std::wstring referencedColumns;
 	std::wstring onUpdate;
 	std::wstring onDelete;
+	std::wstring partialClause; // The partial index clause
 	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } ForeignKey;
 typedef std::vector<ForeignKey> ForeignKeyList;

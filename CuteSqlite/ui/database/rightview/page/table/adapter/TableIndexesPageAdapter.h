@@ -47,7 +47,8 @@ public:
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
-	std::wstring genderateCreateIndexesClause(bool hasAutoIncrement = false);
+	std::wstring generateConstraintsClause(bool hasAutoIncrement = false);
+	std::vector<std::wstring> generateCreateIndexesDDL(const std::wstring & schema, const std::wstring & tblName);
 	void changePrimaryKey(ColumnInfoList & pkColumns);
 	void deleteTableColumnName(const std::wstring & columnName);
 
@@ -66,5 +67,9 @@ private:
 	bool getIsChecked(int iItem);
 	int getSelIndexType(const std::wstring & dataType);
 	void removeSelectedItem(int nSelItem);
-	void generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement);
+	void generateOneConstraintClause(const IndexInfo &item, bool hasAutoIncrement, std::wstring &ss);
+	void generateOneCreateIndexDDL(const IndexInfo &item, const std::wstring & schema, const std::wstring &tblName, std::wstring &ss);
+	
+	bool changeListViewCheckBox(int iItem, int iSubItem);
+	void refreshPreviewSql();
 };

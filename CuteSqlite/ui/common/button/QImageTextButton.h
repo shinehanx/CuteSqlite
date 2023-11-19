@@ -65,7 +65,7 @@ private:
 
 	CFont font;
 	//CStatic背景画刷，用于OnCtlColorStatic响应方法使用
-	HBRUSH ctlColorStaticBrush;
+	CBrush ctlColorStaticBrush;
 
 	Config::FrmButtonId buttonId = Config::UNSED_BUTTON_ID;
 

@@ -232,7 +232,7 @@ void TableTabView::loadTabViewPages()
 
 int TableTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 
 	createImageList();
 
@@ -241,7 +241,7 @@ int TableTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int TableTabView::OnDestroy()
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (tableColumnsPage.IsWindow()) tableColumnsPage.DestroyWindow();
@@ -268,7 +268,7 @@ void TableTabView::OnShowWindow(BOOL bShow, UINT nStatus)
 void TableTabView::OnPaint(CDCHandle dc)
 {
 	CPaintDC pdc(m_hWnd);
-	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush);
+	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush.m_hBrush);
 }
 
 BOOL TableTabView::OnEraseBkgnd(CDCHandle dc)

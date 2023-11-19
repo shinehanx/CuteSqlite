@@ -27,14 +27,14 @@ const std::vector<int> TableStructureSupplier::colsHeadSizes = { 150, 100, 70, 7
 const std::vector<int> TableStructureSupplier::colsHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_CENTER, LVCFMT_LEFT, LVCFMT_LEFT };
 const std::vector<std::wstring> TableStructureSupplier::colsDataTypeList = { L"INTEGER", L"TEXT", L"BLOB", L"REAL", L"NUMERIC"};
 
-const Columns TableStructureSupplier::idxHeadColumns = { S(L"index-name"), S(L"columns"), S(L"index-type")};
-const std::vector<int> TableStructureSupplier::idxHeadSizes = { 150, 150, 150};
-const std::vector<int> TableStructureSupplier::idxHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT};
-const std::vector<std::wstring> TableStructureSupplier::idxTypeList = {L"Unique", L"Primary Key",  L"Check"};
+const Columns TableStructureSupplier::idxHeadColumns = { S(L"index-name"), S(L"columns"), S(L"index-type"), S(L"index-unique"), S(L"partial-clause")}; 
+const std::vector<int> TableStructureSupplier::idxHeadSizes = { 150, 200, 100, 80, 200};
+const std::vector<int> TableStructureSupplier::idxHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_LEFT};
+const std::vector<std::wstring> TableStructureSupplier::idxTypeList = {L"Unique", L"Primary Key",  L"Check", L"Index"};
 
-const Columns TableStructureSupplier::frkHeadColumns = { S(L"foreignkey-name"), S(L"referencing-columns"), S(L"referenced-table"), S(L"referenced-columns"), S(L"on-update"), S(L"on-delete")};
-const std::vector<int> TableStructureSupplier::frkHeadSizes = { 150, 150, 150, 150, 150, 150};
-const std::vector<int> TableStructureSupplier::frkHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT};
+const Columns TableStructureSupplier::frkHeadColumns = { S(L"foreignkey-name"), S(L"referencing-columns"), S(L"referenced-table"), S(L"referenced-columns"), S(L"on-update"), S(L"on-delete"), S(L"partial-clause")};
+const std::vector<int> TableStructureSupplier::frkHeadSizes = { 150, 150, 150, 150, 100, 100, 150};
+const std::vector<int> TableStructureSupplier::frkHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT};
 const std::vector<std::wstring> TableStructureSupplier::frkOnUpdateTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"};
 const std::vector<std::wstring> TableStructureSupplier::frkOnDeleteTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"}; 
 

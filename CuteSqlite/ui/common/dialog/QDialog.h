@@ -78,7 +78,7 @@ public:
 	void setFormSize(int w, int h);
 protected:
 	COLORREF bkgColor = RGB(238, 238, 238);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	std::wstring caption;
 	CRect transitparentRect; //  注意，这个RECT值在子类必须指定，不然不显示
@@ -186,7 +186,7 @@ LRESULT QDialog<T>::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		SetWindowText(caption.c_str());
 	}
 
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	textFont = FT(L"form-text-size");
 	radioFont = FT(L"radio-size");
 	buttonFont = FT(L"image-button-size");
@@ -204,7 +204,7 @@ LRESULT QDialog<T>::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	pLoop->RemoveMessageFilter(this);
 	pLoop->RemoveIdleHandler(this);
 
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
 	if (radioFont) ::DeleteObject(radioFont);
 	if (buttonFont) ::DeleteObject(buttonFont);
@@ -422,7 +422,7 @@ LRESULT QDialog<T>::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 {
 	CPaintDC dc(m_hWnd);
 	CMemoryDC mdc(dc, dc.m_ps.rcPaint);
-	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush);
+	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush.m_hBrush);
 
 	CRect clientRect;
 	GetClientRect(clientRect);
@@ -438,7 +438,7 @@ HBRUSH QDialog<T>::OnCtlColorStatic(HDC hdc, HWND hwnd)
 	
 	// 字体
 	::SelectObject(hdc, textFont);
-	return bkgBrush; // 整个CStatic的Client区域背景色
+	return bkgBrush.m_hBrush; // 整个CStatic的Client区域背景色
 }
 
 template <class T>

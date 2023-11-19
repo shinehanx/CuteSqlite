@@ -73,7 +73,7 @@ protected:
 	CBitmap bitmap; // 这个类负责释放hBitmap的内存
 	DisplayMode displayMode = kImageCenterFixTargetRect; //默认中心点对齐
 	COLORREF bkgColor = RGB(204, 204, 204); //背景颜色
-	HBRUSH bkgBrush; // 背景画刷
+	CBrush bkgBrush; // 背景画刷
 
 	int borderSize = 0;
 	COLORREF borderColor = 0;

@@ -197,8 +197,8 @@ QImage::DisplayMode QImage::getDisplayMode()
 void QImage::setBkgColor(COLORREF color)
 {
 	this->bkgColor = color;
-	if (bkgBrush) DeleteObject(bkgBrush); // 先卸载，再显示
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject(); // 先卸载，再显示
+	bkgBrush.CreateSolidBrush(bkgColor);
 }
 
 /**
@@ -215,7 +215,7 @@ void QImage::setBorder(int size, COLORREF color)
 
 LRESULT QImage::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	if (bkgBrush.IsNull())bkgBrush.CreateSolidBrush(bkgColor);
 	return true;
 }
 
@@ -225,7 +225,7 @@ LRESULT QImage::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		bitmap.DeleteObject();
 		bitmap.Detach();
 	}
-	if (bkgBrush) DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	
 	return 0;
 }
@@ -243,8 +243,8 @@ LRESULT QImage::OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /
 	CMemoryDC mdc(dc, clientRect); //建立双缓冲机制
 
 	// 背景画刷
-	HBRUSH oldBrush = mdc.SelectBrush(bkgBrush);
-	mdc.FillRect(clientRect, bkgBrush);
+	HBRUSH oldBrush = mdc.SelectBrush(bkgBrush.m_hBrush);
+	mdc.FillRect(clientRect, bkgBrush.m_hBrush);
 	mdc.SelectBrush(oldBrush);
 
 	if (bitmap.IsNull()) {
@@ -285,7 +285,6 @@ LRESULT QImage::OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /
 		borderPen.DeleteObject();
 		::DeleteObject(borderBrush);
 	}
-
 	return 0;
 }
 

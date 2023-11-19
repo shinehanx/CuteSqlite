@@ -168,7 +168,9 @@ LRESULT QHelpEdit::OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHand
 
 void QHelpEdit::OnHandleScnCharAdded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	ATLASSERT(adapter);
+	if (!adapter) {
+		return;
+	}
 	std::wstring line, preline, word;
 	line = editor.getCurLineText();
 	if (line.empty()) {
@@ -216,6 +218,9 @@ void QHelpEdit::OnHandleScnAutoCSelection(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 void QHelpEdit::selectAllCurWord()
 {
+	if (!adapter) {
+		return;
+	}
 	std::wstring maxWord = editor.getCurMaxWord();
 	if (maxWord.empty()) {
 		return;

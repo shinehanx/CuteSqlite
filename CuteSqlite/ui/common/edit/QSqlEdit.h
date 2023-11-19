@@ -36,6 +36,7 @@ public:
 
 	BEGIN_MSG_MAP_EX(QSqlEdit)
 		MSG_WM_CREATE(OnCreate)
+		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		// REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -73,7 +74,7 @@ public:
 protected:
 
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	void init();
 	void setDefaultColorFont(int nSize, const TCHAR* face);
@@ -86,4 +87,5 @@ protected:
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	void OnSize(UINT nType, CSize size);
+	void OnDestroy();
 };

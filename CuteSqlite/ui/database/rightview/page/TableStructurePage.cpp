@@ -170,12 +170,12 @@ void TableStructurePage::createOrShowSqlPreviewElems(CRect & clientRect)
 
 void TableStructurePage::createOrShowButtons(CRect & clientRect)
 {
-	int x = clientRect.right - (20 + 120) * 2, y = clientRect.bottom - 50, w = 120, h = 30;
+	int x = clientRect.right - (20 + 120) * 1, y = clientRect.bottom - 50, w = 120, h = 30;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::TABLE_SAVE_BUTTON_ID, S(L"save"), rect, clientRect);
 	
-	rect.OffsetRect(w + 20, 0);
-	QWinCreater::createOrShowButton(m_hWnd, revertButton, Config::TABLE_REVERT_BUTTON_ID, S(L"revert"), rect, clientRect);
+// 	rect.OffsetRect(w + 20, 0);
+// 	QWinCreater::createOrShowButton(m_hWnd, revertButton, Config::TABLE_REVERT_BUTTON_ID, S(L"revert"), rect, clientRect);
 }
 
 void TableStructurePage::loadWindow()
@@ -243,8 +243,17 @@ void TableStructurePage::loadSqlPreviewEdit()
 	ATLASSERT(supplier->getRuntimeUserDbId() && !supplier->getRuntimeTblName().empty());
 	UserTable userTable = tableService->getUserTable(supplier->getRuntimeUserDbId(), 
 		supplier->getRuntimeTblName(), supplier->getRuntimeSchema());
-
-	sqlPreviewEdit.setText(userTable.sql);
+	std::wstring sql = userTable.sql;
+	sql.append(L";");
+	UserIndexList userIndexList = tableService->getUserIndexes(supplier->getRuntimeUserDbId(),
+		supplier->getRuntimeTblName(), supplier->getRuntimeSchema());
+	for (auto & userIndex : userIndexList) {
+		if (userIndex.sql.empty()) {
+			continue;
+		}
+		sql.append(L"\r\n").append(userIndex.sql).append(L";");
+	}
+	sqlPreviewEdit.setText(sql);
 }
 
 int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -252,16 +261,16 @@ int TableStructurePage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bool ret = QPage::OnCreate(lpCreateStruct);
 	textFont = FT(L"form-text-size");
 	comboFont = FTB(L"combobox-size", true);
-	btnFont = GDI_PLUS_FT(L"setting-button-size");
-	editorBkgBrush = ::CreateSolidBrush(editorBkgColor); 
+btnFont = GDI_PLUS_FT(L"setting-button-size");
+editorBkgBrush.CreateSolidBrush(editorBkgColor);
 
-	saveButton.SetFontColors(RGB(0,0,0), RGB(0x12,0x96,0xdb), RGB(153,153,153));
-	saveButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+saveButton.SetFontColors(RGB(0, 0, 0), RGB(0x12, 0x96, 0xdb), RGB(153, 153, 153));
+saveButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 
-	revertButton.SetFontColors(RGB(0,0,0), RGB(0x12,0x96,0xdb), RGB(153,153,153));
-	revertButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+revertButton.SetFontColors(RGB(0, 0, 0), RGB(0x12, 0x96, 0xdb), RGB(153, 153, 153));
+revertButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 
-	return ret;
+return ret;
 }
 
 int TableStructurePage::OnDestroy()
@@ -270,7 +279,7 @@ int TableStructurePage::OnDestroy()
 	if (textFont) ::DeleteObject(textFont);
 	if (comboFont) ::DeleteObject(comboFont);
 	if (btnFont) ::DeleteObject(btnFont);
-	if (editorBkgBrush) ::DeleteObject(editorBkgBrush);
+	if (!editorBkgBrush.IsNull()) editorBkgBrush.DeleteObject();
 
 	if (tblNameLabel.IsWindow()) tblNameLabel.DestroyWindow();
 	if (tblNameEdit.IsWindow()) tblNameEdit.DestroyWindow();
@@ -292,10 +301,10 @@ int TableStructurePage::OnDestroy()
 
 void TableStructurePage::paintItem(CDC & dc, CRect & paintRect)
 {
-	dc.FillRect(paintRect, bkgBrush);
+	dc.FillRect(paintRect, bkgBrush.m_hBrush);
 
 	CRect editorRect = getEditorRect(paintRect);
-	dc.FillRect(editorRect, editorBkgBrush);
+	dc.FillRect(editorRect, editorBkgBrush.m_hBrush);
 }
 
 
@@ -331,10 +340,10 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 		tblNameEdit.SetFocus();
 		return;
 	}
-	
-	if (supplier->getOperateType() == NEW_TABLE && 
+
+	if (supplier->getOperateType() == NEW_TABLE &&
 		tableService->isExistsTblName(supplier->getRuntimeUserDbId(),
-			tblName, 
+			tblName,
 			supplier->getRuntimeSchema())) {
 		QPopAnimate::error(m_hWnd, S(L"tbl-name-duplicated"));
 		tblNameEdit.SetFocus();
@@ -346,10 +355,16 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 	supplier->setRuntimeSchema(schema);
 
 	// for sql log
+	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	ResultInfo resultInfo;
-	resultInfo.userDbId = supplier->getRuntimeUserDbId();
+	resultInfo.userDbId = userDbId;
+
 	auto _begin = PerformUtil::begin();
-		
+	UserIndexList userIndexList;
+	if (supplier->getOperateType() == MOD_TABLE) {
+		userIndexList= tableService->getUserIndexes(userDbId, tblName);
+	}
+	
 	// 2. Set the SAVEPOINT for creating or altering table
 	std::wstring savePoint = SavePointUtil::create(L"create_table");
 	std::wstring sql = L"SAVEPOINT " + savePoint + L";";
@@ -357,11 +372,16 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 	try {
 		// 3.Execute create table or alter table DDL
 		if (supplier->getOperateType() == NEW_TABLE) {
-			sql = getCreateRuntimeSql();
-			tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
+			sql = getCreateTableRuntimeSql();
+			tableService->execBySql(userDbId, sql);
+			auto idxSqls = getCreateIndexesRuntimeSql();
+			for (auto & idxSql : idxSqls) {
+				sql = idxSql;
+				tableService->execBySql(userDbId, sql);
+			}
 			QPopAnimate::success(hwnd, S(L"create-table-success-text"));
 		} else {
-			sql = execAlterTable();
+			sql = execAlterTable(userIndexList);
 			QPopAnimate::success(hwnd, S(L"alter-table-success-text"));
 		}
 
@@ -434,17 +454,17 @@ HBRUSH TableStructurePage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 	::SelectObject(hdc, textFont);
 	if (hwnd == tblNameEdit.m_hWnd) {
 		::SetBkColor(hdc, topbarColor);
-		return topbarBrush;
+		return topbarBrush.m_hBrush;
 	}
 	::SetBkColor(hdc, bkgColor);
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 HBRUSH TableStructurePage::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {	
 	::SetBkColor(hdc, bkgColor);	
 	::SelectObject(hdc, textFont);
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 HBRUSH TableStructurePage::OnCtlColorListBox(HDC hdc, HWND hwnd)
@@ -469,11 +489,16 @@ void TableStructurePage::createOrShowSqlEditor(QHelpEdit & win, UINT id, const s
 
 void TableStructurePage::previewRuntimeSql()
 {
-	sqlPreviewEdit.setText(getCreateRuntimeSql());
+	std::wstring sql = getCreateTableRuntimeSql();
+	auto idxSqls = getCreateIndexesRuntimeSql();
+	for (auto & idxSql : idxSqls) {
+		sql.append(L"\r\n").append(idxSql);
+	}
+	sqlPreviewEdit.setText(sql);
 }
 
 
-std::wstring TableStructurePage::getCreateRuntimeSql()
+std::wstring TableStructurePage::getCreateTableRuntimeSql()
 {
 	CString str;
 	tblNameEdit.GetWindowText(str);
@@ -482,11 +507,20 @@ std::wstring TableStructurePage::getCreateRuntimeSql()
 	std::wstring schema(str.GetString());
 
 	return generateCreateTableDDL(schema, tblName);
-
 }
 
 
-std::wstring TableStructurePage::generateCreateTableDDL(std::wstring &schema, std::wstring tblName)
+std::vector<std::wstring> TableStructurePage::getCreateIndexesRuntimeSql()
+{
+	CString str;
+	tblNameEdit.GetWindowText(str);
+	std::wstring tblName(str.GetString());
+	schemaComboBox.GetWindowText(str);
+	std::wstring schema(str.GetString());
+	return generateCreateIndexesDDL(schema, tblName);
+}
+
+std::wstring TableStructurePage::generateCreateTableDDL(const std::wstring &schema, const std::wstring & tblName)
 {
 	// Generate "CREATE TABLE schema.table_name"
 	std::wstring sql;
@@ -504,12 +538,12 @@ std::wstring TableStructurePage::generateCreateTableDDL(std::wstring &schema, st
 		sql.append(columnsClause);
 	}
 
-	std::wstring indexesClause = generateCreateIndexesClause();
-	if (!indexesClause.empty()) {
-		sql.append(L",").append(L"\r\n").append(indexesClause);
+	std::wstring constraintsClause = generateConstraintsClause();
+	if (!constraintsClause.empty()) {
+		sql.append(L",").append(L"\r\n").append(constraintsClause);
 	}
 
-	std::wstring foreignKeyClause = generateCreateForeignKeyClause();
+	std::wstring foreignKeyClause = generateConstraintForeignKeyClause();
 	if (!foreignKeyClause.empty()) {
 		sql.append(L",").append(L"\r\n").append(foreignKeyClause);
 	}
@@ -529,11 +563,11 @@ std::wstring TableStructurePage::generateCreateColumnsClause()
 	return tableTabView.getTableColumnsPage().getAdapter()->genderateCreateColumnsSqlClause();
 }
 
-std::wstring TableStructurePage::generateCreateIndexesClause()
+std::wstring TableStructurePage::generateConstraintsClause()
 {
 	ATLASSERT(tableTabView.IsWindow());
 	bool hasAutoIncrement = tableTabView.getTableColumnsPage().getAdapter()->verifyExistsAutoIncrement();
-	return tableTabView.getTableIndexesPage().getAdapter()->genderateCreateIndexesClause(hasAutoIncrement);
+	return tableTabView.getTableIndexesPage().getAdapter()->generateConstraintsClause(hasAutoIncrement);
 }
 
 /**
@@ -541,13 +575,20 @@ std::wstring TableStructurePage::generateCreateIndexesClause()
  * 
  * @return 
  */
-std::wstring TableStructurePage::generateCreateForeignKeyClause()
+std::wstring TableStructurePage::generateConstraintForeignKeyClause()
 {
 	ATLASSERT(tableTabView.IsWindow());
-	return tableTabView.getTableForeignkeysPage().getAdapter()->genderateCreateForeignKeyClause();
+	return tableTabView.getTableForeignkeysPage().getAdapter()->generateCreateForeignKeyClause();
 }
 
-std::wstring TableStructurePage::execAlterTable()
+
+std::vector<std::wstring> TableStructurePage::generateCreateIndexesDDL(const std::wstring & schema, const std::wstring & tblName)
+{
+	ATLASSERT(tableTabView.IsWindow());
+	return tableTabView.getTableIndexesPage().getAdapter()->generateCreateIndexesDDL(schema, tblName);
+}
+
+std::wstring TableStructurePage::execAlterTable(UserIndexList & userIndexList)
 {
 	CString str;
 	tblNameEdit.GetWindowText(str);
@@ -597,10 +638,29 @@ std::wstring TableStructurePage::execAlterTable()
 		tableService->execBySql(userDbId, sql);
 		resultSql.append(sql).append(L"\r\n");
 
-		// 5.Rename tmp table name to new table name
+		// 5.Drop old indexes
+		for (auto tblIdx : userIndexList) {
+			sql = L"DROP INDEX IF EXISTS ";
+			if (!schema.empty() && schema != L"main") {
+				sql.append(schema).append(L".");
+			}
+			sql.append(quo).append(tblIdx.name).append(quo).append(L";");
+			tableService->execBySql(userDbId, sql);
+			resultSql.append(sql).append(L"\r\n");
+		}
+
+		// 6.Rename tmp table name to new table name
 		sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + L";";
 		tableService->execBySql(userDbId, sql);
 		resultSql.append(sql).append(L"\r\n");
+
+		// 7.create index on new table name
+		auto idxSqls = generateCreateIndexesDDL(schema, tblName);
+		for (auto & idxSql : idxSqls) {
+			sql = idxSql;
+			tableService->execBySql(userDbId, sql);
+			resultSql.append(sql).append(L"\r\n");
+		}
 	} catch (QSqlExecuteException & ex) {
 		std::wstring newMsg = ex.getMsg();
 		newMsg = StringUtil::replace(newMsg, tmpTblName, tblName);

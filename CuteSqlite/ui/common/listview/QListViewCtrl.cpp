@@ -1110,11 +1110,11 @@ void QListViewCtrl::moveDownButtons(int iItem)
 
 void QListViewCtrl::OnDestroy()
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush),bkgBrush = nullptr;
-	if (btnBrush) ::DeleteObject(btnBrush),btnBrush = nullptr;
-	if (btnDownBrush) ::DeleteObject(btnDownBrush),btnDownBrush = nullptr;
-	if (chkBrush) ::DeleteObject(chkBrush),btnDownBrush = nullptr;
-	if (selSubItemBorderBrush) ::DeleteObject(selSubItemBorderBrush), selSubItemBorderBrush = nullptr;
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (!btnBrush.IsNull()) btnBrush.DeleteObject();
+	if (!btnDownBrush.IsNull()) btnDownBrush.DeleteObject();
+	if (!chkBrush.IsNull()) chkBrush.DeleteObject();
+	if (!selSubItemBorderBrush.IsNull()) selSubItemBorderBrush.DeleteObject();
 	
 	if (textFont) ::DeleteObject(textFont), textFont = nullptr;
 	if (comboFont) ::DeleteObject(comboFont),comboFont = nullptr;
@@ -1151,12 +1151,12 @@ void QListViewCtrl::OnDestroy()
 
 void QListViewCtrl::OnSize(UINT nType, CSize size)
 {
-	if (!bkgBrush) bkgBrush = ::CreateSolidBrush(bkgColor);
-	if (!btnBrush) btnBrush = ::CreateSolidBrush(btnColor);
-	if (!btnDownBrush) btnDownBrush = ::CreateSolidBrush(btnDownColor);
-	if (!chkBrush) chkBrush = ::CreateSolidBrush(chkColor);
-	if (!selSubItemBorderBrush) chkBrush = ::CreateSolidBrush(selSubItemBorderColor);
-	if (!doubleLineBrush) doubleLineBrush = ::CreateSolidBrush(doubleLineColor);
+	if (bkgBrush.IsNull()) bkgBrush.CreateSolidBrush(bkgColor);
+	if (btnBrush.IsNull()) btnBrush.CreateSolidBrush(btnColor);
+	if (btnDownBrush.IsNull()) btnDownBrush.CreateSolidBrush(btnDownColor);
+	if (chkBrush.IsNull()) chkBrush.CreateSolidBrush(chkColor);
+	if (selSubItemBorderBrush.IsNull()) selSubItemBorderBrush.CreateSolidBrush(selSubItemBorderColor);
+	if (doubleLineBrush.IsNull()) doubleLineBrush.CreateSolidBrush(doubleLineColor);
 	if (!textFont) textFont = FT(L"list-text-size");
 	if (!comboFont) comboFont = FT(L"list-combobox-size");
 	if (!normalFont) normalFont = FT(L"list-text-size");
@@ -1322,14 +1322,14 @@ HBRUSH QListViewCtrl::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
 	::SelectObject(hdc, textFont);
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 HBRUSH QListViewCtrl::OnCtlColorEdit(HDC hdc, HWND hwnd)
 {	
 	::SetBkColor(hdc, bkgColor);	
 	::SelectObject(hdc, textFont); 
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 HBRUSH QListViewCtrl::OnCtlColorListBox(HDC hdc, HWND hwnd)
@@ -1386,8 +1386,8 @@ void QListViewCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 		}
 		
 	}
-	mdc.FillRect(CRect(0, 1, rcItem.Width(), rcItem.Height()), hBrush);
-	DeleteObject(hBrush);
+	mdc.FillRect(CRect(0, 1, rcItem.Width(), rcItem.Height()), hBrush.m_hBrush);
+	hBrush.DeleteObject();
 
 	//画item的左边
 	mdc.MoveTo(0, 0, NULL);
@@ -1543,11 +1543,11 @@ void QListViewCtrl::drawComboBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItem
 		w = 16, h = rcText.Height() - 2;
 	CRect rect(x, y, x + w, y + h);
 	HPEN oldPen = mdc.SelectPen(btnBorderPen);
-	HBRUSH oldBrush = mdc.SelectBrush(btnBrush);
+	HBRUSH oldBrush = mdc.SelectBrush(btnBrush.m_hBrush);
 	mdc.Rectangle(rect);
 
 	// draw the triangle for drop down in the rectangle 
-	oldBrush = mdc.SelectBrush(btnDownBrush);
+	oldBrush = mdc.SelectBrush(btnDownBrush.m_hBrush);
 	
 	CPoint pts[4];
 	pts[0] = { rect.left + (rect.Width() - 10) / 2, rect.top + (rect.Height() - 6) / 2 };
@@ -1582,11 +1582,11 @@ void QListViewCtrl::drawCheckBoxInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItem
 	
 	// 画方框
 	rect.DeflateRect(1, 1, 1, 1); //减一像素
-	mdc.FillRect(rect, bkgBrush); // 用背景色画刷先涂抹掉原来的画面
+	mdc.FillRect(rect, bkgBrush.m_hBrush); // 用背景色画刷先涂抹掉原来的画面
 	rect.InflateRect(1, 1, 1, 1);//增一像素
 	
 	HPEN oldPen = mdc.SelectPen(chkBorderPen);
-	mdc.FrameRect(rect, chkBrush); // 外框
+	mdc.FrameRect(rect, chkBrush.m_hBrush); // 外框
 
 	// draw the triangle for drop down in the rectangle 
 
@@ -1617,7 +1617,7 @@ void QListViewCtrl::drawButtonInSubItem(CDC & mdc, LPDRAWITEMSTRUCT lpDrawItemSt
 		w = 20, h = 20 - 2;
 	CRect rect(x, y, x + w, y + h);
 	HPEN oldPen = mdc.SelectPen(btnBorderPen);
-	HBRUSH oldBrush = mdc.SelectBrush(btnBrush);
+	HBRUSH oldBrush = mdc.SelectBrush(btnBrush.m_hBrush);
 	mdc.Rectangle(rect);
 
 	UINT uFormat = DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS;
@@ -1665,7 +1665,7 @@ void QListViewCtrl::createOrShowComboBox(int iItem, int iSubItem, const std::vec
 void QListViewCtrl::createOrShowSubItemComboBox(CComboBox & win, CRect & rect, bool allowEdit)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS | CBS_AUTOHSCROLL | WS_VSCROLL; 
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP  | CBS_HASSTRINGS | CBS_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL; 
 		if (allowEdit) {
 			dwStyle = dwStyle | CBS_DROPDOWN;
 		} else {

@@ -37,14 +37,14 @@ void QHelpPage::createOrShowUI()
 int QHelpPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	int ret = QPage::OnCreate(lpCreateStruct);
-	staticBrush = ::CreateSolidBrush(staticColor);
+	staticBrush.CreateSolidBrush(staticColor);
 	return ret;
 }
 
 int QHelpPage::OnDestroy()
 {
 	int ret = QPage::OnDestroy();
-	if (staticBrush) ::DeleteObject(staticBrush);
+	if (!staticBrush.IsNull()) staticBrush.DeleteObject();
 	if (helpLabel.IsWindow()) helpLabel.DestroyWindow();
 	return ret;
 }

@@ -44,7 +44,7 @@ public:
 	void setup(std::wstring & helpText);
 protected:
 	COLORREF staticColor = RGB(238, 238, 238);
-	HBRUSH staticBrush = nullptr;
+	CBrush staticBrush;
 
 	CStatic helpLabel;
 	std::wstring helpText;

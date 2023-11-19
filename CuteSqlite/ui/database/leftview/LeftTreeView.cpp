@@ -225,8 +225,8 @@ void LeftTreeView::selectComboBox(uint64_t userDbId)
 
 int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	topbarBrush = ::CreateSolidBrush(topbarColor);
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	topbarBrush.CreateSolidBrush(topbarColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
@@ -238,8 +238,8 @@ int LeftTreeView::OnDestroy()
 {	
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
 
-	if (topbarBrush) ::DeleteObject(topbarBrush);
-	if (bkgBrush) ::DeleteObject(bkgBrush);	
+	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (comboFont) ::DeleteObject(comboFont);
 
 	if (createDbButton.IsWindow()) createDbButton.DestroyWindow();
@@ -297,10 +297,10 @@ void LeftTreeView::OnPaint(CDCHandle dc)
 
 
 	CRect topRect = getTopRect(clientRect);
-	mdc.FillRect(topRect, topbarBrush);
+	mdc.FillRect(topRect, topbarBrush.m_hBrush);
 
 	CRect treeRect = getTreeRect(clientRect);
-	mdc.FillRect(treeRect, bkgBrush);
+	mdc.FillRect(treeRect, bkgBrush.m_hBrush);
 }
 
 BOOL LeftTreeView::OnEraseBkgnd(CDCHandle dc)

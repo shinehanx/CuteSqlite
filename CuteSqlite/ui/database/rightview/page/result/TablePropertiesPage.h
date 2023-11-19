@@ -51,8 +51,8 @@ protected:
 	HFONT titleFont = nullptr;
 	HFONT sectionFont = nullptr;
 	HFONT textFont = nullptr;
-	HBRUSH headerBrush = nullptr;
-	HBRUSH doubleRowBrush = nullptr;
+	CBrush headerBrush;
+	CBrush doubleRowBrush;
 	CPen linePen;
 
 	QStaticImage titleImage;

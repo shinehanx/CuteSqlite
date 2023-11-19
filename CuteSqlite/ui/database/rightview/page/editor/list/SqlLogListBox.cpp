@@ -20,8 +20,12 @@
 #include "stdafx.h"
 #include "SqlLogListBox.h"
 #include "ui/common/QWinCreater.h"
+#include "utils/PerformUtil.h"
+#include "utils/Log.h"
+#include "core/common/Lang.h"
+#include <utils/DateUtil.h>
 
-#define SQL_LOG_LISTBOX_ITEM_HEIGHT 150
+#define SQL_LOG_LISTBOX_ITEM_HEIGHT 145
 #define SQL_LOG_LISTBOX_GRROUP_HEIGHT 20
 
 int SqlLogListBox::cxChar = 5; // Need initialize in OnCreate
@@ -34,28 +38,36 @@ void SqlLogListBox::setup(QueryPageSupplier * supplier)
 	this->supplier = supplier;
 }
 
-void SqlLogListBox::addGroup(const std::wstring & group)
+void SqlLogListBox::addGroup(const std::wstring & group, const std::wstring & origDate)
 {
 	if (group.empty()) {
 		return;
 	}
+	if (!origDate.empty() && !items.empty()) {
+		auto & lastItem = items.back();
+		if (!lastItem->getInfo().top && DateUtil::getDateFromDateTime(lastItem->getInfo().createdAt) == origDate) {
+			return;
+		}
+	}
+	
 	CRect clientRect;
 	GetClientRect(clientRect);
 
 	CStatic * groupLabel = new CStatic();
 	int x = 0, y = 0, w = clientRect.Width(), h = 20;
 	CRect rect;
+	int offset = 0;
 	if (!winHwnds.empty()) {
 		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
 		y = rcLast.bottom + 5;
-	} else {
-		y = 0;
+		offset = 5;
 	}
 	rect = { x, y, x + w, y + h };
 	std::wstring fmtgrp = L"  " + group;
 	createOrShowGroupLabel(*groupLabel, fmtgrp, rect, clientRect);
 	groups.push_back(groupLabel);
 	winHwnds.push_back(groupLabel->m_hWnd);
+	nHeightSum += rect.Height() + offset;
 }
 
 void SqlLogListBox::addItem(ResultInfo & info)
@@ -66,35 +78,19 @@ void SqlLogListBox::addItem(ResultInfo & info)
 	SqlLogListItem * item = new SqlLogListItem(info, supplier);
 	int x = 0, y = 0, w = clientRect.Width(), h = SQL_LOG_LISTBOX_ITEM_HEIGHT;
 	CRect rect;
+	int offset = 0;
 	if (!winHwnds.empty()) {
 		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
 		y = rcLast.bottom + 5;
-	} else {
-		y = 0;
-	}
+		offset = 5;
+	} 
 	rect = { x, y, x + w, y + h };
+	auto _begin2 = PerformUtil::begin();
 	createOrShowItem(*item, rect, clientRect);
+	Q_DEBUG(L"Add item Spend time:" + PerformUtil::end(_begin2));
 	items.push_back(item);
 	winHwnds.push_back(item->m_hWnd);
-}
-
-
-void SqlLogListBox::reloadVScroll()
-{
-	CRect clientRect;
-	GetClientRect(clientRect);
-
-	CRect rcLast;
-	if (!winHwnds.empty()) {
-		rcLast = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
-	} else {
-		rcLast = clientRect;
-	}
-
-	//scroll bar
-	nHeightSum = rcLast.bottom + 50;
-	CSize size(clientRect.Width(), clientRect.Height());
-	initScrollBar(size);
+	nHeightSum += rect.Height() + offset;
 }
 
 void SqlLogListBox::clearAllItems()
@@ -102,6 +98,8 @@ void SqlLogListBox::clearAllItems()
 	clearItems();
 	clearGroups();
 	winHwnds.clear();
+	vScrollParam = 0;
+	nHeightSum = 0;
 }
 
 void SqlLogListBox::selectItem(int nItem)
@@ -122,9 +120,9 @@ void SqlLogListBox::createOrShowUI()
 
 	// calc the scrollbar sum height
 	if (!winHwnds.empty()) {
-		nHeightSum = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back()).bottom + 50;
+		nHeightSum = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back()).bottom;
 	} else {
-		nHeightSum = clientRect.bottom;
+		nHeightSum = 0;
 	}
 }
 
@@ -136,7 +134,7 @@ void SqlLogListBox::createOrShowGroupLabel(CStatic & win, std::wstring text, CRe
 void SqlLogListBox::createOrShowItem(SqlLogListItem & win, CRect & rect, CRect & clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE  | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
+		DWORD dwStyle = WS_CHILD | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
 		win.Create(m_hWnd, rect);	
 		return;
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
@@ -147,7 +145,8 @@ void SqlLogListBox::createOrShowItem(SqlLogListItem & win, CRect & rect, CRect &
 
 int SqlLogListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
+	groupFont = FTB(L"form-text-size", true);
 
 	// Init the scrollbar params 
 	HDC hdc  = ::GetDC(m_hWnd);
@@ -161,7 +160,8 @@ int SqlLogListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int SqlLogListBox::OnDestroy()
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (groupFont) ::DeleteObject(groupFont);
 
 	clearItems();
 	clearGroups();
@@ -204,7 +204,7 @@ void SqlLogListBox::clearItems()
 void SqlLogListBox::OnSize(UINT nType, CSize size)
 {
 	createOrShowUI();
-	initScrollBar(size);
+	//initScrollBar(size);
 }
 
 void SqlLogListBox::OnShowWindow(BOOL bShow, UINT nStatus)
@@ -217,7 +217,7 @@ void SqlLogListBox::OnPaint(CDCHandle dc)
 	CPaintDC pdc(m_hWnd);
 	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
 
-	mdc.FillRect(&pdc.m_ps.rcPaint, bkgBrush);
+	mdc.FillRect(&pdc.m_ps.rcPaint, bkgBrush.m_hBrush);
 }
 
 BOOL SqlLogListBox::OnEraseBkgnd(CDCHandle dc)
@@ -230,6 +230,19 @@ void SqlLogListBox::calcHeightSum()
 
 }
 
+void SqlLogListBox::reloadVScroll()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+// 	if (nHeightSum > 0) {
+// 		nHeightSum = nHeightSum % 10 ? nHeightSum + 5 : nHeightSum + 10;
+// 	}
+
+	//scroll bar
+	CSize size(clientRect.Width(), clientRect.Height());
+	initScrollBar(size);
+}
+
 void SqlLogListBox::initScrollBar(CSize & clientSize)
 {
 	if (clientSize.cx == 0 || clientSize.cy == 0 || nHeightSum == 0) {
@@ -237,42 +250,47 @@ void SqlLogListBox::initScrollBar(CSize & clientSize)
 	}
 	int pageNums = nHeightSum % clientSize.cy ? 
 		nHeightSum / clientSize.cy + 1 : nHeightSum / clientSize.cy;
+	
 	si.cbSize = sizeof(SCROLLINFO);   // setting the scrollbar
 
 	// change 3 values(SIF_RANGE: si.nMin, si.nMax, si.nPage; SIF_PAGE:si.nPage; SIF_POS: si.nPos)
 	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
 	si.nMin = 0; // must set si.fMask = SIF_RANGE
-	si.nMax = 100; // must set si.fMask = SIF_RANGE
-	si.nPos = 0; // must set si.fMask = SIF_POS
+	si.nMax = 100; // must set si.fMask = SIF_RANGE ，滚动条的最大pos数, 即从开始位置滚动到末尾位置要移动多少次鼠标滚轮
+	int newPos = static_cast<int>(vScrollParam * 1.0 / nHeightSum / 1000.0);
+	si.nPos = newPos ; // must set si.fMask = SIF_POS， 滚动条的起始pos位置
 
-	// must set si.fMask = SIF_PAGE
+	// must set si.fMask = SIF_PAGE 每页的pos数 = 最大的总页数 / 页数， 即可视窗口(clientRect.height)能包含几个pos
 	si.nPage = si.nMax % pageNums ?  
 		si.nMax / pageNums + 1 : si.nMax / pageNums;
 
 	vScrollPages = si.nPage;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
+
+	
 }
 
 LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	UINT nSBCode = LOWORD(wParam);
-	int nPos = GetScrollPos(SB_VERT);
 	si.cbSize = sizeof(si);
 	si.fMask = SIF_ALL;
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);
 	iVscrollPos = si.nPos;
 
-
+	bool isDown = false, isUp = false;
 	switch (LOWORD(wParam))
 	{
 	case SB_LINEDOWN:
 		si.nPos  += 1;
+		isDown = true;
 		break;
 	case SB_LINEUP:
 		si.nPos -= 1;
 		break;
 	case SB_PAGEDOWN:
 		si.nPos += vScrollPages;
+		isDown = true;
 		break;
 	case SB_PAGEUP:
 		si.nPos -= vScrollPages;
@@ -281,7 +299,13 @@ LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		si.nPos = si.nTrackPos ;
 		break;
 	}
-	si.nPos = min(100 - vScrollPages, max(0, si.nPos));
+	// si.nPos = min(100 - vScrollPages, max(0, si.nPos));
+	si.nPos = min(100, max(0, si.nPos));
+	if (si.nPos > iVscrollPos) {
+		isDown = true;
+	}else if (si.nPos < iVscrollPos) {
+		isUp = true;
+	}
 	si.fMask = SIF_POS;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
 	::GetScrollInfo(m_hWnd, SB_VERT, &si);
@@ -289,10 +313,39 @@ LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	CRect clientRect;
 	GetClientRect(clientRect);
 	if (iVscrollPos != si.nPos) {
-		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
+		int scrollHeight = nHeightSum * (iVscrollPos - si.nPos) / 100;
+		::ScrollWindow(m_hWnd, 0, scrollHeight, nullptr, nullptr);
 		Invalidate(true);
 	}
-	 return 0;
+
+	// Fetch next page when scroll to 70%
+	if (isDown && si.nPos >= 70) {
+		// the vScrollParam for calculating the new postion of next calling function : initScrollBar(), then scroll to the new position.
+		// express :  newPos * nNewHeightSum * 1000 / 100  =  (si.nPos * nHeightSum * 1000) / 100
+		//			=> newPos * nNewHeightSum * 1000 = (si.nPos * nHeightSum * 1000)
+		//			=> newPos = (si.nPos * nHeightSum * 1000) / (nNewHeightSum * 1000)
+		vScrollParam = nHeightSum * 1000 * si.nPos; 
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, WPARAM(si.nPos), LPARAM(si.nMax));
+	}
+	if (si.nPos == 100 && !winHwnds.empty()) {
+		CRect lastRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
+		CRect clientRect;
+		GetClientRect(clientRect);
+		if (lastRect.bottom != clientRect.bottom) {
+			::ScrollWindow(m_hWnd, 0, clientRect.bottom - lastRect.bottom, nullptr, nullptr);
+			Invalidate(true);
+		}
+	} else if (si.nPos == 0 && !winHwnds.empty()) { 
+		CRect firstRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.front());
+		CRect clientRect;
+		GetClientRect(clientRect);
+		if (firstRect.top != clientRect.top) {
+			::ScrollWindow(m_hWnd, 0, clientRect.top - firstRect.top, nullptr, nullptr);
+			Invalidate(true);
+		}
+	}
+
+	return 0;
 }
 
 LRESULT SqlLogListBox::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -308,4 +361,14 @@ LRESULT SqlLogListBox::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOO
 		OnVScroll(0, newParam, NULL, bHandled);
 	}
 	return 0;
+}
+
+HBRUSH SqlLogListBox::OnCtlStaticColor(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, bkgColor);
+	
+	::SetTextColor(hdc, groupColor); 
+	::SelectObject(hdc, groupFont);
+	
+	return bkgBrush.m_hBrush;
 }

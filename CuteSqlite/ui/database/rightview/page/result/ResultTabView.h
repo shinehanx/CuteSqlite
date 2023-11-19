@@ -73,7 +73,7 @@ private:
 	
 
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	QTabView tabView;
 	std::vector<ResultListPage *> resultListPagePtrs;

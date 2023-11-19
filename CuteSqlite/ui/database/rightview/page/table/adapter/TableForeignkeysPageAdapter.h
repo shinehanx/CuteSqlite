@@ -47,7 +47,7 @@ public:
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
 	void clickListViewSubItem(NMITEMACTIVATE * clickItem);
-	std::wstring genderateCreateForeignKeyClause();
+	std::wstring generateCreateForeignKeyClause();
 	void changePrimaryKey(ColumnInfoList & pkColumns);
 	void deleteTableColumnName(const std::wstring & columnName);
 

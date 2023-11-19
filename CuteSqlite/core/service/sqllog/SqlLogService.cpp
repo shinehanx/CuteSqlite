@@ -25,17 +25,6 @@ uint64_t SqlLogService::createSqlLog(SqlLog & sqlLog)
 	return getRepository()->create(sqlLog);
 }
 
-SqlLogList SqlLogService::getAllSqlLog()
-{
-	return getRepository()->getAll();
-}
-
-
-SqlLogList SqlLogService::getTopSqlLog()
-{
-	return getRepository()->getTopList();
-}
-
 void SqlLogService::clearOldSqlLog()
 {
 	uint64_t totalNums = getRepository()->getCount();
@@ -81,12 +70,41 @@ SqlLogList SqlLogService::getFilteredListByDate(const SqlLogList &list, const st
 	return result;
 }
 
-void SqlLogService::topSqlLog(uint64_t id)
+void SqlLogService::topSqlLog(uint64_t id, int topVal)
 {
-	getRepository()->topById(id);
+	getRepository()->topById(id, topVal);
 }
 
 void SqlLogService::removeSqlLog(uint64_t id)
 {
 	getRepository()->remove(id);
 }
+
+
+SqlLogList SqlLogService::getAllSqlLog()
+{
+	return getRepository()->getAll();
+}
+
+
+SqlLogList SqlLogService::getTopSqlLog()
+{
+	return getRepository()->getTopList();
+}
+
+SqlLogList SqlLogService::getPageSqlLog(int page, int perPage)
+{
+	return getRepository()->getPage(page, perPage);
+}
+
+SqlLogList SqlLogService::getTopSqlLogByKeyword(const std::wstring & keyword)
+{
+	return getRepository()->getTopByKeyword(keyword);
+}
+
+SqlLogList SqlLogService::getPageSqlLogByKeyword(const std::wstring & keyword, int page, int perPage)
+{
+	return getRepository()->getPageByKeyword(keyword, page, perPage);
+}
+
+

@@ -31,7 +31,7 @@ const char sqlKeyWords[] =
 "before begin binary bit blob body boolean both breadth by "
 "call cascade cascaded case cast catalog char character "
 "check class clob close collate collation column commit "
-"completion connect connection constraint constraints "
+"completion connect connection constraint constraints index autoincrement "
 "constructor continue corresponding create cross cube current "
 "current_date current_path current_role current_time current_timestamp "
 "current_user cursor cycle "
@@ -546,7 +546,7 @@ void QSqlEdit::createOrShowUI()
 
 HWND QSqlEdit::Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle, UINT nID /* = 0*/)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 
 	HMODULE hmod2 = ::LoadLibrary(L"SciLexer.dll");
 
@@ -575,5 +575,9 @@ void QSqlEdit::OnSize(UINT nType, CSize size)
 	createOrShowUI();
 }
 
+void QSqlEdit::OnDestroy()
+{
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+}
 
 

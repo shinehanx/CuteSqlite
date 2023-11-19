@@ -148,14 +148,14 @@ void QSearchEdit::createOrShowButton(QImageButton &win, CRect &clientRect)
 LRESULT QSearchEdit::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	editFont = FTB(L"search-edit-size", true);
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	return 0;
 }
 
 LRESULT QSearchEdit::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	if (editFont) ::DeleteObject(editFont);	
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	editFont = nullptr;
 
 	if (edit.IsWindow()) edit.DestroyWindow();
@@ -173,7 +173,7 @@ LRESULT QSearchEdit::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 LRESULT QSearchEdit::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	CPaintDC pdc(m_hWnd);
-	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush);
+	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush.m_hBrush);
 	return 0;
 }
 

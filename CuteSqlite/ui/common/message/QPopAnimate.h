@@ -79,7 +79,7 @@ private:
 
 	COLORREF textColor = RGB(8, 8, 8);
 	COLORREF bkgColor = RGB(201, 211, 216);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 	HFONT textFont = nullptr;
 	QStaticImage image;
 	QImageButton closeButton;

@@ -51,6 +51,7 @@ public:
 
 	SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier);
 	void select(bool state);	
+	const ResultInfo & getInfo() { return info; }
 private:
 	ResultInfo info;
 	bool selectState = false;
@@ -60,12 +61,12 @@ private:
 	COLORREF bkgMouseOverColor = RGB(238, 238, 238);
 	COLORREF bkgSelectColor = RGB(145, 201, 247);
 	COLORREF textColor = RGB(81, 81, 81);
-	COLORREF sqlColor = RGB(64, 64, 64);	
+	COLORREF sqlColor = RGB(64, 64, 64);
 	COLORREF btnBkgColor = RGB(210, 210, 210);
 
-	HBRUSH bkgBrush;
-	HFONT textFont;
-	HFONT sqlFont;
+	CBrush bkgBrush;
+	HFONT textFont = nullptr;
+	HFONT sqlFont = nullptr;
 
 	// top elems
 	CStatic createdAtLabel;
@@ -91,6 +92,7 @@ private:
 	void createMiddleElems(CRect & clientRect);
 	void createBottomElems(CRect & clientRect);
 
+	void createOrShowButton(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void loadWindow();
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);

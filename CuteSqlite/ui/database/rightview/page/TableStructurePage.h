@@ -58,7 +58,7 @@ private:
 	HFONT textFont = nullptr;	
 	HFONT comboFont = nullptr;
 	Gdiplus::Font * btnFont = nullptr;
-	HBRUSH editorBkgBrush = nullptr;
+	CBrush editorBkgBrush;
 
 	CStatic tblNameLabel;
 	CEdit tblNameEdit;
@@ -110,14 +110,16 @@ private:
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
 	
 	void previewRuntimeSql();
-	std::wstring getCreateRuntimeSql();
-	std::wstring generateCreateTableDDL(std::wstring &schema, std::wstring tblName);
+	std::wstring getCreateTableRuntimeSql();
+	std::vector<std::wstring> getCreateIndexesRuntimeSql();
+	std::wstring generateCreateTableDDL(const std::wstring &schema, const std::wstring & tblName);
+	std::vector<std::wstring> generateCreateIndexesDDL(const std::wstring &schema, const std::wstring & tblName);
 
-	std::wstring execAlterTable();
+	std::wstring execAlterTable(UserIndexList & userIndexList);
 
 	std::wstring generateCreateColumnsClause();
-	std::wstring generateCreateIndexesClause();	
-	std::wstring generateCreateForeignKeyClause();
+	std::wstring generateConstraintsClause();	
+	std::wstring generateConstraintForeignKeyClause();
 
 	std::wstring generateInsertIntoTmpTableSql(std::wstring& schema, std::wstring& tmpTblName, std::wstring& oldTblName);
 	

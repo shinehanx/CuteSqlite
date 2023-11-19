@@ -51,7 +51,7 @@ private:
 
 	HFONT editFont = nullptr;
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 
 	CEdit edit;
 	QImageButton button;

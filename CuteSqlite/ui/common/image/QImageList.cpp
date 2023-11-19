@@ -124,8 +124,8 @@ void QImageList::setIsAllowPage(bool isAllow)
 void QImageList::setBgkColor(COLORREF color)
 {
 	bkgColor = color;
-	if (bkgBrush) DeleteObject(bkgBrush);
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	bkgBrush.CreateSolidBrush(bkgColor);
 }
 
 /**
@@ -246,7 +246,7 @@ void QImageList::loadWindow()
 
 LRESULT QImageList::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	bkgBrush = (HBRUSH) ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	tipFont = FontUtil::getFont(18);
 	if (imageSize.cx == 0 || imageSize.cy == 0) {
 		imageSize = { QIMAGE_LIST_ITEM_WIDTH, QIMAGE_LIST_ITEM_HEIGHT };
@@ -257,7 +257,7 @@ LRESULT QImageList::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 
 LRESULT QImageList::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (tipFont) ::DeleteObject(tipFont);
 
 	if (prevPageButton.IsWindow()) prevPageButton.DestroyWindow();
@@ -284,7 +284,7 @@ LRESULT QImageList::OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 LRESULT QImageList::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	CPaintDC dc(m_hWnd);
-	dc.FillRect(&(dc.m_ps.rcPaint), bkgBrush);
+	dc.FillRect(&(dc.m_ps.rcPaint), bkgBrush.m_hBrush);
 
 	return 0;
 }

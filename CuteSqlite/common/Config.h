@@ -419,6 +419,7 @@ typedef enum {
 	MSG_QUERY_PAGE_USE_SQL_ID, // When use button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=NULL, lParam = NULL
 	MSG_QUERY_PAGE_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam = NULL
 	MSG_QUERY_PAGE_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam= NULL
+	MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, // When SqlLogListBox v-scroll scroll down 70% in the SqlLogDialog, send this msg to SqlLogDialog, wParam=si.nPos, lParam=si.nMax
 }MessageId;
 
 typedef enum {

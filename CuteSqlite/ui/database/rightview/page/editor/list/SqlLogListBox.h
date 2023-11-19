@@ -34,11 +34,12 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
+		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 	void setup(QueryPageSupplier * supplier);
 
-	void addGroup(const std::wstring & group);
+	void addGroup(const std::wstring & group, const std::wstring & origDate = std::wstring());
 	void addItem(ResultInfo & info);
 	void reloadVScroll();
 
@@ -47,11 +48,13 @@ public:
 	void removeItem(int nItem);
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
-	HBRUSH bkgBrush;
+	COLORREF groupColor = RGB(32, 32, 32);
+	CBrush bkgBrush;
+	HFONT groupFont = nullptr;
 
 	std::vector<CStatic *> groups;
 	std::vector<SqlLogListItem *> items;
-	std::vector<HWND> winHwnds;
+	std::vector<HWND> winHwnds;	
 
 	QueryPageSupplier * supplier = nullptr;
 
@@ -59,6 +62,7 @@ private:
 	TEXTMETRIC tm;
 	SCROLLINFO si;
 	int nHeightSum = 0;
+	double vScrollParam = 0.0; // record the position params when scrolling si.nPos=70
 	static int cxChar, cyChar, iVscrollPos, vScrollPages;
 	void initScrollBar(CSize & clientSize);
 	void calcHeightSum();
@@ -80,4 +84,5 @@ private:
 
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 };

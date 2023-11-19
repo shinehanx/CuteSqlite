@@ -205,7 +205,7 @@ HBRUSH TableColumnsPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 HBRUSH TableColumnsPage::OnCtlColorListBox(HDC hdc, HWND hwnd)

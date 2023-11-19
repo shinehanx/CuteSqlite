@@ -411,7 +411,7 @@ void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickIte
  * @param hasAutoIncrement
  * @return 
  */
-std::wstring TableForeignkeysPageAdapter::genderateCreateForeignKeyClause()
+std::wstring TableForeignkeysPageAdapter::generateCreateForeignKeyClause()
 {
 	std::wstring ss;
 	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
@@ -442,14 +442,16 @@ void TableForeignkeysPageAdapter::generateOneForeignKeyClause(ForeignKey &item, 
 	}
 	ss.append(L"FOREIGN KEY ");
 	if (!item.columns.empty()) {
-		ss.append(L"(").append(item.columns).append(L") ");
+		std::wstring columns = StringUtil::addSymbolToWords(item.columns, L",", L"\"");
+		ss.append(L"(").append(columns).append(L") ");
 	}
 	ss.append(L"REFERENCES ");
 	if (!item.referencedTable.empty()) {
 		ss.append(L"\"").append(item.referencedTable).append(L"\" ");
 	}
 	if (!item.referencedColumns.empty()) {
-		ss.append(L"(").append(item.referencedColumns).append(L") ");
+		std::wstring referencedColumns = StringUtil::addSymbolToWords(item.referencedColumns, L",", L"\"");
+		ss.append(L"(").append(referencedColumns).append(L") ");
 	}
 
 	if (!item.onDelete.empty()) {
@@ -458,6 +460,10 @@ void TableForeignkeysPageAdapter::generateOneForeignKeyClause(ForeignKey &item, 
 
 	if (!item.onUpdate.empty()) {
 		ss.append(L"ON UPDATE ").append(item.onUpdate).append(L" ");
+	}
+
+	if (!item.partialClause.empty()) {
+		ss.append(item.partialClause);
 	}
 }
 

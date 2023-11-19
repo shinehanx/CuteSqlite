@@ -757,7 +757,7 @@ HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 HBRUSH ResultListPage::OnCtlColorListBox(HDC hdc, HWND hwnd)

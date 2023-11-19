@@ -257,7 +257,7 @@ LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
 	SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); 
 
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 
 	SetTimer(Config::MSG_TIMER_MOVE_ID, 10, NULL);  
 	return 0;
@@ -266,7 +266,7 @@ LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 LRESULT QPopAnimate::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	if (textFont) ::DeleteObject(textFont);
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 
 	if (image.IsWindow()) image.DestroyWindow();
 	if (closeButton.IsWindow()) closeButton.DestroyWindow();
@@ -284,7 +284,7 @@ LRESULT QPopAnimate::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 {	
 	CPaintDC dc(m_hWnd);
 	CMemoryDC mdc(dc, dc.m_ps.rcPaint);
-	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush);
+	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush.m_hBrush);
 
 	return 0;
 }
@@ -325,7 +325,7 @@ HBRUSH QPopAnimate::OnCtlEditColor(HDC hdc, HWND hwnd)
 	::SetBkColor(hdc, bkgColor);
 	::SetTextColor(hdc, textColor);
 	::SelectObject(hdc, textFont);
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 LRESULT QPopAnimate::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)

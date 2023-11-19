@@ -50,15 +50,15 @@ void QPage::loadWindow()
 
 int QPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	topbarBrush = ::CreateSolidBrush(topbarColor);
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	topbarBrush.CreateSolidBrush(topbarColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	return 0;
 }
 
 int QPage::OnDestroy()
 {
-	if (topbarBrush) ::DeleteObject(topbarBrush);
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	return 0;
 }
 
@@ -85,10 +85,10 @@ void QPage::OnPaint(CDCHandle dc)
 
 
 	CRect topRect = getTopRect(clientRect);
-	mdc.FillRect(topRect, topbarBrush);
+	mdc.FillRect(topRect, topbarBrush.m_hBrush);
 
 	CRect pageRect = getPageRect(clientRect);
-	mdc.FillRect(pageRect, bkgBrush);
+	mdc.FillRect(pageRect, bkgBrush.m_hBrush);
 
 	// The subclass implements this method to extend the screen content
 	paintItem(mdc, clientRect);

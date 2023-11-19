@@ -23,11 +23,19 @@
 
 class QueryPageSupplier : public QPageSupplier {
 public:
+	QueryPageSupplier();
+	~QueryPageSupplier();
+
 	static const std::vector<std::wstring> sqlTags;
 	static const std::list<std::tuple<int, std::wstring, std::wstring>> pragmas;
 
 	// sql statements
 	std::vector<std::wstring> sqlVector;
+
+	// sql log dialog use bitmap
+	HBITMAP topBitmap = nullptr;
+	HBITMAP sucessBitmap = nullptr;
+	HBITMAP errorBitmap = nullptr;
 
 	// Using semicolons to separate a SQL statement becomes a member variable sqlVector
 	void splitToSqlVector(std::wstring sql);
@@ -53,4 +61,6 @@ private:
 
 	// 
 	std::wstring cacheUseSql;
+	
+	
 };

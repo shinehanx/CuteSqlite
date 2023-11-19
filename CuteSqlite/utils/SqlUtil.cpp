@@ -647,12 +647,14 @@ IndexInfo SqlUtil::parseLineToPrimaryKey(const std::wstring& line, bool isConsta
 			|| (words.size() > 2 && StringUtil::toupper(words.at(2)) == L"PRIMARY")){ // such as : CONSTRAINT "idx_name1" Primary Key("id" AUTOINCREMENT)
 			result.type = L"Primary Key";
 			result.pk = 1;
-			auto pair = getColumnAndAiByPrimaryKeyLine(line);
+			auto pair = getColumnAndAiFromPrimaryKeyLine(line);
 			if (pair.first.empty()) {
 				return IndexInfo();
 			}
 			result.columns = pair.first;
 			result.ai = pair.second;
+			// return conflict-clause
+			result.partialClause = getConflictClauseFromConstraintLine(line);
 			isFound = true;
 		} else {
 			return IndexInfo();
@@ -703,11 +705,13 @@ IndexInfo SqlUtil::parseLineToUnique(const std::wstring& line, bool isConstaintL
 			|| (words.size() > 2  && StringUtil::toupper(words.at(2)).find(L"UNIQUE") == 0)) { // such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
 			result.type = L"Unique";
 			result.un = 1;
-			auto columns = getColumnsByUniqueLine(line);
+			auto columns = getColumnsFromUniqueLine(line);
 			if (columns.empty()) {
 				return IndexInfo();
 			}
 			result.columns = columns;
+			// return conflict-clause
+			result.partialClause = getConflictClauseFromConstraintLine(line);
 		} else {
 			return IndexInfo();
 		}
@@ -796,7 +800,7 @@ IndexInfo SqlUtil::parseLineToCheck(const std::wstring& line, bool isConstaintLi
  *              - first:primary key column name, 
  *              - second: 1 if AUTOINCREMENT, 0 if not AUTOINCREMENT
  */
-std::pair<std::wstring, uint8_t> SqlUtil::getColumnAndAiByPrimaryKeyLine(const std::wstring &line)
+std::pair<std::wstring, uint8_t> SqlUtil::getColumnAndAiFromPrimaryKeyLine(const std::wstring &line)
 {
 	if (line.empty()) {
 		return std::pair<std::wstring, int>();
@@ -843,13 +847,40 @@ std::pair<std::wstring, uint8_t> SqlUtil::getColumnAndAiByPrimaryKeyLine(const s
 }
 
 /**
+ * return conflict-clause from the primary-key line or a unique-line
+ *  conflict-clause : such as "ON CONFLICT ROLLBACK/ABORT/FAIL/IGNORE/REPLACE"
+ * 
+ * @param line
+ * @return 
+ */
+std::wstring SqlUtil::getConflictClauseFromConstraintLine(const std::wstring& line)
+{
+	std::wstring partialClause;
+	if (line.empty()) {
+		return partialClause;
+	}
+	std::wstring upline = StringUtil::toupper(line);
+	if (upline.find(L"PRIMARY") == std::wstring::npos 
+		&& upline.find(L"UNIQUE") == std::wstring::npos) {
+		return partialClause;
+	}
+
+	size_t onPos = line.find(L"ON");
+	if (onPos == std::wstring::npos) {
+		return partialClause;
+	}
+	partialClause = line.substr(onPos, -1);
+	return partialClause;
+}
+
+/**
  * Fetch the column names in the unique line. 
  * such as : CONSTRAINT "idx_name2"  UNIQUE("id","name"...)
  * 
  * @param line
  * @return columns
  */
-std::wstring SqlUtil::getColumnsByUniqueLine(const std::wstring &line)
+std::wstring SqlUtil::getColumnsFromUniqueLine(const std::wstring &line)
 {
 	if (line.empty()) {
 		return L"";
@@ -1074,9 +1105,36 @@ ForeignKey SqlUtil::parseForeignKeyFromLine(const std::wstring& line)
 			}
 		}
 	}
-
+	result.partialClause = getPartialClauseFromForeignKeyLine(line);
 	result.seq = std::chrono::system_clock::now();
 	return result;
+}
+
+std::wstring SqlUtil::getPartialClauseFromForeignKeyLine(const std::wstring& line)
+{
+	std::wstring partialClause;
+	if (line.empty()) {
+		return partialClause;
+	}
+	std::wstring upline = StringUtil::toupper(line);
+	if (upline.find(L"FOREIGN") == std::wstring::npos ) {
+		return partialClause;
+	}
+
+	size_t notDefferPos = line.find(L"NOT DEFERRABLE");
+	size_t fromPos = -1;
+	if (notDefferPos == std::wstring::npos) {
+		size_t defferPos = line.find(L"DEFERRABLE");
+		if (defferPos == std::wstring::npos) {
+			return partialClause;
+		}
+		fromPos = defferPos;
+	} else {
+		fromPos = notDefferPos;
+	}
+	
+	partialClause = line.substr(fromPos, -1);
+	return partialClause;
 }
 
 /**
@@ -1235,5 +1293,57 @@ TableAliasVector SqlUtil::parseTableClauseFromUpdateSql(const std::wstring & upS
 		} 
 		result.push_back(item);
 	}
+	return result;
+}
+
+/**
+ * Pars the create index DDL statement to IndexInfo.
+ * For example : CREATE UNIQUE INDEX "name" ON "analysis_sample_class_16" ("sample_lib_id","inspection_id");
+ * 
+ * @param createIndexSql
+ * @return 
+ */
+IndexInfo SqlUtil::parseCreateIndex(const std::wstring & createIndexSql)
+{	
+	if (createIndexSql.empty()) {
+		return IndexInfo();
+	}
+
+	std::wstring upline = StringUtil::toupper(createIndexSql);
+	std::vector<std::wstring> upwords = StringUtil::splitByBlank(upline);
+	if (upwords.empty() || upwords.at(0) != L"CREATE" || (upwords.at(1) != L"INDEX" && upwords.at(2) != L"INDEX")) {
+		return IndexInfo();
+	}
+	IndexInfo result;
+	result.type = L"Index";
+	// Find the index name and table name and unique
+	size_t n = upwords.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & word = upwords.at(i);
+		if (word == L"ON") {
+			if (upwords.at(i - 1) != L"INDEX" && upwords.at(i - 1) != L"EXISTS") {
+				std::vector<std::wstring> words = StringUtil::splitByBlank(createIndexSql);
+				result.name = StringUtil::cutParensAndQuotes(words.at(i - 1));
+			}
+		}
+		if (word == L"UNIQUE") {
+			result.un = 1;
+		}
+	}
+	// Find the columns, it must be between in the first ()
+	size_t paren_first = upline.find_first_of(L'(');
+	size_t paren_end = upline.find_first_of(L')');
+	if (paren_first == std::wstring::npos || paren_end == std::wstring::npos) {
+		return IndexInfo();
+	}	
+	auto columns = createIndexSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	result.columns = StringUtil::cutParensAndQuotes(columns);
+
+	// Find the partial clause, it must be start with "WHERE"
+	auto wherePos = upline.find(L"WHERE");
+	if (wherePos != std::wstring::npos) {
+		result.partialClause = createIndexSql.substr(wherePos);
+	}
+
 	return result;
 }

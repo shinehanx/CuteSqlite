@@ -82,7 +82,7 @@ private:
 	bool isAllowPage = false;
 
 	COLORREF bkgColor = RGB(255, 255, 255); // ±³¾°ÑÕÉ«
-	HBRUSH  bkgBrush = nullptr;
+	CBrush  bkgBrush;
 	HFONT tipFont = nullptr;
 
 	QImageButton prevPageButton;

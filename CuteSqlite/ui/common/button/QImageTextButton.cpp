@@ -193,7 +193,7 @@ int QImageTextButton::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	transparent(m_hWnd);
 
 	//static背景画刷
-	ctlColorStaticBrush = ::CreateSolidBrush(RGB(0xff, 0xff, 0xff));
+	ctlColorStaticBrush.CreateSolidBrush(RGB(0xff, 0xff, 0xff));
 
 	return TRUE;
 }
@@ -201,7 +201,7 @@ int QImageTextButton::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int QImageTextButton::OnDestroy()
 {
 	if (font) DeleteObject(font);
-	if (ctlColorStaticBrush) DeleteObject(ctlColorStaticBrush);
+	if (!ctlColorStaticBrush.IsNull()) ctlColorStaticBrush.DeleteObject();
 
 	// Gdiplus::DllExports::GdipDisposeImage(normalBitmap);
 	if (normalBitmap) DeleteObject(normalBitmap);
@@ -244,16 +244,16 @@ HBRUSH QImageTextButton::OnCtlColorStatic(HDC hdc, HWND hwnd)
 		::SetTextColor(hdc, RGB(0x2c,0x2c,0x2c)); //文本区域前景色
 		//::SetBkColor(hdc, RGB(0,255,0)); // 文本区域背景色
 		::SetBkColor(hdc, RGB(0xff,0xff,0xff)); // 文本区域背景色	
-		return ctlColorStaticBrush; // 整个CStatic的Client区域背景色
+		return ctlColorStaticBrush.m_hBrush; // 整个CStatic的Client区域背景色
 	}
 
-	return ctlColorStaticBrush;
+	return ctlColorStaticBrush.m_hBrush;
 }
 
 HBRUSH QImageTextButton::OnCtlColorBtn(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, RGB(0xff,0xff,0xff)); // 文本区域背景色
-	return ctlColorStaticBrush; // 整个CStatic的Client区域背景色
+	return ctlColorStaticBrush.m_hBrush; // 整个CStatic的Client区域背景色
 }
 
 LRESULT QImageTextButton::OnClickButton(UINT /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/)

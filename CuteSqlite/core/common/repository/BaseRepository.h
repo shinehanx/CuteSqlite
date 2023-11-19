@@ -72,7 +72,7 @@ protected:
 
 	//生成WHERE语句
 	std::wstring wherePrepareClause(QCondition & condition, 
-		QKeywordIncludes & keywordIncludes = std::vector<std::wstring>());
+		QKeywordIncludes & keywordIncludes = std::vector<std::wstring>(), bool caseSensitive = true);
 
 
 	//生成ORDER BY 语句
@@ -240,7 +240,7 @@ std::wstring BaseRepository<T>::initSysDbFile()
  * @return 
  */
 template <typename T>
-std::wstring BaseRepository<T>::wherePrepareClause(QCondition & condition, QKeywordIncludes & keywordIncludes)
+std::wstring BaseRepository<T>::wherePrepareClause(QCondition & condition, QKeywordIncludes & keywordIncludes, bool caseSensitive)
 {
 	//where-语句
 	std::wstring whereClause;
@@ -268,9 +268,19 @@ std::wstring BaseRepository<T>::wherePrepareClause(QCondition & condition, QKeyw
 		&& !condition[L"keyword"].empty() && !keywordIncludes.empty()) {
 		whereClause.append(L" AND (0 ");
 		for (auto key : keywordIncludes) {
-			whereClause.append(L" OR ")
-				.append(key)
-				.append(L" like :keyword");
+			if (caseSensitive) {
+				whereClause.append(L" OR ")
+					.append(key)
+					.append(L" like :keyword");
+			} else {
+				whereClause.append(L" OR ")
+					.append(key)
+					.append(L" like :low_keyword")
+					.append(L" OR ")
+					.append(key)
+					.append(L" like :up_keyword");
+			}
+			
 		}
 		whereClause.append(L") ");
 	}

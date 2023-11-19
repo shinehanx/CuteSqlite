@@ -217,7 +217,7 @@ HBRUSH TableIndexesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 HBRUSH TableIndexesPage::OnCtlColorListBox(HDC hdc, HWND hwnd)

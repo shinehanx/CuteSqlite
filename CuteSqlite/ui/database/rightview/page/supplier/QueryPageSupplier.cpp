@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "QueryPageSupplier.h"
 #include "utils/StringUtil.h"
+#include "utils/ResourceUtil.h"
+
 
 const std::vector<std::wstring> QueryPageSupplier::sqlTags = {
 	L"SELECT", L"SELECT *", L"SELECT * FROM", L"CREATE", L"CREATE TABLE", L"CREATE VIRTUAL TABLE", L"CREATE INDEX", L"CREATE INDEX", L"CREATE TRIGGER", L"CREATE VIEW", L"CREATE VIRTUAL TABLE",L"CREATE INDEX",L"CREATE UNIQUE"
@@ -122,6 +124,27 @@ const std::list<std::tuple<int, std::wstring, std::wstring>> QueryPageSupplier::
 	{1794, L"wal_checkpoint(TRUNCATE)", L"PRAGMA wal_checkpoint(TRUNCATE);"},
 	{1795, L"writable_schema", L"PRAGMA writable_schema;"},
 };
+
+QueryPageSupplier::QueryPageSupplier()
+{
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	std::wstring imagePath = imgDir + L"database\\list\\top.bmp";
+	topBitmap = (HBITMAP)::LoadImageW(ModuleHelper::GetModuleInstance(), imagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	
+	imagePath = imgDir + L"database\\list\\success.bmp";
+	sucessBitmap = (HBITMAP)::LoadImageW(ModuleHelper::GetModuleInstance(), imagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	
+	imagePath = imgDir + L"database\\list\\error.bmp";
+	errorBitmap = (HBITMAP)::LoadImageW(ModuleHelper::GetModuleInstance(), imagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+}
+
+
+QueryPageSupplier::~QueryPageSupplier()
+{
+	if (topBitmap) ::DeleteObject(topBitmap);
+	if (sucessBitmap) ::DeleteObject(sucessBitmap);
+	if (errorBitmap) ::DeleteObject(errorBitmap);
+}
 
 UserTableStrings & QueryPageSupplier::getCacheUserTableStrings(uint64_t userDbId)
 {

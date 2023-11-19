@@ -46,6 +46,7 @@ public:
 		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_TOP_SQL_LOG_ID, OnClickTopButton)
 		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_DEL_SQL_LOG_ID, OnClickDeleteButton)
 		MESSAGE_HANDLER_EX(Config::MSG_SEARCH_BUTTON_ID, OnClickSearchButton)
+		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, OnLoadNextPageSqlLog)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect);
@@ -56,12 +57,17 @@ private:
 
 	COLORREF textColor = RGB(8, 8, 8);
 	COLORREF bkgColor = RGB(219, 219, 219);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 	HFONT textFont = nullptr;
 
 	QImageButton closeButton;
 	QSearchEdit searchEdit;
 	SqlLogListBox sqlLogListBox;
+
+	int curPage = 1;
+	int maxPage = 1;
+	int perPage = 10;
+	std::wstring keyword;
 
 	QueryPageEditorAdapter * adapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -73,7 +79,7 @@ private:
 	void createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRect);
 
 	void loadWindow();
-	void loadSqlLogListBox();
+	void loadSqlLogListBox(int page);
 
 	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -86,6 +92,7 @@ private:
 	LRESULT OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnLoadNextPageSqlLog(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	std::wstring formatDateForDisplay(const std::wstring & date);
 };

@@ -246,8 +246,8 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 	createImageList();
 
-	topbarBrush = ::CreateSolidBrush(topbarColor);
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	topbarBrush.CreateSolidBrush(topbarColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	return 0;
 }
 
@@ -272,8 +272,8 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 
-	if (bkgBrush) ::DeleteObject(bkgBrush);
-	if (topbarBrush) ::DeleteObject(topbarBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	
 	if (execSqlButton.IsWindow()) execSqlButton.DestroyWindow();
 	if (execAllButton.IsWindow()) execAllButton.DestroyWindow();
@@ -339,10 +339,10 @@ void RightWorkView::OnPaint(CDCHandle dc)
 
 
 	CRect topRect = getTopRect(clientRect);
-	mdc.FillRect(topRect, topbarBrush);
+	mdc.FillRect(topRect, topbarBrush.m_hBrush);
 
 	CRect workRect = getTabRect(clientRect);
-	mdc.FillRect(workRect, bkgBrush);
+	mdc.FillRect(workRect, bkgBrush.m_hBrush);
 }
 
 BOOL RightWorkView::OnEraseBkgnd(CDCHandle dc)

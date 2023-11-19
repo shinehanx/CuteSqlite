@@ -29,11 +29,11 @@ private:
 	std::wstring err;
 
 	COLORREF bkgColor =  RGB(192, 192, 192);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 	COLORREF processColor = RGB(49, 139, 202);
 	COLORREF errorColor = RGB(255, 127, 39);
-	HBRUSH processBrush = nullptr;
-	HBRUSH errorBrush = nullptr;
+	CBrush processBrush;
+	CBrush errorBrush;
 
 	COLORREF textColor = RGB(255, 255, 255);
 	HFONT textFont = nullptr;

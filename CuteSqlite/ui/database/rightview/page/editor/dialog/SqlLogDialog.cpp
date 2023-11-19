@@ -24,6 +24,8 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
+#include "utils/PerformUtil.h"
+#include "utils/Log.h"
 
 void SqlLogDialog::setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect) 
 {
@@ -105,36 +107,52 @@ void SqlLogDialog::loadWindow()
 	}
 	isNeedReload = false;
 
-	loadSqlLogListBox();
+	curPage = 1;
+	sqlLogListBox.clearAllItems();
+	loadSqlLogListBox(curPage++);
 }
 
 
-void SqlLogDialog::loadSqlLogListBox()
+void SqlLogDialog::loadSqlLogListBox(int page)
 {
-	sqlLogListBox.clearAllItems();
-	SqlLogList topList = sqlLogService->getTopSqlLog();
-	SqlLogList list = sqlLogService->getAllSqlLog();
-	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
+	SqlLogList topList, list;
+	if (keyword.empty()) {
+		topList = sqlLogService->getTopSqlLog();
+		list = sqlLogService->getPageSqlLog(page, perPage);
+	} else {
+		topList = sqlLogService->getTopSqlLogByKeyword(keyword);
+		list = sqlLogService->getPageSqlLogByKeyword(keyword, page, perPage);
+	}
 
-	if (!topList.empty()) {
+	if (list.empty()) {
+		return;
+	}
+
+	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
+	auto _begin = PerformUtil::begin();
+	
+	if (!topList.empty() && page == 1) {
 		sqlLogListBox.addGroup(L"Top");
 		for (auto & item : topList) {
 			sqlLogListBox.addItem(item);
 		}
 	}
-
+	
 	for (auto & date : dates) {
 		if (date.empty()) {
 			continue;
 		}
 		std::wstring fmtDate = formatDateForDisplay(date);
-		sqlLogListBox.addGroup(fmtDate);
+		sqlLogListBox.addGroup(fmtDate, date);
 		SqlLogList dateList = sqlLogService->getFilteredListByDate(list, date);
-		for (auto & item : dateList) {
-			sqlLogListBox.addItem(item);
+		for (auto & item : dateList) {			
+			sqlLogListBox.addItem(item);			
 		}		
 	}
+	
 	sqlLogListBox.reloadVScroll();
+	std::wstring _tt = PerformUtil::end(_begin);
+	Q_DEBUG(L"spend time:" +  _tt);
 }
 
 LRESULT SqlLogDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -150,13 +168,13 @@ LRESULT SqlLogDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
 	//SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); 
 
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 	return 0;
 }
 
 LRESULT SqlLogDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
 
 	if (closeButton.IsWindow()) closeButton.DestroyWindow();
@@ -185,13 +203,13 @@ LRESULT SqlLogDialog::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 {
 	CPaintDC dc(m_hWnd);
 	CMemoryDC mdc(dc, dc.m_ps.rcPaint);
-	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush);
+	mdc.FillRect(&(dc.m_ps.rcPaint), bkgBrush.m_hBrush);
 	return 0;
 }
 
 HBRUSH SqlLogDialog::OnCtlEditColor(HDC hdc, HWND hwnd)
 {
-	return bkgBrush;
+	return bkgBrush.m_hBrush;
 }
 
 LRESULT SqlLogDialog::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -210,12 +228,15 @@ LRESULT SqlLogDialog::OnClickUseButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT SqlLogDialog::OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uint64_t id = static_cast<uint64_t>(wParam);
+	int top = static_cast<int>(lParam);
 	if (!id) {
 		return 0;
 	}
 	try {
-		sqlLogService->topSqlLog(id);
-		loadSqlLogListBox();
+		sqlLogService->topSqlLog(id, !top);
+		curPage = 1;
+		sqlLogListBox.clearAllItems();
+		loadSqlLogListBox(curPage++);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
@@ -235,7 +256,9 @@ LRESULT SqlLogDialog::OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 	try {
 		sqlLogService->removeSqlLog(id);
-		loadSqlLogListBox();
+		curPage = 1;
+		sqlLogListBox.clearAllItems();
+		loadSqlLogListBox(curPage++);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
@@ -247,11 +270,26 @@ LRESULT SqlLogDialog::OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lPara
 LRESULT SqlLogDialog::OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	try {
-		loadSqlLogListBox();
+		keyword = searchEdit.getText();
+
+		curPage = 1;
+		sqlLogListBox.clearAllItems();
+		loadSqlLogListBox(curPage++);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
 	
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnLoadNextPageSqlLog(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	try {
+		loadSqlLogListBox(curPage++);
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+	}
 	return 0;
 }
 

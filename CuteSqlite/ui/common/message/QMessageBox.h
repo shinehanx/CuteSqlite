@@ -51,7 +51,7 @@ private:
 
 	COLORREF textColor = RGB(8, 8, 8);
 	COLORREF bkgColor = RGB(219, 219, 219);
-	HBRUSH bkgBrush = nullptr;
+	CBrush bkgBrush;
 	HFONT textFont = nullptr;
 	Gdiplus::Font * btnFont = nullptr;
 

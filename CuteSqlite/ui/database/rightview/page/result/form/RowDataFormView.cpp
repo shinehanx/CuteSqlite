@@ -156,7 +156,7 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 
 void RowDataFormView::paintItem(CDC & dc, CRect & paintRect)
 {
-	dc.FillRect(paintRect, topbarBrush);
+	dc.FillRect(paintRect, topbarBrush.m_hBrush);
 }
 
 int RowDataFormView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -310,7 +310,7 @@ HBRUSH RowDataFormView::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, topbarColor);
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 HBRUSH RowDataFormView::OnCtlColorEdit(HDC hdc, HWND hwnd)
@@ -322,7 +322,7 @@ HBRUSH RowDataFormView::OnCtlColorEdit(HDC hdc, HWND hwnd)
 	}
 	
 	::SelectObject(hdc, textFont);
-	return topbarBrush;
+	return topbarBrush.m_hBrush;
 }
 
 

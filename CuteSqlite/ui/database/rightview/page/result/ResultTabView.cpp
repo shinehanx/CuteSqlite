@@ -396,7 +396,7 @@ void ResultTabView::loadTabViewPages()
 
 int ResultTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
 
 	createImageList();
 	return 0;
@@ -404,9 +404,8 @@ int ResultTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int ResultTabView::OnDestroy()
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
-
-	
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+		
 	if (resultInfoPage.IsWindow()) resultInfoPage.DestroyWindow();
 	if (resultTableDataPage.IsWindow()) resultTableDataPage.DestroyWindow();
 	if (tablePropertiesPage.IsWindow()) tablePropertiesPage.DestroyWindow();
@@ -439,7 +438,7 @@ void ResultTabView::OnShowWindow(BOOL bShow, UINT nStatus)
 void ResultTabView::OnPaint(CDCHandle dc)
 {
 	CPaintDC pdc(m_hWnd);
-	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush);
+	pdc.FillRect(&(pdc.m_ps.rcPaint), bkgBrush.m_hBrush);
 }
 
 BOOL ResultTabView::OnEraseBkgnd(CDCHandle dc)

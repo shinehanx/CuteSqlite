@@ -255,9 +255,9 @@ void TablePropertiesPage::createOrShowColumnsList(CRect & clientRect)
 
 void TablePropertiesPage::drawPrimaryKey(CDC & dc, CRect & rect, int nItem)
 {
-	HBRUSH brush = bkgBrush;
+	HBRUSH brush = bkgBrush.m_hBrush;
 	if (nItem % 2) {
-		brush = doubleRowBrush;
+		brush = doubleRowBrush.m_hBrush;
 	}
 	dc.FillRect(rect, brush);
 	int x = rect.left + (rect.Width() - 16) / 2, 
@@ -475,6 +475,14 @@ void TablePropertiesPage::createOrShowDdlSectionElems(CRect & clientRect)
 
 	std::wstring sql = StringUtil::replace(userTable.sql, L"\r\n", L"\n");
 	sql = StringUtil::replace(sql, L"\n", L"\r\n");
+	sql.append(L";");
+	UserIndexList userIndexList = tableService->getUserIndexes(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+	for (auto userIndex : userIndexList) {
+		if (userIndex.sql.empty()) {
+			continue;
+		}
+		sql.append(L"\r\n").append(userIndex.sql).append(L";");
+	}
 	createOrShowEdit(ddlContent, 0, sql, rect, clientRect, ES_MULTILINE | ES_AUTOVSCROLL);
 	
 	CRect rcTail = GdiPlusUtil::GetWindowRelativeRect(ddlContent.m_hWnd);
@@ -541,8 +549,8 @@ int TablePropertiesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	textFont = FT(L"form-text-size");
 	titleFont = FTB(L"properites-title-font", true);
 	sectionFont = FTB(L"properites-section-font", true);
-	headerBrush = ::CreateSolidBrush(headerBkgColor);
-	doubleRowBrush = ::CreateSolidBrush(doubleRowColor);
+	headerBrush.CreateSolidBrush(headerBkgColor);
+	doubleRowBrush.CreateSolidBrush(doubleRowColor);
 
 	// Init the scrollbar params 
 	HDC hdc  = ::GetDC(m_hWnd);
@@ -567,8 +575,8 @@ int TablePropertiesPage::OnDestroy()
 	if (textFont) ::DeleteObject(textFont);
 	if (titleFont) ::DeleteObject(titleFont);
 	if (sectionFont) ::DeleteObject(sectionFont);
-	if (headerBrush) ::DeleteObject(headerBrush);
-	if (doubleRowBrush) ::DeleteObject(doubleRowBrush);
+	if (!headerBrush.IsNull()) headerBrush.DeleteObject();
+	if (doubleRowBrush) doubleRowBrush.DeleteObject();
 	if (primaryIcon) ::DeleteObject(primaryIcon);
 
 
@@ -667,7 +675,7 @@ HBRUSH TablePropertiesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 		::SetBkColor(hdc, headerBkgColor);
 		::SelectObject(hdc, textFont);
 		::SetTextColor(hdc, headerTextColor);
-		brush = headerBrush;
+		brush = headerBrush.m_hBrush;
 	} else if (((nSelItem = inEditArray(hwnd, primaryKeyPtrs)) != -1 && nSelItem % 2 )
 		|| ((nSelItem = inEditArray(hwnd, columnNamePtrs)) != -1 && nSelItem % 2 )
 		|| ((nSelItem = inEditArray(hwnd, columnTypePtrs)) != -1 && nSelItem % 2 )
@@ -684,7 +692,7 @@ HBRUSH TablePropertiesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)
 		) {
 		::SetBkColor(hdc, doubleRowColor);
 		::SelectObject(hdc, textFont);
-		brush = doubleRowBrush;
+		brush = doubleRowBrush.m_hBrush;
 	} else {
 		::SetBkColor(hdc, bkgColor);
 		::SelectObject(hdc, textFont);

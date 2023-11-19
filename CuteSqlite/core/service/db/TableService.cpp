@@ -198,6 +198,18 @@ IndexInfoList TableService::getIndexInfoList(uint64_t userDbId, const std::wstri
 	std::wstring & createTblSql = userTable.sql;
 	IndexInfoList indexInfoList = SqlUtil::parseConstraints(createTblSql);
 
+	// parse create index ddl
+	UserIndexList userIndexList = getUserIndexes(userDbId, tblName, schema);
+	for (auto & userIndex : userIndexList) {
+		if (userIndex.sql.empty()) {
+			continue;
+		}
+		IndexInfo indexInfo = SqlUtil::parseCreateIndex(userIndex.sql);
+		if (indexInfo.type.empty() && indexInfo.columns.empty()) {
+			continue;
+		}
+		indexInfoList.push_back(indexInfo);
+	}
 	return indexInfoList;
 }
 

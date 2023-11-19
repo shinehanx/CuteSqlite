@@ -37,18 +37,18 @@ void QProcessBar::setColors(COLORREF bkgColor, COLORREF processColor)
 	this->bkgColor = bkgColor;
 	this->processColor = processColor;
 
-	if (bkgBrush) DeleteObject(bkgBrush);
-	if (processBrush) DeleteObject(processBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (!processBrush.IsNull()) processBrush.DeleteObject();
 
-	bkgBrush = ::CreateSolidBrush(bkgColor);
-	processBrush = ::CreateSolidBrush(processColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
+	processBrush.CreateSolidBrush(processColor);
 }
 
 LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	bkgBrush = ::CreateSolidBrush(bkgColor);
-	processBrush = ::CreateSolidBrush(processColor);
-	errorBrush = ::CreateSolidBrush(errorColor);
+	bkgBrush.CreateSolidBrush(bkgColor);
+	processBrush.CreateSolidBrush(processColor);
+	errorBrush.CreateSolidBrush(errorColor);
 	textFont = FT(L"process-text-size"); 
 	textPen.CreatePen(PS_SOLID, 1, textColor);
 
@@ -64,9 +64,9 @@ LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 
 LRESULT QProcessBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if (bkgBrush) ::DeleteObject(bkgBrush);
-	if (processBrush) ::DeleteObject(processBrush);
-	if (errorBrush) ::DeleteObject(errorBrush);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (!processBrush.IsNull()) processBrush.DeleteObject();
+	if (!errorBrush.IsNull()) errorBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
 	if (!textPen.IsNull()) textPen.DeleteObject();
 	return 0;
@@ -79,7 +79,7 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 
 	// »­±³¾°
 	CRect clientRect(pdc.m_ps.rcPaint);
-	mdc.FillRect(clientRect, bkgBrush);
+	mdc.FillRect(clientRect, bkgBrush.m_hBrush);
 
 	// »­½ø¶È
 	double perPixel = clientRect.Width() * 1.0 / 100.0;
@@ -87,9 +87,9 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	int x = clientRect.left, y = clientRect.top, w = pixel, h = clientRect.Height();
 	CRect rect(x, y, x + w, y + h);
 	if (err.empty()) {
-		mdc.FillRect(rect, processBrush);
+		mdc.FillRect(rect, processBrush.m_hBrush);
 	} else {
-		mdc.FillRect(rect, errorBrush);
+		mdc.FillRect(rect, errorBrush.m_hBrush);
 	}
 	
 

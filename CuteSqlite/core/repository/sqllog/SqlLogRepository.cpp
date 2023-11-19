@@ -191,15 +191,16 @@ int SqlLogRepository::removeByBiggerId(uint64_t id)
 }
 
 
-int SqlLogRepository::topById(uint64_t id)
+int SqlLogRepository::topById(uint64_t id, int topVal)
 {
 	if (id <= 0) {
 		return false;
 	}
 	//sql
-	std::wstring sql = L"UPDATE sql_log SET top=1 WHERE id=:id ";	
+	std::wstring sql = L"UPDATE sql_log SET top=:top WHERE id=:id ";	
 	try {
 		QSqlStatement query(getSysConnect(), sql.c_str());
+		query.bind(L":top", topVal);
 		query.bind(L":id", id);
 
 		query.exec();
@@ -209,6 +210,104 @@ int SqlLogRepository::topById(uint64_t id)
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
 		throw QRuntimeException(L"000039", L"sorry, system has error when top by id.");
+	}
+}
+
+SqlLogList SqlLogRepository::getPage(int page, int perPage)
+{
+	QPagePair pagePair({ page, perPage });
+	SqlLogList result;
+	std::wstring sql = L"SELECT * FROM sql_log ORDER BY id DESC";
+	std::wstring limit = limitClause(pagePair);
+	if (!limit.empty()) {
+		sql.append(limit);
+	} else {
+		sql.append(L" LIMIT ").append(std::to_wstring(LIMIT_MAX));
+	}
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+
+		while (query.executeStep()) {
+			SqlLog item = toSqlLog(query);
+			result.push_back(item);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
+	}
+}
+
+SqlLogList SqlLogRepository::getTopByKeyword(const std::wstring & keyword)
+{
+	SqlLogList result;
+	std::wstring sql = L"SELECT * FROM sql_log";
+	QCondition condition({ {L"keyword", keyword} , {L"top", L"1"} });
+
+	QKeywordIncludes keywordIncludes({L"sql"});
+	std::wstring whereClause = wherePrepareClause(condition, keywordIncludes, false);
+	if (!whereClause.empty()) {
+		sql.append(whereClause);
+	}
+	
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+		if (!whereClause.empty()) {
+			query.bind(L":top", condition.at(L"top"));
+			query.bind(L":low_keyword", L"%" + StringUtil::tolower(keyword) + L"%");
+			query.bind(L":up_keyword", L"%" + StringUtil::toupper(keyword) + L"%");
+		}
+
+		while (query.executeStep()) {
+			SqlLog item = toSqlLog(query);
+			result.push_back(item);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
+	}
+}
+
+
+SqlLogList SqlLogRepository::getPageByKeyword(const std::wstring & keyword, int page, int perPage)
+{
+	SqlLogList result;
+	std::wstring sql = L"SELECT * FROM sql_log";
+	QCondition condition({ {L"keyword", keyword} });
+
+	QKeywordIncludes keywordIncludes({L"sql"});
+	std::wstring whereClause = wherePrepareClause(condition, keywordIncludes, false);
+	if (!whereClause.empty()) {
+		sql.append(whereClause);
+	}
+	QPagePair pagePair({ page, perPage });
+	std::wstring limit = limitClause(pagePair);
+	if (!limit.empty()) {
+		sql.append(limit);
+	} else {
+		sql.append(L" LIMIT ").append(std::to_wstring(LIMIT_MAX));
+	}
+
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+		if (!whereClause.empty()) {
+			query.bind(L":low_keyword", L"%" + StringUtil::tolower(keyword) + L"%");
+			query.bind(L":up_keyword", L"%" + StringUtil::toupper(keyword) + L"%");
+		}
+		
+
+		while (query.executeStep()) {
+			SqlLog item = toSqlLog(query);
+			result.push_back(item);
+		}
+		return result;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
 	}
 }
 

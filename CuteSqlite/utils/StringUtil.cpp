@@ -518,6 +518,43 @@ std::wstring StringUtil::implode(const std::vector<std::wstring> & strVec, const
 }
 
 /**
+ *  add a character in front of every word and back of every word. the words is split by splitSymbol
+ *  such as "id,name,gender" => "'id','name','word'"
+ * 
+ * @param str - The words string ,such as "id,name,gender"
+ * @param splitSymbol - The split symbol , such as ","
+ * @param addSymbol - The symbol to add, such as "\"" , "'"
+ * @return string "'id','name','word'"
+ */
+std::wstring StringUtil::addSymbolToWords(const std::wstring & str, const std::wstring & splitSymbol, const std::wstring & addSymbol)
+{
+	if (str.empty() || splitSymbol.empty() || addSymbol.empty()) {
+		return str;
+	}
+	std::wstring newStr = str;
+	newStr.append(splitSymbol);
+	auto words = StringUtil::split(newStr, splitSymbol, true);
+	std::wstring result;
+	size_t n = words.size();
+	for (size_t i = 0; i < n; i++) {
+		auto word = words.at(i);
+		word = replace(word, addSymbol, L"");
+		if (word.empty()) {
+			continue;
+		}
+		if (!result.empty()) {
+			result.append(splitSymbol);
+		}
+
+		std::wstring newWorld = addSymbol;
+		newWorld.append(word).append(addSymbol);
+		result.append(newWorld);
+	}
+
+	return result;
+}
+
+/**
  * Remove leading and trailing whitespace.
  * 
  * @param inout_str

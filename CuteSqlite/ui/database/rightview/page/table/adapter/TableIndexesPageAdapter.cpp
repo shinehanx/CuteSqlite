@@ -218,6 +218,12 @@ LRESULT TableIndexesPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).columns;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createButton(iItem, pLvdi->item.iSubItem, L"...");
+	} else if (pLvdi->item.iSubItem == 4 && pLvdi->item.mask & LVIF_TEXT){ // unique
+		uint8_t val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).un;
+		dataView->createCheckBox(iItem, pLvdi->item.iSubItem, val);
+	} else if (pLvdi->item.iSubItem == 5 && pLvdi->item.mask & LVIF_TEXT){ // partial clause
+		std::wstring & val = supplier->getIdxRuntimeDatas().at(pLvdi->item.iItem).partialClause;	
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
 
 	return 0;
@@ -240,7 +246,12 @@ void TableIndexesPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, st
 		}
 	} else if (iSubItem == 3) { // index type 
 		runtimeDatas[iItem].type = newText;
-	} 
+	} else if (iSubItem == 4) { // index unique
+		runtimeDatas[iItem].un = newText.empty() ? 0 
+			: static_cast<uint8_t>(std::stoi(newText));
+	} else if (iSubItem == 5) { // partial clause
+		runtimeDatas[iItem].partialClause = newText; 
+	}
 
 }
 
@@ -354,6 +365,8 @@ std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 		return supplier->getIdxRuntimeDatas().at(iItem).columns;
 	} else if (iSubItem == 3) {
 		return supplier->getIdxRuntimeDatas().at(iItem).type;
+	} else if (iSubItem == 4) {
+		return supplier->getIdxRuntimeDatas().at(iItem).partialClause;
 	} 
 	return L"";
 }
@@ -376,10 +389,43 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 	} else if (clickItem->iSubItem == 3) {
 		dataView->showComboBox(clickItem->iItem, clickItem->iSubItem, TableStructureSupplier::idxTypeList, false);
 		return ;	
+	} else if (clickItem->iSubItem == 4) {
+		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
+		if (!changeListViewCheckBox(clickItem->iItem, clickItem->iSubItem)) {
+			return;
+		}
+		return ;
 	}
 
 	// show the editor
 	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+}
+
+/**
+ * Check/Uncheck the checkBox in ListView.
+ * 
+ * @param iItem
+ * @param iSubItem
+ * @return 
+ */
+bool TableIndexesPageAdapter::changeListViewCheckBox(int iItem, int iSubItem)
+{
+	bool isChecked = dataView->getCheckBoxIsChecked(iItem, iSubItem);
+	dataView->setCheckBoxIsChecked(iItem, iSubItem, !isChecked);
+	std::wstring origVal = std::to_wstring((int)isChecked);
+	std::wstring newVal = std::to_wstring((int)!isChecked);
+	changeRuntimeDatasItem(iItem, iSubItem, origVal, newVal);
+	invalidateSubItem(iItem, iSubItem);
+
+	refreshPreviewSql();
+	return true;
+}
+
+void TableIndexesPageAdapter::refreshPreviewSql()
+{
+	// send msg to TableStructurePage, class chain : TableIndexesPage($parentHwnd)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = ::GetParent(::GetParent(::GetParent(parentHwnd)));
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 }
 
 /**
@@ -388,21 +434,51 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
  * @param hasAutoIncrement
  * @return 
  */
-std::wstring TableIndexesPageAdapter::genderateCreateIndexesClause(bool hasAutoIncrement)
+std::wstring TableIndexesPageAdapter::generateConstraintsClause(bool hasAutoIncrement)
 {
 	std::wstring ss;
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	wchar_t blk[5] = { 0, 0, 0, 0, 0 };
 	wmemset(blk, 0x20, 4); // 4 blank chars
+
+	int useIdx = 0;
 	for (int i = 0; i < n; i++) {
-		if (i > 0) {
-			ss.append(L",").append(L"\n");
-		}
 		auto item = supplier->getIdxRuntimeDatas().at(i);
+		if (item.type == supplier->idxTypeList.at(3)) { // 3 - Index, ignore Index in create table ddl
+			continue;
+		}
+
+		if (useIdx > 0) {
+			ss.append(L",").append(L"\r\n");
+		}
 		ss.append(blk);
-		generateOneIndexSqlClause(item, ss, hasAutoIncrement);
+		generateOneConstraintClause(item, hasAutoIncrement, ss);
+		useIdx++;
 	}
 	return ss;
+}
+
+std::vector<std::wstring> TableIndexesPageAdapter::generateCreateIndexesDDL(const std::wstring & schema, const std::wstring & tblName)
+{
+	std::vector<std::wstring> result;
+	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
+	wchar_t blk[5] = { 0, 0, 0, 0, 0 };
+	wmemset(blk, 0x20, 4); // 4 blank chars
+
+	int useIdx = 0;
+	for (int i = 0; i < n; i++) {
+		auto item = supplier->getIdxRuntimeDatas().at(i);
+		if (item.type != supplier->idxTypeList.at(3)) { // 3 - Index, ignore other constraints
+			continue;
+		}
+		std::wstring ss;
+		generateOneCreateIndexDDL(item, schema, tblName, ss);
+		if (!ss.empty()) {
+			result.push_back(ss);
+		}
+	}
+	
+	return result;
 }
 
 /**
@@ -412,7 +488,7 @@ std::wstring TableIndexesPageAdapter::genderateCreateIndexesClause(bool hasAutoI
  * @param ss
  * @param hasAutoIncrement
  */
-void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::wstring &ss, bool hasAutoIncrement)
+void TableIndexesPageAdapter::generateOneConstraintClause(const IndexInfo &item, bool hasAutoIncrement, std::wstring &ss)
 {
 	if (!item.name.empty()) {
 		ss.append(L"CONSTRAINT \"").append(item.name).append(L"\"").append(L" ");
@@ -421,7 +497,8 @@ void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::ws
 		ss.append(StringUtil::toupper(item.type)).append(L"(");
 	}
 	if (!item.columns.empty()) {
-		ss.append(item.columns);
+		std::wstring columns = StringUtil::addSymbolToWords(item.columns, L",", L"\"");
+		ss.append(columns);
 	}
 
 	if (hasAutoIncrement && item.type == TableStructureSupplier::idxTypeList[1]) {// idxTypeList[1] - Primary key
@@ -431,6 +508,37 @@ void TableIndexesPageAdapter::generateOneIndexSqlClause(IndexInfo &item, std::ws
 	if (!item.type.empty()) {
 		ss.append(L")");
 	}
+
+	if (!item.partialClause.empty()) {
+		ss.append(L" ").append(item.partialClause);
+	}
+}
+
+
+void TableIndexesPageAdapter::generateOneCreateIndexDDL(const IndexInfo &item, const std::wstring & schema, const std::wstring &tblName, std::wstring &ss)
+{
+	const wchar_t * blk = L" ";
+	const wchar_t * cma = L"\"";
+	const wchar_t * cmb = L"(";
+	const wchar_t * cmc = L")";
+	ss.append(L"CREATE ");
+	if (item.un) {
+		ss.append(L"UNIQUE ");
+	}
+	ss.append(L"INDEX IF NOT EXISTS ");
+	if (!schema.empty() && schema != L"main") {
+		ss.append(schema).append(L".");
+	}
+	std::wstring columns = StringUtil::addSymbolToWords(item.columns, L",", L"\"");
+
+	ss.append(cma).append(item.name).append(cma)
+		.append(L" ON ").append(cma).append(tblName).append(cma)
+		.append(blk).append(cmb).append(columns).append(cmc);
+
+	if (!item.partialClause.empty()) {
+		ss.append(blk).append(item.partialClause);
+	}
+	ss.append(L";");
 }
 
 /**
