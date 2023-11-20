@@ -25,6 +25,7 @@
 #include "core/common/repository/QSqlStatement.h"
 #include "ui/common/listview/QListViewCtrl.h"
 #include "ui/database/rightview/page/supplier/TableStructureSupplier.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
 
 #define NEW_TBL_EMPTY_INDEX_SIZE 6
 
@@ -40,9 +41,9 @@ public:
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
-	// create/copy a new column row operation
+	// create a new index row operation
 	void createNewIndex();
-	// delete a column row operation
+	// delete a index row operation
 	bool deleteSelIndexes(bool confirm=true);
 	std::wstring getSubItemString(int iItem, int iSubItem);
 	void changeColumnText(int iItem, int iSubItem, const std::wstring & text);
@@ -55,8 +56,10 @@ public:
 	TableStructureSupplier * getSupplier() { return supplier; }
 
 	bool verifyIfDuplicatedPrimaryKey(int iItem);
+	void selectListViewItemForManage();
 private:
 	TableStructureSupplier * supplier = nullptr;
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 

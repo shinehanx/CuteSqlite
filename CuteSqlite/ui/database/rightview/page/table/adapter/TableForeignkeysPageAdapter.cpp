@@ -223,6 +223,10 @@ LRESULT TableForeignkeysPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pL
 		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).onDelete;	
 		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 		dataView->createComboBox(iItem, pLvdi->item.iSubItem, val);
+	} else  if (pLvdi->item.iSubItem == 7 && pLvdi->item.mask & LVIF_TEXT) { // name
+		std::wstring & val = supplier->getFrkRuntimeDatas().at(pLvdi->item.iItem).partialClause;
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
+		return 0;
 	}
 
 	return 0;
@@ -245,6 +249,8 @@ void TableForeignkeysPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem
 		runtimeDatas[iItem].onUpdate = newText;
 	} else if (iSubItem == 6) { // on delete
 		runtimeDatas[iItem].onDelete = newText;
+	} else if (iSubItem == 7) { // partial clause
+		runtimeDatas[iItem].partialClause = newText; 
 	}
 
 }
@@ -256,7 +262,7 @@ void TableForeignkeysPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 	dataView->InvalidateRect(subItemRect, false);
 }
 
-void TableForeignkeysPageAdapter::createNewIndex()
+void TableForeignkeysPageAdapter::createNewForeignKey()
 {
 	// 1.create a empty row and push it to runtimeDatas list
 	ForeignKey row;
@@ -363,6 +369,8 @@ std::wstring TableForeignkeysPageAdapter::getSubItemString(int iItem, int iSubIt
 		return supplier->getFrkRuntimeDatas().at(iItem).onUpdate;
 	} else if (iSubItem == 6) {
 		return supplier->getFrkRuntimeDatas().at(iItem).onDelete;
+	} else if (iSubItem == 7) {
+		return supplier->getFrkRuntimeDatas().at(iItem).partialClause;
 	}
 	return L"";
 }
@@ -377,9 +385,7 @@ void TableForeignkeysPageAdapter::changeColumnText(int iItem, int iSubItem, cons
 
 void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
-	if (clickItem->iSubItem == 0) { // 0 - row checkBox
-		return ;
-	} else if (clickItem->iSubItem == 2 || clickItem->iSubItem == 4) { // 2 - columns, 4 - referenced columns
+	if (clickItem->iSubItem == 2 || clickItem->iSubItem == 4) { // 2 - columns, 4 - referenced columns
 		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 		return ;
 	} else if (clickItem->iSubItem == 3) { // 3 - a
@@ -401,8 +407,19 @@ void TableForeignkeysPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickIte
 		return ;
 	}
 
-	// show the editor
-	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	if (clickItem->iSubItem > 0) {
+		// show the editor
+		dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	}
+
+	// Clicked the next row of bottom item , will insert a new index row
+	CPoint pt = clickItem->ptAction;
+	CRect lastRowRect;
+	dataView->GetItemRect(dataView->GetItemCount() - 1, lastRowRect, LVIR_BOUNDS);
+	lastRowRect.OffsetRect(0, lastRowRect.Height());
+	if (lastRowRect.PtInRect(pt)) {
+		createNewForeignKey();
+	}
 }
 
 /**
@@ -417,13 +434,18 @@ std::wstring TableForeignkeysPageAdapter::generateCreateForeignKeyClause()
 	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	wchar_t blk[5] = { 0, 0, 0, 0, 0 };
 	wmemset(blk, 0x20, 4); // 4 blank chars
+	int useFrk = 0;
 	for (int i = 0; i < n; i++) {
-		if (i > 0) {
+		auto item = supplier->getFrkRuntimeDatas().at(i);
+		if (item.name.empty() && item.columns.empty()) {
+			continue;
+		}
+		if (useFrk > 0) {
 			ss.append(L",").append(L"\n");
 		}
-		auto item = supplier->getFrkRuntimeDatas().at(i);
 		ss.append(blk);
 		generateOneForeignKeyClause(item, ss);
+		useFrk++;
 	}
 	return ss;
 }

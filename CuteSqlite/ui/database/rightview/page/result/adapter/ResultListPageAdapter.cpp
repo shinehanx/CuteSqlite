@@ -201,7 +201,7 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 	while (query.executeStep()) {
 		RowItem rowItem;
 		for (int i = 0; i < cols - 1; i++) {
-			std::wstring columnVal = query.getColumn(i).isNull() ? L"" : query.getColumn(i).getText();
+			std::wstring columnVal = query.getColumn(i).isNull() ? L"< NULL >" : query.getColumn(i).getText();
 			rowItem.push_back(columnVal);
 		}
 		runtimeDatas.push_back(rowItem);
@@ -585,7 +585,12 @@ void ResultListPageAdapter::copyAllRowsAsSql()
 				valuesStmt <<  L", ";
 			}
 			columnStmt << L"\"" << column << "\"";
-			valuesStmt << L"'" << val <<  L"'";
+			if (val == L"< AUTO >" || val == L"< NULL >") {
+				valuesStmt << L"NULL";
+			} else {
+				valuesStmt << L"'" << val <<  L"'";
+			}
+			
 			i++;
 		}
 		columnStmt <<  L')';
@@ -692,7 +697,7 @@ void ResultListPageAdapter::createNewRow()
 	for (int i = 0; i < n; i++) {
 		auto colum = runtimeColumns.at(i);
 		if (colum == primaryKey) {
-			row.push_back(L"(Auto)");
+			row.push_back(L"< AUTO >");
 		}else {
 			row.push_back(std::wstring());
 		}
@@ -722,7 +727,7 @@ void ResultListPageAdapter::copyNewRow()
 	}
 	auto primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
 	if (primaryKey == runtimeColumns.at(0)) {
-		row[0] = L"(Auto)";
+		row[0] = L"< AUTO >";
 	}
 	runtimeDatas.push_back(row);
 	int n = static_cast<int>(runtimeDatas.size());
@@ -858,11 +863,11 @@ bool ResultListPageAdapter::saveNewRows()
 			stmt.exec();
 		}  catch (SQLite::QSqlException &ex) {
 			errorNewRows.push_back(nItem);
-			std::wstring _err(L"Error:\r\n");
-			_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlInsert);
-			Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
-			QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
+			Q_ERROR(L"query db has error, code:{}, msg:{}, sql:{}", ex.getErrorCode(), sqlInsert);
+			dataView->SelectItem(nItem);
 			dataView->createOrShowEditor(nItem, 1);
+			QSqlExecuteException ex2(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sqlInsert);
+			QPopAnimate::report(ex2);			
 		}
 	}
 

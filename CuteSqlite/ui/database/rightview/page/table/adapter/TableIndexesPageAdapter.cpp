@@ -366,6 +366,8 @@ std::wstring TableIndexesPageAdapter::getSubItemString(int iItem, int iSubItem)
 	} else if (iSubItem == 3) {
 		return supplier->getIdxRuntimeDatas().at(iItem).type;
 	} else if (iSubItem == 4) {
+		return std::to_wstring(supplier->getIdxRuntimeDatas().at(iItem).un);
+	} else if (iSubItem == 5) {
 		return supplier->getIdxRuntimeDatas().at(iItem).partialClause;
 	} 
 	return L"";
@@ -381,9 +383,7 @@ void TableIndexesPageAdapter::changeColumnText(int iItem, int iSubItem, const st
 
 void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 {
-	if (clickItem->iSubItem == 0) { // 0 - row checkBox
-		return ;
-	} else if (clickItem->iSubItem == 2) { // button
+	if (clickItem->iSubItem == 2) { // button
 		dataView->activeSubItem(clickItem->iItem, clickItem->iSubItem);
 		return ;
 	} else if (clickItem->iSubItem == 3) {
@@ -397,8 +397,19 @@ void TableIndexesPageAdapter::clickListViewSubItem(NMITEMACTIVATE * clickItem)
 		return ;
 	}
 
-	// show the editor
-	dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	if (clickItem->iSubItem > 0) {
+		// show the editor
+		dataView->createOrShowEditor(clickItem->iItem, clickItem->iSubItem);
+	}
+	
+	// Clicked the next row of bottom item , will insert a new index row
+	CPoint pt = clickItem->ptAction;
+	CRect lastRowRect;
+	dataView->GetItemRect(dataView->GetItemCount() - 1, lastRowRect, LVIR_BOUNDS);
+	lastRowRect.OffsetRect(0, lastRowRect.Height());
+	if (lastRowRect.PtInRect(pt)) {
+		createNewIndex();
+	}
 }
 
 /**
@@ -444,7 +455,8 @@ std::wstring TableIndexesPageAdapter::generateConstraintsClause(bool hasAutoIncr
 	int useIdx = 0;
 	for (int i = 0; i < n; i++) {
 		auto item = supplier->getIdxRuntimeDatas().at(i);
-		if (item.type == supplier->idxTypeList.at(3)) { // 3 - Index, ignore Index in create table ddl
+		if ((item.type.empty() && item.columns.empty() && item.name.empty()) 
+			|| item.type == supplier->idxTypeList.at(3)) { // 3 - Index, ignore Index in create table ddl
 			continue;
 		}
 
@@ -525,18 +537,22 @@ void TableIndexesPageAdapter::generateOneCreateIndexDDL(const IndexInfo &item, c
 	if (item.un) {
 		ss.append(L"UNIQUE ");
 	}
-	ss.append(L"INDEX IF NOT EXISTS ");
+	ss.append(L"INDEX IF NOT EXISTS ");	
 	if (!schema.empty() && schema != L"main") {
 		ss.append(schema).append(L".");
+	}		
+	ss.append(cma).append(item.name).append(cma).append(blk);
+	
+
+	ss.append(L"ON ").append(cma).append(tblName).append(cma).append(blk);
+
+	if (!item.columns.empty()) {
+		std::wstring columns = StringUtil::addSymbolToWords(item.columns, L",", L"\"");
+		ss.append(cmb).append(columns).append(cmc).append(blk);
 	}
-	std::wstring columns = StringUtil::addSymbolToWords(item.columns, L",", L"\"");
-
-	ss.append(cma).append(item.name).append(cma)
-		.append(L" ON ").append(cma).append(tblName).append(cma)
-		.append(blk).append(cmb).append(columns).append(cmc);
-
+	
 	if (!item.partialClause.empty()) {
-		ss.append(blk).append(item.partialClause);
+		ss.append(item.partialClause);
 	}
 	ss.append(L";");
 }
@@ -562,5 +578,26 @@ bool TableIndexesPageAdapter::verifyIfDuplicatedPrimaryKey(int iItem)
 	}
 
 	return true;
+}
+
+void TableIndexesPageAdapter::selectListViewItemForManage()
+{
+	auto & idxRuntimeDatas = supplier->getIdxRuntimeDatas();
+	int n = static_cast<int>(idxRuntimeDatas.size());
+	// check if send the message of delete columns from LeftTreeView, then select the associated row from this list view
+	if (n > 0 && !databaseSupplier->selectedIndexName.empty() 
+		&& supplier->getRuntimeUserDbId() == databaseSupplier->getSelectedUserDbId()
+		&& supplier->getRuntimeTblName() == databaseSupplier->selectedTable) {
+		int i = 0;
+		for (int i = 0; i < n; i++) {
+			auto & item = idxRuntimeDatas.at(i);
+			std::wstring name = !item.name.empty() ? item.name
+				: item.type + L"(" + item.columns + L")";
+			if (name == databaseSupplier->selectedIndexName) {
+				dataView->SelectItem(i);
+				break;
+			}
+		}		
+	}
 }
 

@@ -53,15 +53,7 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_DOWN) // press down on subItemComboBox  
 		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_DOWN) ) { // press down on ListView  		
 		return pressedDownToMoveEditor();
-	} else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) // press left on subItemEdit  
-		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) // press left on subItemComboBox  
-		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_LEFT) ) { // press left on ListView  		
-		pressedShiftTabToMoveEditor();	// left == shift + tab	
-	}else if ( (hwnd == subItemEdit.m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) // press right on subItemEdit  
-		|| (hwnd == subItemComboBox.m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) // press right on subItemComboBox  
-		|| (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_RIGHT) ) { // press right on ListView  		
-		pressedTabToMoveEditor();	// left == shift + tab	
-	}  else if (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_SPACE) { // press space on ListView  
+	} else if (hwnd == m_hWnd && msg == WM_KEYDOWN && key == VK_SPACE) { // press space on ListView  
 		pressedSpaceToCheckbox();
 	} else if (hwnd == m_hWnd && msg == WM_MOUSEWHEEL) { // mouse wheel
 		changeSubItemText();
@@ -1528,7 +1520,16 @@ void QListViewCtrl::drawTextInSubItem(CDC & mdc, int iItem, int iSubItem,  CRect
 		rect.top += (rect.Height() - lpSize.cy) / 2;
 		UINT uFormat = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS;
 		rect.left += leftMargin;
+		bool isNullText = text == L"< NULL >" || text == L"< AUTO >";
+		COLORREF oldTextColor = mdc.GetTextColor();
+		if (isNullText) {
+			mdc.SetTextColor(nullTextColor);
+		}
+
 		DrawText(mdc, text.c_str(), strLen, rect, uFormat);
+		if (isNullText) {
+			mdc.SetTextColor(oldTextColor);
+		}
 	}
 }
 

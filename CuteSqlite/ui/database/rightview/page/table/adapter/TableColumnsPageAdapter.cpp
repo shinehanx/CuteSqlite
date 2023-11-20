@@ -794,7 +794,7 @@ bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstrin
 }
 
 
-void TableColumnsPageAdapter::selectListViewItemForDelete()
+void TableColumnsPageAdapter::selectListViewItemForManage()
 {
 	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
 	int n = static_cast<int>(colsRuntimeDatas.size());

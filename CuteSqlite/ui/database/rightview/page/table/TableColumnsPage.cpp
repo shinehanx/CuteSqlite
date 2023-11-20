@@ -127,12 +127,12 @@ void TableColumnsPage::loadWindow()
 	QPage::loadWindow();
 
 	if (!isNeedReload) {
-		adapter->selectListViewItemForDelete();
+		adapter->selectListViewItemForManage();
 		return;
 	}
-	isNeedReload = false;	
+	isNeedReload = false;
 	loadListView();
-	adapter->selectListViewItemForDelete();
+	adapter->selectListViewItemForManage();
 }
 
 void TableColumnsPage::loadListView()

@@ -434,7 +434,7 @@ std::vector<std::wstring> ImportFromCsvAdapter::splitLineAndConvertStringByCsvSe
 
 			if (!supplier->csvNullAsKeyword.empty() && supplier->csvNullAsKeyword == L"YES") {
 				if (s == L"NULL" || s == L"null") {
-					s = L"[ NULL ]";
+					s = L"< NULL >";
 				}
 			}
 
@@ -490,7 +490,7 @@ std::list<std::wstring> ImportFromCsvAdapter::getRuntimeSqlList()
 			}
 			
 			fieldClause.append(L"\"").append(columnName).append(L"\"");
-			val == L"[ NULL ]" ?  valuesClause.append(L"NULL") 
+			val == L"< NULL >" ?  valuesClause.append(L"NULL") 
 				: valuesClause.append(L"'").append(StringUtil::escapeSql(val)).append(L"'");
 		}
 

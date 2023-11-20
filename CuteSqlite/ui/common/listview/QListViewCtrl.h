@@ -133,6 +133,7 @@ private:
 	COLORREF chkColor = RGB(0, 0, 0);
 	COLORREF btnDownColor = RGB(0, 0, 0);
 	COLORREF btnColor = RGB(238, 238, 238);
+	COLORREF nullTextColor = RGB(128, 128, 128);
 	COLORREF doubleLineColor = RGB(245, 245, 245);
 	CBrush bkgBrush;
 	CBrush btnBrush;	
@@ -140,7 +141,7 @@ private:
 	CBrush chkBrush;
 	CBrush selSubItemBorderBrush;
 	CBrush doubleLineBrush;
-	HFONT textFont = nullptr;	
+	HFONT textFont = nullptr;
 	HFONT comboFont = nullptr;
 	HFONT normalFont = nullptr;
 	CPen borderPen;

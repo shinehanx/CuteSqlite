@@ -396,7 +396,7 @@ std::wstring SqlUtil::makeInsertValuesClause(RowItem & rowItem)
 		if (i > 0) {
 			valuesClause.append(L", ");
 		}
-		if (val == L"(Auto)" || val == L"(NULL)") {
+		if (val == L"< AUTO >" || val == L"< NULL >") {
 			valuesClause.append(L"NULL");
 		} else {
 			valuesClause.append(L"'").append(val).append(L"'");
@@ -1121,10 +1121,10 @@ std::wstring SqlUtil::getPartialClauseFromForeignKeyLine(const std::wstring& lin
 		return partialClause;
 	}
 
-	size_t notDefferPos = line.find(L"NOT DEFERRABLE");
+	size_t notDefferPos = upline.find(L"NOT DEFERRABLE");
 	size_t fromPos = -1;
 	if (notDefferPos == std::wstring::npos) {
-		size_t defferPos = line.find(L"DEFERRABLE");
+		size_t defferPos = upline.find(L"DEFERRABLE");
 		if (defferPos == std::wstring::npos) {
 			return partialClause;
 		}

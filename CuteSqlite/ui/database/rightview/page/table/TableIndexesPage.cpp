@@ -107,10 +107,12 @@ void TableIndexesPage::loadWindow()
 	QPage::loadWindow();
 
 	if (!isNeedReload) {
+		adapter->selectListViewItemForManage();
 		return;
 	}
 	isNeedReload = false;	
 	loadListView();
+	adapter->selectListViewItemForManage();
 }
 
 void TableIndexesPage::loadListView()

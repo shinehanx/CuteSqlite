@@ -306,7 +306,7 @@ LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wP
 
 LRESULT TableForeignkeysPage::OnClickNewForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->createNewIndex();
+	adapter->createNewForeignKey();
 	
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;

@@ -33,7 +33,7 @@ const std::vector<int> TableStructureSupplier::idxHeadFormats = { LVCFMT_LEFT, L
 const std::vector<std::wstring> TableStructureSupplier::idxTypeList = {L"Unique", L"Primary Key",  L"Check", L"Index"};
 
 const Columns TableStructureSupplier::frkHeadColumns = { S(L"foreignkey-name"), S(L"referencing-columns"), S(L"referenced-table"), S(L"referenced-columns"), S(L"on-update"), S(L"on-delete"), S(L"partial-clause")};
-const std::vector<int> TableStructureSupplier::frkHeadSizes = { 150, 150, 150, 150, 100, 100, 150};
+const std::vector<int> TableStructureSupplier::frkHeadSizes = { 150, 150, 150, 150, 150, 150, 150};
 const std::vector<int> TableStructureSupplier::frkHeadFormats = { LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT, LVCFMT_LEFT};
 const std::vector<std::wstring> TableStructureSupplier::frkOnUpdateTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"};
 const std::vector<std::wstring> TableStructureSupplier::frkOnDeleteTypeList = {L"SET NULL", L"SET DEFAULT",  L"CASCADE", L"RESTRICT"}; 
@@ -151,10 +151,13 @@ void TableStructureSupplier::updateRelatedColumnsIfChangeIndex(const IndexInfo &
 	}
 	auto columns = StringUtil::split(changeIndexInfo.columns, L",");
 
-	int n = static_cast<int>(colsRuntimeDatas.size());
-	for (int i = 0; i < n; i++) {
-		ColumnInfo &columnInfo = colsRuntimeDatas.at(i);
-		ColumnInfo &origInfo = colsOrigDatas.at(i);		
+	size_t n = colsRuntimeDatas.size();
+	for (size_t i = 0; i < n; i++) {
+		ColumnInfo &columnInfo = colsRuntimeDatas[i];
+		if (colsOrigDatas.size() < i + 1) {
+			colsOrigDatas.push_back(columnInfo);
+		}
+		ColumnInfo &origInfo = colsOrigDatas[i];		
 		
 		auto iter = std::find_if(columns.begin(), columns.end(), [&columnInfo](std::wstring &column) {
 			return columnInfo.name == column;

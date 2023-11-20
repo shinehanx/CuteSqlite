@@ -40,8 +40,8 @@ public:
 	void changeRuntimeDatasItem(int iItem, int iSubItem, std::wstring & origText, const std::wstring & newText);
 	void invalidateSubItem(int iItem, int iSubItem);
 
-	// create/copy a new column row operation
-	void createNewIndex();
+	// create a new foreign row operation
+	void createNewForeignKey();
 	// delete a column row operation
 	bool deleteSelForeignKeys(bool confirm=true);
 	std::wstring getSubItemString(int iItem, int iSubItem);
