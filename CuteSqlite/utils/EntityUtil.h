@@ -24,4 +24,7 @@ class EntityUtil {
 public:
 	static IndexInfo copy(const IndexInfo & item);
 	static ResultInfo copy(const ResultInfo & item);
+	static bool compare(const ColumnInfo & item1, const ColumnInfo & item2);
+	static bool compare(const IndexInfo & item1, const IndexInfo & item2);
+	static bool compare(const ForeignKey & item1, const ForeignKey & item2);
 };

@@ -22,20 +22,8 @@
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "utils/SavePointUtil.h"
-#include <common/AppContext.h>
-#include <utils/SqlUtil.h>
-
-// special characters for sql statement
-wchar_t * quo = L"\"";
-wchar_t * qua = L"'";
-wchar_t * blk = L" ";
-wchar_t * cma = L",";
-wchar_t * cmb = L"(";
-wchar_t * cme = L")";
-wchar_t * eq = L"=";
-wchar_t * edl = L";";
-wchar_t * brk = L"\n";
-wchar_t * nil = L"NULL";
+#include "common/AppContext.h"
+#include "utils/SqlUtil.h"
 
 CopyTableAdapter::CopyTableAdapter(HWND parentHwnd, CopyTableSupplier * supplier)
 {
@@ -172,8 +160,7 @@ bool CopyTableAdapter::doExecSqlsInSameDb()
 	AppContext * appContext = AppContext::getInstance();
 	int percent = 0;
 
-	std::wstring savePoint = SavePointUtil::create(L"copy_table");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	std::wstring sql = L"BEGIN;";
 	tableService->execBySql(targetUserDbId, sql);
 
 	try {
@@ -192,19 +179,19 @@ bool CopyTableAdapter::doExecSqlsInSameDb()
 		}
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 1, 100);
 
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE \"" + savePoint + L"\";";
+		// 4.COMMIT TRANSACTION
+		sql = L"COMMIT;";
 		tableService->execBySql(targetUserDbId, sql);
 		return true;
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 2, NULL);
 		return false;
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 2, NULL);
 		return false;
@@ -309,8 +296,7 @@ bool CopyTableAdapter::doExecSqlsInOtherDb()
 	uint64_t targetUserDbId = supplier->getTargetUserDbId();
 	int percent = 0;
 
-	std::wstring savePoint = SavePointUtil::create(L"copy_table");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	std::wstring sql = L"BEGIN;";
 	tableService->execBySql(targetUserDbId, sql);
 
 	try {
@@ -334,22 +320,22 @@ bool CopyTableAdapter::doExecSqlsInOtherDb()
 			::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 0, percent);
 		}
 		
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE \"" + savePoint + L"\";";
+		// 4.COMMIT TRANSACTION
+		sql = L"COMMIT;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 1, 100);
 		return true;
 	}
 	catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 2, NULL);
 		return false;
 	}
 	catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_COPY_TABLE_PROCESS_ID, 2, NULL);
 		return false;
@@ -442,8 +428,7 @@ void CopyTableAdapter::doLoadTargetTableSqlToEditorForOtherDb(QHelpEdit * editor
 	uint64_t targetUserDbId = supplier->getTargetUserDbId();
 	int percent = 0;
 
-	std::wstring savePoint = SavePointUtil::create(L"copy_table");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";\n";
+	std::wstring sql = L"BEGIN;\n";
 	editorPtr->addText(sql);
 
 	try {
@@ -461,8 +446,8 @@ void CopyTableAdapter::doLoadTargetTableSqlToEditorForOtherDb(QHelpEdit * editor
 			doAppendCopyDataSqlToEditor(editorPtr, tblItem.first, tblItem.second);			
 		}
 		
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE \"" + savePoint + L"\";\n";
+		// 4.COMMIT TRANSACTION
+		sql = L"COMMIT;\n";
 		editorPtr->addText(sql);
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);

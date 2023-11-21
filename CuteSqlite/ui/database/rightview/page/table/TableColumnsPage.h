@@ -58,6 +58,7 @@ public:
 	void setup(TableStructureSupplier * supplier);
 
 	TableColumnsPageAdapter * getAdapter();
+	void refreshDirtyAfterSave();
 private:
 	bool isNeedReload = true;
 	int rowCount = 0;
@@ -87,6 +88,7 @@ private:
 	virtual void loadWindow();
 	void loadListView();
 
+	void enableDataDirty();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();

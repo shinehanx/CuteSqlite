@@ -54,6 +54,8 @@ public:
 	TableStructureSupplier * getSupplier() { return supplier; }
 
 	bool verifyIfDuplicatedPrimaryKey(int iItem);
+
+	bool isDirty();
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();

@@ -47,6 +47,14 @@ TableForeignkeysPageAdapter * TableForeignkeysPage::getAdapter()
 	return adapter;
 }
 
+
+void TableForeignkeysPage::refreshDirtyAfterSave()
+{
+	listView.clearChangeVals();
+	supplier->setFrkOrigDatas(supplier->getFrkRuntimeDatas());
+	enableDataDirty();
+}
+
 void TableForeignkeysPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
@@ -122,6 +130,19 @@ void TableForeignkeysPage::loadListView()
 	std::wstring tblName = supplier->getRuntimeTblName();
 	std::wstring schema = supplier->getRuntimeSchema();
 	rowCount = adapter->loadTblForeignkeysListView(userDbId, tblName, schema);
+}
+
+
+void TableForeignkeysPage::enableDataDirty()
+{
+	bool isDirty = adapter ? adapter->isDirty() : false;
+	// class chain : TableForeignkeysPage(this) -> QTabView -> TableTabView
+	HWND pHwnd = GetParent().GetParent().m_hWnd; // TableTabView
+	::PostMessage(pHwnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+
+	// class chain : TableForeignkeysPage(this) -> QTabView -> TableTabView -> TableStructurePage -> QTabView(tabView) -> RightWorkView
+	HWND pHwnd2 = GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
+	::PostMessage(pHwnd2, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
 }
 
 int TableForeignkeysPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -217,6 +238,7 @@ LRESULT TableForeignkeysPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bH
 	}
 	adapter->clickListViewSubItem(clickItem);
 	listView.changeAllItemsCheckState();
+	enableDataDirty();
 	return 0;
 }
 
@@ -281,6 +303,7 @@ LRESULT TableForeignkeysPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPar
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -301,6 +324,7 @@ LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wP
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -311,6 +335,7 @@ LRESULT TableForeignkeysPage::OnClickNewForeignkeyButton(UINT uNotifyCode, int n
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -320,5 +345,6 @@ LRESULT TableForeignkeysPage::OnClickDelForeignkeyButton(UINT uNotifyCode, int n
 	// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }

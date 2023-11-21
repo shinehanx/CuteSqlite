@@ -439,6 +439,14 @@ bool ResultListPage::isShowFormView()
 	return showFormView == L"true" ? true : false;
 }
 
+void ResultListPage::clearFormView()
+{
+	bool checkedFormView = isShowFormView();
+ 	if (checkedFormView && listView.GetSelectedCount() == 0) {
+ 		formView.clearLabelsAndEdits();
+ 	}
+}
+
 /**
  * change the filter button image to red icon.
  * 
@@ -510,10 +518,10 @@ int ResultListPage::OnDestroy()
 LRESULT ResultListPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto ptr = (LPNMITEMACTIVATE)pnmh;
-	bool checkedFormView = isShowFormView();
-	if (checkedFormView) {
-		formView.loadFormData(formViewReadOnly);
-	}
+// 	bool checkedFormView = isShowFormView();
+// 	if (checkedFormView) {
+// 		formView.loadFormData(formViewReadOnly);
+// 	}
 	
 	listView.changeAllItemsCheckState();
 	return 0;
@@ -608,20 +616,14 @@ LRESULT ResultListPage::OnListViewItemChange(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 
 	if(pnmListView->uChanged == LVIF_STATE) {
 		if(pnmListView->uNewState) {
-			int nIndex = pnmListView->iItem;
-			int nSubIndex = pnmListView->iSubItem;
-			LVITEM item;
-			item.iItem = nIndex;
-			item.iSubItem = nSubIndex;
-			listView.GetItem(&item);
-			// todo...
+			bool checkedFormView = isShowFormView();
+ 			if (checkedFormView) {
+ 				formView.loadFormData(formViewReadOnly);
+ 			}
 		}
     }
 	
-	bool checkedFormView = isShowFormView();
-	if (checkedFormView) {
-		formView.loadFormData(formViewReadOnly);
-	}
+ 	
 	
 	return 0;
 }
@@ -734,6 +736,7 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 	bool hasRedIcon = !adapter->isRuntimeFiltersEmpty();
 	// change the filterButton to red
 	changeFilterButtonStatus(hasRedIcon);
+	clearFormView();
 }
 
 void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -751,6 +754,7 @@ void ResultListPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 	// display status bar panels 
 	displayStatusBarPanels(resultInfo);
+	clearFormView();
 }
 
 HBRUSH ResultListPage::OnCtlColorStatic(HDC hdc, HWND hwnd)

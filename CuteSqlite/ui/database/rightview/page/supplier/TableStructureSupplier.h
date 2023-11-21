@@ -54,19 +54,24 @@ public:
 	ColumnInfo & getColsRuntimeData(int nSelItem);
 	void eraseColsRuntimeData(int nSelItem);
 
-	ColumnInfoList & getColsOrigDatas() { return colsOrigDatas; }
-	void setColsOrigDatas(ColumnInfoList val) { colsOrigDatas = val; }
-	void eraseColsOrigData(int nSelItem);
-
 	IndexInfoList & getIdxRuntimeDatas() { return idxRuntimeDatas; }
 	void setIdxRuntimeDatas(IndexInfoList & val) { idxRuntimeDatas = val; }
 	IndexInfo & getIdxRuntimeData(int nSelItem);
 	void eraseIdxRuntimeData(int nSelItem);
 
 	ForeignKeyList & getFrkRuntimeDatas() { return frkRuntimeDatas; }
-	void setFrkRuntimeDatas(ForeignKeyList & val) { frkRuntimeDatas = val; }
+	void setFrkRuntimeDatas(const ForeignKeyList & val) { frkRuntimeDatas = val; }
 	ForeignKey & getFrkRuntimeData(int nSelItem);
 	void eraseFrkRuntimeData(int nSelItem);
+
+	ColumnInfoList & getColsOrigDatas() { return colsOrigDatas; }
+	void setColsOrigDatas(const ColumnInfoList val) { colsOrigDatas = val; }
+	void eraseColsOrigData(int nSelItem);
+
+	const IndexInfoList & getIdxOrigDatas() const { return idxOrigDatas; }
+	void setIdxOrigDatas(const IndexInfoList & val) { idxOrigDatas = val; }
+	const ForeignKeyList & getFrkOrigDatas() const { return frkOrigDatas; }
+	void setFrkOrigDatas(const ForeignKeyList & val) { frkOrigDatas = val; }
 
 	// update related columns
 	void updateRelatedColumnsIfDeleteIndex(const IndexInfo &indexInfo);	
@@ -75,6 +80,14 @@ public:
 	
 	TableStructurePageType getActivePageType() const { return activePageType; }
 	void setActivePageType(TableStructurePageType val) { activePageType = val; }
+
+	// compare data(s)
+	bool compareDatas();
+	bool compareColsDatas();
+	bool compareIdxDatas();
+	bool compareFrkDatas();
+
+	
 private:
 	TableStructurePageType activePageType = TABLE_COLUMNS_PAGE;
 	// store the runtime data of the table column info(s)
@@ -89,7 +102,10 @@ private:
 	std::wstring origTblName;
 	// store the original table column infos, for alter table comparing with colsRuntimeDatas
 	ColumnInfoList colsOrigDatas; 
-	
+	// store the original table index infos, for alter table comparing with idxRuntimeDatas
+	IndexInfoList idxOrigDatas; 
+	// store the original table foreign-key infos, for alter table comparing with frkRuntimeDatas
+	ForeignKeyList frkOrigDatas; 
 
 	void updateColumnNameInIdxRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName);
 	void updateColumnNameInFrkRuntimeDatas(const std::wstring & oldColumnName, const std::wstring & newColumnName);

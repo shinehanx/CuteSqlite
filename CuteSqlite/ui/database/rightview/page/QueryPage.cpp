@@ -95,10 +95,9 @@ void QueryPage::execAndShow(bool select)
 		std::vector<std::wstring> & sqlVector = supplier->sqlVector;
 		int n = static_cast<int>(sqlVector.size());
 		int nSelectSqlCount = 0, nNotSelectSqlCount = 0;
-		std::wstring savePoint = SavePointUtil::create(L"execute_sqls");
 
 		// BEGIN a save point 
-		std::wstring spSql = L"SAVEPOINT " + savePoint;
+		std::wstring spSql = L"BEGIN;";
 		sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
 		bool hasError = false;
 		for (int i = 0; i < n; i++) {
@@ -111,7 +110,7 @@ void QueryPage::execAndShow(bool select)
 				bool ret = resultTabView.execSqlToInfoPage(sql);
 				if (!ret) {
 					hasError = true;
-					spSql = L"ROLLBACK TO " + savePoint; // ROLLBACK
+					spSql = L"ROLLBACK;"; // ROLLBACK
 					sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);					
 					break;
 				}				
@@ -126,7 +125,7 @@ void QueryPage::execAndShow(bool select)
 			resultTabView.activeResultInfoPage();
 		}
 		if (!hasError) {
-			spSql = L"RELEASE " + savePoint; //RELEASE SAVE POINT, COMMIT
+			spSql = L"COMMIT;"; // COMMIT TRANSACTION
 			sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
 			if (!nSelectSqlCount || nNotSelectSqlCount) {
 				QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
@@ -209,6 +208,7 @@ void QueryPage::createOrShowSplitter(CHorSplitterWindow & win, CRect & clientRec
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		win.m_cxySplitBar = 2;
+		win.m_bFullDrag = false;
 
 		if (win.GetSplitterPos() == 4 && supplier->getOperateType() != TABLE_DATA)
 			win.SetSplitterPos(clientRect.Height() * 1 / 3);

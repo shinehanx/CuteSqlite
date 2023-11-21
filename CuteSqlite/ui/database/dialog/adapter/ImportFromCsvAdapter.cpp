@@ -519,8 +519,7 @@ bool ImportFromCsvAdapter::importFromRuntimeSqlList()
 
 	// 2.Begin a save point
 	uint64_t targetUserDbId = supplier->getRuntimeUserDbId();
-	std::wstring savePoint = SavePointUtil::create(L"import_from_csv");
-	std::wstring sql = L"SAVEPOINT \"" + savePoint + L"\";";
+	std::wstring sql = L"BEGIN;";
 	tableService->execBySql(targetUserDbId, sql);
 	
 	try {
@@ -535,19 +534,19 @@ bool ImportFromCsvAdapter::importFromRuntimeSqlList()
 		}
 		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 1, 100);
 
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE \"" + savePoint + L"\";";
+		// 4.COMMIT
+		sql = L"COMMIT;";
 		tableService->execBySql(targetUserDbId, sql);
 		return true;
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 2, NULL);
 		return false;
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
-		sql = L"ROLLBACK TO \"" + savePoint + L"\";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(targetUserDbId, sql);
 		::PostMessage(parentHwnd, Config::MSG_IMPORT_PROCESS_ID, 2, NULL);
 		return false;

@@ -57,6 +57,8 @@ public:
 
 	bool verifyIfDuplicatedPrimaryKey(int iItem);
 	void selectListViewItemForManage();
+
+	bool isDirty();
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();

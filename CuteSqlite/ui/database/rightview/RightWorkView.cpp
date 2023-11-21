@@ -29,6 +29,7 @@
  *                         |              |->QTabView(tabView)  
  *                         |                    |->TableColumnsPage
  *                         |                    |->TableIndexesPage
+ *                         |                    |->TableForeignKeysPage
  *                         |-> HistoryPage
  * @author Xuehan Qin
  * @date   2023-05-21
@@ -81,14 +82,18 @@ void RightWorkView::createImageList()
 	viewIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\view.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
 	triggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
 	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
+	tableDataDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tableStructureDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-structure-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
+	imageList.Create(16, 16, ILC_COLOR32, 7, 7);
 	imageList.AddIcon(queryIcon); // 0 - query
 	imageList.AddIcon(historyIcon); // 1 - history
 	imageList.AddIcon(tableIcon); // 2 - new table
 	imageList.AddIcon(viewIcon); // 3 - view
 	imageList.AddIcon(triggerIcon); // 4 - trigger
 	imageList.AddIcon(tableDataIcon); // 5 - table data
+	imageList.AddIcon(tableDataDirtyIcon); // 6 - table data dirty
+	imageList.AddIcon(tableStructureDirtyIcon); // 7 - table structure dirty
 	
 }
 
@@ -287,6 +292,8 @@ int RightWorkView::OnDestroy()
 	if (viewIcon) ::DeleteObject(viewIcon);
 	if (triggerIcon) ::DeleteObject(triggerIcon);
 	if (tableDataIcon) ::DeleteObject(tableDataIcon);
+	if (tableDataDirtyIcon) ::DeleteObject(tableDataDirtyIcon);
+	if (tableStructureDirtyIcon) ::DeleteObject(tableStructureDirtyIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
@@ -909,6 +916,55 @@ LRESULT RightWorkView::OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	}
 	bHandled = 1;
 	return 1;
+}
+
+LRESULT RightWorkView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	bool isDirty = static_cast<bool>(lParam);
+	int activePage = tabView.GetActivePage();
+	if (isDirty) {
+		if (tabView.GetPageImage(activePage) != 6) { // 6 - table data dirty
+			tabView.SetPageImage(activePage, 6);
+		}		
+	} else {
+		if (tabView.GetPageImage(activePage) != 5) {
+			tabView.SetPageImage(activePage, 5); // 5 - table data
+		}
+	}
+	
+	return 0;
+}
+
+LRESULT RightWorkView::OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	bool isDirty = static_cast<bool>(lParam);
+	int activePage = tabView.GetActivePage();
+
+	if (isDirty) {
+		if (tabView.GetPageImage(activePage) != 7) { // 7 - table structure dirty
+			tabView.SetPageImage(activePage, 7);
+		}		
+	} else {
+		HWND activePageHwnd = tabView.GetPageHWND(activePage);
+		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&activePageHwnd](const TableStructurePage * ptr) {
+			return ptr->m_hWnd == activePageHwnd;
+		});
+		if (iter == tablePagePtrs.end()) {
+			return 0;
+		}
+		TableStructurePage * ptr = *iter;
+		if (!ptr->getSupplier()->compareDatas()) {
+			if (tabView.GetPageImage(activePage) != 7) { // 7 - table structure dirty
+				tabView.SetPageImage(activePage, 7);
+			}
+			return 0;
+		}
+
+		if (tabView.GetPageImage(activePage) != 2) { // 2- table structure
+			tabView.SetPageImage(activePage, 2);
+		}
+	}
+	return 0;
 }
 
 LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)

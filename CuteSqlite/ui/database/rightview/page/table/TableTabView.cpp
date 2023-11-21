@@ -100,6 +100,14 @@ void TableTabView::activePage(TableStructurePageType pageType)
 	}
 }
 
+
+void TableTabView::refreshDirtyAfterSave()
+{
+	tableColumnsPage.refreshDirtyAfterSave();
+	tableIndexesPage.refreshDirtyAfterSave();
+	tableForeinkeysPage.refreshDirtyAfterSave();
+}
+
 void TableTabView::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -112,10 +120,17 @@ void TableTabView::createImageList()
 	indexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	foreignkeyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\foreignkey.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 3);
-	imageList.AddIcon(columnIcon); // 0 - table
+	columnDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\column-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	indexDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\index-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	foreignkeyDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\foreignkey-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+
+	imageList.Create(16, 16, ILC_COLOR32, 6, 6);
+	imageList.AddIcon(columnIcon); // 0 - column
 	imageList.AddIcon(indexIcon); // 1 - index
 	imageList.AddIcon(foreignkeyIcon); // 2 - foreign key
+	imageList.AddIcon(columnDirtyIcon); // 3 - column dirty
+	imageList.AddIcon(indexDirtyIcon); // 4 - index dirty
+	imageList.AddIcon(foreignkeyDirtyIcon); // 5 - foreign key dirty
 }
 
 CRect TableTabView::getTabRect(CRect & clientRect)
@@ -248,7 +263,12 @@ int TableTabView::OnDestroy()
 	if (tableIndexesPage.IsWindow()) tableIndexesPage.DestroyWindow();
 
 	if (columnIcon) ::DeleteObject(columnIcon);
-	if (indexIcon) ::DeleteObject(indexIcon);	
+	if (indexIcon) ::DeleteObject(indexIcon);
+	if (foreignkeyIcon) ::DeleteObject(foreignkeyIcon);
+	if (columnDirtyIcon) ::DeleteObject(columnDirtyIcon);
+	if (indexDirtyIcon) ::DeleteObject(indexDirtyIcon);
+	if (foreignkeyDirtyIcon) ::DeleteObject(foreignkeyDirtyIcon);
+	if (!imageList.IsNull()) imageList.Destroy();
 	return 0;
 }
 
@@ -286,5 +306,40 @@ LRESULT TableTabView::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LP
 {
 	::PostMessage(tableIndexesPage.m_hWnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, wParam, lParam);
 	::PostMessage(tableForeinkeysPage.m_hWnd, Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, wParam, lParam);
+	return 0;
+}
+
+LRESULT TableTabView::OnHandleTableStructDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	// change dirty status icon for other page
+	HWND pageHwnd = (HWND)wParam;
+	int nPage = tabView.GetPageCount();
+	for (int i = 0; i < nPage; i++) {
+		HWND hwnd = tabView.GetPageHWND(i);
+		
+		if (hwnd == tableColumnsPage.m_hWnd) {
+			bool compareRes = supplier->compareColsDatas();
+			if (compareRes && tabView.GetPageImage(i) != 0) { // 0 - column
+				tabView.SetPageImage(i, 0); 
+			} else if (!compareRes && tabView.GetPageImage(i) != 3) { // 3 - column dirty
+				tabView.SetPageImage(i, 3); 
+			}
+		} else if (hwnd == tableIndexesPage.m_hWnd) {
+			bool compareRes = supplier->compareIdxDatas();
+			if (compareRes && tabView.GetPageImage(i) != 1) { // 1 - index
+				tabView.SetPageImage(i, 1); 
+			} else if (!compareRes && tabView.GetPageImage(i) != 4) { // 4 - index dirty
+				tabView.SetPageImage(i, 4); 
+			}		
+		} else if (hwnd == tableForeinkeysPage.m_hWnd) {
+			bool compareRes = supplier->compareFrkDatas();
+			if (compareRes && tabView.GetPageImage(i) != 2) { // 2 - foreign key
+				tabView.SetPageImage(i, 2); 
+			} else if (!compareRes && tabView.GetPageImage(i) != 5) { // 5 - foreign key dirty
+				tabView.SetPageImage(i, 5); 
+			}			
+		}
+	}
+	
 	return 0;
 }

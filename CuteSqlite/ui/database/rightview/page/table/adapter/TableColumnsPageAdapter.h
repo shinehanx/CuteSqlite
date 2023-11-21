@@ -67,6 +67,8 @@ public:
 	bool existsColumnNameInRuntimeIndexes(const std::wstring & columnName);
 
 	void selectListViewItemForManage();
+
+	bool isDirty();
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();

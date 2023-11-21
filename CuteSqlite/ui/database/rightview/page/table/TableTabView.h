@@ -44,6 +44,7 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey);		
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName);
+		MESSAGE_HANDLER(Config::MSG_TABLE_STRUCTURE_DIRTY_ID, OnHandleTableStructDirty);
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -54,6 +55,7 @@ public:
 	TableStructureSupplier * getSupplier() const { return supplier; }
 	void setSupplier(TableStructureSupplier * val) { supplier = val; }
 	void activePage(TableStructurePageType pageType);
+	void refreshDirtyAfterSave();
 private:
 	bool isNeedReload = true;
 
@@ -69,6 +71,9 @@ private:
 	HICON columnIcon = nullptr;
 	HICON indexIcon = nullptr;
 	HICON foreignkeyIcon = nullptr;
+	HICON columnDirtyIcon = nullptr;
+	HICON indexDirtyIcon = nullptr;
+	HICON foreignkeyDirtyIcon = nullptr;
 
 	TableStructureSupplier * supplier = nullptr;
 
@@ -95,4 +100,5 @@ private:
 
 	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHandleTableStructDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };

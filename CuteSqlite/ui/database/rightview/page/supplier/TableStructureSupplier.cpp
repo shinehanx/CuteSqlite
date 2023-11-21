@@ -21,6 +21,7 @@
 #include "TableStructureSupplier.h"
 #include "core/common/Lang.h"
 #include "utils/StringUtil.h"
+#include "utils/EntityUtil.h"
 
 const Columns TableStructureSupplier::colsHeadColumns = { S(L"column-name"), S(L"data-type"), L"Not Null", L"PK", L"Auto Insc", L"Unique", S(L"default"), S(L"check")};
 const std::vector<int> TableStructureSupplier::colsHeadSizes = { 150, 100, 70, 70, 70, 70, 150, 100 };
@@ -155,7 +156,7 @@ void TableStructureSupplier::updateRelatedColumnsIfChangeIndex(const IndexInfo &
 	for (size_t i = 0; i < n; i++) {
 		ColumnInfo &columnInfo = colsRuntimeDatas[i];
 		if (colsOrigDatas.size() < i + 1) {
-			colsOrigDatas.push_back(columnInfo);
+			return;
 		}
 		ColumnInfo &origInfo = colsOrigDatas[i];		
 		
@@ -190,6 +191,85 @@ void TableStructureSupplier::updateRelatedColumnsIfChangeColumnName(std::wstring
 	updateColumnNameInIdxRuntimeDatas(origName, newName);
 	// update column name of foreign keys
 	updateColumnNameInFrkRuntimeDatas(origName, newName);
+}
+
+
+bool TableStructureSupplier::compareDatas()
+{
+	return compareColsDatas() && compareIdxDatas() && compareFrkDatas();
+}
+
+/**
+ * compare colsRuntimeDatas and colsOrigDatas.
+ * 
+ * @return 
+ */
+bool TableStructureSupplier::compareColsDatas()
+{
+	size_t rtSize = colsRuntimeDatas.size();
+	size_t origSize = colsOrigDatas.size();
+	if (rtSize != origSize) {
+		return false;
+	}
+	if (colsRuntimeDatas.empty() && colsOrigDatas.empty()) {
+		return true;
+	}
+
+	size_t n = colsOrigDatas.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & rtItem = colsRuntimeDatas.at(i);
+		auto & origItem = colsOrigDatas.at(i);
+		if (!EntityUtil::compare(rtItem, origItem)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+bool TableStructureSupplier::compareIdxDatas()
+{
+	size_t rtSize = idxRuntimeDatas.size();
+	size_t origSize = idxOrigDatas.size();
+	if (rtSize != origSize) {
+		return false;
+	}
+	if (idxRuntimeDatas.empty() && idxOrigDatas.empty()) {
+		return true;
+	}
+
+	size_t n = getIdxOrigDatas().size();
+	for (size_t i = 0; i < n; i++) {
+		auto & rtItem = idxRuntimeDatas.at(i);
+		auto & origItem = idxOrigDatas.at(i);
+		if (!EntityUtil::compare(rtItem, origItem)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+bool TableStructureSupplier::compareFrkDatas()
+{
+	size_t rtSize = frkRuntimeDatas.size();
+	size_t origSize = frkOrigDatas.size();
+	if (rtSize != origSize) {
+		return false;
+	}
+	if (frkRuntimeDatas.empty() && frkOrigDatas.empty()) {
+		return true;
+	}
+
+	size_t n = frkOrigDatas.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & rtItem = frkRuntimeDatas.at(i);
+		auto & origItem = frkOrigDatas.at(i);
+		if (!EntityUtil::compare(rtItem, origItem)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /**

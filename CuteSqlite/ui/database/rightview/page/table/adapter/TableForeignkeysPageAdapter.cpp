@@ -84,6 +84,7 @@ int TableForeignkeysPageAdapter::loadForeignkeyRowsForListView(uint64_t userDbId
 {
 	auto frkRuntimeDatas = tableService->getForeignKeyList(userDbId, tblName, schema);
 	supplier->setFrkRuntimeDatas(frkRuntimeDatas);
+	supplier->setFrkOrigDatas(frkRuntimeDatas);
 	int n = static_cast<int>(supplier->getFrkRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -510,5 +511,11 @@ bool TableForeignkeysPageAdapter::verifyIfDuplicatedPrimaryKey(int iItem)
 	}
 
 	return true;
+}
+
+bool TableForeignkeysPageAdapter::isDirty()
+{
+	bool hasChangeSubItem = dataView && dataView->IsWindow() ? dataView->getChangedCount() : false;	
+	return hasChangeSubItem || !supplier->compareFrkDatas();
 }
 

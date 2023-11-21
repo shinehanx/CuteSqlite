@@ -53,6 +53,8 @@ void DatabasePanel::createOrShowSplitter(CSplitterWindow & win, CRect & clientRe
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		win.m_cxySplitBar = 2;
 		win.m_cxyMin = 250;
+		//win.SetSplitterExtendedStyle(SPLIT_NONINTERACTIVE);
+		win.m_bFullDrag = false;
 		return;
 	}
 	else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {

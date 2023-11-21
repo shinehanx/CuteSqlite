@@ -91,6 +91,7 @@ int TableIndexesPageAdapter::loadIndexRowsForListView(uint64_t userDbId, const s
 {
 	auto idxRuntimeDatas = tableService->getIndexInfoList(userDbId, tblName, schema);
 	supplier->setIdxRuntimeDatas(idxRuntimeDatas);
+	supplier->setIdxOrigDatas(idxRuntimeDatas);
 	int n = static_cast<int>(supplier->getIdxRuntimeDatas().size());
 	dataView->SetItemCount(n);
 	return n;
@@ -537,11 +538,11 @@ void TableIndexesPageAdapter::generateOneCreateIndexDDL(const IndexInfo &item, c
 	if (item.un) {
 		ss.append(L"UNIQUE ");
 	}
-	ss.append(L"INDEX IF NOT EXISTS ");	
+	ss.append(L"INDEX ");
 	if (!schema.empty() && schema != L"main") {
 		ss.append(schema).append(L".");
 	}		
-	ss.append(cma).append(item.name).append(cma).append(blk);
+	ss.append(cma).append(item.name).append(cma).append(blk); 
 	
 
 	ss.append(L"ON ").append(cma).append(tblName).append(cma).append(blk);
@@ -599,5 +600,11 @@ void TableIndexesPageAdapter::selectListViewItemForManage()
 			}
 		}		
 	}
+}
+
+bool TableIndexesPageAdapter::isDirty()
+{
+	bool hasChangeSubItem = dataView && dataView->IsWindow() ? dataView->getChangedCount() : false;	
+	return hasChangeSubItem || !supplier->compareIdxDatas();
 }
 

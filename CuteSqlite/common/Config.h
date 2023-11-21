@@ -420,6 +420,9 @@ typedef enum {
 	MSG_QUERY_PAGE_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam = NULL
 	MSG_QUERY_PAGE_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam= NULL
 	MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, // When SqlLogListBox v-scroll scroll down 70% in the SqlLogDialog, send this msg to SqlLogDialog, wParam=si.nPos, lParam=si.nMax
+	MSG_DATA_DIRTY_ID, // When data has be changed in ResultTablePgae, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
+	MSG_TABLE_STRUCTURE_DIRTY_ID, // When table struct has be changed in TableColumnsPage/TableIndexesPage/TableForeignKeysPage, 
+								  //  send this msg to parent tabView to display dirty icon for TableStruecturePage title icon, wParam=dirtyPage.m_hWnd, lParam=isDirty
 }MessageId;
 
 typedef enum {

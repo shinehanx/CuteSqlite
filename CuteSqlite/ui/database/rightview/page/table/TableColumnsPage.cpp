@@ -45,6 +45,13 @@ TableColumnsPageAdapter * TableColumnsPage::getAdapter()
 	return adapter;
 }
 
+void TableColumnsPage::refreshDirtyAfterSave()
+{
+	listView.clearChangeVals();
+	supplier->setColsOrigDatas(supplier->getColsRuntimeDatas());
+	enableDataDirty();
+}
+
 void TableColumnsPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
@@ -141,6 +148,18 @@ void TableColumnsPage::loadListView()
 	
 }
 
+void TableColumnsPage::enableDataDirty()
+{
+	bool isDirty = adapter ? adapter->isDirty() : false;
+	// class chain : TableColumnsPage(this) -> QTabView -> TableTabView
+	HWND pHwnd = GetParent().GetParent().m_hWnd; // TableTabView
+	::PostMessage(pHwnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+
+	// class chain : TableColumnsPage(this) -> QTabView -> TableTabView -> TableStructurePage -> QTabView(tabView) -> RightWorkView
+	HWND pHwnd2 = GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
+	::PostMessage(pHwnd2, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+}
+
 int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
@@ -198,6 +217,8 @@ LRESULT TableColumnsPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 	NMITEMACTIVATE * aItem = (NMITEMACTIVATE *)pnmh; 
 	adapter->clickListViewSubItem(aItem);
 	listView.changeAllItemsCheckState();
+
+	enableDataDirty();
 	return 0;
 }
 
@@ -281,6 +302,7 @@ LRESULT TableColumnsPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -296,29 +318,34 @@ LRESULT TableColumnsPage::OnListViewSubItemCheckBoxChange(UINT uMsg, WPARAM wPar
 	// send msg to TableStructurePage, class chain : TableColumnsPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
 LRESULT TableColumnsPage::OnClickNewColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewColumn();
+	enableDataDirty();
 	return 0;
 }
 
 LRESULT TableColumnsPage::OnClickDelColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->deleteSelColumns();
+	enableDataDirty();
 	return 0;
 }
 
 LRESULT TableColumnsPage::OnClickUpColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->moveUpSelColumns();
+	enableDataDirty();
 	return 0;
 }
 
 LRESULT TableColumnsPage::OnClickDownColumnButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->moveDownSelColumns();
+	enableDataDirty();
 	return 0;
 }

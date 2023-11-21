@@ -26,6 +26,7 @@
 #include "ui/common/message/QMessageBox.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "utils/Log.h"
+#include "utils/SqlUtil.h"
 
 TableColumnsPageAdapter::TableColumnsPageAdapter(HWND parentHwnd, QListViewCtrl * listView, TableStructureSupplier * supplier)
 {
@@ -264,15 +265,15 @@ std::wstring TableColumnsPageAdapter::genderateCreateColumnsSqlClause() const
 {
 	std::wstring ss;
 	int n = static_cast<int>(supplier->getColsRuntimeDatas().size());
-	wchar_t blk[5] = { 0 };
+	wchar_t blank[5] = { 0 };
 	wchar_t * blkc = L" ";
-	wmemset(blk, 0x20, 4); // 4 blank chars
+	wmemset(blank, 0x20, 4); // 4 blank chars
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
 			ss.append(L",").append(L"\n");
 		}
 		auto item = supplier->getColsRuntimeDatas().at(i);
-		ss.append(blk).append(L"\"").append(item.name).append(L"\"").append(blkc).append(item.type) ;
+		ss.append(blank).append(quo).append(item.name).append(quo).append(blkc).append(item.type) ;
 		if (item.notnull) {
 			ss.append(blkc).append(L"NOT NULL");
 		}
@@ -300,11 +301,8 @@ std::pair<std::wstring,std::wstring> TableColumnsPageAdapter::generateInsertColu
 	std::wstring str1, str2;
 	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
 	auto & colsOrigDatas = supplier->getColsOrigDatas();
-	wchar_t blk[5] = { 0 };
-	wchar_t * blkc = L" ";
-	wchar_t * quo = L"\"";
 	int n = static_cast<int>(colsRuntimeDatas.size());
-	for (int i = 0; i < n; i++) {		
+	for (int i = 0; i < n; i++) {
 		auto & item = colsRuntimeDatas.at(i);
 		auto iter = std::find_if(colsOrigDatas.begin(), colsOrigDatas.end(), [&item](ColumnInfo & origInfo) {
 			if (item.seq == origInfo.seq) {
@@ -333,13 +331,13 @@ std::wstring TableColumnsPageAdapter::genderateAlterColumnsSqlClauseForMysql()
 	auto & colsRuntimeDatas = supplier->getColsRuntimeDatas();
 	auto & colsOrigDatas = supplier->getColsOrigDatas();
 
-	wchar_t blk[5] = { 0 };
+	wchar_t blank[5] = { 0 };
 	wchar_t * blkc = L" ";
 	// 1.alter table by change column name or change column properties 
 	int n = static_cast<int>(colsRuntimeDatas.size());
 	for (int i = 0; i < n; i++) {
 		if (i > 0) {
-			ss.append(L",").append(L"\n");
+			ss.append(L",").append(brk);
 		}
 
 		auto & item = colsRuntimeDatas.at(i);
@@ -350,19 +348,19 @@ std::wstring TableColumnsPageAdapter::genderateAlterColumnsSqlClauseForMysql()
 			return false;
 		});
 		if (iter == colsOrigDatas.end()) {
-			ss.append(L" ADD COLUMN \"").append(item.name).append(L"\"");
+			ss.append(L" ADD COLUMN ").append(quo).append(item.name).append(quo);
 		} else {
 			if (item.name != (*iter).name) {
-				ss.append(L" RENAME COLUMN \"").append((*iter).name).append(L"\" TO \"")
+				ss.append(L" RENAME COLUMN ").append(quo).append((*iter).name).append(quo).append(L" TO ").append(quo)
 					.append(item.name);
 			} else if (item.name != (*iter).name && (
 				item.notnull != (*iter).notnull || item.pk != (*iter).pk && item.ai != (*iter).ai || item.un != (*iter).un
 				)){
-				ss.append(L" ALTER COLUMN \"").append((*iter).name).append(L"\"");
+				ss.append(L" ALTER COLUMN ").append(quo).append((*iter).name).append(quo);
 			}
 		}
 
-		ss.append(blkc).append(L"\"").append(item.name).append(L"\"").append(blkc).append(item.type) ;
+		ss.append(blkc).append(quo).append(item.name).append(quo).append(blkc).append(item.type) ;
 		if (item.notnull) {
 			ss.append(L" NOT NULL");
 		}
@@ -778,7 +776,9 @@ void TableColumnsPageAdapter::refreshPreviewSql()
 
 bool TableColumnsPageAdapter::existsColumnNameInRuntimeIndexes(const std::wstring & columnName)
 {
-	ATLASSERT(!columnName.empty());
+	if (columnName.empty()) {
+		return false;
+	}
 	IndexInfoList & indexes = supplier->getIdxRuntimeDatas();
 	int n = static_cast<int>(indexes.size());
 	for (int i = 0; i < n; i++) {
@@ -842,3 +842,8 @@ std::vector<std::wstring> TableColumnsPageAdapter::getAllColumnNames(const std::
 	return result;
 }
 
+bool TableColumnsPageAdapter::isDirty()
+{
+	bool hasChangeSubItem = dataView && dataView->IsWindow() ? dataView->getChangedCount() : false;	
+	return hasChangeSubItem || !supplier->compareColsDatas();
+}

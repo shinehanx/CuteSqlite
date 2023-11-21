@@ -436,7 +436,10 @@ void QListViewCtrl::changeAllItemsCheckState()
 	headerCtrl.GetItem(0, &headerItem);
 
 	// rows count equal selected rows count
-	bool checkAll = GetItemCount() == GetSelectedCount();
+	bool checkAll = false;
+	if (GetItemCount() > 0) {
+		checkAll = GetItemCount() == GetSelectedCount();
+	}
 
 	if (checkAll) {		
 		if (headerItem.iImage == 1) {

@@ -111,7 +111,7 @@ public:
 
 	// query result info
 	ResultInfo & getRuntimeResultInfo();
-	void sendExecSqlMessage(ResultInfo & resultInfo);	
+	void sendExecSqlMessage(ResultInfo & resultInfo, bool isWait = false);	
 	std::wstring & getRuntimeSql() { return runtimeSql; }
 private:
 	SqlService * sqlService = SqlService::getInstance();

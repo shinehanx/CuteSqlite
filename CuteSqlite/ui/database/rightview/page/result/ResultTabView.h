@@ -43,6 +43,7 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MESSAGE_HANDLER_EX(Config::MSG_DATA_DIRTY_ID, OnHandleDataDirty)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -89,6 +90,7 @@ private:
 	HICON tableDataIcon = nullptr;
 	HICON objectIcon = nullptr;
 	HICON tablePropertiesIcon = nullptr;
+	HICON tableDataDirtyIcon = nullptr;
 
 	SqlService * sqlService = SqlService::getInstance();
 	QueryPageSupplier * supplier = nullptr;
@@ -117,4 +119,6 @@ private:
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
+
+	LRESULT OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

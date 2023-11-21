@@ -33,7 +33,7 @@
 #include "ui/database/rightview/page/table/adapter/TableColumnsPageAdapter.h"
 #include "ui/database/rightview/page/table/adapter/TableIndexesPageAdapter.h"
 #include "utils/SqlUtil.h"
-#include <utils/PerformUtil.h>
+#include "utils/PerformUtil.h"
 
 /**
  * Call the PreTranslateMessage(pMsg) function of sub element(s) class .
@@ -251,7 +251,7 @@ void TableStructurePage::loadSqlPreviewEdit()
 		if (userIndex.sql.empty()) {
 			continue;
 		}
-		sql.append(L"\r\n").append(userIndex.sql).append(L";");
+		sql.append(lbrk).append(userIndex.sql).append(L";");
 	}
 	sqlPreviewEdit.setText(sql);
 }
@@ -365,9 +365,8 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 		userIndexList= tableService->getUserIndexes(userDbId, tblName);
 	}
 	
-	// 2. Set the SAVEPOINT for creating or altering table
-	std::wstring savePoint = SavePointUtil::create(L"create_table");
-	std::wstring sql = L"SAVEPOINT " + savePoint + L";";
+	// 2. Set the BEGIN TRANSACTION
+	std::wstring sql = L"BEGIN;";
 	tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
 	try {
 		// 3.Execute create table or alter table DDL
@@ -390,8 +389,8 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 		resultInfo.execTime = PerformUtil::end(_begin);
 		resultInfo.transferTime = PerformUtil::end(_begin);
 
-		// 4.Release the SAVEPOINT
-		sql = L"RELEASE " + savePoint + L";";
+		// 4.commit transaction
+		sql = L"COMMIT;";
 		tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
 
 		// 5. Do something after created table
@@ -402,7 +401,7 @@ void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 		resultInfo.msg = S(L"create-table-success-text");
 		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&resultInfo);
 	} catch (QSqlExecuteException & ex) {
-		sql = L"ROLLBACK TO " + savePoint + L";";
+		sql = L"ROLLBACK;";
 		tableService->execBySql(supplier->getRuntimeUserDbId(), sql); 
 
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
@@ -441,6 +440,8 @@ void TableStructurePage::afterCreatedTable(const std::wstring & tblName)
 
 	// post message to RightWorkView for changing tab page title, class chain : TableStructurePage->TableTabView->RightWorkView
 	::PostMessage(GetParent().GetParent().m_hWnd, Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, (WPARAM)m_hWnd, (LPARAM)NULL);
+	::PostMessage(GetParent().GetParent().m_hWnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, (WPARAM)m_hWnd, 0);
+	tableTabView.refreshDirtyAfterSave();
 }
 
 LRESULT TableStructurePage::OnPreviewSql(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -607,17 +608,16 @@ std::wstring TableStructurePage::execAlterTable(UserIndexList & userIndexList)
 	}
 
 	std::wstring fmtNewTblName, fmtTmpTblName, fmtOldTblName;
-	wchar_t * quo = L"\"";
 	if (schema.empty() || schema == L"main") {
 		fmtNewTblName.append(quo).append(tblName).append(quo);
 		fmtOldTblName.append(quo).append(oldTblName).append(quo);
 		fmtTmpTblName.append(quo).append(tmpTblName).append(quo);
 	} else {
-		fmtNewTblName.append(quo).append(schema).append(quo).append(L".")
+		fmtNewTblName.append(quo).append(schema).append(quo).append(dot)
 			.append(quo).append(tblName).append(quo);
-		fmtOldTblName.append(quo).append(schema).append(quo).append(L".")
+		fmtOldTblName.append(quo).append(schema).append(quo).append(dot)
 			.append(quo).append(oldTblName).append(quo);
-		fmtTmpTblName.append(quo).append(schema).append(quo).append(L".")
+		fmtTmpTblName.append(quo).append(schema).append(quo).append(dot)
 			.append(quo).append(tmpTblName).append(quo);
 	}
 
@@ -626,40 +626,40 @@ std::wstring TableStructurePage::execAlterTable(UserIndexList & userIndexList)
 		// 2.Create tmp table for rename table
 		sql = generateCreateTableDDL(schema, tmpTblName);
 		tableService->execBySql(userDbId, sql);
-		resultSql.append(sql).append(L"\r\n");
+		resultSql.append(sql).append(lbrk);
 
 		// 3.Generate sql for insert into tmp table with select data from old table
 		sql = generateInsertIntoTmpTableSql(schema, tmpTblName, oldTblName);
 		tableService->execBySql(userDbId, sql);
-		resultSql.append(sql).append(L"\r\n");
+		resultSql.append(sql).append(lbrk);
 
 		// 4.Drop old table
-		sql = L"DROP TABLE " + fmtOldTblName + L";";
+		sql = L"DROP TABLE " + fmtOldTblName + edl;
 		tableService->execBySql(userDbId, sql);
-		resultSql.append(sql).append(L"\r\n");
+		resultSql.append(sql).append(lbrk);
 
 		// 5.Drop old indexes
 		for (auto tblIdx : userIndexList) {
 			sql = L"DROP INDEX IF EXISTS ";
 			if (!schema.empty() && schema != L"main") {
-				sql.append(schema).append(L".");
+				sql.append(schema).append(dot);
 			}
-			sql.append(quo).append(tblIdx.name).append(quo).append(L";");
+			sql.append(quo).append(tblIdx.name).append(quo).append(edl);
 			tableService->execBySql(userDbId, sql);
-			resultSql.append(sql).append(L"\r\n");
+			resultSql.append(sql).append(lbrk);
 		}
 
 		// 6.Rename tmp table name to new table name
-		sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + L";";
+		sql = L"ALTER TABLE " + fmtTmpTblName + L" RENAME  TO " + fmtNewTblName + edl;
 		tableService->execBySql(userDbId, sql);
-		resultSql.append(sql).append(L"\r\n");
+		resultSql.append(sql).append(lbrk);
 
 		// 7.create index on new table name
 		auto idxSqls = generateCreateIndexesDDL(schema, tblName);
 		for (auto & idxSql : idxSqls) {
 			sql = idxSql;
 			tableService->execBySql(userDbId, sql);
-			resultSql.append(sql).append(L"\r\n");
+			resultSql.append(sql).append(lbrk);
 		}
 	} catch (QSqlExecuteException & ex) {
 		std::wstring newMsg = ex.getMsg();
@@ -685,14 +685,13 @@ std::wstring TableStructurePage::generateInsertIntoTmpTableSql(std::wstring &sch
 {
 	// sql format : INSERT INTO [schema.]tmpTblName ([**newColumns**]) SELECT [**oldColumns**] from [schema.]oldTblName
 	std::wstring fmtTmpTblName, fmtOldTblName;
-	wchar_t * quo = L"\"";
 	if (schema.empty() || schema == L"main") {
 		fmtTmpTblName.append(quo).append(tmpTblName).append(quo);
 		fmtOldTblName.append(quo).append(oldTblName).append(quo);
 	} else {
-		fmtTmpTblName.append(quo).append(schema).append(quo).append(L".")
+		fmtTmpTblName.append(quo).append(schema).append(quo).append(dot)
 			.append(quo).append(tmpTblName).append(quo);
-		fmtOldTblName.append(quo).append(schema).append(quo).append(L".")
+		fmtOldTblName.append(quo).append(schema).append(quo).append(dot)
 			.append(quo).append(oldTblName).append(quo);
 	}	
 	
@@ -702,6 +701,6 @@ std::wstring TableStructurePage::generateInsertIntoTmpTableSql(std::wstring &sch
 
 	std::wstring sql = L"INSERT INTO ";
 	sql.append(fmtTmpTblName).append(L" (");
-	sql.append(pair.first).append(L") SELECT ").append(pair.second).append(L" FROM ").append(fmtOldTblName).append(L";");
+	sql.append(pair.first).append(L") SELECT ").append(pair.second).append(L" FROM ").append(fmtOldTblName).append(edl);
 	return sql;
 }

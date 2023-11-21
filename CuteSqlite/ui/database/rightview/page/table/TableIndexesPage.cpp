@@ -47,6 +47,14 @@ TableIndexesPageAdapter * TableIndexesPage::getAdapter()
 	return adapter;
 }
 
+
+void TableIndexesPage::refreshDirtyAfterSave()
+{
+	listView.clearChangeVals();
+	supplier->setIdxOrigDatas(supplier->getIdxRuntimeDatas());
+	enableDataDirty();
+}
+
 void TableIndexesPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
@@ -121,6 +129,19 @@ void TableIndexesPage::loadListView()
 	std::wstring tblName = supplier->getRuntimeTblName();
 	std::wstring schema = supplier->getRuntimeSchema();
 	rowCount = adapter->loadTblIndexesListView(userDbId, tblName, schema);
+}
+
+
+void TableIndexesPage::enableDataDirty()
+{
+	bool isDirty = adapter ? adapter->isDirty() : false;
+	// class chain : TableColumnsPage(this) -> QTabView -> TableTabView
+	HWND pHwnd = GetParent().GetParent().m_hWnd; // TableTabView
+	::PostMessage(pHwnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+
+	// class chain : TableColumnsPage(this) -> QTabView -> TableTabView -> TableStructurePage -> QTabView(tabView) -> RightWorkView
+	HWND pHwnd2 = GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
+	::PostMessage(pHwnd2, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
 }
 
 int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -207,11 +228,14 @@ LRESULT TableIndexesPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandl
 			// send msg to TableStructurePage, class chain : TableForeinkeysPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 			HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 			::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+
 		}
+		enableDataDirty();
 		return 0;
 	}
 	adapter->clickListViewSubItem(clickItem);
 	listView.changeAllItemsCheckState();
+	enableDataDirty();
 	return 0;
 }
 
@@ -287,6 +311,8 @@ LRESULT TableIndexesPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, 
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+
+	enableDataDirty();
 	return 0;
 }
 
@@ -298,6 +324,7 @@ LRESULT TableIndexesPage::OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -318,6 +345,7 @@ LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -328,6 +356,7 @@ LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND 
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }
 
@@ -337,5 +366,6 @@ LRESULT TableIndexesPage::OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND 
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
 	return 0;
 }

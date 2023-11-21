@@ -275,12 +275,14 @@ void ResultTabView::createImageList()
 	infoIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\info.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	tablePropertiesIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-properties.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tableDataDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4); 
+	imageList.Create(16, 16, ILC_COLOR32, 5, 5); 
 	imageList.AddIcon(resultIcon); // 0 - result
 	imageList.AddIcon(infoIcon); // 1 - info
 	imageList.AddIcon(tableDataIcon); // 2 - tableData
 	imageList.AddIcon(tablePropertiesIcon);// 3 - properties 
+	imageList.AddIcon(tableDataDirtyIcon); // 4 - tableDataDirty
 }
 
 CRect ResultTabView::getTabRect(CRect & clientRect)
@@ -415,6 +417,8 @@ int ResultTabView::OnDestroy()
 	if (tableDataIcon) ::DeleteObject(tableDataIcon);
 	if (objectIcon) ::DeleteObject(objectIcon);
 	if (tablePropertiesIcon) ::DeleteObject(tablePropertiesIcon);
+	if (tableDataDirtyIcon) ::DeleteObject(tableDataDirtyIcon);
+	if (!imageList.IsNull()) imageList.Destroy();
 
 	clearResultListPage();
 
@@ -444,6 +448,23 @@ void ResultTabView::OnPaint(CDCHandle dc)
 BOOL ResultTabView::OnEraseBkgnd(CDCHandle dc)
 {
 	return TRUE;
+}
+
+LRESULT ResultTabView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	bool isDirty = static_cast<bool>(lParam);
+	int activePage = tabView.GetActivePage();
+	if (isDirty) {
+		if (tabView.GetPageImage(activePage) != 4) { // 4 - table data dirty
+			tabView.SetPageImage(activePage, 4);
+		}		
+	} else {
+		if (tabView.GetPageImage(activePage) != 2) {
+			tabView.SetPageImage(activePage, 2); // 2 - table data
+		}
+	}
+	
+	return 0;
 }
 
 void ResultTabView::activeTablePropertiesPage()

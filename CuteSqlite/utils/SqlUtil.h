@@ -23,6 +23,21 @@
 #include <vector>
 #include "core/entity/Entity.h"
 
+// special charactor for SQL
+// special characters for sql statement
+#define quo L"\""
+#define lbrk L"\r\n"
+#define qua L"'"
+#define blk L" "
+#define cma L","
+#define cmb L"("
+#define cme L")"
+#define eq L"="
+#define edl L";"
+#define brk L"\n"
+#define nil L"NULL"
+#define dot L"."
+
 class SqlUtil {
 public:
 	// select sql regex pattern

@@ -299,8 +299,8 @@ std::wstring SqlUtil::makeWhereClause(Columns & columns, RowItem &rowItem, SubIt
 		}
 		
 			
-		whereClause.append(L" \"").append(columns.at(i)).append(L"\"")
-			.append(L"='").append(val).append(L"'");
+		whereClause.append(blk).append(quo).append(columns.at(i)).append(quo)
+			.append(L"=").append(qua).append(val).append(qua);
 	}
 
 	return whereClause;
@@ -344,8 +344,8 @@ std::wstring SqlUtil::makeWhereClauseByPrimaryKey(std::wstring & primaryKey, Col
 				StringUtil::escapeSql(rowItem.at(i)) 
 				: StringUtil::escapeSql((*iter).origVal);
 		}
-		whereClause.append(L" \"").append(columns.at(i)).append(L"\"")
-			.append(L"='").append(val).append(L"'");
+		whereClause.append(blk).append(quo).append(columns.at(i)).append(quo)
+			.append(L"=").append(qua).append(val).append(qua);
 		break;
 	}
 
@@ -371,7 +371,7 @@ std::wstring SqlUtil::makeInsertColumsClause(Columns & columns)
 		if (i > 0) {
 			columnsClause.append(L", ");
 		}
-		columnsClause.append(L"\"").append(column).append(L"\"");
+		columnsClause.append(quo).append(column).append(quo);
 	}
 	columnsClause.append(L") ");
 	return columnsClause;
@@ -399,7 +399,7 @@ std::wstring SqlUtil::makeInsertValuesClause(RowItem & rowItem)
 		if (val == L"< AUTO >" || val == L"< NULL >") {
 			valuesClause.append(L"NULL");
 		} else {
-			valuesClause.append(L"'").append(val).append(L"'");
+			valuesClause.append(qua).append(val).append(qua);
 		}
 		
 	}
@@ -892,7 +892,8 @@ std::wstring SqlUtil::getColumnsFromUniqueLine(const std::wstring &line)
 		return L"";
 	}
 
-	std::wstring result = line.substr(paren_first + 1, paren_end - paren_first - 1);	
+	std::wstring result = line.substr(paren_first + 1, paren_end - paren_first - 1);
+	result = StringUtil::cutParensAndQuotes(result);
 	return result;
 }
 

@@ -63,6 +63,8 @@ public:
 
 	TableStructureSupplier * getSupplier() const { return supplier; }
 	void setSupplier(TableStructureSupplier * val) { supplier = val; }
+
+	void refreshDirtyAfterSave();
 private:
 	bool isNeedReload = true;
 	uint64_t runtimeUserDbId = 0;
@@ -92,6 +94,7 @@ private:
 	virtual void loadWindow();
 	void loadListView();
 
+	void enableDataDirty();
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();

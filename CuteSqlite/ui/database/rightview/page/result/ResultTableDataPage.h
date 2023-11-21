@@ -68,9 +68,12 @@ protected:
 	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);	 // override
 	void doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect);	 // extend 
 
+	void enableDataDirty();
+
 	void enableSaveButton();
-	void enableDeleteButton(bool enabled);
 	void enableCancelButton();
+	void enableDeleteButton();
+	void enableDeleteButtonState(bool enabled);
 
 	void doCancelFormView();
 
@@ -87,10 +90,11 @@ protected:
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
 	LRESULT OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl);
+
+	void enableSelectAll();
+
 	LRESULT OnClickCopyRowButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl);
-
-	void afterSelectedListView();
 };

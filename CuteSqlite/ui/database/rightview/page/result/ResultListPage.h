@@ -156,7 +156,7 @@ protected:
 	HBRUSH OnCtlColorEdit(HDC hdc, HWND hwnd);
 
 	bool isShowFormView();
-
+	void clearFormView();
 	void changeFilterButtonStatus(bool hasRedIcon);
 
 	// display the result rows and exec time in the status bar

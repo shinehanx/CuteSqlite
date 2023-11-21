@@ -11,6 +11,7 @@
 #include "utils/SqlUtil.h"
 #include "utils/ClipboardUtil.h"
 #include "utils/PerformUtil.h"
+#include <utils/SavePointUtil.h>
 
 ResultListPageAdapter::ResultListPageAdapter(HWND parentHwnd, QListViewCtrl * listView, ResultType resultType)
 {
@@ -65,9 +66,11 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 		QSqlStatement query = sqlService->tryExecuteSql(userDbId, runtimeSql);
 		loadRuntimeTables(userDbId, runtimeSql); 
 		loadRuntimeHeader(query);
+		int effectRows = loadRuntimeData(query);
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
-		runtimeResultInfo.effectRows = loadRuntimeData(query);	
+		runtimeResultInfo.effectRows = effectRows;	
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		dataView->changeAllItemsCheckState();
 		return runtimeResultInfo.effectRows;
 	} catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
@@ -106,6 +109,7 @@ int ResultListPageAdapter::loadFilterListView()
 
 		runtimeResultInfo.effectRows = loadRuntimeData(query);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
+		dataView->changeAllItemsCheckState();
 		return runtimeResultInfo.effectRows;
 	} catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
@@ -165,7 +169,7 @@ LRESULT ResultListPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 }
 
 /**
- * load the query table from sql in runtime.
+ * load the query table from sql statement in runtime.
  * 
  * @param userDbId the select db id
  * @param sql
@@ -759,7 +763,7 @@ bool ResultListPageAdapter::save()
 	if (!ret) {
 		return ret;
 	}
-
+	QPopAnimate::success(parentHwnd, S(L"save-success-text"));
 	return true;
 }
 
@@ -771,6 +775,20 @@ bool ResultListPageAdapter::saveChangeVals()
 {
 	SubItemValues changeVals = dataView->getChangedVals();
 	SubItemValues errorChanges;
+	if (changeVals.empty()) {
+		return true;
+	}
+	// BEGIN A TRANSACTION
+	std::wstring sql = L"BEGIN;";
+	tableService->execBySql(runtimeUserDbId, sql);
+	std::wstring sqlSuccess = sql;
+
+	// sql log
+	resetRuntimeResultInfo();
+	runtimeResultInfo.userDbId = runtimeUserDbId;
+
+	auto _begin = PerformUtil::begin();
+	int effectRows = 0;
 	for (auto subItemVal : changeVals) {
 		int iItem = subItemVal.iItem;
 		int iSubItem = subItemVal.iSubItem;
@@ -802,26 +820,53 @@ bool ResultListPageAdapter::saveChangeVals()
 
 		std::wstring newVal = StringUtil::escapeSql(subItemVal.newVal);
 		std::wstring sqlUpdate(L"UPDATE ");
-		sqlUpdate.append(tblName)
-			.append(L" SET \"")
-			.append(runtimeColumns.at(nSelSubItem))
-			.append(L"\"='")
-			.append(newVal).append(L"'")
+		sqlUpdate.append(quo).append(tblName).append(quo)
+			.append(L" SET ").append(quo)
+			.append(runtimeColumns.at(nSelSubItem)).append(quo)
+			.append(L"=")
+			.append(qua).append(newVal).append(qua)
 			.append(whereClause);
 
 		try {
-			auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlUpdate);
-			stmt.exec();
-		}  catch (SQLite::QSqlException &ex) {
+			tableService->execBySql(runtimeUserDbId, sqlUpdate);
+			effectRows++;
+			sqlSuccess.append(lbrk).append(sqlUpdate).append(edl);
+		}  catch (QSqlExecuteException &ex) {
+			// ROLLBACK
+			sql = L"ROLLBACK;";
+			tableService->execBySql(runtimeUserDbId, sql);
+
 			errorChanges.push_back(subItemVal);
-			std::wstring _err(L"Error:\r\n");
-			_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlUpdate);
-			Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
-			// QPopAnimate::error(parentHwnd, _err);
-			QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
+			Q_ERROR(L"query db has error, code:{}, msg:{}, sql:{}", ex.getCode(), ex.getMsg(), sqlUpdate);
+			dataView->SelectItem(subItemVal.iItem);
 			dataView->createOrShowEditor(subItemVal.iItem, subItemVal.iSubItem);
+
+			ex.setRollBack(true);
+			QPopAnimate::report(ex);
+
+			// SQL LOG
+			runtimeResultInfo.sql = sqlUpdate;
+			runtimeResultInfo.execTime = PerformUtil::end(_begin);
+			runtimeResultInfo.transferTime = PerformUtil::end(_begin);
+			runtimeResultInfo.totalTime = PerformUtil::end(_begin);
+			runtimeResultInfo.code = std::stoi( ex.getCode());
+			runtimeResultInfo.msg = ex.getMsg();
+			sendExecSqlMessage(runtimeResultInfo, true);
+			return false;
 		}
 	}
+
+	// commit all the executed sqls by tableService
+	sql = L"COMMIT;";
+	tableService->execBySql(runtimeUserDbId, sql);
+	sqlSuccess.append(lbrk).append(sql);
+	runtimeResultInfo.sql = sqlSuccess;
+	runtimeResultInfo.effectRows = effectRows;
+	runtimeResultInfo.execTime = PerformUtil::end(_begin);
+	runtimeResultInfo.transferTime = PerformUtil::end(_begin);
+	runtimeResultInfo.totalTime = PerformUtil::end(_begin);
+	sendExecSqlMessage(runtimeResultInfo, true);
+
 	// clear changes
 	dataView->clearChangeVals();
 
@@ -844,6 +889,18 @@ bool ResultListPageAdapter::saveNewRows()
 	}
 	std::vector<int> errorNewRows;
 	std::wstring tblName = runtimeTables.at(0);
+
+	// BEGIN A TRASACTION	
+	std::wstring sql = L"BEGIN;";
+	tableService->execBySql(runtimeUserDbId, sql);
+	std::wstring sqlSuccess = sql;
+
+	// sql log
+	resetRuntimeResultInfo();
+	runtimeResultInfo.userDbId = runtimeUserDbId;
+
+	auto _begin = PerformUtil::begin();
+	int effectRows = 0;
 	for (auto nItem : runtimeNewRows) {
 		auto itor = runtimeDatas.begin();
 		for (int i = 0; i < nItem; i++) {
@@ -856,20 +913,47 @@ bool ResultListPageAdapter::saveNewRows()
 		}
 		
 		std::wstring sqlInsert(L"INSERT INTO ");
-		sqlInsert.append(tblName).append(colums).append(values);
-
+		sqlInsert.append(quo).append(tblName).append(quo).append(colums).append(values);
+		
 		try {
-			auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlInsert);
-			stmt.exec();
-		}  catch (SQLite::QSqlException &ex) {
+			tableService->execBySql(runtimeUserDbId, sqlInsert);
+			effectRows++;
+			sqlSuccess.append(lbrk).append(sqlInsert).append(edl);
+		}  catch (QSqlExecuteException &ex) {
+			// ROLLBACK
+			sql = L"ROLLBACK;";
+			tableService->execBySql(runtimeUserDbId, sql);
+
+			// select the error row
 			errorNewRows.push_back(nItem);
-			Q_ERROR(L"query db has error, code:{}, msg:{}, sql:{}", ex.getErrorCode(), sqlInsert);
+			Q_ERROR(L"query db has error, code:{}, msg:{}, sql:{}", ex.getCode(), ex.getMsg(), sqlInsert);
 			dataView->SelectItem(nItem);
 			dataView->createOrShowEditor(nItem, 1);
-			QSqlExecuteException ex2(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sqlInsert);
-			QPopAnimate::report(ex2);			
+
+			ex.setRollBack(true);
+			QPopAnimate::report(ex);
+
+			// SQL LOG
+			runtimeResultInfo.sql = sqlInsert;
+			runtimeResultInfo.execTime = PerformUtil::end(_begin);
+			runtimeResultInfo.transferTime = PerformUtil::end(_begin);
+			runtimeResultInfo.totalTime = PerformUtil::end(_begin);
+			runtimeResultInfo.code = std::stoi( ex.getCode());
+			runtimeResultInfo.msg = ex.getMsg();
+			sendExecSqlMessage(runtimeResultInfo, true);
+			return false;
 		}
 	}
+	// commit all the executed sqls by tableService
+	sql = L"COMMIT;";
+	tableService->execBySql(runtimeUserDbId, sql);
+	sqlSuccess.append(lbrk).append(sql);
+	runtimeResultInfo.sql = sqlSuccess;
+	runtimeResultInfo.effectRows = effectRows;
+	runtimeResultInfo.execTime = PerformUtil::end(_begin);
+	runtimeResultInfo.transferTime = PerformUtil::end(_begin);
+	runtimeResultInfo.totalTime = PerformUtil::end(_begin);
+	sendExecSqlMessage(runtimeResultInfo, true);
 
 	// clear new rows
 	runtimeNewRows.clear();
@@ -885,7 +969,8 @@ bool ResultListPageAdapter::saveNewRows()
 	} catch (QSqlExecuteException &ex) {
 		QPopAnimate::report(ex);
 	}
-	
+
+	sendExecSqlMessage(runtimeResultInfo);
 	return true;
 }
 
@@ -975,22 +1060,51 @@ int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
 	std::wstring whereClause;
 	if (primaryKey.empty()) {
 		whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangedVals);
-	}
-	else {
+	}else {
+		// check the primary key value is < AUTO > / < NULL >
+		size_t n = runtimeColumns.size();
+		for (size_t i = 0; i < n; i++) {
+			auto & column = runtimeColumns.at(i);
+			auto & val = rowItem.at(i);
+			// this row data must be a new data ,database no record before save the row data.
+			if (primaryKey == column && (val == L"< AUTO >" || val == L"< NULL >")) {
+				return 1;
+			}
+		}
+		
 		whereClause = SqlUtil::makeWhereClauseByPrimaryKey(primaryKey, runtimeColumns, rowItem, rowChangedVals);
 	}
-	sqlDelete.append(tblName).append(whereClause);
+	sqlDelete.append(quo).append(tblName).append(quo).append(whereClause);
+
+	// For record sql log
+	resetRuntimeResultInfo();
+	runtimeResultInfo.userDbId = runtimeUserDbId;
+	auto bt = PerformUtil::begin();
+
+	int effectRows = 0;
 	try {
 		auto stmt = sqlService->tryExecuteSql(runtimeUserDbId, sqlDelete);
-		return stmt.exec();
+		effectRows = stmt.exec();		
+			
 	} catch (SQLite::QSqlException &ex) {
-
 		std::wstring _err(L"Error:\r\n");
 		_err.append(ex.getErrorStr()).append(L"\r\nSQL:\r\n").append(sqlDelete);
 		Q_ERROR(L"query db has error, code:{}, msg:{}", ex.getErrorCode(), _err);
 		QMessageBox::confirm(parentHwnd, _err, S(L"yes"), S(L"no"));
-		return 0;
+
+		// For record sql log
+		runtimeResultInfo.code = ex.getErrorCode();
+		runtimeResultInfo.msg = ex.getErrorStr();
 	}
+
+	// For record sql log
+	runtimeResultInfo.sql = sqlDelete;
+	runtimeResultInfo.effectRows = effectRows;	
+	runtimeResultInfo.execTime = PerformUtil::end(bt);
+	runtimeResultInfo.transferTime = PerformUtil::end(bt);
+	runtimeResultInfo.totalTime = PerformUtil::end(bt);
+	sendExecSqlMessage(runtimeResultInfo, true);
+	return effectRows;
 }
 
 bool ResultListPageAdapter::isDirty()
@@ -1053,9 +1167,14 @@ bool ResultListPageAdapter::restoreChangeVals()
 	return true;
 }
 
-void ResultListPageAdapter::sendExecSqlMessage(ResultInfo & resultInfo)
+void ResultListPageAdapter::sendExecSqlMessage(ResultInfo & resultInfo, bool isWait)
 {
-	AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&resultInfo));
+	if (isWait) { // wait for response
+		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&resultInfo));
+	} else {
+		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, WPARAM(NULL), LPARAM(&resultInfo));
+	}
+	
 }
 
 void ResultListPageAdapter::resetRuntimeResultInfo()

@@ -53,3 +53,49 @@ ResultInfo EntityUtil::copy(const ResultInfo & item)
 	result.totalTime = item.totalTime;
 	return result;
 }
+
+bool EntityUtil::compare(const ColumnInfo & item1, const ColumnInfo & item2)
+{
+	if (item1.ai != item2.ai
+		|| item1.notnull != item2.notnull
+		|| item1.pk != item2.pk
+		|| item1.un != item2.un
+		|| item1.name != item2.name
+		|| item1.type != item2.type
+		|| item1.defVal != item2.defVal
+		|| item1.checks != item2.checks) {
+		return false;
+	}
+	return true;
+}
+
+bool EntityUtil::compare(const IndexInfo & item1, const IndexInfo & item2)
+{
+	if (item1.ai != item2.ai
+		|| item1.fk != item2.fk
+		|| item1.pk != item2.pk
+		|| item1.un != item2.un
+		|| item1.name != item2.name
+		|| item1.type != item2.type
+		|| item1.columns != item2.columns
+		|| item1.partialClause != item2.partialClause) {
+		return false;
+	}
+	return true;
+}
+
+bool EntityUtil::compare(const ForeignKey & item1, const ForeignKey & item2)
+{
+	if (item1.name != item2.name
+		|| item1.type != item2.type
+		|| item1.columns != item2.columns
+		|| item1.referencedTable != item2.referencedTable
+		|| item1.referencedColumns != item2.referencedColumns
+		|| item1.onUpdate != item2.onUpdate
+		|| item1.onDelete != item2.onDelete
+		|| item1.partialClause != item2.partialClause) {
+		return false;
+	}
+	return true;
+}
+

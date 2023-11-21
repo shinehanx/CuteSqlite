@@ -36,6 +36,7 @@ void RowDataFormView::setup(ResultListPageAdapter * adapter)
 
 void RowDataFormView::loadFormData(bool readOnly)
 {
+	Q_DEBUG(L"RowDataFormView::loadFormData,readOnly:{}", readOnly);
 	this->readOnly = readOnly;
 	if (adapter == nullptr) {
 		return ;

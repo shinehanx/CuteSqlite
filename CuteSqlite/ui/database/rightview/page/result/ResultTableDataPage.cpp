@@ -24,6 +24,8 @@
 #include "utils/Log.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
+#include "ui/common/message/QPopAnimate.h"
+#include "common/AppContext.h"
 
 ResultTableDataPage::ResultTableDataPage()
 {
@@ -173,7 +175,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 	}
 	QWinCreater::createOrShowButton(m_hWnd, deleteButton, Config::LISTVIEW_DELETE_BUTTON_ID, L"", rect, clientRect);
 	deleteButton.SetToolTip(S(L"delete-tip"));
-	enableDeleteButton(enabledDelete);
+	enableDeleteButtonState(enabledDelete);
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!cancelButton.IsWindow()) {
@@ -206,6 +208,18 @@ void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect
 }
 
 
+void ResultTableDataPage::enableDataDirty()
+{
+	bool isDirty = adapter ? adapter->isDirty() : false;
+	// class chain : ResultTableDataPage(this) -> QTabView -> ResultTabView
+	HWND pHwnd = GetParent().GetParent().m_hWnd; // ResultTabView
+	::PostMessage(pHwnd, Config::MSG_DATA_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+
+	// class chain : ResultTableDataPage(this) -> QTabView -> ResultTabView -> CHorSplitterWindow -> QueryPage -> QTabView(tabView) -> RightWorkView
+	HWND pHwnd2 = GetParent().GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
+	::PostMessage(pHwnd2, Config::MSG_DATA_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+}
+
 void ResultTableDataPage::enableSaveButton()
 {
 	bool enabled = adapter ? adapter->isDirty() : false;
@@ -226,7 +240,16 @@ void ResultTableDataPage::enableSaveButton()
 	saveButton.EnableWindow(enabled);
 }
 
-void ResultTableDataPage::enableDeleteButton(bool enabled)
+void ResultTableDataPage::enableDeleteButton()
+{
+	if (listView.GetSelectedCount()) {
+		enableDeleteButtonState(true);
+	} else {
+		enableDeleteButtonState(false);
+	}
+}
+
+void ResultTableDataPage::enableDeleteButtonState(bool enabled)
 {
 	bool origEnabled = deleteButton.IsWindowEnabled();
 	if (origEnabled == enabled) {
@@ -263,6 +286,11 @@ void ResultTableDataPage::enableCancelButton()
 	}
 	cancelButton.SetIconPath(normalImagePath, pressedImagePath);
 	cancelButton.EnableWindow(enabled);
+}
+
+void ResultTableDataPage::enableSelectAll()
+{
+	listView.changeAllItemsCheckState();
 }
 
 int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -303,8 +331,21 @@ void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND h
 LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	auto ret = ResultListPage::OnClickListView(idCtrl, pnmh, bHandled);
+	
+	// Clicked the next row of bottom item , will insert a new column row
+	NMITEMACTIVATE * clickItem = (NMITEMACTIVATE *)pnmh; 
+	CPoint pt = clickItem->ptAction;
+	CRect lastRowRect;
+	listView.GetItemRect(listView.GetItemCount() - 1, lastRowRect, LVIR_BOUNDS);
+	lastRowRect.OffsetRect(0, lastRowRect.Height());
+	if (lastRowRect.PtInRect(pt)) {
+		adapter->createNewRow();
+		enableSaveButton();
+		enableCancelButton();
+		enableDataDirty();
+	}
 	// show toolbar buttons after selected items in ListView
-	afterSelectedListView();
+	enableDeleteButton();
 	return ret;
 }
 
@@ -312,18 +353,8 @@ LRESULT ResultTableDataPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPA
 {
 	auto ret = ResultListPage::OnClickListViewColumn(uMsg, wParam, lParam, bHandled);
 	// show toolbar buttons after selected items in ListView
-	afterSelectedListView();
+	enableDeleteButton();
 	return ret;
-}
-
-void ResultTableDataPage::afterSelectedListView()
-{
-	if (listView.GetSelectedCount()) {
-		enableDeleteButton(true);
-	}
-	else {
-		enableDeleteButton(false);
-	}
 }
 
 LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
@@ -342,7 +373,7 @@ LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &b
 	listView.createOrShowEditor(subItemPos);
 
 	// show toolbar buttons after selected items in ListView
-	afterSelectedListView();
+	enableDeleteButton();
 
 	return 0;
 }
@@ -358,7 +389,8 @@ LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPara
 	
 	enableSaveButton();
 	enableCancelButton();
-	
+	enableDataDirty();
+
 	return 0;
 }
 
@@ -367,6 +399,11 @@ LRESULT ResultTableDataPage::OnClickNewRowButton(UINT uNotifyCode, int nID, HWND
 	adapter->createNewRow();
 	enableSaveButton();
 	enableCancelButton();
+	enableDataDirty();
+
+	enableDeleteButton();
+	enableSelectAll();
+
 	return 0;
 }
 
@@ -375,6 +412,7 @@ LRESULT ResultTableDataPage::OnClickCopyRowButton(UINT uNotifyCode, int nID, HWN
 	adapter->copyNewRow();
 	enableSaveButton();
 	enableCancelButton();
+	enableDataDirty();
 	return 0;
 }
 
@@ -383,16 +421,22 @@ LRESULT ResultTableDataPage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND w
 	adapter->save();
 	enableSaveButton();
 	enableCancelButton();
-	
-	
+	enableDataDirty();
+	clearFormView();
 	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->remove();
-	enableSaveButton();
-	enableCancelButton();
+	if (adapter->remove()) {
+		enableSaveButton();
+		enableCancelButton();
+		enableDeleteButton();
+		enableDataDirty();
+		clearFormView();
+		QPopAnimate::success(S(L"delete-success-text"));
+		listView.changeAllItemsCheckState();
+	}
 	
 	return 0;
 }
@@ -406,7 +450,8 @@ LRESULT ResultTableDataPage::OnClickCancelButton(UINT uNotifyCode, int nID, HWND
 	adapter->cancel();
 	
 	enableSaveButton();
-	enableCancelButton();	
+	enableCancelButton();
+	enableDataDirty();
 	return 0;
 }
 

@@ -32,6 +32,7 @@
  *                         |              |->QTabView(tabView)  
  *                         |                    |->TableColumnsPage
  *                         |                    |->TableIndexesPage
+ *                         |                    |->TableForeignPage
  *                         |-> HistoryPage
  * @author Xuehan Qin
  * @date   2023-05-21
@@ -78,6 +79,8 @@ public:
 		MESSAGE_HANDLER(Config::MSG_RENAME_TABLE_ID, OnClickRenameTable)
 		MESSAGE_HANDLER(Config::MSG_REFRESH_SAME_TABLE_DATA_ID, OnClickRrefreshSameTableData)
 		MESSAGE_HANDLER(Config::MSG_DROP_TABLE_ID, OnClickDropTable)
+		MESSAGE_HANDLER(Config::MSG_DATA_DIRTY_ID, OnHandleDataDirty)
+		MESSAGE_HANDLER(Config::MSG_TABLE_STRUCTURE_DIRTY_ID, OnHandleTableStructureDirty)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 		REFLECT_NOTIFICATIONS()
@@ -106,6 +109,8 @@ private:
 	HICON viewIcon = nullptr;
 	HICON triggerIcon = nullptr;
 	HICON tableDataIcon = nullptr;
+	HICON tableDataDirtyIcon = nullptr;
+	HICON tableStructureDirtyIcon = nullptr;
 
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -161,6 +166,8 @@ private:
 	LRESULT OnClickRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRrefreshSameTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
