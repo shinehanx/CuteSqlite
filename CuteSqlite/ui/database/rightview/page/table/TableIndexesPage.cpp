@@ -135,6 +135,7 @@ void TableIndexesPage::loadListView()
 void TableIndexesPage::enableDataDirty()
 {
 	bool isDirty = adapter ? adapter->isDirty() : false;
+	supplier->setIsDirty(!supplier->compareDatas());
 	// class chain : TableColumnsPage(this) -> QTabView -> TableTabView
 	HWND pHwnd = GetParent().GetParent().m_hWnd; // TableTabView
 	::PostMessage(pHwnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
@@ -147,6 +148,7 @@ void TableIndexesPage::enableDataDirty()
 int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);	
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
 	textFont = FT(L"form-text-size");
 	return ret;
 }
@@ -154,6 +156,7 @@ int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int TableIndexesPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
 	if (textFont) ::DeleteObject(textFont);
 
 	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
@@ -347,6 +350,11 @@ LRESULT TableIndexesPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	enableDataDirty();
 	return 0;
+}
+
+LRESULT TableIndexesPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	return supplier->getIsDirty() ? 0 : 1;
 }
 
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)

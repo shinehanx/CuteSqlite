@@ -50,6 +50,7 @@ public:
 		NOTIFY_HANDLER(Config::DATABASE_TABLE_FOREIGNKEYS_LISTVIEW_ID, LVN_ODFINDITEM, OnFindListViewData)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName)
+		MESSAGE_HANDLER(Config::MSG_DATA_HAS_CHANGED_ID, OnHandleDataHasChanged)
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_FOREIGNKEY_BUTTON_ID, BN_CLICKED, OnClickNewForeignkeyButton)
 		COMMAND_HANDLER_EX(Config::TABLE_DEL_FOREIGNKEY_BUTTON_ID, BN_CLICKED, OnClickDelForeignkeyButton)
 		CHAIN_MSG_MAP(QPage)
@@ -112,6 +113,7 @@ private:
 
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

@@ -8,11 +8,14 @@
 #include "HomeView.h"
 #include "aboutdlg.h"
 #include "MainFrm.h"
+#include "utils/PerformUtil.h"
+#include "utils/Log.h"
 
 CAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
+	auto _begin = PerformUtil::begin();
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 
@@ -25,7 +28,8 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	}
 
 	wndMain.ShowWindow(nCmdShow);
-
+	std::wstring tt = PerformUtil::end(_begin);
+	Q_INFO(L"App load time:{}", tt);
 	int nRet = theLoop.Run();
 
 	_Module.RemoveMessageLoop();

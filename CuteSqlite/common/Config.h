@@ -423,6 +423,8 @@ typedef enum {
 	MSG_DATA_DIRTY_ID, // When data has be changed in ResultTablePgae, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
 	MSG_TABLE_STRUCTURE_DIRTY_ID, // When table struct has be changed in TableColumnsPage/TableIndexesPage/TableForeignKeysPage, 
 								  //  send this msg to parent tabView to display dirty icon for TableStruecturePage title icon, wParam=dirtyPage.m_hWnd, lParam=isDirty
+	MSG_DATA_HAS_CHANGED_ID, // When the MainFrm close, send this msg to all the window that it has subscribed this msgId, to confirm whether data has changed, 
+							 // wParam=NULL, lParam=null, and return 1 - No changed, 0 - Has Changed
 }MessageId;
 
 typedef enum {

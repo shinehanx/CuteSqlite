@@ -211,6 +211,7 @@ void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect
 void ResultTableDataPage::enableDataDirty()
 {
 	bool isDirty = adapter ? adapter->isDirty() : false;
+	supplier->setIsDirty(isDirty);
 	// class chain : ResultTableDataPage(this) -> QTabView -> ResultTabView
 	HWND pHwnd = GetParent().GetParent().m_hWnd; // ResultTabView
 	::PostMessage(pHwnd, Config::MSG_DATA_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
@@ -296,12 +297,15 @@ void ResultTableDataPage::enableSelectAll()
 int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = ResultListPage::OnCreate(lpCreateStruct);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
 	return ret;
 }
 
 int ResultTableDataPage::OnDestroy()
 {
 	bool ret = ResultListPage::OnDestroy();
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+
 	if (splitImage.IsWindow()) splitImage.DestroyWindow();
 	if (splitImage2.IsWindow()) splitImage2.DestroyWindow();
 
@@ -319,6 +323,7 @@ void ResultTableDataPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hw
 	ResultListPage::OnClickFilterButton(uNotifyCode, nID, hwnd);
 	enableSaveButton();
 	enableCancelButton();
+	enableDataDirty();
 }
 
 void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -326,6 +331,7 @@ void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND h
 	ResultListPage::OnClickRefreshButton(uNotifyCode, nID, hwnd);
 	enableSaveButton();
 	enableCancelButton();
+	enableDataDirty();
 }
 
 LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
@@ -392,6 +398,11 @@ LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPara
 	enableDataDirty();
 
 	return 0;
+}
+
+LRESULT ResultTableDataPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	return supplier->getIsDirty() ? 0 : 1;
 }
 
 LRESULT ResultTableDataPage::OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl)

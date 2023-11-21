@@ -35,6 +35,7 @@ void MsgDispatcher::dispatch(UINT msgId, WPARAM wParam, LPARAM lParam)
 
 /**
  * 分发消息(有返回).
+ *  接收方：消息返回 0 - 失败， 1- 成功，失败，则跳过其他的消息
  * 
  * @param msgId 消息ID
  * @param wParam 参数1
@@ -47,9 +48,13 @@ LRESULT MsgDispatcher::dispatchForResponse(UINT msgId, WPARAM wParam /*= NULL*/,
 	}
 
 	HWNDLIST & hwndList = msgMap.at(msgId);
-	LRESULT result = 0;
+	LRESULT result = 1;
 	std::for_each(hwndList.begin(), hwndList.end(), [&msgId, &wParam, &lParam, &result](HWND hwnd) {
-		result = ::SendMessage(hwnd, msgId, wParam, lParam);
+		LRESULT response = ::SendMessage(hwnd, msgId, wParam, lParam);
+		// correct result must be 1, other wise be failed, and return
+		if (response != 1) {
+			result = 0;
+		}
 	});
 	return result;
 }

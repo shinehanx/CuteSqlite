@@ -136,6 +136,7 @@ void TableForeignkeysPage::loadListView()
 void TableForeignkeysPage::enableDataDirty()
 {
 	bool isDirty = adapter ? adapter->isDirty() : false;
+	supplier->setIsDirty(!supplier->compareDatas());
 	// class chain : TableForeignkeysPage(this) -> QTabView -> TableTabView
 	HWND pHwnd = GetParent().GetParent().m_hWnd; // TableTabView
 	::PostMessage(pHwnd, Config::MSG_TABLE_STRUCTURE_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
@@ -148,6 +149,8 @@ void TableForeignkeysPage::enableDataDirty()
 int TableForeignkeysPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);	
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+
 	textFont = FT(L"form-text-size");
 	return ret;
 }
@@ -155,6 +158,8 @@ int TableForeignkeysPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int TableForeignkeysPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+
 	if (textFont) ::DeleteObject(textFont);
 
 	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
@@ -326,6 +331,12 @@ LRESULT TableForeignkeysPage::OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wP
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	enableDataDirty();
 	return 0;
+}
+
+
+LRESULT TableForeignkeysPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	return supplier->getIsDirty() ? 0 : 1;
 }
 
 LRESULT TableForeignkeysPage::OnClickNewForeignkeyButton(UINT uNotifyCode, int nID, HWND wndCtl)

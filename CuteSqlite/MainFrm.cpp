@@ -9,6 +9,8 @@
 #include "HomeView.h"
 #include "MainFrm.h"
 #include "common/AppContext.h"
+#include "ui/common/message/QMessageBox.h"
+#include "core/common/Lang.h"
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
@@ -74,5 +76,24 @@ LRESULT CMainFrame::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	bHandled = FALSE;
 	return 1;
+}
+
+LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	LRESULT response = AppContext::getInstance()->dispatchForResponse(Config::MSG_DATA_HAS_CHANGED_ID, NULL, NULL);
+	// Data has no changed
+	if (response) {
+		DestroyWindow();
+		return 0;
+	}
+	
+	// Data has changed
+	if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel"))
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		DestroyWindow();
+		return 0;
+	}
+
+	return 0;
 }
 

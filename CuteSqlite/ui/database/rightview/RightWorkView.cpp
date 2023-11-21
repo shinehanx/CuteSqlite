@@ -42,6 +42,7 @@
 #include "ui/database/rightview//page/dialog/ViewDialog.h"
 #include "ui/database/rightview//page/dialog/TriggerDialog.h"
 #include "ui/common/message/QPopAnimate.h"
+#include <ui/common/message/QMessageBox.h>
 
 
 #define RIGHTVIEW_TOPBAR_HEIGHT 30
@@ -981,11 +982,91 @@ LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bH
 
 LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
+	int nPage = static_cast<int>(pnmh->idFrom);
+	HWND pageHwnd = tabView.GetPageHWND(nPage);
+	
+	// check the close page if it is a QueryPage
+	for (auto & iter = queryPagePtrs.begin(); iter != queryPagePtrs.end(); iter++) {
+		QueryPage * ptr = *iter;
+		if (pageHwnd != ptr->m_hWnd) {
+			continue;
+		}
+		if (!ptr->getSupplier()->getIsDirty()) {
+			if (ptr && ptr->IsWindow()) {
+				queryPagePtrs.erase(iter);
+				ptr->DestroyWindow();
+				delete ptr;
+				ptr = nullptr;
+			} else if (ptr) {
+				queryPagePtrs.erase(iter);
+				delete ptr;
+				ptr = nullptr;
+			}
+			break;
+		}
+		// data has changed
+		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel")) 
+				== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			if (ptr && ptr->IsWindow()) {
+				queryPagePtrs.erase(iter);
+				ptr->DestroyWindow();
+				delete ptr;
+				ptr = nullptr;
+			} else if (ptr) {
+				queryPagePtrs.erase(iter);
+				delete ptr;
+				ptr = nullptr;
+			}
+			return 0; // 0 - force close
+		} else {
+			return 1; // 1 - cancel close
+		}		
+	}
+	
+	// check the close page if it is a QueryPage
+	for (auto & iter = tablePagePtrs.begin(); iter != tablePagePtrs.end(); iter++) {
+		TableStructurePage * ptr = *iter;
+		if (pageHwnd != ptr->m_hWnd) {
+			continue;
+		}
+		if (!ptr->getSupplier()->getIsDirty()) {
+			if (ptr && ptr->IsWindow()) {
+				tablePagePtrs.erase(iter);
+				ptr->DestroyWindow();
+				delete ptr;
+				ptr = nullptr;
+			} else if (ptr) {
+				tablePagePtrs.erase(iter);
+				delete ptr;
+				ptr = nullptr;
+			}
+			break;
+		}
+
+		// data has changed
+		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel")) 
+				== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			if (ptr && ptr->IsWindow()) {
+				tablePagePtrs.erase(iter);
+				ptr->DestroyWindow();
+				delete ptr;
+				ptr = nullptr;
+			} else if (ptr) {
+				tablePagePtrs.erase(iter);
+				delete ptr;
+				ptr = nullptr;
+			}
+			return 0; // 0 - force close
+		} else {
+			return 1; // 1 - cancel close
+		}		
+	}
+
 	int n = tabView.GetPageCount();
 	if (!n) {
 		UpdateWindow();
 	}
-	return 0;
+	return 0;// 0 - force close
 }
 
 LRESULT RightWorkView::doRefreshTableDataForSameDbTablePage(uint64_t userDbId, const std::wstring & theTblName)

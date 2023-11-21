@@ -51,6 +51,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, OnTableColumsChangePrimaryKey)
 		MESSAGE_HANDLER(Config::MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, OnTableColumsDeleteColumnName)
+		MESSAGE_HANDLER(Config::MSG_DATA_HAS_CHANGED_ID, OnHandleDataHasChanged)
 		COMMAND_HANDLER_EX(Config::TABLE_NEW_INDEX_BUTTON_ID, BN_CLICKED, OnClickNewIndexButton)
 		COMMAND_HANDLER_EX(Config::TABLE_DEL_INDEX_BUTTON_ID, BN_CLICKED, OnClickDelIndexButton)
 		CHAIN_MSG_MAP(QPage)
@@ -115,6 +116,7 @@ private:
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsChangePrimaryKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTableColumsDeleteColumnName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 };

@@ -61,6 +61,5 @@ private:
 
 	// 
 	std::wstring cacheUseSql;
-	
-	
+
 };

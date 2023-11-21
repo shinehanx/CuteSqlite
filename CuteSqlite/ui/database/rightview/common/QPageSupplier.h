@@ -29,9 +29,10 @@ public:
 	PageOperateType getOperateType() const { return operateType; }
 	void setOperateType(PageOperateType val) { operateType = val; }
 
-	
+	bool getIsDirty() { return isDirty; }
+	void setIsDirty(bool isDirty) { this->isDirty = isDirty; }
 private:
 	PageOperateType operateType; // new table - NEW_TABLE, alter table - MOD_TABLE
-
+	bool isDirty = false;
 	
 };
