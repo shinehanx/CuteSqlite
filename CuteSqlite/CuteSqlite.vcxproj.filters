@@ -375,6 +375,9 @@
     <ClCompile Include="utils\CliboardUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\database\rightview\adapter\RightWorkViewAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -783,6 +786,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\CliboardUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\database\rightview\adapter\RightWorkViewAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -99,8 +99,8 @@ void ImportFromSqlDialog::createOrShowImportPathElems(CRect & clientRect)
 	createOrShowFormLabel(importPathLabel, S(L"open-the-file").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormEdit(importPathEdit, Config::IMPORT_SOURCE_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
-	importPathEdit.SetLimitText(1024);
+	createOrShowFormEdit(importPathEdit, Config::IMPORT_SOURCE_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT | ES_AUTOHSCROLL, false);
+	importPathEdit.SetLimitText(2048);
 
 	rect.OffsetRect(w + 10, 0);	
 	rect = { rect.left, rect.top, rect.left + 50, rect.bottom };

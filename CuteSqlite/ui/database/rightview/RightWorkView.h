@@ -49,6 +49,9 @@
 #include "ui/database/rightview/page/HistoryPage.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/TableStructurePage.h"
+#include "ui/database/rightview/adapter/RightWorkViewAdapter.h"
+#include "ui/database/dialog/adapter/ExportDatabaseAdapter.h"
+#include "ui/database/dialog/adapter/ImportDatabaseAdapter.h"
 
 class RightWorkView : public CWindowImpl<RightWorkView>
 {
@@ -64,8 +67,14 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		// Exec sql
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, BN_CLICKED, OnClickExplainSqlButton)
+		// database import/export
+		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportDatabaseButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_BUTTON_ID, BN_CLICKED, OnClickImportDatabaseButton)
+
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
 		MESSAGE_HANDLER(Config::MSG_OPEN_VIEW_ID, OnClickOpenViewElem)
@@ -93,9 +102,14 @@ private:
 
 	COLORREF topbarColor = RGB(238, 238, 238);
 	CBrush topbarBrush ;
-
+	// exec button
 	QImageButton execSqlButton;
 	QImageButton execAllButton;
+	QImageButton explainSqlButton;
+
+	// database button
+	QImageButton exportDatabaseButton;
+	QImageButton importDatabaseButton;
 
 	QTabView tabView;
 	HistoryPage historyPage;
@@ -112,21 +126,22 @@ private:
 	HICON tableDataDirtyIcon = nullptr;
 	HICON tableStructureDirtyIcon = nullptr;
 
+	RightWorkViewAdapter * adapter = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	ExportDatabaseAdapter * exportDatabaseAdapter = nullptr;
+	ImportDatabaseAdapter * importDatabaseAdapter = nullptr;
 	
 	void createImageList();
 
 	CRect getTopRect(CRect & clientRect);
 	CRect getTabRect(CRect & clientRect);
+	CRect getTabRect();
 
 	void createOrShowUI();
 	void createOrShowToolButtons(CRect & clientRect);
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
-	void createFirstQueryPage(CRect & clientRect);
 	void createOrShowHistoryPage(HistoryPage &win, CRect & clientRect);
-	void createOrShowQueryPage(QueryPage &win, CRect & clientRect);
-	void createOrShowTableStructurePage(TableStructurePage &win, CRect & clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();
@@ -140,6 +155,9 @@ private:
 
 	LRESULT OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickExportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickImportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	// Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 	LRESULT OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -172,8 +190,4 @@ private:
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
-	void doAddNewTable();
-	void doAddNewView();
-	void doAddNewTrigger();
-	LRESULT doRefreshTableDataForSameDbTablePage(uint64_t userDbId, const std::wstring & theTblName);
 };

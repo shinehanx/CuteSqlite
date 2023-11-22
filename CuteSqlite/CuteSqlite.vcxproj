@@ -292,6 +292,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\process\QProcessBar.cpp" />
     <ClCompile Include="ui\common\tabview\QTabView.cpp" />
     <ClCompile Include="ui\common\treeview\QTreeViewCtrl.cpp" />
+    <ClCompile Include="ui\database\rightview\adapter\RightWorkViewAdapter.cpp" />
     <ClCompile Include="ui\database\DatabasePanel.cpp" />
     <ClCompile Include="ui\database\dialog\adapter\ExportDatabaseAdapter.cpp" />
     <ClCompile Include="ui\database\dialog\adapter\ImportFromCsvAdapter.cpp" />
@@ -425,6 +426,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\QWinCreater.h" />
     <ClInclude Include="ui\common\tabview\QTabView.h" />
     <ClInclude Include="ui\common\treeview\QTreeViewCtrl.h" />
+    <ClInclude Include="ui\database\rightview\adapter\RightWorkViewAdapter.h" />
     <ClInclude Include="ui\database\DatabasePanel.h" />
     <ClInclude Include="ui\database\dialog\adapter\ExportDatabaseAdapter.h" />
     <ClInclude Include="ui\database\dialog\adapter\ImportFromCsvAdapter.h" />

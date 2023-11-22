@@ -60,13 +60,13 @@ private:
 	CImageList imageList;
 	UserDbList dbs;
 
-	HBITMAP databaseBitmap = nullptr;
-	HBITMAP folderBitmap = nullptr;
-	HBITMAP tableBitmap = nullptr;
-	HBITMAP fieldBitmap = nullptr;
-	HBITMAP indexBitmap = nullptr;
-	HBITMAP viewBitmap = nullptr;
-	HBITMAP triggerBitmap = nullptr;
+	HICON databaseIcon = nullptr;
+	HICON folderIcon = nullptr;
+	HICON tableIcon = nullptr;
+	HICON fieldIcon = nullptr;
+	HICON indexIcon = nullptr;
+	HICON viewIcon = nullptr;
+	HICON triggerIcon = nullptr;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();

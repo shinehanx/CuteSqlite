@@ -64,11 +64,14 @@ private:
 
 	void doExportCreateTableStructure(std::wofstream & ofs, uint64_t userDbId, 
 		const UserTable tbl, const StructAndDataParams & structureAndDataParams, const TblStatementParams & tblStatementParams);
+	void doExportCreateIndex(std::wofstream & ofs, uint64_t userDbId, 
+		const UserTable tbl, const StructAndDataParams & structureAndDataParams, const TblStatementParams & tblStatementParams);
 
 	void doExportTableInsertStatement(std::wofstream & ofs, uint64_t userDbId, 
 		const UserTable &tbl, const StructAndDataParams & structureAndDataParams, const InsertStatementParams & insertStatementParams);
 
 	void replaceCreateTableClause(std::wstring &sql);	
+	void replaceCreateIndexClause(std::wstring &sql);	
 	void replaceCreateViewClause(std::wstring &sql);	
 	void replaceCreateTriggerClause(std::wstring &sql);	
 };

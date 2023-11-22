@@ -44,10 +44,10 @@ public:
 private:
 	CImageList imageList;
 
-	HBITMAP folderBitmap = nullptr;
-	HBITMAP tableBitmap = nullptr;
-	HBITMAP viewBitmap = nullptr;
-	HBITMAP triggerBitmap = nullptr;
+	HICON folderIcon = nullptr;
+	HICON tableIcon = nullptr;
+	HICON viewIcon = nullptr;
+	HICON triggerIcon = nullptr;
 
 	HTREEITEM hTablesFolderItem = nullptr;
 	HTREEITEM hViewsFolderItem = nullptr ;

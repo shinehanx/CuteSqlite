@@ -85,7 +85,7 @@ void ExportDatabaseAdapter::exportObjectsToSql(uint64_t userDbId,
 
 	ofs << L"--" << endl;
 	ofs << L"PRAGMA foreign_keys=OFF;" << endl;
-	ofs << L"BEGIN TRANSACTION;" << endl;
+	ofs << L"BEGIN;" << endl;
 
 	// 2.Export tables/views/triggers to sql
 	int percent = 0;
@@ -132,6 +132,7 @@ int ExportDatabaseAdapter::exportTablesToSql(uint64_t userDbId,
 	int avgVal = int(round( 80.0 / double(tblList.size())));
 	for (auto userTable : tblList) {
 		doExportCreateTableStructure(ofs, userDbId, userTable, structureAndDataParams, tblStatementParams);
+		doExportCreateIndex(ofs, userDbId, userTable, structureAndDataParams, tblStatementParams);
 		doExportTableInsertStatement(ofs, userDbId, userTable, structureAndDataParams, insertStatementParams);
 
 		percent += avgVal;
@@ -237,6 +238,33 @@ void ExportDatabaseAdapter::doExportCreateTableStructure(std::wofstream & ofs, u
 	return ;
 }
 
+
+void ExportDatabaseAdapter::doExportCreateIndex(std::wofstream & ofs, uint64_t userDbId, 
+	const UserTable tbl, const StructAndDataParams & structureAndDataParams, const TblStatementParams & tblStatementParams)
+{
+	ATLASSERT(userDbId && !tbl.name.empty() && !structureAndDataParams.sqlSetting.empty());
+	if (structureAndDataParams.sqlSetting == L"data-only") {
+		return ;
+	}
+	bool isOverrideTable = tblStatementParams.param == L"override-table";
+	bool isRetainTable = tblStatementParams.param == L"retain-table";
+	UserIndexList userIndexList = tableService->getUserIndexes(userDbId, tbl.name);
+	for (auto & idx : userIndexList) {
+		if (idx.sql.empty()) {
+			continue;
+		}
+		if (isOverrideTable) { // override table
+			ofs << L"DROP INDEX IF EXISTS \"" << idx.name << L"\";" << endl;
+			ofs << idx.sql << L";" << endl;
+		} else if (isRetainTable){ // retain-table
+			std::wstring sql = idx.sql;
+			replaceCreateIndexClause(sql);
+			ofs << sql << L";" << endl;
+		}
+	}
+	
+}
+
 /**
  * Export insert statement of the table data to sql file.
  * 
@@ -329,6 +357,17 @@ void ExportDatabaseAdapter::replaceCreateTableClause(std::wstring &sql)
 		return ;
 	}
 	sql = StringUtil::replace(sql, L"CREATE TABLE", L"CREATE TABLE IF NOT EXISTS", true);
+}
+
+
+void ExportDatabaseAdapter::replaceCreateIndexClause(std::wstring &sql)
+{
+	ATLASSERT(!sql.empty());
+
+	if (StringUtil::search(sql, L"CREATE INDEX", true) == false || StringUtil::search(sql, L"IF NOT EXISTS", true) == true) {
+		return ;
+	}
+	sql = StringUtil::replace(sql, L"CREATE INDEX", L"CREATE INDEX IF NOT EXISTS", true);
 }
 
 void ExportDatabaseAdapter::replaceCreateViewClause(std::wstring &sql)

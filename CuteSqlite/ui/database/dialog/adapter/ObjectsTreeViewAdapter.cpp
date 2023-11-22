@@ -36,10 +36,10 @@ ObjectsTreeViewAdapter::ObjectsTreeViewAdapter(HWND parentHwnd, CTreeViewCtrlEx 
 
 ObjectsTreeViewAdapter::~ObjectsTreeViewAdapter()
 {
-	if (folderBitmap) ::DeleteObject(folderBitmap);
-	if (tableBitmap) ::DeleteObject(tableBitmap);
-	if (viewBitmap) ::DeleteObject(viewBitmap);
-	if (triggerBitmap) ::DeleteObject(triggerBitmap);
+	if (folderIcon) ::DeleteObject(folderIcon);
+	if (tableIcon) ::DeleteObject(tableIcon);
+	if (viewIcon) ::DeleteObject(viewIcon);
+	if (triggerIcon) ::DeleteObject(triggerIcon);
 }
 
 
@@ -250,16 +250,16 @@ void ObjectsTreeViewAdapter::createImageList()
 	}
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
-	folderBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\folder.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	tableBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\table.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	viewBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\view.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	triggerBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\trigger.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	folderIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\folder.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	viewIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\view.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	triggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
-	imageList.Add(folderBitmap); // 0 - Objects : folder
-	imageList.Add(tableBitmap); // 1 - Objects : table	
-	imageList.Add(viewBitmap);// 2 - Objects : view
-	imageList.Add(triggerBitmap);// 3 - Objects : trigger
+	imageList.Create(16, 16, ILC_COLOR32, 4, 4);
+	imageList.AddIcon(folderIcon); // 0 - Objects : folder
+	imageList.AddIcon(tableIcon); // 1 - Objects : table	
+	imageList.AddIcon(viewIcon);// 2 - Objects : view
+	imageList.AddIcon(triggerIcon);// 3 - Objects : trigger
 }
 
 /**

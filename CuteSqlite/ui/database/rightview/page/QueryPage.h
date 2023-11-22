@@ -46,6 +46,7 @@ public:
 	QHelpEdit & getSqlEditor();
 	ResultTabView & getResultTabView();
 	void execAndShow(bool select = false);
+	void explainAndShow();
 private:
 	std::wstring viewName;
 	std::wstring tplPath;

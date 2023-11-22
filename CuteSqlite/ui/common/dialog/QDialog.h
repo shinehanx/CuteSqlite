@@ -285,7 +285,7 @@ template <class T>
 void QDialog<T>::createOrShowFormEdit(WTL::CEdit & win, UINT id, std::wstring text, std::wstring cueBanner, CRect rect, CRect &clientRect, DWORD exStyle, bool isReadOnly)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_TABSTOP;
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_TABSTOP ;
 		if (exStyle) {
 			dwStyle |= exStyle;
 		}

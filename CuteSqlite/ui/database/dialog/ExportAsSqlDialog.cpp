@@ -149,8 +149,8 @@ void ExportAsSqlDialog::createOrShowExportPathElems(CRect & clientRect)
 	createOrShowFormLabel(exportPathLabel, S(L"save-to-file").append(L":"), rect, clientRect, SS_LEFT, elemFont);
 
 	rect.OffsetRect(0, h + 5);
-	createOrShowFormEdit(exportPathEdit, Config::EXPORT_DB_AS_SQL_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT, false);
-	exportPathEdit.SetLimitText(1024);
+	createOrShowFormEdit(exportPathEdit, Config::EXPORT_DB_AS_SQL_PATH_EDIT_ID, L"", L"", rect, clientRect, ES_LEFT | ES_AUTOHSCROLL, false);
+	exportPathEdit.SetLimitText(2048);
 
 	rect.OffsetRect(w + 10, 0);	
 	rect = { rect.left, rect.top, rect.left + 50, rect.bottom };
@@ -714,6 +714,13 @@ void ExportAsSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	saveTblStatementSettings(tblStatementParams);
 
 	noButton.SetWindowText(S(L"complete").c_str());
+
+	//QPopAnimate::success(m_hWnd, msg);
+	if (QMessageBox::confirm(m_hWnd, S(L"export-as-sql-success-text"), S(L"open-the-file")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {			
+		std::wstring selelctFile = L"/select,"; // Notice select, must be ',' at last character
+		selelctFile.append(exportPath.c_str());
+		::ShellExecuteW(NULL, L"open", L"Explorer.exe",selelctFile.c_str() , NULL, SW_SHOWDEFAULT);
+	}
 	yesButton.EnableWindow(TRUE);
 }
 

@@ -18,13 +18,14 @@ LeftTreeViewAdapter::LeftTreeViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view
 
 LeftTreeViewAdapter::~LeftTreeViewAdapter()
 {
-	if (databaseBitmap) ::DeleteObject(databaseBitmap);
-	if (folderBitmap) ::DeleteObject(folderBitmap);
-	if (tableBitmap) ::DeleteObject(tableBitmap);
-	if (fieldBitmap) ::DeleteObject(fieldBitmap);
-	if (indexBitmap) ::DeleteObject(indexBitmap);
-	if (viewBitmap) ::DeleteObject(viewBitmap);
-	if (triggerBitmap) ::DeleteObject(triggerBitmap);
+	if (databaseIcon) ::DeleteObject(databaseIcon);
+	if (folderIcon) ::DeleteObject(folderIcon);
+	if (tableIcon) ::DeleteObject(tableIcon);
+	if (fieldIcon) ::DeleteObject(fieldIcon);
+	if (indexIcon) ::DeleteObject(indexIcon);
+	if (viewIcon) ::DeleteObject(viewIcon);
+	if (triggerIcon) ::DeleteObject(triggerIcon);
+	if (imageList.IsNull()) imageList.Destroy();
 }
 
 void LeftTreeViewAdapter::createUserDatabase(std::wstring & dbPath)
@@ -314,22 +315,22 @@ void LeftTreeViewAdapter::createImageList()
 	}
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
-	databaseBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\database.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	folderBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\folder.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	tableBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\table.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	fieldBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\field.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	indexBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\index.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	viewBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\view.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	triggerBitmap = (HBITMAP)::LoadImageW(ins, (imgDir + L"database\\tree\\trigger.bmp").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	databaseIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	folderIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\folder.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	tableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	fieldIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\field.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	indexIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\index.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	viewIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\view.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	triggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 0, 4);
-	imageList.Add(databaseBitmap); // 0 - database
-	imageList.Add(folderBitmap); // 1 - folder
-	imageList.Add(tableBitmap); // 2 - table
-	imageList.Add(fieldBitmap); // 3 - field/column
-	imageList.Add(indexBitmap); // 4 - index
-	imageList.Add(viewBitmap);// 5 - view
-	imageList.Add(triggerBitmap);// 6 - trigger
+	imageList.Create(16, 16, ILC_COLOR32, 7, 7);
+	imageList.AddIcon(databaseIcon); // 0 - database
+	imageList.AddIcon(folderIcon); // 1 - folder 
+	imageList.AddIcon(tableIcon); // 2 - table 
+	imageList.AddIcon(fieldIcon); // 3 - field/column
+	imageList.AddIcon(indexIcon); // 4 - index 
+	imageList.AddIcon(viewIcon);// 5 - view
+	imageList.AddIcon(triggerIcon);// 6 - trigger
 }
 
 /**

@@ -144,6 +144,60 @@ void QueryPage::execAndShow(bool select)
 	
 }
 
+void QueryPage::explainAndShow()
+{
+	std::wstring sqls;
+	
+	sqls = getSqlEditor().getSelText();
+	if (sqls.empty()) {
+		sqls = getSqlEditor().getText();
+	}
+	
+	if (sqls.empty()) {
+		QPopAnimate::warn(m_hWnd, S(L"no-sql-statement"));
+		sqlEditor.focus();
+		return;
+	}
+	if (supplier->getRuntimeUserDbId() != databaseSupplier->getSelectedUserDbId()) {
+		supplier->setRuntimeUserDbId(databaseSupplier->getSelectedUserDbId());
+	}
+	resultTabView.clearMessage();
+	if (supplier->getOperateType() == QUERY_DATA || supplier->getOperateType() == TABLE_DATA) {
+		supplier->splitToSqlVector(sqls);		
+		std::vector<std::wstring> & sqlVector = supplier->sqlVector;
+		int n = static_cast<int>(sqlVector.size());
+		int nSelectSqlCount = 0, nNotSelectSqlCount = 0;
+
+		// BEGIN a save point 
+		std::wstring spSql = L"BEGIN;";
+		sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+		bool hasError = false;
+		for (int i = 0; i < n; i++) {
+			auto sql = sqlVector.at(i);			
+			if (SqlUtil::isSelectSql(sql) || SqlUtil::isPragmaStmt(sql, true)) {
+				sql = L"EXPLAIN " + sql;
+				resultTabView.addResultToListPage(sql, nSelectSqlCount+1);
+				nSelectSqlCount++;
+			}
+		}
+		
+		if (nSelectSqlCount) {
+			// if the count of ptrs has more than nSelectSqlCount in ResultTabView object, Get gid of them.
+			resultTabView.removeResultListPageFrom(nSelectSqlCount);
+			resultTabView.setActivePage(0);
+		} else if (nNotSelectSqlCount){
+			resultTabView.activeResultInfoPage();
+		}
+		if (!hasError) {
+			spSql = L"COMMIT;"; // COMMIT TRANSACTION
+			sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+			if (!nSelectSqlCount || nNotSelectSqlCount) {
+				QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
+			}			
+		}
+	}
+}
+
 void QueryPage::createOrShowUI()
 {
 	QPage::createOrShowUI();
