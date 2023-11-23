@@ -229,6 +229,14 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bkgBrush.CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_COPY_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_SHARDING_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
 	exportDatabaseAdapter = new ExportDatabaseAdapter(m_hWnd, nullptr);
 	return 0;
@@ -237,6 +245,14 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int LeftTreeView::OnDestroy()
 {	
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_COPY_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_SHARDING_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
 
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
@@ -681,6 +697,54 @@ void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	doRefreshDatabase();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->renameTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->truncateTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->dropTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnCopyTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->copyTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnShardingTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->shardingTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnExportTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	tableMenuAdapter->exportTable();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnImportTableFromSql(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	doImportFromSql();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnImportTableFromCsv(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	doImportFromCsv();
 	return 0;
 }
 

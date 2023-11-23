@@ -36,6 +36,7 @@ public:
 	
 
 	void createFirstQueryPage(CRect & tabRect);
+	void createNewQueryPage(CRect & tabRect);
 	void createOrShowQueryPage(QueryPage &win, CRect & tabRect);
 	void createOrShowTableStructurePage(TableStructurePage &win, CRect & tabRect);
 	

@@ -55,12 +55,18 @@ typedef enum {
 	DATABASE_EXEC_SQL_BUTTON_ID,
 	DATABASE_EXEC_ALL_BUTTON_ID,
 	DATABASE_EXPLAIN_SQL_BUTTON_ID,
+	DATABASE_QUERY_BUTTON_ID,
+	DATABASE_HISTORY_BUTTON_ID,
 	// RIGHT VIEW TOOLBAR - DATABASE
 	DATABASE_EXPORT_BUTTON_ID,
 	DATABASE_IMPORT_BUTTON_ID,
 	// RIGHT VIEW TOOLBAR - TABLE
 	DATABASE_CREATE_TABLE_BUTTON_ID,
 	DATABASE_OPEN_TABLE_BUTTON_ID,
+	DATABASE_ALTER_TABLE_BUTTON_ID,
+	DATABASE_RENAME_TABLE_BUTTON_ID,
+	DATABASE_TRUNCATE_TABLE_BUTTON_ID,
+	DATABASE_DROP_TABLE_BUTTON_ID,
 	DATABASE_COPY_TABLE_BUTTON_ID,
 	DATABASE_SHARDING_TABLE_BUTTON_ID,
 	DATABASE_EXPORT_TABLE_BUTTON_ID,
@@ -413,6 +419,14 @@ typedef enum {
 	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_RENAME_TABLE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_TRUNCATE_TABLE_ID, // Send this msg when truncate a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_DROP_TABLE_ID, // Send this msg when drop a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_COPY_TABLE_ID, // Send this msg when copy a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_SHARDING_TABLE_ID, // Send this msg when sharding a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_EXPORT_TABLE_ID, // Send this msg when export a table, wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID, // Send this msg when import a table from sql file, wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID, // Send this msg when import a table from csv file, wParam = NULL, lParam=NULL
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=TABLE_COLUMNS_PAGE/TABLE_INDEX_PAGE/TABLE_FOREIGN_KEYS_PAGE, lParam=NULL
 	MSG_RENAME_TABLE_ID, // Send this msg when clicking "Rename table" menu or toolbar button , wParam=NULL, lParam=NULL

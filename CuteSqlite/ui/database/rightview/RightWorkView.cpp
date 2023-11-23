@@ -85,16 +85,22 @@ void RightWorkView::createImageList()
 	tableDataIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);	
 	tableDataDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-data-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	tableStructureDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\table-structure-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	createTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\create-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	createTableDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\create-table-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	queryDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tab\\query-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 7, 7);
+	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(queryIcon); // 0 - query
 	imageList.AddIcon(historyIcon); // 1 - history
-	imageList.AddIcon(tableIcon); // 2 - new table
+	imageList.AddIcon(tableIcon); // 2 - table
 	imageList.AddIcon(viewIcon); // 3 - view 
 	imageList.AddIcon(triggerIcon); // 4 - trigger
 	imageList.AddIcon(tableDataIcon); // 5 - table data
 	imageList.AddIcon(tableDataDirtyIcon); // 6 - table data dirty
 	imageList.AddIcon(tableStructureDirtyIcon); // 7 - table structure dirty
+	imageList.AddIcon(createTableIcon); // 8 - create table
+	imageList.AddIcon(createTableDirtyIcon); // 9 - create table dirty
+	imageList.AddIcon(queryDirtyIcon); // 10 - query dirty
 	
 }
 
@@ -130,50 +136,195 @@ void RightWorkView::createOrShowUI()
 
 void RightWorkView::createOrShowToolButtons(CRect & clientRect)
 {
-	int x = 10 , y = 7, w = RIGHTVIEW_BUTTON_WIDTH, h = RIGHTVIEW_BUTTON_WIDTH;
+	createOrShowExecButtons(clientRect);
+	createOrShowDbButtons(clientRect);
+	createOrShowTableButtons(clientRect);
+}
+
+void RightWorkView::createOrShowExecButtons(CRect & clientRect)
+{
+	int x = 10, y = 7, w = RIGHTVIEW_BUTTON_WIDTH, h = RIGHTVIEW_BUTTON_WIDTH;
 
 	// Exec sql buttons
 	CRect rect(x, y, x + w, y + h);
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
-	std::wstring normalImagePath = imgDir + L"database\\button\\exec-sql-button-normal.png";
-	std::wstring pressedImagePath = imgDir + L"database\\button\\exec-sql-button-pressed.png";
-	execSqlButton.SetIconPath(normalImagePath, pressedImagePath);
-	execSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	std::wstring normalImagePath, pressedImagePath;
+	if (!execSqlButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\exec-sql-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\exec-sql-button-pressed.png";
+		execSqlButton.SetIconPath(normalImagePath, pressedImagePath);
+		execSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
+	}
 	QWinCreater::createOrShowButton(m_hWnd, execSqlButton, Config::DATABASE_EXEC_SQL_BUTTON_ID, L"", rect, clientRect);
 	execSqlButton.SetToolTip(S(L"exec-select-sql"));
 
 	rect.OffsetRect(w + 10, 0);
-	normalImagePath = imgDir + L"database\\button\\exec-all-button-normal.png";
-	pressedImagePath = imgDir + L"database\\button\\exec-all-button-pressed.png";
-	execAllButton.SetIconPath(normalImagePath, pressedImagePath);
-	execAllButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	if (!execAllButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\exec-all-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\exec-all-button-pressed.png";
+		execAllButton.SetIconPath(normalImagePath, pressedImagePath);
+		execAllButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	}
 	QWinCreater::createOrShowButton(m_hWnd, execAllButton, Config::DATABASE_EXEC_ALL_BUTTON_ID, L"", rect, clientRect);
 	execAllButton.SetToolTip(S(L"exec-all-sql"));
 
 	rect.OffsetRect(w + 10, 0);
-	normalImagePath = imgDir + L"database\\button\\explain-button-normal.png";
-	pressedImagePath = imgDir + L"database\\button\\explain-button-pressed.png";
-	explainSqlButton.SetIconPath(normalImagePath, pressedImagePath);
-	explainSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	if (!explainSqlButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\explain-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\explain-button-pressed.png";
+		explainSqlButton.SetIconPath(normalImagePath, pressedImagePath);
+		explainSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
+	}
 	QWinCreater::createOrShowButton(m_hWnd, explainSqlButton, Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, L"", rect, clientRect);
 	explainSqlButton.SetToolTip(S(L"explain-select-sql"));
+	
+	// split
+	CRect splitRect(rect.right + 20, rect.top, rect.right + 38, rect.bottom);
+	if (!splitImage.IsWindow()) {
+		std::wstring splitImagePath = imgDir + L"database\\list\\button\\split.png";
+		splitImage.load(splitImagePath.c_str(), BI_PNG, true);
+		splitImage.setBkgColor(topbarColor); 
+	}
+	QWinCreater::createOrShowImage(m_hWnd, splitImage, 0, splitRect, clientRect);
+
+	rect.OffsetRect(splitRect.left - rect.left + splitRect.Width()+ 10 , 0);
+	if (!queryButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\query-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\query-button-pressed.png";
+		queryButton.SetIconPath(normalImagePath, pressedImagePath);
+		queryButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	}
+	QWinCreater::createOrShowButton(m_hWnd, queryButton, Config::DATABASE_QUERY_BUTTON_ID, L"", rect, clientRect);
+	queryButton.SetToolTip(S(L"new-query"));
+	
+	rect.OffsetRect(w + 10, 0);
+	if (!historyButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\history-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\history-button-pressed.png";
+		historyButton.SetIconPath(normalImagePath, pressedImagePath);
+		historyButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	}
+	QWinCreater::createOrShowButton(m_hWnd, historyButton, Config::DATABASE_HISTORY_BUTTON_ID, L"", rect, clientRect);
+	historyButton.SetToolTip(S(L"history"));
+}
+
+
+void RightWorkView::createOrShowDbButtons(CRect & clientRect)
+{
+	CRect rect = GdiPlusUtil::GetWindowRelativeRect(historyButton.m_hWnd);
+	int w = rect.Width();
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	std::wstring normalImagePath,pressedImagePath;
+
+	CRect labelRect = rect;
+	labelRect.OffsetRect(rect.Width() + 20, 0);
+	labelRect.right = labelRect.left + 70; 
+	QWinCreater::createOrShowLabel(m_hWnd, databaseLabel, S(L"database").append(L":"), labelRect, clientRect, SS_RIGHT);
 
 	// Database buttons
-	rect.OffsetRect(w + 80, 0);
-	normalImagePath = imgDir + L"database\\button\\export-database-button-normal.png";
-	pressedImagePath = imgDir + L"database\\button\\export-database-button-pressed.png";
-	exportDatabaseButton.SetIconPath(normalImagePath, pressedImagePath);
-	exportDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	rect.OffsetRect(labelRect.right - rect.left + 5, 0);
+	if (!exportDatabaseButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\export-database-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\export-database-button-pressed.png";
+		exportDatabaseButton.SetIconPath(normalImagePath, pressedImagePath);
+		exportDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
+	}
 	QWinCreater::createOrShowButton(m_hWnd, exportDatabaseButton, Config::DATABASE_EXPORT_BUTTON_ID, L"", rect, clientRect);
 	exportDatabaseButton.SetToolTip(S(L"database-export-as-sql"));
+	
+	rect.OffsetRect(w + 10, 0);
+	if (!importDatabaseButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\import-database-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\import-database-button-pressed.png";
+		importDatabaseButton.SetIconPath(normalImagePath, pressedImagePath);
+		importDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	}
+	QWinCreater::createOrShowButton(m_hWnd, importDatabaseButton, Config::DATABASE_IMPORT_BUTTON_ID, L"", rect, clientRect);
+	importDatabaseButton.SetToolTip(S(L"database-import-from-sql"));	
+}
+
+void RightWorkView::createOrShowTableButtons(CRect & clientRect)
+{
+	CRect rect = GdiPlusUtil::GetWindowRelativeRect(importDatabaseButton.m_hWnd);
+	int w = rect.Width();
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	std::wstring normalImagePath,pressedImagePath;
+
+	CRect labelRect = rect;
+	labelRect.OffsetRect(rect.Width() + 20, 0);
+	labelRect.right = labelRect.left + 50;
+	QWinCreater::createOrShowLabel(m_hWnd, tableLabel, S(L"table").append(L":"), labelRect, clientRect, SS_RIGHT);
+
+	// table buttons
+	rect.OffsetRect(labelRect.right - rect.left + 5, 0);
+	if (!createTableButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\create-table-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\create-table-button-pressed.png";
+		createTableButton.SetIconPath(normalImagePath, pressedImagePath);
+		createTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	}
+	QWinCreater::createOrShowButton(m_hWnd, createTableButton, Config::DATABASE_CREATE_TABLE_BUTTON_ID, L"", rect, clientRect);
+	createTableButton.SetToolTip(S(L"table-create"));
+	
+	rect.OffsetRect(w + 10, 0);
+	openTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, openTableButton, Config::DATABASE_OPEN_TABLE_BUTTON_ID, L"", rect, clientRect);
+	openTableButton.SetToolTip(S(L"table-open"));
+	enableButton(openTableButton, std::wstring(L"open-table"));
 
 	rect.OffsetRect(w + 10, 0);
-	normalImagePath = imgDir + L"database\\button\\import-database-button-normal.png";
-	pressedImagePath = imgDir + L"database\\button\\import-database-button-pressed.png";
-	importDatabaseButton.SetIconPath(normalImagePath, pressedImagePath);
-	importDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
-	QWinCreater::createOrShowButton(m_hWnd, importDatabaseButton, Config::DATABASE_IMPORT_BUTTON_ID, L"", rect, clientRect);
-	importDatabaseButton.SetToolTip(S(L"database-import-from-sql")); 
+	alterTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, alterTableButton, Config::DATABASE_ALTER_TABLE_BUTTON_ID, L"", rect, clientRect);
+	alterTableButton.SetToolTip(S(L"table-alter"));
+	enableButton(alterTableButton, std::wstring(L"alter-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	renameTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, renameTableButton, Config::DATABASE_RENAME_TABLE_BUTTON_ID, L"", rect, clientRect);
+	renameTableButton.SetToolTip(S(L"table-rename"));
+	enableButton(renameTableButton, std::wstring(L"rename-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	truncateTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, truncateTableButton, Config::DATABASE_TRUNCATE_TABLE_BUTTON_ID, L"", rect, clientRect);
+	truncateTableButton.SetToolTip(S(L"table-truncate"));
+	enableButton(truncateTableButton, std::wstring(L"truncate-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	dropTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, dropTableButton, Config::DATABASE_DROP_TABLE_BUTTON_ID, L"", rect, clientRect);
+	dropTableButton.SetToolTip(S(L"table-drop"));
+	enableButton(dropTableButton, std::wstring(L"drop-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	copyTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, copyTableButton, Config::DATABASE_COPY_TABLE_BUTTON_ID, L"", rect, clientRect);
+	copyTableButton.SetToolTip(S(L"table-copy-as"));
+	enableButton(copyTableButton, std::wstring(L"copy-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	shardingTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, shardingTableButton, Config::DATABASE_SHARDING_TABLE_BUTTON_ID, L"", rect, clientRect);
+	shardingTableButton.SetToolTip(S(L"table-sharding-as"));
+	enableButton(shardingTableButton, std::wstring(L"sharding-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	exportTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, exportTableButton, Config::DATABASE_EXPORT_TABLE_BUTTON_ID, L"", rect, clientRect);
+	exportTableButton.SetToolTip(S(L"table-export-as"));
+	enableButton(exportTableButton, std::wstring(L"export-table"));
+
+	rect.OffsetRect(w + 10, 0);
+	importTableSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, importTableSqlButton, Config::DATABASE_IMPORT_TABLE_FROM_SQL_BUTTON_ID, L"", rect, clientRect);
+	importTableSqlButton.SetToolTip(S(L"table-import-sql"));
+	enableButton(importTableSqlButton, std::wstring(L"import-table-sql"));
+
+	rect.OffsetRect(w + 10, 0);
+	importTableCsvButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+	QWinCreater::createOrShowButton(m_hWnd, importTableCsvButton, Config::DATABASE_IMPORT_TABLE_FROM_CSV_BUTTON_ID, L"", rect, clientRect);
+	importTableCsvButton.SetToolTip(S(L"table-import-csv"));
+	enableButton(importTableCsvButton, std::wstring(L"import-table-csv"));
 }
 
 void RightWorkView::createOrShowTabView(QTabView &win, CRect & clientRect)
@@ -224,6 +375,26 @@ void RightWorkView::loadTabViewPages()
 }
 
 
+void RightWorkView::enableButton(QImageButton &btn, const std::wstring & iconPrefix)
+{
+	bool enabled = !databaseSupplier->selectedTable.empty();
+	bool origEnabled = btn.IsWindowEnabled();
+	if (origEnabled == enabled) {
+		return ;
+	}
+	std::wstring normalImagePath, pressedImagePath;
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	if (enabled) {
+		normalImagePath = imgDir + L"database\\button\\" + iconPrefix + L"-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\" + iconPrefix + L"-button-pressed.png";
+	} else {
+		normalImagePath = imgDir + L"database\\button\\" + iconPrefix + L"-button-disabled.png";
+		pressedImagePath = imgDir + L"database\\button\\" + iconPrefix + L"-button-disabled.png";
+	}
+	btn.SetIconPath(normalImagePath, pressedImagePath);
+	btn.EnableWindow(enabled);
+}
+
 int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
@@ -244,6 +415,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
+	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
 
 	adapter = new RightWorkViewAdapter(m_hWnd, tabView, queryPagePtrs, tablePagePtrs);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
@@ -253,6 +425,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	topbarBrush.CreateSolidBrush(topbarColor);
 	bkgBrush.CreateSolidBrush(bkgColor);
+	textFont = FT(L"form-text-size");
 	return 0;
 }
 
@@ -276,17 +449,36 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
 
 	
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
+	if (textFont) ::DeleteObject(textFont);
 	
 	if (execSqlButton.IsWindow()) execSqlButton.DestroyWindow();
 	if (execAllButton.IsWindow()) execAllButton.DestroyWindow();
 	if (explainSqlButton.IsWindow()) explainSqlButton.DestroyWindow();
+	if (splitImage.IsWindow()) splitImage.DestroyWindow();
+	if (queryButton.IsWindow()) queryButton.DestroyWindow();
+	if (historyButton.IsWindow()) historyButton.DestroyWindow();
 
+	if (databaseLabel.IsWindow()) databaseLabel.DestroyWindow();
 	if (exportDatabaseButton.IsWindow()) exportDatabaseButton.DestroyWindow();
 	if (importDatabaseButton.IsWindow()) importDatabaseButton.DestroyWindow();
+
+	if (tableLabel.IsWindow()) tableLabel.DestroyWindow();
+	if (createTableButton.IsWindow()) createTableButton.DestroyWindow();
+	if (openTableButton.IsWindow()) openTableButton.DestroyWindow();
+	if (alterTableButton.IsWindow()) alterTableButton.DestroyWindow();
+	if (renameTableButton.IsWindow()) renameTableButton.DestroyWindow();
+	if (truncateTableButton.IsWindow()) truncateTableButton.DestroyWindow();
+	if (dropTableButton.IsWindow()) dropTableButton.DestroyWindow();
+	if (copyTableButton.IsWindow()) copyTableButton.DestroyWindow();
+	if (shardingTableButton.IsWindow()) shardingTableButton.DestroyWindow();
+	if (exportTableButton.IsWindow()) exportTableButton.DestroyWindow();
+	if (importTableSqlButton.IsWindow()) importTableSqlButton.DestroyWindow();
+	if (importTableCsvButton.IsWindow()) importTableCsvButton.DestroyWindow();
 
 	if (tabView.IsWindow()) tabView.DestroyWindow();
 	if (historyPage.IsWindow()) historyPage.DestroyWindow();
@@ -299,6 +491,9 @@ int RightWorkView::OnDestroy()
 	if (tableDataIcon) ::DeleteObject(tableDataIcon);
 	if (tableDataDirtyIcon) ::DeleteObject(tableDataDirtyIcon);
 	if (tableStructureDirtyIcon) ::DeleteObject(tableStructureDirtyIcon);
+	if (createTableIcon) ::DeleteObject(createTableIcon);
+	if (createTableDirtyIcon) ::DeleteObject(createTableDirtyIcon);
+	if (queryDirtyIcon) ::DeleteObject(queryDirtyIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	// destroy the pagePtr and release the memory from pagePtrs vector
@@ -385,6 +580,31 @@ LRESULT RightWorkView::OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND h
 	return 0;
 }
 
+LRESULT RightWorkView::OnClickQueryButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->createNewQueryPage(getTabRect());
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickHistoryButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	if (!historyPage.IsWindow()) {
+		createOrShowHistoryPage(historyPage, clientRect);
+		tabView.AddPage(historyPage.m_hWnd, StringUtil::blkToTail(S(L"history")).c_str(), 1, &historyPage);
+		return 0;
+	}
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		if (historyPage.m_hWnd == pageHwnd) {
+			tabView.SetActivePage(i);
+		}
+	}
+	return 0;
+}
+
 LRESULT RightWorkView::OnClickExportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportAsSqlDialog exportAsSqlDialog(m_hWnd, exportDatabaseAdapter);
@@ -397,6 +617,72 @@ LRESULT RightWorkView::OnClickImportDatabaseButton(UINT uNotifyCode, int nID, HW
 {
 	ImportFromSqlDialog dialog(m_hWnd, importDatabaseAdapter);
 	dialog.DoModal(m_hWnd);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickCreateTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->addNewTable(getTabRect());
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickOpenTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->showTableData(getTabRect(), 0);	
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickAlterTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->alterTable(getTabRect(), TABLE_COLUMNS_PAGE);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickRenameTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickTruncateTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickDropTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_DROP_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickCopyTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_COPY_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickShardingTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_SHARDING_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickExportTableButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickImportTableSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickImportTableCsvButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
 	return 0;
 }
 
@@ -482,7 +768,7 @@ LRESULT RightWorkView::OnClickDropTriggerElem(UINT uMsg, WPARAM wParam, LPARAM l
  * @param bHandled
  * @return 
  */
-LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT RightWorkView::OnChangePageTitleAndIcon(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	int nPage = tabView.GetActivePage();
 	if (nPage < 0) {
@@ -500,6 +786,7 @@ LRESULT RightWorkView::OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam
 		if (pagePtr->m_hWnd == hwnd) {
 			title = pagePtr->getSupplier()->getRuntimeTblName();
 			tabView.SetPageTitle(nPage, title.c_str());
+			tabView.SetPageImage(nPage, 2); // 2 - mod table 
 		}
 	}
 	
@@ -554,12 +841,16 @@ LRESULT RightWorkView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam
 	bool isDirty = static_cast<bool>(lParam);
 	int activePage = tabView.GetActivePage();
 	if (isDirty) {
-		if (tabView.GetPageImage(activePage) != 6) { // 6 - table data dirty
+		if (tabView.GetPageImage(activePage) == 5) { // 6 - table data dirty
 			tabView.SetPageImage(activePage, 6);
-		}		
+		} else if (tabView.GetPageImage(activePage) == 0) {
+			tabView.SetPageImage(activePage, 10);
+		}
 	} else {
-		if (tabView.GetPageImage(activePage) != 5) {
+		if (tabView.GetPageImage(activePage) == 6) {
 			tabView.SetPageImage(activePage, 5); // 5 - table data
+		} else if (tabView.GetPageImage(activePage) == 10) {
+			tabView.SetPageImage(activePage, 0);
 		}
 	}
 	
@@ -570,31 +861,51 @@ LRESULT RightWorkView::OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPA
 {
 	bool isDirty = static_cast<bool>(lParam);
 	int activePage = tabView.GetActivePage();
-
-	if (isDirty) {
-		if (tabView.GetPageImage(activePage) != 7) { // 7 - table structure dirty
-			tabView.SetPageImage(activePage, 7);
-		}		
-	} else {
-		HWND activePageHwnd = tabView.GetPageHWND(activePage);
-		auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&activePageHwnd](const TableStructurePage * ptr) {
-			return ptr->m_hWnd == activePageHwnd;
-		});
-		if (iter == tablePagePtrs.end()) {
-			return 0;
-		}
-		TableStructurePage * ptr = *iter;
-		if (!ptr->getSupplier()->compareDatas()) {
-			if (tabView.GetPageImage(activePage) != 7) { // 7 - table structure dirty
-				tabView.SetPageImage(activePage, 7);
-			}
-			return 0;
-		}
-
-		if (tabView.GetPageImage(activePage) != 2) { // 2- table structure
-			tabView.SetPageImage(activePage, 2);
-		}
+	
+	HWND activePageHwnd = tabView.GetPageHWND(activePage);
+	auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&activePageHwnd](const TableStructurePage * ptr) {
+		return ptr->m_hWnd == activePageHwnd;
+	});
+	if (iter == tablePagePtrs.end()) {
+		return 0;
 	}
+	TableStructurePage * ptr = *iter;
+	if (!ptr->getSupplier()->compareDatas()) {
+		if (ptr->getSupplier()->getOperateType() == NEW_TABLE 
+			&& tabView.GetPageImage(activePage) != 9) { // 9 - new table structure dirty
+			tabView.SetPageImage(activePage, 9);
+		} else if (ptr->getSupplier()->getOperateType() == MOD_TABLE 
+			&& tabView.GetPageImage(activePage) != 7) { // 7 - alter table structure dirty
+			tabView.SetPageImage(activePage, 7);
+		}
+		return 0;
+	}
+
+	if (ptr->getSupplier()->getOperateType() == NEW_TABLE 
+		&& tabView.GetPageImage(activePage) != 8) { // 8 - new table structure
+		tabView.SetPageImage(activePage, 8);
+	} else if (ptr->getSupplier()->getOperateType() == MOD_TABLE 
+		&& tabView.GetPageImage(activePage) != 2) { // 2 - alter table structure
+		tabView.SetPageImage(activePage, 2);
+	}
+	
+	return 0;
+}
+
+LRESULT RightWorkView::OnChangeTreeviewItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	//if (createTableButton.IsWindow()) enableButton(createTableButton, std::wstring(L"create-table"));
+	if (openTableButton.IsWindow()) enableButton(openTableButton, std::wstring(L"open-table"));
+	if (alterTableButton.IsWindow()) enableButton(alterTableButton, std::wstring(L"alter-table"));
+	if (renameTableButton.IsWindow()) enableButton(renameTableButton, std::wstring(L"rename-table"));
+	if (truncateTableButton.IsWindow()) enableButton(truncateTableButton, std::wstring(L"truncate-table"));
+	if (dropTableButton.IsWindow()) enableButton(dropTableButton, std::wstring(L"drop-table"));
+	if (copyTableButton.IsWindow()) enableButton(copyTableButton, std::wstring(L"copy-table"));
+	if (shardingTableButton.IsWindow()) enableButton(shardingTableButton, std::wstring(L"sharding-table"));
+	if (exportTableButton.IsWindow()) enableButton(exportTableButton, std::wstring(L"export-table")); 
+	if (importTableSqlButton.IsWindow()) enableButton(importTableSqlButton, std::wstring(L"import-table-sql"));
+	if (importTableCsvButton.IsWindow()) enableButton(importTableCsvButton, std::wstring(L"import-table-csv"));
+
 	return 0;
 }
 
@@ -697,4 +1008,11 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 		UpdateWindow();
 	}
 	return 0;// 0 - force close
+}
+
+HBRUSH RightWorkView::OnCtlColorStatic(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, topbarColor);
+	::SelectObject(hdc, textFont);
+	return topbarBrush.m_hBrush;
 }

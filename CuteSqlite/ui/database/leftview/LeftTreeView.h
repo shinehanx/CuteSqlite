@@ -101,6 +101,14 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_INDEX_MENU_ID, OnClickDropIndexMenu)
 
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_RENAME_TABLE_ID, OnRenameTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID, OnTruncateTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_DROP_TABLE_ID, OnDropTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_COPY_TABLE_ID, OnCopyTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_SHARDING_TABLE_ID, OnShardingTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_EXPORT_TABLE_ID, OnExportTable)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID, OnImportTableFromSql)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID, OnImportTableFromCsv)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -216,6 +224,14 @@ private:
 
 	// MSG
 	LRESULT OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnCopyTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnShardingTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnExportTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnImportTableFromSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnImportTableFromCsv(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void doRefreshDatabase();
 	void doDeleteDatabase();

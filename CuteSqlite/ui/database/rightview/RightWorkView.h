@@ -45,6 +45,7 @@
 #include "core/service/db/DatabaseService.h"
 #include "ui/common/tabview/QTabView.h"
 #include "ui/common/button/QImageButton.h"
+#include "ui/common/image/QStaticImage.h"
 #include "ui/database/rightview/page/QueryPage.h"
 #include "ui/database/rightview/page/HistoryPage.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
@@ -71,9 +72,23 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, BN_CLICKED, OnClickExplainSqlButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_QUERY_BUTTON_ID, BN_CLICKED, OnClickQueryButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_HISTORY_BUTTON_ID, BN_CLICKED, OnClickHistoryButton)
 		// database import/export
 		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportDatabaseButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_BUTTON_ID, BN_CLICKED, OnClickImportDatabaseButton)
+		// table button
+		COMMAND_HANDLER_EX(Config::DATABASE_CREATE_TABLE_BUTTON_ID, BN_CLICKED, OnClickCreateTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_OPEN_TABLE_BUTTON_ID, BN_CLICKED, OnClickOpenTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_ALTER_TABLE_BUTTON_ID, BN_CLICKED, OnClickAlterTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_RENAME_TABLE_BUTTON_ID, BN_CLICKED, OnClickRenameTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_TRUNCATE_TABLE_BUTTON_ID, BN_CLICKED, OnClickTruncateTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_DROP_TABLE_BUTTON_ID, BN_CLICKED, OnClickDropTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_COPY_TABLE_BUTTON_ID, BN_CLICKED, OnClickCopyTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_SHARDING_TABLE_BUTTON_ID, BN_CLICKED, OnClickShardingTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_TABLE_BUTTON_ID, BN_CLICKED, OnClickExportTableButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_TABLE_FROM_SQL_BUTTON_ID, BN_CLICKED, OnClickImportTableSqlButton)
+		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_TABLE_FROM_CSV_BUTTON_ID, BN_CLICKED, OnClickImportTableCsvButton)
 
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
@@ -82,7 +97,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_NEW_TRIGGER_ID, OnClickNewTriggerElem)
 		MESSAGE_HANDLER(Config::MSG_OPEN_TRIGGER_ID, OnClickOpenTriggerElem)
 		MESSAGE_HANDLER(Config::MSG_DROP_TRIGGER_ID, OnClickDropTriggerElem)
-		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitle)
+		MESSAGE_HANDLER(Config::MSG_QTABVIEW_CHANGE_PAGE_TITLE, OnChangePageTitleAndIcon)
 		MESSAGE_HANDLER(Config::MSG_SHOW_TABLE_DATA_ID, OnShowTableData)
 		MESSAGE_HANDLER(Config::MSG_ALTER_TABLE_ID, OnClickAlterTableElem)
 		MESSAGE_HANDLER(Config::MSG_RENAME_TABLE_ID, OnClickRenameTable)
@@ -90,8 +105,10 @@ public:
 		MESSAGE_HANDLER(Config::MSG_DROP_TABLE_ID, OnClickDropTable)
 		MESSAGE_HANDLER(Config::MSG_DATA_DIRTY_ID, OnHandleDataDirty)
 		MESSAGE_HANDLER(Config::MSG_TABLE_STRUCTURE_DIRTY_ID, OnHandleTableStructureDirty)
+		MESSAGE_HANDLER(Config::MSG_TREEVIEW_CLICK_ID, OnChangeTreeviewItem)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
+		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -102,14 +119,33 @@ private:
 
 	COLORREF topbarColor = RGB(238, 238, 238);
 	CBrush topbarBrush ;
-	// exec button
+	HFONT textFont;
+	// exec buttons
 	QImageButton execSqlButton;
 	QImageButton execAllButton;
 	QImageButton explainSqlButton;
+	QStaticImage splitImage;
+	QImageButton queryButton;
+	QImageButton historyButton;
 
-	// database button
+	// database buttons
+	CStatic databaseLabel;
 	QImageButton exportDatabaseButton;
 	QImageButton importDatabaseButton;
+	
+	// table buttons
+	CStatic tableLabel;
+	QImageButton createTableButton;
+	QImageButton openTableButton;
+	QImageButton alterTableButton;	
+	QImageButton renameTableButton;
+	QImageButton truncateTableButton;
+	QImageButton dropTableButton;
+	QImageButton copyTableButton;
+	QImageButton shardingTableButton;
+	QImageButton exportTableButton;
+	QImageButton importTableSqlButton;
+	QImageButton importTableCsvButton;
 
 	QTabView tabView;
 	HistoryPage historyPage;
@@ -125,6 +161,9 @@ private:
 	HICON tableDataIcon = nullptr;
 	HICON tableDataDirtyIcon = nullptr;
 	HICON tableStructureDirtyIcon = nullptr;
+	HICON createTableIcon = nullptr;
+	HICON createTableDirtyIcon = nullptr;
+	HICON queryDirtyIcon = nullptr;
 
 	RightWorkViewAdapter * adapter = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
@@ -140,11 +179,17 @@ private:
 
 	void createOrShowUI();
 	void createOrShowToolButtons(CRect & clientRect);
+	void createOrShowExecButtons(CRect & clientRect);
+	void createOrShowDbButtons(CRect & clientRect);
+	void createOrShowTableButtons(CRect & clientRect);
+	
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowHistoryPage(HistoryPage &win, CRect & clientRect);
 
 	void loadWindow();
 	void loadTabViewPages();
+
+	void enableButton(QImageButton &btn, const std::wstring & iconPrefix);
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	int OnDestroy();
@@ -156,8 +201,21 @@ private:
 	LRESULT OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickQueryButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickHistoryButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickImportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickCreateTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickOpenTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickAlterTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickRenameTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickTruncateTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickDropTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickCopyTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickShardingTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickExportTableButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickImportTableSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickImportTableCsvButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	// Click "New table" menu or toolbar button will send this msg, wParam=NULL, lParam=NULL
 	LRESULT OnClickNewTableElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -176,7 +234,7 @@ private:
 	LRESULT OnClickDropTriggerElem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
 	// Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
-	LRESULT OnChangePageTitle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnChangePageTitleAndIcon(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	// Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	LRESULT OnShowTableData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -186,8 +244,10 @@ private:
 	LRESULT OnClickDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnChangeTreeviewItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
+	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 };

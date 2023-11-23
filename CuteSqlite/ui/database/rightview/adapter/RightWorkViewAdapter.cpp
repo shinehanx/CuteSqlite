@@ -96,6 +96,16 @@ void RightWorkViewAdapter::createFirstQueryPage(CRect & tabRect)
 	}
 }
 
+void RightWorkViewAdapter::createNewQueryPage(CRect & tabRect)
+{
+	//queryPagePtrs.clear();
+	QueryPage * newQueryPage  = new QueryPage();
+	newQueryPage->setup(QUERY_DATA);
+	createOrShowQueryPage(*newQueryPage, tabRect); 
+	queryPagePtrs.push_back(newQueryPage);
+	tabView.AddPage(newQueryPage->m_hWnd, StringUtil::blkToTail(S(L"query-editor")).c_str(), 0, newQueryPage);
+}
+
 void RightWorkViewAdapter::createOrShowQueryPage(QueryPage &win, CRect & tabRect)
 {
 	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
@@ -132,7 +142,7 @@ void RightWorkViewAdapter::addNewTable(CRect & tabRect)
 	tablePagePtrs.push_back(newTablePage);
 
 	// nImage = 3 : VIEW 
-	tabView.AddPage(newTablePage->m_hWnd, StringUtil::blkToTail(S(L"new-table")).c_str(), 2, newTablePage);
+	tabView.AddPage(newTablePage->m_hWnd, StringUtil::blkToTail(S(L"new-table")).c_str(), 8, newTablePage);
 
 	databaseSupplier->activeTabPageHwnd = newTablePage->m_hWnd;
 }
