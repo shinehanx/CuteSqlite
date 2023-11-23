@@ -202,7 +202,7 @@ void QPopAnimate::createOrShowCloseButton(CRect & clientRect)
 	std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close-button-pressed.png";
 	closeButton.SetIconPath(normalImagePath, pressedImagePath);
 	closeButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
-	QWinCreater::createOrShowButton(m_hWnd, closeButton, Config::QPOP_ANIMATE_CLOSE_BUTTON_ID, L"", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, closeButton, Config::CLOSE_IMAGE_BUTTON_ID, L"", rect, clientRect);
 }
 
 void QPopAnimate::createOrShowTextEdit(CRect & clientRect)

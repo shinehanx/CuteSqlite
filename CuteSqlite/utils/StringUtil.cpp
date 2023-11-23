@@ -275,10 +275,45 @@ bool StringUtil::search(const std::wstring & str, const std::wstring & search, b
 {
 	if (!ignoreCase) {
 		std::wstring text = str;
-		size_t pos = text.find_first_of(search);
+		size_t pos = text.find(search);
 		return pos != std::wstring::npos;
 	} else {
 		std::wregex pattern(search, std::wregex::icase);
+		return std::regex_search(str, pattern);
+	}
+}
+
+/**
+ * search if the "search" string is start of the "str" string..
+ * 
+ * @param str - original text
+ * @param search - search text
+ * @param ignoreCase - ignore case 
+ * @return 
+ */
+bool StringUtil::startWith(const std::wstring & str, const std::wstring & search, bool ignoreCase /*= false*/)
+{
+	if (!ignoreCase) {
+		std::wstring text = str;
+		size_t pos = text.find(search);
+		return pos == 0;
+	} else {
+		std::wstring patSearch = L"^" + search;
+		std::wregex pattern(patSearch, std::wregex::icase);
+		return std::regex_search(str, pattern);
+	}
+}
+
+
+bool StringUtil::endWith(const std::wstring & str, const std::wstring & search, bool ignoreCase /*= false*/)
+{
+	if (!ignoreCase) {
+		std::wstring text = str;
+		size_t pos = text.rfind(search);
+		return pos!= std::wstring::npos && pos == (text.size() - search.size() - 1);
+	} else {
+		std::wstring patSearch = search + L"$" ;
+		std::wregex pattern(patSearch, std::wregex::icase);
 		return std::regex_search(str, pattern);
 	}
 }

@@ -41,6 +41,7 @@ public:
 	SqlLogList getPage(int page, int perPage);
 	SqlLogList getTopByKeyword(const std::wstring & keyword);
 	SqlLogList getPageByKeyword(const std::wstring & keyword, int page, int perPage);
+	uint64_t  getCountByKeyword(const std::wstring & keyword);
 private:
 	void queryBind(QSqlStatement &query, SqlLog &item, bool isUpdate = false);
 	SqlLog toSqlLog(QSqlStatement &query);

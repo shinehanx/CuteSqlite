@@ -110,7 +110,6 @@ SqlLogList SqlLogRepository::getAll(uint64_t limit)
 	}
 }
 
-
 SqlLogList SqlLogRepository::getTopList(uint64_t limit /*= LIMIT_MAX*/)
 {
 	SqlLogList result;
@@ -127,7 +126,7 @@ SqlLogList SqlLogRepository::getTopList(uint64_t limit /*= LIMIT_MAX*/)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000035", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"000036", L"sorry, system has error when getting sql log.");
 	}
 }
 
@@ -139,14 +138,15 @@ uint64_t SqlLogRepository::getCount()
 		QSqlStatement query(getSysConnect(), sql.c_str());
 
 		if (query.executeStep()) {
-			uint64_t total = query.getColumn(L"total").getInt64();
+			uint64_t total = query.getColumn(L"total").isNull() ? 0 
+				: query.getColumn(L"total").getInt64();
 			return total;
 		}
 		return 0;
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log count has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000036", L"sorry, system has error when getting total from sql_log");
+		throw QRuntimeException(L"000037", L"sorry, system has error when getting total from sql_log");
 	}
 }
 
@@ -166,7 +166,7 @@ std::vector<uint64_t> SqlLogRepository::getFrontIds(uint64_t limit)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000037", L"sorry, system has error when getting ids of sql_log .");
+		throw QRuntimeException(L"000038", L"sorry, system has error when getting ids of sql_log .");
 	}
 }
 
@@ -186,7 +186,7 @@ int SqlLogRepository::removeByBiggerId(uint64_t id)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
-		throw QRuntimeException(L"000038", L"sorry, system has error when remove by bigger id.");
+		throw QRuntimeException(L"000039", L"sorry, system has error when remove by bigger id.");
 	}
 }
 
@@ -209,7 +209,7 @@ int SqlLogRepository::topById(uint64_t id, int topVal)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
-		throw QRuntimeException(L"000039", L"sorry, system has error when top by id.");
+		throw QRuntimeException(L"000040", L"sorry, system has error when top by id.");
 	}
 }
 
@@ -217,6 +217,9 @@ SqlLogList SqlLogRepository::getPage(int page, int perPage)
 {
 	QPagePair pagePair({ page, perPage });
 	SqlLogList result;
+	if (page <= 0 || perPage <= 0) {
+		return result;
+	}
 	std::wstring sql = L"SELECT * FROM sql_log ORDER BY id DESC";
 	std::wstring limit = limitClause(pagePair);
 	if (!limit.empty()) {
@@ -235,13 +238,16 @@ SqlLogList SqlLogRepository::getPage(int page, int perPage)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"000041", L"sorry, system has error when getting sql log.");
 	}
 }
 
 SqlLogList SqlLogRepository::getTopByKeyword(const std::wstring & keyword)
 {
 	SqlLogList result;
+	if (keyword.empty()) {
+		return result;
+	}
 	std::wstring sql = L"SELECT * FROM sql_log";
 	QCondition condition({ {L"keyword", keyword} , {L"top", L"1"} });
 
@@ -267,7 +273,7 @@ SqlLogList SqlLogRepository::getTopByKeyword(const std::wstring & keyword)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"000042", L"sorry, system has error when getting sql log.");
 	}
 }
 
@@ -275,6 +281,9 @@ SqlLogList SqlLogRepository::getTopByKeyword(const std::wstring & keyword)
 SqlLogList SqlLogRepository::getPageByKeyword(const std::wstring & keyword, int page, int perPage)
 {
 	SqlLogList result;
+	if (keyword.empty() || page <= 0 || perPage <= 0) {
+		return result;
+	}
 	std::wstring sql = L"SELECT * FROM sql_log";
 	QCondition condition({ {L"keyword", keyword} });
 
@@ -307,7 +316,37 @@ SqlLogList SqlLogRepository::getPageByKeyword(const std::wstring & keyword, int 
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query sql_log has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000034", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"000043", L"sorry, system has error when getting sql log by keyword.");
+	}
+}
+
+
+uint64_t SqlLogRepository::getCountByKeyword(const std::wstring & keyword)
+{
+	if (keyword.empty()) {
+		return 0;
+	}
+	std::wstring sql = L"SELECT COUNT(id) as total FROM sql_log";
+	QCondition condition({ {L"keyword", keyword} });
+
+	QKeywordIncludes keywordIncludes({L"sql"});
+	std::wstring whereClause = wherePrepareClause(condition, keywordIncludes, false);
+	if (!whereClause.empty()) {
+		sql.append(whereClause);
+	}
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+
+		if (query.executeStep()) {
+			uint64_t total = query.getColumn(L"total").isNull() ? 0 
+				: query.getColumn(L"total").getInt64();
+			return total;
+		}
+		return 0;
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"query sql_log count has error:{}, msg:{}", e.getErrorCode(), _err);
+		throw QRuntimeException(L"000044", L"sorry, system has error when getting total by keyword from sql_log");
 	}
 }
 

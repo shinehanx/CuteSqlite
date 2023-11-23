@@ -87,6 +87,11 @@ SqlLogList SqlLogService::getAllSqlLog()
 }
 
 
+uint64_t SqlLogService::getSqlLogCount()
+{
+	return getRepository()->getCount();
+}
+
 SqlLogList SqlLogService::getTopSqlLog()
 {
 	return getRepository()->getTopList();
@@ -105,6 +110,11 @@ SqlLogList SqlLogService::getTopSqlLogByKeyword(const std::wstring & keyword)
 SqlLogList SqlLogService::getPageSqlLogByKeyword(const std::wstring & keyword, int page, int perPage)
 {
 	return getRepository()->getPageByKeyword(keyword, page, perPage);
+}
+
+uint64_t SqlLogService::getSqlLogCountByKeyword(const std::wstring & keyword)
+{
+	return getRepository()->getCountByKeyword(keyword);
 }
 
 

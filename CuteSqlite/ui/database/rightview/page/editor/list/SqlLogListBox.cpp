@@ -98,7 +98,6 @@ void SqlLogListBox::clearAllItems()
 	clearItems();
 	clearGroups();
 	winHwnds.clear();
-	vScrollParam = 0;
 	nHeightSum = 0;
 }
 
@@ -165,6 +164,7 @@ int SqlLogListBox::OnDestroy()
 
 	clearItems();
 	clearGroups();
+	winHwnds.clear();
 	return 0;
 }
 
@@ -176,8 +176,7 @@ void SqlLogListBox::clearGroups()
 			group->DestroyWindow();
 			delete group;
 			group = nullptr;
-		}
-		else if (group) {
+		} else if (group) {
 			delete group;
 			group = nullptr;
 		}
@@ -192,8 +191,7 @@ void SqlLogListBox::clearItems()
 			item->DestroyWindow();
 			delete item;
 			item = nullptr;
-		}
-		else if (item) {
+		} else if (item) {
 			delete item;
 			item = nullptr;
 		}
@@ -204,7 +202,6 @@ void SqlLogListBox::clearItems()
 void SqlLogListBox::OnSize(UINT nType, CSize size)
 {
 	createOrShowUI();
-	//initScrollBar(size);
 }
 
 void SqlLogListBox::OnShowWindow(BOOL bShow, UINT nStatus)
@@ -225,18 +222,10 @@ BOOL SqlLogListBox::OnEraseBkgnd(CDCHandle dc)
 	return true;
 }
 
-void SqlLogListBox::calcHeightSum()
-{
-
-}
-
 void SqlLogListBox::reloadVScroll()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
-// 	if (nHeightSum > 0) {
-// 		nHeightSum = nHeightSum % 10 ? nHeightSum + 5 : nHeightSum + 10;
-// 	}
 
 	//scroll bar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -256,9 +245,8 @@ void SqlLogListBox::initScrollBar(CSize & clientSize)
 	// change 3 values(SIF_RANGE: si.nMin, si.nMax, si.nPage; SIF_PAGE:si.nPage; SIF_POS: si.nPos)
 	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
 	si.nMin = 0; // must set si.fMask = SIF_RANGE
-	si.nMax = 100; // must set si.fMask = SIF_RANGE ，滚动条的最大pos数, 即从开始位置滚动到末尾位置要移动多少次鼠标滚轮
-	int newPos = static_cast<int>(vScrollParam * 1.0 / nHeightSum / 1000.0);
-	si.nPos = newPos ; // must set si.fMask = SIF_POS， 滚动条的起始pos位置
+	si.nMax = 100; // must set si.fMask = SIF_RANGE ，滚动条的最大pos数, 即从开始位置滚动到末尾位置要移动多少次鼠标滚轮	
+	si.nPos = 0 ; // must set si.fMask = SIF_POS， 滚动条的起始pos位置
 
 	// must set si.fMask = SIF_PAGE 每页的pos数 = 最大的总页数 / 页数， 即可视窗口(clientRect.height)能包含几个pos
 	si.nPage = si.nMax % pageNums ?  
@@ -317,34 +305,6 @@ LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		::ScrollWindow(m_hWnd, 0, scrollHeight, nullptr, nullptr);
 		Invalidate(true);
 	}
-
-	// Fetch next page when scroll to 70%
-	if (isDown && si.nPos >= 70) {
-		// the vScrollParam for calculating the new postion of next calling function : initScrollBar(), then scroll to the new position.
-		// express :  newPos * nNewHeightSum * 1000 / 100  =  (si.nPos * nHeightSum * 1000) / 100
-		//			=> newPos * nNewHeightSum * 1000 = (si.nPos * nHeightSum * 1000)
-		//			=> newPos = (si.nPos * nHeightSum * 1000) / (nNewHeightSum * 1000)
-		vScrollParam = nHeightSum * 1000 * si.nPos; 
-		::PostMessage(GetParent().m_hWnd, Config::MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, WPARAM(si.nPos), LPARAM(si.nMax));
-	}
-	if (si.nPos == 100 && !winHwnds.empty()) {
-		CRect lastRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
-		CRect clientRect;
-		GetClientRect(clientRect);
-		if (lastRect.bottom != clientRect.bottom) {
-			::ScrollWindow(m_hWnd, 0, clientRect.bottom - lastRect.bottom, nullptr, nullptr);
-			Invalidate(true);
-		}
-	} else if (si.nPos == 0 && !winHwnds.empty()) { 
-		CRect firstRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.front());
-		CRect clientRect;
-		GetClientRect(clientRect);
-		if (firstRect.top != clientRect.top) {
-			::ScrollWindow(m_hWnd, 0, clientRect.top - firstRect.top, nullptr, nullptr);
-			Invalidate(true);
-		}
-	}
-
 	return 0;
 }
 

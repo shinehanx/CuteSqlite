@@ -97,8 +97,13 @@ void QueryPage::execAndShow(bool select)
 		int nSelectSqlCount = 0, nNotSelectSqlCount = 0;
 
 		// BEGIN a save point 
-		std::wstring spSql = L"BEGIN;";
-		sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+		std::wstring spSql;
+		bool hasBeginTransaction = StringUtil::startWith(sqls, L"BEGIN;", true);
+		if (!hasBeginTransaction) {
+			spSql = L"BEGIN;";
+			sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+		}
+		
 		bool hasError = false;
 		for (int i = 0; i < n; i++) {
 			auto sql = sqlVector.at(i);
@@ -124,9 +129,13 @@ void QueryPage::execAndShow(bool select)
 		} else if (nNotSelectSqlCount){
 			resultTabView.activeResultInfoPage();
 		}
-		if (!hasError) {
-			spSql = L"COMMIT;"; // COMMIT TRANSACTION
-			sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+		if (!hasError) {			
+			bool hasCommitTransaction = StringUtil::endWith(sqls, L"COMMIT;", true);
+			if (!hasCommitTransaction) {
+				spSql = L"COMMIT;"; // COMMIT TRANSACTION
+				sqlService->executeSql(supplier->getRuntimeUserDbId(), spSql);
+			}
+			
 			if (!nSelectSqlCount || nNotSelectSqlCount) {
 				QPopAnimate::success(m_hWnd, S(L"execute-sql-success"));
 			}			

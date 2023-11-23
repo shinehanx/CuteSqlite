@@ -382,9 +382,7 @@ LRESULT LeftTreeView::OnChangedTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bH
 	int nImage = -1, nSeletedImage = -1;
 	bool ret = treeItem.GetImage(nImage, nSeletedImage);
 
-	if (nImage == 0 || nImage == 2 || nImage == 3 || nImage == 4 || nImage == 5 || nImage == 6) {
-		AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, WPARAM(treeViewAdapter), (LPARAM)hSelTreeItem);
-	}
+	AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, WPARAM(treeViewAdapter), (LPARAM)hSelTreeItem);
 	
 	return 0;
 }

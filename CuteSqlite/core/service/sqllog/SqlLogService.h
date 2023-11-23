@@ -39,9 +39,11 @@ public:
 	void removeSqlLog(uint64_t id);
 
 	SqlLogList getAllSqlLog();
+	uint64_t getSqlLogCount();
 	SqlLogList getTopSqlLog();
 	SqlLogList getPageSqlLog(int page, int perPage);
 	SqlLogList getTopSqlLogByKeyword(const std::wstring & keyword);
 	SqlLogList getPageSqlLogByKeyword(const std::wstring & keyword, int page, int perPage);
+	uint64_t getSqlLogCountByKeyword(const std::wstring & keyword);
 };
 

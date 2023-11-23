@@ -62,10 +62,8 @@ private:
 	TEXTMETRIC tm;
 	SCROLLINFO si;
 	int nHeightSum = 0;
-	double vScrollParam = 0.0; // record the position params when scrolling si.nPos=70
 	static int cxChar, cyChar, iVscrollPos, vScrollPages;
 	void initScrollBar(CSize & clientSize);
-	void calcHeightSum();
 
 	void createOrShowUI();
 	void createOrShowGroupLabel(CStatic & win, std::wstring text, CRect & rect, CRect & clientRect);

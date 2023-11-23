@@ -5,6 +5,7 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
+#include <common/AppContext.h>
 
 LeftTreeViewAdapter::LeftTreeViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
@@ -124,8 +125,11 @@ void LeftTreeViewAdapter::loadTreeView()
 	if (hSelDbItem) {
 		dataView->Expand(hSelDbItem);
 		dataView->SelectItem(hSelDbItem);
+		// init the supplier
+		initDatabaseSupplier();
+		AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, WPARAM(this), (LPARAM)hSelDbItem);
 	}
-	
+
 }
 
 CTreeItem LeftTreeViewAdapter::getSeletedItem()

@@ -48,6 +48,7 @@ void SqlLogDialog::createOrShowUI()
 	createOrShowCloseButton(clientRect);
 	createOrShowSearchEdit(searchEdit, clientRect);
 	createOrShowSqlLogListBox(sqlLogListBox, clientRect);
+	createOrShowPageElems(clientRect);
 }
 
 
@@ -60,7 +61,7 @@ void SqlLogDialog::createOrShowCloseButton(CRect & clientRect)
 	std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close-button-pressed.png";
 	closeButton.SetIconPath(normalImagePath, pressedImagePath);
 	closeButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
-	QWinCreater::createOrShowButton(m_hWnd, closeButton, Config::QPOP_ANIMATE_CLOSE_BUTTON_ID, L"", rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, closeButton, Config::CLOSE_IMAGE_BUTTON_ID, L"", rect, clientRect);
 }
 
 
@@ -88,17 +89,38 @@ void SqlLogDialog::createOrShowSearchEdit(QSearchEdit & win, CRect & clientRect)
 void SqlLogDialog::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(searchEdit.m_hWnd);
-	int x = 2, y = rcLast.bottom + 10, w = clientRect.Width() - 4, h = clientRect.Height() - y - 13;
+	int x = 2, y = rcLast.bottom + 10, w = clientRect.Width() - 4, h = clientRect.Height() - y - 33;
 	CRect rect = { x, y, x + w, y + h }; 
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.setup(adapter->getSupplier());
-		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL, 0, Config::DIALOG_SQL_LOG_LIST_ID);
+		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL | WS_BORDER, 0, Config::DIALOG_SQL_LOG_LIST_ID);
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
 		win.ShowWindow(SW_SHOW);
 	}
 }
 
+
+void SqlLogDialog::createOrShowPageElems(CRect & clientRect)
+{
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(sqlLogListBox.m_hWnd);
+	int x = 10, y = rcLast.bottom + 5, w = 80, h = 20 ;
+	CRect rect = { x, y, x + w, y + h }; 
+	QWinCreater::createOrShowButton(m_hWnd, firstPageButton, Config::FIRST_PAGE_BUTTON_ID, S(L"first-page"), rect, clientRect);
+
+	rect.OffsetRect(w + 5, 0);
+	QWinCreater::createOrShowButton(m_hWnd, prevPageButton, Config::PREV_PAGE_BUTTON_ID, S(L"prev-page"), rect, clientRect);
+
+	rect.OffsetRect(w + 5, 0);
+	QWinCreater::createOrShowButton(m_hWnd, nextPageButton, Config::NEXT_PAGE_BUTTON_ID, S(L"next-page"), rect, clientRect);
+
+	rect.OffsetRect(w + 5, 0);
+	QWinCreater::createOrShowButton(m_hWnd, lastPageButton, Config::LAST_PAGE_BUTTON_ID, S(L"last-page"), rect, clientRect);
+
+	rect.OffsetRect(w + 10, 0);
+	rect.right = rect.left + 120;
+	QWinCreater::createOrShowLabel(m_hWnd, pageLabel, L"", rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+}
 
 void SqlLogDialog::loadWindow()
 {
@@ -108,26 +130,41 @@ void SqlLogDialog::loadWindow()
 	isNeedReload = false;
 
 	curPage = 1;
-	sqlLogListBox.clearAllItems();
-	loadSqlLogListBox(curPage++);
+	loadSqlLogListBox(curPage);
 }
 
 
 void SqlLogDialog::loadSqlLogListBox(int page)
 {
+	// clear all items and groups
+
 	SqlLogList topList, list;
+	uint64_t total;
 	if (keyword.empty()) {
 		topList = sqlLogService->getTopSqlLog();
 		list = sqlLogService->getPageSqlLog(page, perPage);
+		total = sqlLogService->getSqlLogCount();
 	} else {
 		topList = sqlLogService->getTopSqlLogByKeyword(keyword);
 		list = sqlLogService->getPageSqlLogByKeyword(keyword, page, perPage);
+		total = sqlLogService->getSqlLogCountByKeyword(keyword);
 	}
 
 	if (list.empty()) {
 		return;
 	}
-
+	maxPage = total % perPage ? static_cast<int>(total / perPage) + 1 : static_cast<int>(total / perPage);
+	if (page > maxPage) {
+		curPage = maxPage;
+		return;
+	}
+	if (page < 1) {
+		curPage = 1;
+		return;
+	}
+	sqlLogListBox.clearAllItems();
+	std::wstring pageText = getPageText(page, perPage, total);
+	pageLabel.SetWindowText(pageText.c_str());
 	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
 	auto _begin = PerformUtil::begin();
 	
@@ -149,7 +186,6 @@ void SqlLogDialog::loadSqlLogListBox(int page)
 			sqlLogListBox.addItem(item);			
 		}		
 	}
-	
 	sqlLogListBox.reloadVScroll();
 	std::wstring _tt = PerformUtil::end(_begin);
 	Q_DEBUG(L"spend time:" +  _tt);
@@ -164,6 +200,7 @@ LRESULT SqlLogDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	// Ô²½Ç´°¿Ú
 	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
 	::SetWindowRgn(m_hWnd, hRgn, TRUE);
+	this->textFont = FT(L"log-list-item-sql-size");
 
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
 	//SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); 
@@ -180,6 +217,13 @@ LRESULT SqlLogDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	if (closeButton.IsWindow()) closeButton.DestroyWindow();
 	if (searchEdit.IsWindow()) searchEdit.DestroyWindow();
 	if (sqlLogListBox.IsWindow()) sqlLogListBox.DestroyWindow();
+
+	if (pageLabel.IsWindow()) pageLabel.DestroyWindow();
+	if (firstPageButton.IsWindow()) firstPageButton.DestroyWindow();
+	if (prevPageButton.IsWindow()) prevPageButton.DestroyWindow();
+	if (nextPageButton.IsWindow()) nextPageButton.DestroyWindow();
+	if (lastPageButton.IsWindow()) lastPageButton.DestroyWindow();
+
 	return 0;
 }
 
@@ -207,14 +251,42 @@ LRESULT SqlLogDialog::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 	return 0;
 }
 
-HBRUSH SqlLogDialog::OnCtlEditColor(HDC hdc, HWND hwnd)
-{
-	return bkgBrush.m_hBrush;
-}
 
 LRESULT SqlLogDialog::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	EndDialog(0);
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickFirstPageButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	curPage = 1;
+	loadSqlLogListBox(curPage);
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickPrevPageButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	curPage = (curPage <= 1) ? 1 : curPage - 1;
+	loadSqlLogListBox(curPage);
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickNextPageButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	curPage = (curPage >= maxPage) ? maxPage : curPage + 1;
+	loadSqlLogListBox(curPage);
+	return 0;
+}
+
+
+LRESULT SqlLogDialog::OnClickLastPageButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	curPage = maxPage;
+	loadSqlLogListBox(curPage);
 	return 0;
 }
 
@@ -235,8 +307,7 @@ LRESULT SqlLogDialog::OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	try {
 		sqlLogService->topSqlLog(id, !top);
 		curPage = 1;
-		sqlLogListBox.clearAllItems();
-		loadSqlLogListBox(curPage++);
+		loadSqlLogListBox(curPage);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
@@ -257,8 +328,7 @@ LRESULT SqlLogDialog::OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lPara
 	try {
 		sqlLogService->removeSqlLog(id);
 		curPage = 1;
-		sqlLogListBox.clearAllItems();
-		loadSqlLogListBox(curPage++);
+		loadSqlLogListBox(curPage);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
@@ -273,8 +343,7 @@ LRESULT SqlLogDialog::OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lPara
 		keyword = searchEdit.getText();
 
 		curPage = 1;
-		sqlLogListBox.clearAllItems();
-		loadSqlLogListBox(curPage++);
+		loadSqlLogListBox(curPage);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
@@ -286,11 +355,34 @@ LRESULT SqlLogDialog::OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lPara
 LRESULT SqlLogDialog::OnLoadNextPageSqlLog(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	try {
-		loadSqlLogListBox(curPage++);
+		loadSqlLogListBox(++curPage);
 	} catch (QRuntimeException &ex) {
 		QPopAnimate::report(ex);
 	}
 	return 0;
+}
+
+
+HBRUSH SqlLogDialog::OnCtlEditColor(HDC hdc, HWND hwnd)
+{
+	return bkgBrush.m_hBrush;
+}
+
+
+HBRUSH SqlLogDialog::OnCtlStaticColor(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, bkgColor);
+	::SetTextColor(hdc, textColor);
+	::SelectObject(hdc, textFont);
+	return bkgBrush.m_hBrush;
+}
+
+HBRUSH SqlLogDialog::OnCtlBtnColor(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, bkgColor);
+	::SetTextColor(hdc, textColor); 
+	::SelectObject(hdc, textFont);
+	return bkgBrush.m_hBrush;
 }
 
 std::wstring SqlLogDialog::formatDateForDisplay(const std::wstring & date)
@@ -313,4 +405,13 @@ std::wstring SqlLogDialog::formatDateForDisplay(const std::wstring & date)
 		result.append(date).append(L" ").append(week);
 	}
 	return result;
+}
+
+std::wstring SqlLogDialog::getPageText(int curPage, int perPage, uint64_t total)
+{
+	ATLASSERT(curPage && perPage);
+	int pages = total % perPage ? static_cast<int>(total / perPage) + 1 
+		: static_cast<int>(total / perPage);
+	return fmt::format(L"Page: {}/{}, Total:{}", 
+		std::to_wstring(curPage), std::to_wstring(pages), std::to_wstring(total));
 }

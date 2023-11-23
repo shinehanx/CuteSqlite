@@ -207,7 +207,6 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 {
 	ATLASSERT(!sql.empty());
 	resetRuntimeResultInfo();
-
 	runtimeResultInfo.userDbId = databaseSupplier->getSelectedUserDbId();
 	auto bt = PerformUtil::begin();
 	try {		
@@ -217,7 +216,7 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		runtimeResultInfo.totalTime = PerformUtil::end(bt);
 		runtimeResultInfo.msg = S(L"execute-sql-success");
-		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
+		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
 		return true;
 	} catch (QSqlExecuteException & ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
@@ -231,7 +230,7 @@ bool ResultTabView::execSqlToInfoPage(const std::wstring & sql)
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		runtimeResultInfo.totalTime = PerformUtil::end(bt);
 		runtimeResultInfo.msg = ex.getMsg();
-		AppContext::getInstance()->dispatch(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
+		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&runtimeResultInfo);
 	}
 	return false;
 }

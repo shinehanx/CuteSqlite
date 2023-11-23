@@ -113,6 +113,27 @@ public:
 	static bool search(const std::wstring & str, const std::wstring & search, bool ignoreCase = false);
 
 	/**
+	 * search if the "search" string is start of the "str" string..
+	 * 
+	 * @param str - original text
+	 * @param search - search text
+	 * @param ignoreCase - ignore case 
+	 * @return 
+	 */
+	static bool startWith(const std::wstring & str, const std::wstring & search, bool ignoreCase = false);
+
+	/**
+	 * search if the "search" string is end of the "str" string..
+	 * 
+	 * @param str - original text
+	 * @param search - search text
+	 * @param ignoreCase - ignore case 
+	 * @return 
+	 */
+	static bool endWith(const std::wstring & str, const std::wstring & search, bool ignoreCase = false);
+
+
+	/**
 	 * 取小数点后几位，并转成字符串
 	 * 
 	 * @param val
