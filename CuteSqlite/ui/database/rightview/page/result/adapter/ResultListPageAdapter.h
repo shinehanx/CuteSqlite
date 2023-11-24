@@ -138,6 +138,7 @@ private:
 
 	void loadRuntimeTables(uint64_t userDbId, std::wstring & sql);
 	void loadRuntimeHeader(QSqlStatement & query);
+	void clearHeaderSorted(int notSelItem = -1);
 	int loadRuntimeData(QSqlStatement & query);
 	void loadLimitParams(LimitParams & limitParams);
 

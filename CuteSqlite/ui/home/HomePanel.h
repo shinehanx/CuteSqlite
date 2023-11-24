@@ -41,6 +41,12 @@ public:
 
 public:
 	const Config::PanelId panelId = Config::HOME_PANEL;
+	COLORREF bkgColor = RGB(0x2c, 0x2c, 0x2c);
+	CBrush bkgBrush;
+	COLORREF titleColor = RGB(255, 255, 255);
+	COLORREF homeColor = RGB(230, 230, 230);
+	HFONT titleFont = nullptr;
+	HFONT homeFont = nullptr;
 	std::wstring bkgImagePath;
 	CBitmap bkgBitmap = nullptr;
 

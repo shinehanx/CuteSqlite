@@ -59,8 +59,6 @@ private:
 	virtual LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	virtual LRESULT OnChangeLang(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
-	
-
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 };

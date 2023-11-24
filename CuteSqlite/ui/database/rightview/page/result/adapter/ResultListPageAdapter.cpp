@@ -107,7 +107,7 @@ int ResultListPageAdapter::loadFilterListView()
 		runtimeResultInfo.execTime = PerformUtil::end(bt);
 
 		loadRuntimeTables(runtimeUserDbId, runtimeSql); 		
-
+		clearHeaderSorted();
 		runtimeResultInfo.effectRows = loadRuntimeData(query);
 		runtimeResultInfo.transferTime = PerformUtil::end(bt);
 		dataView->changeAllItemsCheckState();
@@ -135,27 +135,12 @@ void ResultListPageAdapter::sortListView(int iSelItem)
 		return;
 	}
 
-	// 2. Reset the HDF_SORTDOWN/HDF_SORTUP of other header items
-	auto headerCtrl = dataView->GetHeader();
-	int n = headerCtrl.GetItemCount();
-	HDITEMW headerItem;
-	for (int i = 1; i < n; ++i) {
-		if (i == iSelItem) {
-			continue;
-		}
-		memset(&headerItem, 0, sizeof(headerItem));
-		headerItem.mask = HDI_FORMAT;
-		headerCtrl.GetItem(i, &headerItem);
-		if (headerItem.fmt & HDF_SORTDOWN) {
-			headerItem.fmt ^= HDF_SORTDOWN;
-			headerCtrl.SetItem(i, &headerItem);
-		} else if (headerItem.fmt & HDF_SORTUP) {
-			headerItem.fmt ^= HDF_SORTUP;
-			headerCtrl.SetItem(i, &headerItem);
-		}
-	}
+	// 2. Reset the HDF_SORTDOWN/HDF_SORTUP of other header items	
+	clearHeaderSorted(iSelItem);
 
 	// 3. sort the select header item;
+	auto headerCtrl = dataView->GetHeader();
+	HDITEMW headerItem;	
 	memset(&headerItem, 0, sizeof(headerItem));
 	headerItem.mask = HDI_FORMAT;
 	headerCtrl.GetItem(iSelItem, &headerItem);
@@ -245,12 +230,43 @@ void ResultListPageAdapter::loadRuntimeTables(uint64_t userDbId, std::wstring & 
 
 void ResultListPageAdapter::loadRuntimeHeader(QSqlStatement & query)
 {
+	int n = dataView->GetHeader().GetItemCount();
+	for (int i = 0; i < n; i++) {
+		dataView->GetHeader().DeleteItem(i);
+	}
 	dataView->InsertColumn(0, L"", LVCFMT_LEFT, 26, -1, 0);
-	int n = query.getColumnCount();
+	n = query.getColumnCount();
 	for (int i = 0; i < n; i++) {
 		std::wstring columnName = query.getColumnName(i);
 		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
 		runtimeColumns.push_back(columnName);
+	}
+}
+
+/**
+ * Clear the header sorted but not selected item.
+ * 
+ * @param notSelItem - not selected item.
+ */
+void ResultListPageAdapter::clearHeaderSorted(int notSelItem)
+{
+	auto headerCtrl = dataView->GetHeader();
+	int n = headerCtrl.GetItemCount();
+	HDITEMW headerItem;
+	for (int i = 1; i < n; ++i) {
+		if (i == notSelItem) {
+			continue;
+		}
+		memset(&headerItem, 0, sizeof(headerItem));
+		headerItem.mask = HDI_FORMAT;
+		headerCtrl.GetItem(i, &headerItem);
+		if (headerItem.fmt & HDF_SORTDOWN) {
+			headerItem.fmt ^= HDF_SORTDOWN;
+			headerCtrl.SetItem(i, &headerItem);
+		} else if (headerItem.fmt & HDF_SORTUP) {
+			headerItem.fmt ^= HDF_SORTUP;
+			headerCtrl.SetItem(i, &headerItem);
+		}
 	}
 }
 
@@ -1250,17 +1266,17 @@ void ResultListPageAdapter::resetRuntimeResultInfo()
 void ResultListPageAdapter::sortRuntimeDatas(int index, bool isDown)
 {	
 	runtimeDatas.sort([&index, &isDown](const RowItem & item1, const RowItem & item2) {
-		auto val1 = item1.at(sortIdx);
-		auto val2 = item2.at(sortIdx);
+		auto val1 = item1.at(index);
+		auto val2 = item2.at(index);
 		val1 = (val1 == L"< AUTO >" || val1 == L"< NULL >") ? L"" : val1;
 		val2 = (val2 == L"< AUTO >" || val2 == L"< NULL >") ? L"" : val2;
-	
+		//Notice : don't verify if val1 and val2 is empty.
 		if (StringUtil::isDecimal(val1) && StringUtil::isDecimal(val2)) {
 			auto v1 = val1.empty() ? 0 : std::stold(val1);
 			auto v2 = val2.empty() ? 0 : std::stold(val2);
-			return sortDown ? v1 > v2 : v1 < v2;
+			return isDown ? v1 > v2 : v1 < v2;
 		}
-		return sortDown ? val1 > val2 : val1 < val2;
+		return isDown ? val1 > val2 : val1 < val2;
 	});
 }
 

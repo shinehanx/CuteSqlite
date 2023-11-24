@@ -25,6 +25,12 @@ void HomeView::createOrShowUI()
 	// create or show panel
 	createOrShowPanel(Config::HOME_PANEL, (CWindowImpl &)homePanel, clientRect);
 	createOrShowPanel(Config::DATABASE_PANEL, (CWindowImpl &)databasePanel, clientRect);
+
+	std::wstring initPanel = SettingService::getInstance()->getSysInit(L"init-panel");
+	int nPanel = initPanel.empty() ? Config::HOME_PANEL : std::stoi(initPanel);
+	
+	changePanelByPanelId(nPanel);
+	
 	return;
 		
 }
@@ -102,6 +108,7 @@ ATL::CWindow * HomeView::changePanelByButtonId(UINT selButtonId)
 			item.second->ShowWindow(SW_SHOW);
 			selectedPannelId = static_cast<Config::PanelId>(panelId); // Ñ¡ÖÐ×´Ì¬
 			selPanel = item.second;
+			SettingService::getInstance()->setSysInit(L"init-panel",std::to_wstring(panelId));
 		} else {
 			item.second->ShowWindow(SW_HIDE);
 		}
@@ -130,6 +137,7 @@ ATL::CWindow * HomeView::changePanelByPanelId(UINT panelId)
 		if (item.second == selectedPannelId) {
 			leftPanel.selectButtonId(item.first);
 			selectedButtonId = item.first;
+			SettingService::getInstance()->setSysInit(L"init-panel",std::to_wstring(panelId));
 			isFound = true;
 			break;
 		}

@@ -124,7 +124,6 @@ void DatabaseMenuAdapter::createMenu()
 	MenuUtil::addIconToMenuItem(menu.m_hMenu, Config::DATABASE_NEW_TRIGGER_MENU_ID, MF_BYCOMMAND, newTriggerIcon);
 }
 
-
 void DatabaseMenuAdapter::createViewsMenu()
 {
 	viewsMenu.CreatePopupMenu();
