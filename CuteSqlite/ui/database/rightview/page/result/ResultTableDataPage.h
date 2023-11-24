@@ -84,7 +84,7 @@ protected:
 	virtual void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	virtual LRESULT OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
-	virtual LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);

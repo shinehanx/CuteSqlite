@@ -925,6 +925,12 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 {
 	int nPage = static_cast<int>(pnmh->idFrom);
 	HWND pageHwnd = tabView.GetPageHWND(nPage);
+	if (pageHwnd == historyPage.m_hWnd) {
+		if (historyPage.IsWindow()) {
+			historyPage.DestroyWindow();
+		}
+		return 0;
+	}
 	
 	// check the close page if it is a QueryPage
 	for (auto & iter = queryPagePtrs.begin(); iter != queryPagePtrs.end(); iter++) {

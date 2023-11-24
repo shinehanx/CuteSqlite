@@ -54,7 +54,7 @@ const char sqlKeyWords[] =
 "limit local localtime localtimestamp locator "
 "map match merge minute modifies modify module month "
 "names national natural nchar nclob new next no none "
-"not null numeric "
+"not null numeric pragma explain offset "
 "object of off old on only open operation option "
 "or order ordinality out outer output "
 "package pad parameter parameters partial path postfix precision prefix "
@@ -140,6 +140,9 @@ void QSqlEdit::init()
 	SendMessage(SCI_SETCARETLINEBACK, RGB(232, 232, 255), 0);
 	SendMessage(SCI_SETCARETLINEBACKALPHA, 100, 0);
 	
+	// X - WIDTH autoscrolling 
+	SendMessage(SCI_SETSCROLLWIDTHTRACKING, 1, 0);
+
 	// ignore the cmd key for CTRL+[key]
 	int  n = static_cast<int>(sizeof(ignoreCtrlKey));
 	for (int i = 0; i < n; i++) {

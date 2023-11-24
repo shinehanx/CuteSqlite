@@ -582,26 +582,14 @@ LRESULT ResultListPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bH
 
 	LPNMLISTVIEW headerPtr = (LPNMLISTVIEW)pnmh; 
 
-	// Refrence url:https://learn.microsoft.com/zh-cn/windows/win32/controls/lvn-columnclick
-	if (headerPtr->iSubItem  != 0) {
+	// Reference url:https://learn.microsoft.com/zh-cn/windows/win32/controls/lvn-columnclick
+	if (headerPtr->iSubItem  == 0) {
 		return 0;
-	}	
+	}
+	adapter->sortListView(headerPtr->iSubItem);
 	return 0;
 }
 
-/**
- * QListViewCtrl的Column被点击时，向父窗口发送该消息,wParam=iItem, lParam=(LPNMHEADER)lParam.
- * 
- * @param uMsg
- * @param wParam - Column item
- * @param lParam - (LPNMHEADER)lParam
- * @param bHandled
- * @return 
- */
-LRESULT ResultListPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	return 0;
-}
 /**
  * select the grid subitem .
  * 

@@ -678,6 +678,22 @@ bool StringUtil::isDigit(std::wstring & s)
 	return true;
 }
 
+bool StringUtil::isDecimal(std::wstring & s)
+{
+	if (s.empty()) {
+		return false;
+	}
+
+	int n = static_cast<int>(s.length());
+	for (int i = 0; i < n; i++) {
+		wchar_t ch = s.at(i);
+		if (!std::iswdigit(ch) && ch != L'.') {
+			return false;
+		}
+	}
+	return true;
+}
+
 /**
  * append blank to string..
  * 

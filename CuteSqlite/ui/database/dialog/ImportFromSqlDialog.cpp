@@ -348,9 +348,10 @@ void ImportFromSqlDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	yesButton.EnableWindow(false);
 
 	// Export objects(tables/views/triggers) to sql file
-	if (!adapter->importFromSql(userDbId, importPath)) {
+	if (adapter->importFromSql(userDbId, importPath)) {
 		QPopAnimate::success(S(L"import-success-text"));
 		yesButton.EnableWindow(true);
+		noButton.SetWindowText(S(L"complete").c_str());
 		return ;
 	}
 

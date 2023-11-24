@@ -88,7 +88,7 @@ void ResultTableDataPage::createOrShowListView(QListViewCtrl & win, CRect & clie
 	if (IsWindow() && !win.IsWindow()) {
 		// virtual listview must be have LVS_OWNERDATA style
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | LVS_ALIGNLEFT | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | LVS_OWNERDATA | LVS_OWNERDRAWFIXED; 
-
+		
 		win.Create(m_hWnd, rect, NULL, dwStyle, 0, Config::DATABASE_QUERY_LISTVIEW_ID);
 		win.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER | LVS_EX_CHECKBOXES);
 		win.setItemHeight(22);
@@ -130,7 +130,7 @@ void ResultTableDataPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRec
 	}
 	QWinCreater::createOrShowImage(m_hWnd, splitImage, 0, splitRect, clientRect);
 
-	rect.OffsetRect(16 + 22, 0);	
+	rect.OffsetRect(16 + 22, 0);
 	std::wstring normalImagePath, pressedImagePath;
 	if (!newRowButton.IsWindow()) {
 		normalImagePath = imgDir + L"database\\list\\button\\new-row-button-normal.png";
@@ -355,13 +355,13 @@ LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 	return ret;
 }
 
-LRESULT ResultTableDataPage::OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT ResultTableDataPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
-	auto ret = ResultListPage::OnClickListViewColumn(uMsg, wParam, lParam, bHandled);
-	// show toolbar buttons after selected items in ListView
+	LRESULT ret = ResultListPage::OnClickListViewHeader(idCtrl, pnmh, bHandled);
 	enableDeleteButton();
 	return ret;
 }
+
 
 LRESULT ResultTableDataPage::OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {

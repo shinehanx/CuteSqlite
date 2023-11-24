@@ -59,8 +59,6 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::COPY_ALL_ROWS_AS_SQL_MEMU_ID, OnClickCopyAllRowsAsSqlMenu)
 		COMMAND_ID_HANDLER_EX(Config::COPY_SEL_ROWS_AS_SQL_MEMU_ID, OnClickCopySelRowsAsSqlMenu)
 
-		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_COLUMN_CLICK_ID, OnClickListViewColumn)
-		
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
 		MSG_WM_CTLCOLOREDIT(OnCtlColorEdit)
@@ -135,7 +133,7 @@ protected:
 	LRESULT OnGetListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnPrepareListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnFindListViewData(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
-	LRESULT OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	virtual LRESULT OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnListViewItemChange(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	void OnClickExportButton(UINT uNotifyCode, int nID, HWND hwnd);
@@ -148,8 +146,6 @@ protected:
 	void OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd);
 	virtual void OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
-
-	virtual LRESULT OnClickListViewColumn(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);

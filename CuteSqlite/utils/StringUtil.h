@@ -220,6 +220,7 @@ public:
 	static std::wstring tolower(std::wstring s);
 
 	static bool isDigit(std::wstring & s);
+	static bool isDecimal(std::wstring & s);
 
 	/**
 	 * append blank to string.

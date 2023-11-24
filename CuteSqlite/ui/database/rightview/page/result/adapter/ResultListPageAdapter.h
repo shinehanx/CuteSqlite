@@ -56,6 +56,8 @@ public:
 	// Add filters for result list
 	int loadFilterListView();
 
+	void sortListView(int iItem);
+
 	// virtual list data load
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);
 
@@ -148,4 +150,5 @@ private:
 	bool saveNewRows();
 	bool restoreChangeVals();
 	void resetRuntimeResultInfo();
+	void sortRuntimeDatas(int index, bool isDown);
 };

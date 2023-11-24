@@ -1209,7 +1209,8 @@ LRESULT QListViewCtrl::OnNotify(int idCtrl, LPNMHDR pnmh)
 			if (pNMHeader->iItem == 0) { // SELECT ALL
 				checkedAllItems();
 			}
-			::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_COLUMN_CLICK_ID, WPARAM(pNMHeader->iItem), LPARAM(pNMHeader));
+			
+			this->SetMsgHandled(false); 
 			return 0;
 		}
 	}

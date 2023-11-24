@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ResultListPageAdapter.h"
+#include <algorithm>
 #include <Strsafe.h>
 #include <CommCtrl.h>
 #include "common/AppContext.h"
@@ -121,6 +122,63 @@ int ResultListPageAdapter::loadFilterListView()
 		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), _err, runtimeSql);
 	}
 	return 0;
+}
+
+
+void ResultListPageAdapter::sortListView(int iSelItem)
+{
+	// 1. save the changes first
+	if (isDirty()) {
+		if (QMessageBox::confirm(parentHwnd, S(L"save-if-data-has-changed"), S(L"save"), S(L"unsort")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			save();
+		}
+		return;
+	}
+
+	// 2. Reset the HDF_SORTDOWN/HDF_SORTUP of other header items
+	auto headerCtrl = dataView->GetHeader();
+	int n = headerCtrl.GetItemCount();
+	HDITEMW headerItem;
+	for (int i = 1; i < n; ++i) {
+		if (i == iSelItem) {
+			continue;
+		}
+		memset(&headerItem, 0, sizeof(headerItem));
+		headerItem.mask = HDI_FORMAT;
+		headerCtrl.GetItem(i, &headerItem);
+		if (headerItem.fmt & HDF_SORTDOWN) {
+			headerItem.fmt ^= HDF_SORTDOWN;
+			headerCtrl.SetItem(i, &headerItem);
+		} else if (headerItem.fmt & HDF_SORTUP) {
+			headerItem.fmt ^= HDF_SORTUP;
+			headerCtrl.SetItem(i, &headerItem);
+		}
+	}
+
+	// 3. sort the select header item;
+	memset(&headerItem, 0, sizeof(headerItem));
+	headerItem.mask = HDI_FORMAT;
+	headerCtrl.GetItem(iSelItem, &headerItem);
+	bool down = headerItem.fmt & HDF_SORTDOWN;
+	bool up = headerItem.fmt & HDF_SORTUP;
+	if (!down && !up) {
+		headerItem.fmt |= HDF_SORTDOWN;
+		down = true;
+	}else if (down) {
+		headerItem.fmt ^= HDF_SORTDOWN;
+		headerItem.fmt |= HDF_SORTUP;
+		down = !down;
+	} else if (up) {
+		headerItem.fmt ^= HDF_SORTUP;
+		headerItem.fmt |= HDF_SORTDOWN;	
+		down = !down;
+	}
+	headerCtrl.SetItem(iSelItem, &headerItem);
+		
+	// 4.sort the runtime datas	
+	sortRuntimeDatas(iSelItem - 1, down);
+
+	dataView->Invalidate(true);
 }
 
 /**
@@ -1177,6 +1235,8 @@ void ResultListPageAdapter::sendExecSqlMessage(ResultInfo & resultInfo, bool isW
 	
 }
 
+
+
 void ResultListPageAdapter::resetRuntimeResultInfo()
 {
 	runtimeResultInfo.sql.clear();
@@ -1186,3 +1246,23 @@ void ResultListPageAdapter::resetRuntimeResultInfo()
 	runtimeResultInfo.code = 0;
 	runtimeResultInfo.msg.clear();
 }
+
+void ResultListPageAdapter::sortRuntimeDatas(int index, bool isDown)
+{	
+	runtimeDatas.sort([&index, &isDown](const RowItem & item1, const RowItem & item2) {
+		auto val1 = item1.at(sortIdx);
+		auto val2 = item2.at(sortIdx);
+		val1 = (val1 == L"< AUTO >" || val1 == L"< NULL >") ? L"" : val1;
+		val2 = (val2 == L"< AUTO >" || val2 == L"< NULL >") ? L"" : val2;
+	
+		if (StringUtil::isDecimal(val1) && StringUtil::isDecimal(val2)) {
+			auto v1 = val1.empty() ? 0 : std::stold(val1);
+			auto v2 = val2.empty() ? 0 : std::stold(val2);
+			return sortDown ? v1 > v2 : v1 < v2;
+		}
+		return sortDown ? val1 > val2 : val1 < val2;
+	});
+}
+
+
+
