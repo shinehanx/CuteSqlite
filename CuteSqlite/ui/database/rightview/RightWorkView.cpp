@@ -840,6 +840,9 @@ LRESULT RightWorkView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam
 {
 	bool isDirty = static_cast<bool>(lParam);
 	int activePage = tabView.GetActivePage();
+	if (activePage < 0) {
+		return 0;
+	}
 	if (isDirty) {
 		if (tabView.GetPageImage(activePage) == 5) { // 6 - table data dirty
 			tabView.SetPageImage(activePage, 6);
@@ -861,6 +864,9 @@ LRESULT RightWorkView::OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPA
 {
 	bool isDirty = static_cast<bool>(lParam);
 	int activePage = tabView.GetActivePage();
+	if (activePage < 0) {
+		return 0;
+	}
 	
 	HWND activePageHwnd = tabView.GetPageHWND(activePage);
 	auto iter = std::find_if(tablePagePtrs.begin(), tablePagePtrs.end(), [&activePageHwnd](const TableStructurePage * ptr) {

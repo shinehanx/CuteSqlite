@@ -35,6 +35,7 @@ public:
 		MESSAGE_RANGE_HANDLER(Config::HOME_BUTTON_ID, Config::SETTING_BUTTON_ID, OnClickLeftPanelButtons)
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
+		MESSAGE_HANDLER_EX(Config::MSG_ACTIVE_PANEL_ID, OnActivePanel)
 	END_MSG_MAP()
 
 	void createOrShowUI();
@@ -76,4 +77,6 @@ private:
 
 	// click the leftpanel's button event
 	LRESULT OnClickLeftPanelButtons(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	// MSG
+	LRESULT OnActivePanel(UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

@@ -348,7 +348,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\supplier\DatabaseSupplier.cpp" />
     <ClCompile Include="ui\home\HomePanel.cpp" />
     <ClCompile Include="ui\home\LeftPanel.cpp" />
-    <ClCompile Include="utils\CliboardUtil.cpp" />
+    <ClCompile Include="ui\home\list\DatabaseListItem.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
     <ClCompile Include="utils\EntityUtil.cpp" />
@@ -483,7 +483,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\RightWorkView.h" />
     <ClInclude Include="ui\home\HomePanel.h" />
     <ClInclude Include="ui\home\LeftPanel.h" />
-    <ClInclude Include="utils\CliboardUtil.h" />
+    <ClInclude Include="ui\home\list\DatabaseListItem.h" />
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />
     <ClInclude Include="utils\DateUtil.h" />

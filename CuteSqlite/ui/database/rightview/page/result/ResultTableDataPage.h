@@ -69,8 +69,8 @@ protected:
 	virtual void doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & clientRect);	 // override
 	void doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect & clientRect);	 // extend 
 
+	void enableToolButtonsAndDirty();
 	void enableDataDirty();
-
 	void enableSaveButton();
 	void enableCancelButton();
 	void enableDeleteButton();
@@ -99,4 +99,6 @@ protected:
 	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickCancelButton(UINT uNotifyCode, int nID, HWND wndCtl);
+
+	
 };

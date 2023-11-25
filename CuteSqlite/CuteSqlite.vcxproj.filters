@@ -372,10 +372,10 @@
     <ClCompile Include="ui\database\rightview\page\editor\list\SqlLogListItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\CliboardUtil.cpp">
+    <ClCompile Include="ui\database\rightview\adapter\RightWorkViewAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\database\rightview\adapter\RightWorkViewAdapter.cpp">
+    <ClCompile Include="ui\home\list\DatabaseListItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -785,10 +785,10 @@
     <ClInclude Include="ui\database\rightview\page\editor\list\SqlLogListItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\CliboardUtil.h">
+    <ClInclude Include="ui\database\rightview\adapter\RightWorkViewAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui\database\rightview\adapter\RightWorkViewAdapter.h">
+    <ClInclude Include="ui\home\list\DatabaseListItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

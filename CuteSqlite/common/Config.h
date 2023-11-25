@@ -151,11 +151,16 @@ typedef enum {
 	PREV_PAGE_BUTTON_ID,
 	NEXT_PAGE_BUTTON_ID,
 	LAST_PAGE_BUTTON_ID,
+
+	// HOME PANEL
+	HOME_CREATE_DB_BUTTON_ID,
+	HOME_MOD_DB_BUTTON_ID,
 } ButtonId;
 
 // TabView id
 typedef enum {
 	DATABASE_WORK_TAB_VIEW_ID = WM_USER + 100,
+	DATABASE_RESULT_TAB_VIEW_ID ,
 	DATABASE_TABLE_TAB_VIEW_ID,
 } TabViewId;
 
@@ -237,8 +242,10 @@ typedef enum {
 	EXPRESS_EDITOR_ID,
 
 	// SEARCH EDIT
-	SEARCH_EDIT_ID
+	SEARCH_EDIT_ID,
 
+	// HOMEPANEL - DB LIST ITEM
+	DBLIST_ITEM_PATH_EDIT_ID,
 } EditorId;
 
 typedef enum {
@@ -425,6 +432,7 @@ typedef enum {
 	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_CREATE_DATABASE_ID, // Send this msg when creating a table, wParam = NULL, lParam=NULL
 	MSG_LEFTVIEW_RENAME_TABLE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_LEFTVIEW_TRUNCATE_TABLE_ID, // Send this msg when truncate a table , wParam = NULL, lParam=NULL
 	MSG_LEFTVIEW_DROP_TABLE_ID, // Send this msg when drop a table , wParam = NULL, lParam=NULL
@@ -457,6 +465,8 @@ typedef enum {
 								  //  send this msg to parent tabView to display dirty icon for TableStruecturePage title icon, wParam=dirtyPage.m_hWnd, lParam=isDirty
 	MSG_DATA_HAS_CHANGED_ID, // When the MainFrm close, send this msg to all the window that it has subscribed this msgId, to confirm whether data has changed, 
 							 // wParam=NULL, lParam=null, and return 1 - No changed, 0 - Has Changed
+	MSG_ACTIVE_PANEL_ID, // When need to display DatabasePanel in LeftPanel, send this msg to LeftPanel for displaying. wParam=panelId, lParam = NULL
+	MSG_DBLIST_ITEM_CLICK_ID, // when database list item has been clicked in HomePanel, send this msg to HomePanel. wParam=item.nID, lParam = userDbId
 }MessageId;
 
 typedef enum {
@@ -486,4 +496,8 @@ typedef enum {
 	PRAGMAS_MENU_ID_END = WM_USER + 1900,
 } MenuIdRank;
 
+typedef enum {
+	DB_LIST_ITEM_ID_START = WM_USER + 1901,
+	DB_LIST_ITEM_ID_END = WM_USER + 2900,
+} DbListItemIdRank;
 };

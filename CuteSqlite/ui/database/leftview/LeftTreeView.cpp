@@ -229,6 +229,7 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bkgBrush.CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_CREATE_DATABASE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
@@ -245,6 +246,7 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int LeftTreeView::OnDestroy()
 {	
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_CREATE_DATABASE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
@@ -695,6 +697,12 @@ void LeftTreeView::OnClickOpenTableMenu(UINT uNotifyCode, int nID, HWND hwnd)
 LRESULT LeftTreeView::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	doRefreshDatabase();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnCreateDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	doCreateDatabase();
 	return 0;
 }
 

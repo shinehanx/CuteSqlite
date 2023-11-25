@@ -125,14 +125,15 @@ int ResultListPageAdapter::loadFilterListView()
 }
 
 
-void ResultListPageAdapter::sortListView(int iSelItem)
+bool ResultListPageAdapter::sortListView(int iSelItem)
 {
 	// 1. save the changes first
 	if (isDirty()) {
 		if (QMessageBox::confirm(parentHwnd, S(L"save-if-data-has-changed"), S(L"save"), S(L"unsort")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
 			save();
+		} else {
+			return false;
 		}
-		return;
 	}
 
 	// 2. Reset the HDF_SORTDOWN/HDF_SORTUP of other header items	
@@ -164,6 +165,7 @@ void ResultListPageAdapter::sortListView(int iSelItem)
 	sortRuntimeDatas(iSelItem - 1, down);
 
 	dataView->Invalidate(true);
+	return true;
 }
 
 /**

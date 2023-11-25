@@ -100,7 +100,9 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_COLUMN_MENU_ID, OnClickDropColumnMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABLE_DROP_INDEX_MENU_ID, OnClickDropIndexMenu)
 
+		// MSG
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, OnRefreshDatabase)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_CREATE_DATABASE_ID, OnCreateDatabase)
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_RENAME_TABLE_ID, OnRenameTable)
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID, OnTruncateTable)
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_DROP_TABLE_ID, OnDropTable)
@@ -224,6 +226,7 @@ private:
 
 	// MSG
 	LRESULT OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnCreateDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnRenameTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTruncateTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnDropTable(UINT uMsg, WPARAM wParam, LPARAM lParam);

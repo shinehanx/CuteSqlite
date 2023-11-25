@@ -20,9 +20,10 @@
 #pragma once
 
 #include <string>
-
+#include <atlstr.h>
 class ClipboardUtil {
 public:
+	static bool copyToClipboard(const ATL::CString & str);
 	static bool copyToClipboard(std::wstring & str);
 	static std::wstring readFromClipboard();
 };

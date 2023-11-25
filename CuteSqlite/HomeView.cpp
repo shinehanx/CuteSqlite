@@ -58,14 +58,8 @@ void HomeView::createOrShowPanel(Config::PanelId panelId, CWindowImpl & panel, C
 	// panel 右边
 	if (::IsWindow(m_hWnd) && !panel.IsWindow()) {
 		// 控制显示/隐藏
-		DWORD dwStyle;
-		if ((selectedButtonId == Config::UNSED_BUTTON_ID && panelId == Config::HOME_PANEL)
-			|| (panelId == buttonPanelRelations[selectedButtonId])) {
-			dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-		}
-		else {
-			dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-		}
+		DWORD dwStyle;		
+		dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;		
 		panel.Create(m_hWnd, rect, L"", dwStyle);
 		//panel放置到MAP，便于控制显示/隐藏
 		panels[panelId] = (CWindowImpl *)&panel;
@@ -125,8 +119,7 @@ ATL::CWindow * HomeView::changePanelByPanelId(UINT panelId)
 			item.second->ShowWindow(SW_SHOW);
 			selectedPannelId = static_cast<Config::PanelId>(panelId); // 选中状态
 			selPanel = item.second;
-		}
-		else {
+		} else {
 			item.second->ShowWindow(SW_HIDE);
 		}
 	}
@@ -149,6 +142,7 @@ ATL::CWindow * HomeView::changePanelByPanelId(UINT panelId)
 
 LRESULT HomeView::OnCreate(UINT, WPARAM, LPARAM, BOOL &)
 {
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ACTIVE_PANEL_ID);
 	//左边的按钮ID和panel的id对应关系
 	buttonPanelRelations[Config::HOME_BUTTON_ID] = Config::HOME_PANEL;
 	buttonPanelRelations[Config::DATABASE_BUTTON_ID] = Config::DATABASE_PANEL;
@@ -157,6 +151,8 @@ LRESULT HomeView::OnCreate(UINT, WPARAM, LPARAM, BOOL &)
 
 LRESULT HomeView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ACTIVE_PANEL_ID);
+
 	if (leftPanel.IsWindow()) leftPanel.DestroyWindow();
 	if (homePanel.IsWindow()) homePanel.DestroyWindow();
 	if (databasePanel.IsWindow()) databasePanel.DestroyWindow();
@@ -191,5 +187,12 @@ LRESULT HomeView::OnClickLeftPanelButtons(UINT uMsg, WPARAM /*wParam*/, LPARAM /
 	UINT selButtonId = (Config::FrmButtonId)uMsg;
 	changePanelByButtonId(selButtonId);
 
+	return 0;
+}
+
+LRESULT HomeView::OnActivePanel(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	selectedPannelId = static_cast<Config::PanelId>(wParam);
+	changePanelByPanelId(selectedPannelId);
 	return 0;
 }

@@ -56,7 +56,7 @@ public:
 	// Add filters for result list
 	int loadFilterListView();
 
-	void sortListView(int iItem);
+	bool sortListView(int iItem);
 
 	// virtual list data load
 	LRESULT fillDataInListViewSubItem(NMLVDISPINFO * pLvdi);

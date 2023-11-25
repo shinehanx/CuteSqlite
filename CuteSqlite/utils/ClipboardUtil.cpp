@@ -21,6 +21,31 @@
 #include "stdafx.h"
 #include "ClipboardUtil.h"
 
+bool ClipboardUtil::copyToClipboard(const ATL::CString & str)
+{
+	if (!::OpenClipboard(NULL))
+    {
+        return FALSE;
+    }
+ 
+    ATL::CString src = str;
+    ::EmptyClipboard();
+    int len = src.GetLength();
+    int size = (len + 1) * 2;
+    HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, size);
+    if (!clipbuffer)
+    {
+        ::CloseClipboard();
+        return FALSE;
+    }
+    char *buffer = (char*)::GlobalLock(clipbuffer);
+    memcpy(buffer, src.GetBuffer(), size);
+    src.ReleaseBuffer();
+    ::GlobalUnlock(clipbuffer);
+    ::SetClipboardData(CF_UNICODETEXT, clipbuffer);
+    ::CloseClipboard();
+    return TRUE;
+}
 
 bool ClipboardUtil::copyToClipboard(std::wstring & str)
 {

@@ -54,6 +54,19 @@ ResultInfo EntityUtil::copy(const ResultInfo & item)
 	return result;
 }
 
+UserDb EntityUtil::copy(const UserDb & item)
+{
+	UserDb result;	
+	result.id = item.id;
+	result.name = item.name;
+	result.path = item.path;
+	result.isActive = item.isActive;
+	result.createdAt = item.createdAt;
+	result.updatedAt = item.updatedAt;
+	
+	return result;
+}
+
 bool EntityUtil::compare(const ColumnInfo & item1, const ColumnInfo & item2)
 {
 	if (item1.ai != item2.ai

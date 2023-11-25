@@ -53,7 +53,11 @@ HWND ResultTabView::getActiveResultListPageHwnd()
 	if (resultListPagePtrs.empty()) {
 		return nullptr;
 	}
-	HWND activeHwnd = tabView.GetPageHWND(tabView.GetActivePage());
+	int activePage = tabView.GetActivePage();
+	if (activePage < 0) {
+		return 0;
+	}
+	HWND activeHwnd = tabView.GetPageHWND(activePage);
 	if (!activeHwnd) {
 		return nullptr;
 	}
@@ -321,7 +325,7 @@ void ResultTabView::createOrShowTabView(QTabView &win, CRect & clientRect)
 {
 	CRect rect = clientRect;
 	if (IsWindow() && !win.IsWindow()) {
-		win.Create(m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, Config::DATABASE_WORK_TAB_VIEW_ID);
+		win.Create(m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, Config::DATABASE_RESULT_TAB_VIEW_ID);
 		win.SetImageList(imageList);
 		win.enableCloseBtn(false);
 	}
@@ -453,6 +457,9 @@ LRESULT ResultTabView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam
 {
 	bool isDirty = static_cast<bool>(lParam);
 	int activePage = tabView.GetActivePage();
+	if (activePage < 0) {
+		return 0;
+	}
 	if (isDirty) {
 		if (tabView.GetPageImage(activePage) != 4) { // 4 - table data dirty
 			tabView.SetPageImage(activePage, 4);
@@ -463,6 +470,26 @@ LRESULT ResultTabView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 	}
 	
+	return 0;
+}
+
+LRESULT ResultTabView::OnTabViewPageActivated(int wParam, LPNMHDR lParam, BOOL &bHandled)
+{
+	if (supplier->getOperateType() == TABLE_DATA) { 
+		return 0;
+	}
+	
+
+	int activePage = tabView.GetActivePage();
+	if (activePage < 0) {
+		return 0;
+	}
+	HWND activePageHwnd = tabView.GetPageHWND(activePage);
+	if (resultTableDataPage.m_hWnd != activePageHwnd) {
+		return 0;
+	}
+	
+	loadTableDatas(databaseSupplier->selectedTable);
 	return 0;
 }
 

@@ -44,6 +44,7 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MESSAGE_HANDLER_EX(Config::MSG_DATA_DIRTY_ID, OnHandleDataDirty)
+		NOTIFY_CODE_HANDLER(TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -121,4 +122,5 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	LRESULT OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnTabViewPageActivated(int wParam, LPNMHDR lParam, BOOL &bHandled);
 };

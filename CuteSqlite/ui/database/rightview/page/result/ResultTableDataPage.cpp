@@ -26,6 +26,7 @@
 #include "ui/common/QWinCreater.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "common/AppContext.h"
+#include "ui/common/message/QMessageBox.h"
 
 ResultTableDataPage::ResultTableDataPage()
 {
@@ -53,9 +54,27 @@ void ResultTableDataPage::loadTableDatas()
 	if (table.empty() || sql.empty()) {
 		return ;
 	}
+	if (adapter->isDirty()) {
+		if (QMessageBox::confirm(m_hWnd, S(L"save-if-data-has-changed"), S(L"save"), S(L"cancel")) 
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			adapter->save();
+			enableToolButtonsAndDirty();
+		} else {
+			return ;
+		}
+	}
 	saveLimitParams();
 	loadListView();
 	isNeedReload = false;
+	enableToolButtonsAndDirty();
+}
+
+void ResultTableDataPage::enableToolButtonsAndDirty()
+{
+	enableSaveButton();
+	enableCancelButton();
+	enableDataDirty();
+	enableDeleteButton();
 }
 
 void ResultTableDataPage::createOrShowUI()
@@ -320,18 +339,35 @@ int ResultTableDataPage::OnDestroy()
 
 void ResultTableDataPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	// 1. save the changes first
+	if (adapter->isDirty()) {
+		if (QMessageBox::confirm(m_hWnd, S(L"save-if-data-has-changed"), S(L"save"), S(L"cancel")) 
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			adapter->save();
+			enableToolButtonsAndDirty();
+		} else {
+			return ;
+		}
+	}
 	ResultListPage::OnClickFilterButton(uNotifyCode, nID, hwnd);
-	enableSaveButton();
-	enableCancelButton();
-	enableDataDirty();
+	enableToolButtonsAndDirty();
 }
 
 void ResultTableDataPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	// 1. save the changes first
+	if (adapter->isDirty()) {
+		if (QMessageBox::confirm(m_hWnd, S(L"save-if-data-has-changed"), S(L"save"), S(L"cancel")) 
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+			adapter->save();
+			enableToolButtonsAndDirty();
+		} else {
+			return ;
+		}
+	}
+
 	ResultListPage::OnClickRefreshButton(uNotifyCode, nID, hwnd);
-	enableSaveButton();
-	enableCancelButton();
-	enableDataDirty();
+	enableToolButtonsAndDirty();
 }
 
 LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
@@ -358,7 +394,7 @@ LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 LRESULT ResultTableDataPage::OnClickListViewHeader(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	LRESULT ret = ResultListPage::OnClickListViewHeader(idCtrl, pnmh, bHandled);
-	enableDeleteButton();
+	enableToolButtonsAndDirty();
 	return ret;
 }
 
@@ -408,13 +444,8 @@ LRESULT ResultTableDataPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LP
 LRESULT ResultTableDataPage::OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	adapter->createNewRow();
-	enableSaveButton();
-	enableCancelButton();
-	enableDataDirty();
-
-	enableDeleteButton();
+	enableToolButtonsAndDirty();
 	enableSelectAll();
-
 	return 0;
 }
 
@@ -440,10 +471,7 @@ LRESULT ResultTableDataPage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND w
 LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
 	if (adapter->remove()) {
-		enableSaveButton();
-		enableCancelButton();
-		enableDeleteButton();
-		enableDataDirty();
+		enableToolButtonsAndDirty();
 		clearFormView();
 		QPopAnimate::success(S(L"delete-success-text"));
 		listView.changeAllItemsCheckState();

@@ -25,7 +25,7 @@
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
 #include "utils/FontUtil.h"
-#include "utils/CliboardUtil.h"
+#include "utils/ClipboardUtil.h"
 #include "utils/StringUtil.h"
 #include "utils/GdiUtil.h"
 #include "utils/PerformUtil.h"
@@ -163,7 +163,7 @@ void SqlLogListItem::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	CString str;
 	sqlEdit.GetWindowText(str);
-	CliboardUtil::copyString(str);
+	ClipboardUtil::copyToClipboard(str);
 	QPopAnimate::success(S(L"copy-to-clipboard"));
 }
 
