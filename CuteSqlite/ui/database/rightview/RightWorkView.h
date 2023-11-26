@@ -69,11 +69,11 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		// Exec sql
-		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, BN_CLICKED, OnClickExecSqlButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, BN_CLICKED, OnClickExecAllButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, BN_CLICKED, OnClickExplainSqlButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_QUERY_BUTTON_ID, BN_CLICKED, OnClickQueryButton)
-		COMMAND_HANDLER_EX(Config::DATABASE_HISTORY_BUTTON_ID, BN_CLICKED, OnClickHistoryButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, OnClickExecSqlButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, OnClickExecAllButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, OnClickExplainSqlButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_QUERY_BUTTON_ID, OnClickQueryButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_HISTORY_BUTTON_ID, OnClickHistoryButton)
 		// database import/export
 		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportDatabaseButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_BUTTON_ID, BN_CLICKED, OnClickImportDatabaseButton)
@@ -120,6 +120,9 @@ private:
 	COLORREF topbarColor = RGB(238, 238, 238);
 	CBrush topbarBrush ;
 	HFONT textFont;
+
+	HACCEL m_hAccel = nullptr;
+
 	// exec buttons
 	QImageButton execSqlButton;
 	QImageButton execAllButton;

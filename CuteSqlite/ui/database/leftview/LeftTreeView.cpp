@@ -34,6 +34,16 @@
 #define TREEVIEW_COMBOBOX_WIDTH 135
 #define TREEVIEW_COMBOBOX_HEIGHT 20
 
+BOOL LeftTreeView::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 CRect LeftTreeView::getTopRect(CRect & clientRect)
 {
 	return { 0, 0, clientRect.right, TREEVIEW_TOPBAR_HEIGHT };
@@ -225,6 +235,10 @@ void LeftTreeView::selectComboBox(uint64_t userDbId)
 
 int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	// 
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(LEFT_TREEVIEW_ACCEL));
+
 	topbarBrush.CreateSolidBrush(topbarColor);
 	bkgBrush.CreateSolidBrush(bkgColor);
 	comboFont = FTB(L"combobox-size", true);

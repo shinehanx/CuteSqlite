@@ -42,6 +42,23 @@ std::wstring Lang::error(const std::wstring & key)
 	return (*iterator).second;
 }
 
+std::wstring Lang::langNoTab(const std::wstring & key)
+{
+	auto str = lang(key.c_str());
+	if (str.empty()) {
+		return str;
+	}
+	size_t tabPos = str.find_last_of(L'\t');
+	if (tabPos != std::wstring::npos) {
+		std::wstring pre = str.substr(0, tabPos - 1);
+		std::wstring tail = str.substr(tabPos+1, -1);
+		str = pre;
+		str.append(L"\t(").append(tail).append(L")");
+	}
+	str = StringUtil::replace(str, L"\t", L" ");
+	return str;
+}
+
 /**
  * 获得ini语言配置文件[FONT]节点中的文本字体和大小.HFONT返回
  * 

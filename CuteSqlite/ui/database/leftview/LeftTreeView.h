@@ -34,6 +34,8 @@
 class LeftTreeView : public CWindowImpl<LeftTreeView> 
 {
 public:
+	BOOL PreTranslateMessage(MSG* pMsg);
+
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(LeftTreeView)
@@ -120,6 +122,8 @@ private:
 	COLORREF topbarColor = RGB(238, 238, 238);
 	CBrush topbarBrush;
 	HFONT comboFont = nullptr;
+
+	HACCEL m_hAccel = nullptr;
 
 	QImageButton createDbButton;
 	QImageButton openDbButton;

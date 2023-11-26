@@ -32,7 +32,6 @@ public:
 	void selectButtonId(Config::FrmButtonId buttonId);
 	Config::FrmButtonId getSelButtonId();
 private:
-
 	//左边的按钮ID和按钮的对象指针对应关系
 	std::map<Config::FrmButtonId, QImageTextButton *> buttonMap;
 

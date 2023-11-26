@@ -67,6 +67,12 @@ BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 	if (historyPage.IsWindow() && historyPage.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
+
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 
@@ -264,66 +270,66 @@ void RightWorkView::createOrShowTableButtons(CRect & clientRect)
 		createTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	}
 	QWinCreater::createOrShowButton(m_hWnd, createTableButton, Config::DATABASE_CREATE_TABLE_BUTTON_ID, L"", rect, clientRect);
-	createTableButton.SetToolTip(S(L"table-create"));
+	createTableButton.SetToolTip(SNT(L"table-create"));
 	
 	rect.OffsetRect(w + 10, 0);
 	openTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, openTableButton, Config::DATABASE_OPEN_TABLE_BUTTON_ID, L"", rect, clientRect);
-	openTableButton.SetToolTip(S(L"table-open"));
+	openTableButton.SetToolTip(SNT(L"table-open"));
 	enableButton(openTableButton, std::wstring(L"open-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	alterTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, alterTableButton, Config::DATABASE_ALTER_TABLE_BUTTON_ID, L"", rect, clientRect);
-	alterTableButton.SetToolTip(S(L"table-alter"));
+	alterTableButton.SetToolTip(SNT(L"table-alter"));
 	enableButton(alterTableButton, std::wstring(L"alter-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	renameTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, renameTableButton, Config::DATABASE_RENAME_TABLE_BUTTON_ID, L"", rect, clientRect);
-	renameTableButton.SetToolTip(S(L"table-rename"));
+	renameTableButton.SetToolTip(SNT(L"table-rename"));
 	enableButton(renameTableButton, std::wstring(L"rename-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	truncateTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, truncateTableButton, Config::DATABASE_TRUNCATE_TABLE_BUTTON_ID, L"", rect, clientRect);
-	truncateTableButton.SetToolTip(S(L"table-truncate"));
+	truncateTableButton.SetToolTip(SNT(L"table-truncate"));
 	enableButton(truncateTableButton, std::wstring(L"truncate-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	dropTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, dropTableButton, Config::DATABASE_DROP_TABLE_BUTTON_ID, L"", rect, clientRect);
-	dropTableButton.SetToolTip(S(L"table-drop"));
+	dropTableButton.SetToolTip(SNT(L"table-drop"));
 	enableButton(dropTableButton, std::wstring(L"drop-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	copyTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, copyTableButton, Config::DATABASE_COPY_TABLE_BUTTON_ID, L"", rect, clientRect);
-	copyTableButton.SetToolTip(S(L"table-copy-as"));
+	copyTableButton.SetToolTip(SNT(L"table-copy-as"));
 	enableButton(copyTableButton, std::wstring(L"copy-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	shardingTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, shardingTableButton, Config::DATABASE_SHARDING_TABLE_BUTTON_ID, L"", rect, clientRect);
-	shardingTableButton.SetToolTip(S(L"table-sharding-as"));
+	shardingTableButton.SetToolTip(SNT(L"table-sharding-as"));
 	enableButton(shardingTableButton, std::wstring(L"sharding-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	exportTableButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, exportTableButton, Config::DATABASE_EXPORT_TABLE_BUTTON_ID, L"", rect, clientRect);
-	exportTableButton.SetToolTip(S(L"table-export-as"));
+	exportTableButton.SetToolTip(SNT(L"table-export-as")); 
 	enableButton(exportTableButton, std::wstring(L"export-table"));
 
 	rect.OffsetRect(w + 10, 0);
 	importTableSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, importTableSqlButton, Config::DATABASE_IMPORT_TABLE_FROM_SQL_BUTTON_ID, L"", rect, clientRect);
-	importTableSqlButton.SetToolTip(S(L"table-import-sql"));
+	importTableSqlButton.SetToolTip(SNT(L"table-import-sql"));
 	enableButton(importTableSqlButton, std::wstring(L"import-table-sql"));
 
 	rect.OffsetRect(w + 10, 0);
 	importTableCsvButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	QWinCreater::createOrShowButton(m_hWnd, importTableCsvButton, Config::DATABASE_IMPORT_TABLE_FROM_CSV_BUTTON_ID, L"", rect, clientRect);
-	importTableCsvButton.SetToolTip(S(L"table-import-csv"));
+	importTableCsvButton.SetToolTip(SNT(L"table-import-csv"));
 	enableButton(importTableCsvButton, std::wstring(L"import-table-csv"));
 }
 
@@ -416,6 +422,9 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
+
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(RIGHT_WORKVIEW_ACCEL));
 
 	adapter = new RightWorkViewAdapter(m_hWnd, tabView, queryPagePtrs, tablePagePtrs);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);

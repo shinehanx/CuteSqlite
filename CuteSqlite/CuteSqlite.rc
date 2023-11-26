@@ -76,6 +76,42 @@ BEGIN
     0
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+LEFT_TREEVIEW_ACCEL ACCELERATORS
+BEGIN
+    "N",            DATABASE_CREATE_ID,				VIRTKEY, CONTROL
+    "O",            DATABASE_OPEN_ID,				VIRTKEY, CONTROL
+    "R",            DATABASE_REFRESH_ID,			VIRTKEY, CONTROL
+    VK_DELETE,      DATABASE_DELETE_ID,				VIRTKEY
+    "P",			DATABASE_COPY_ID,				VIRTKEY, CONTROL
+    "E",			DATABASE_EXPORT_AS_SQL_ID,		VIRTKEY, CONTROL
+    "I",			DATABASE_IMPORT_FROM_SQL_ID,	VIRTKEY, CONTROL
+    "N",			TABLE_CREATE_ID,				VIRTKEY, ALT
+    "O",			TABLE_OPEN_ID,					VIRTKEY, ALT
+    "A",			TABLE_ALTER_ID,					VIRTKEY, ALT
+    "M",			TABLE_RENAME_ID,				VIRTKEY, ALT
+    "T",			TABLE_TRUNCATE_ID,				VIRTKEY, ALT
+    VK_DELETE,		TABLE_DROP_ID,					VIRTKEY, ALT
+    "P",			TABLE_COPY_ID,					VIRTKEY, ALT
+    "G",			TABLE_SHARDING_ID,				VIRTKEY, ALT
+    "E",			TABLE_EXPORT_ID,				VIRTKEY, ALT
+    "I",			TABLE_IMPORT_FROM_SQL_ID,		VIRTKEY, ALT
+    "J",			TABLE_IMPORT_FROM_CSV_ID,		VIRTKEY, ALT
+END
+
+RIGHT_WORKVIEW_ACCEL ACCELERATORS
+BEGIN
+	VK_F5,      DATABASE_EXEC_SQL_ID,				VIRTKEY
+	VK_F9,      DATABASE_EXEC_ALL_ID,				VIRTKEY
+	VK_F10,     DATABASE_EXPLAIN_SQL_ID,			VIRTKEY
+	VK_F7,		DATABASE_QUERY_ID,					VIRTKEY
+	VK_F8,		DATABASE_HISTORY_ID,				VIRTKEY
+END
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 

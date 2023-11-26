@@ -23,6 +23,10 @@
 
 BOOL DatabasePanel::PreTranslateMessage(MSG* pMsg)
 {
+	if (leftTreeView.IsWindow() && leftTreeView.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
 	if (rightWorkView.IsWindow() && rightWorkView.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
