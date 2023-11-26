@@ -362,6 +362,7 @@ void QListViewCtrl::changeSubItemText()
 		subItemVal.newVal = text;
 		// it will be return when original text equals new text
 		if (subItemVal.origVal == subItemVal.newVal) {
+			CRect rect;
 			subItemEdit.DestroyWindow();
 			isVisibleEdit = false;
 			return;
@@ -369,6 +370,7 @@ void QListViewCtrl::changeSubItemText()
 
 		setChangeVal(subItemVal);
 
+		CRect rect;
 		subItemEdit.DestroyWindow();
 		isVisibleEdit = false;
 		::PostMessage(GetParent().m_hWnd, Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, WPARAM(activeSubItemPos.first), LPARAM(activeSubItemPos.second));
@@ -1241,6 +1243,7 @@ void QListViewCtrl::checkedAllItems()
 void QListViewCtrl::destroyComboBox()
 {
 	if (isVisibleComboBox && subItemComboBox.IsWindow()) {
+		CRect rect;
 		subItemComboBox.DestroyWindow();
 	}
 }
@@ -1248,16 +1251,18 @@ void QListViewCtrl::destroyComboBox()
 
 void QListViewCtrl::destroyEditor()
 {
-	if (isVisibleEdit && subItemEdit.IsWindow()) {
+	if (subItemEdit.IsWindow()) {
 		subItemEdit.DestroyWindow();
+		isVisibleEdit = false;		
 	}
 }
 
 
 void QListViewCtrl::destroySubItemElems()
 {
+	activeSubItemPos = { -1, -1 };
 	destroyComboBox();
-	destroyEditor();
+	destroyEditor();	
 }
 
 BOOL QListViewCtrl::OnEraseBkgnd(CDCHandle dc)

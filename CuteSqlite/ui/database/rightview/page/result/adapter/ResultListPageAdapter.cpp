@@ -37,6 +37,7 @@ int ResultListPageAdapter::loadListView(uint64_t userDbId, std::wstring & sql)
 	}
 	dataView->DeleteAllItems();
 	dataView->clearChangeVals();
+	dataView->destroySubItemElems();
 	runtimeTables.clear();
 	runtimeDatas.clear();
 	runtimeColumns.clear();
@@ -90,6 +91,7 @@ int ResultListPageAdapter::loadFilterListView()
 {
 	dataView->DeleteAllItems();
 	dataView->clearChangeVals();
+	dataView->destroySubItemElems();
 	runtimeTables.clear();
 	runtimeDatas.clear();
 	runtimeNewRows.clear();

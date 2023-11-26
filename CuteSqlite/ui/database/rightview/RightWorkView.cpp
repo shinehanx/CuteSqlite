@@ -162,7 +162,7 @@ void RightWorkView::createOrShowExecButtons(CRect & clientRect)
 		execSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
 	}
 	QWinCreater::createOrShowButton(m_hWnd, execSqlButton, Config::DATABASE_EXEC_SQL_BUTTON_ID, L"", rect, clientRect);
-	execSqlButton.SetToolTip(S(L"exec-select-sql"));
+	execSqlButton.SetToolTip(SNT(L"exec-select-sql"));
 
 	rect.OffsetRect(w + 10, 0);
 	if (!execAllButton.IsWindow()) {
@@ -172,7 +172,7 @@ void RightWorkView::createOrShowExecButtons(CRect & clientRect)
 		execAllButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	}
 	QWinCreater::createOrShowButton(m_hWnd, execAllButton, Config::DATABASE_EXEC_ALL_BUTTON_ID, L"", rect, clientRect);
-	execAllButton.SetToolTip(S(L"exec-all-sql"));
+	execAllButton.SetToolTip(SNT(L"exec-all-sql"));
 
 	rect.OffsetRect(w + 10, 0);
 	if (!explainSqlButton.IsWindow()) {
@@ -182,7 +182,7 @@ void RightWorkView::createOrShowExecButtons(CRect & clientRect)
 		explainSqlButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
 	}
 	QWinCreater::createOrShowButton(m_hWnd, explainSqlButton, Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, L"", rect, clientRect);
-	explainSqlButton.SetToolTip(S(L"explain-select-sql"));
+	explainSqlButton.SetToolTip(SNT(L"explain-select-sql"));
 	
 	// split
 	CRect splitRect(rect.right + 20, rect.top, rect.right + 38, rect.bottom);
@@ -211,7 +211,7 @@ void RightWorkView::createOrShowExecButtons(CRect & clientRect)
 		historyButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	}
 	QWinCreater::createOrShowButton(m_hWnd, historyButton, Config::DATABASE_HISTORY_BUTTON_ID, L"", rect, clientRect);
-	historyButton.SetToolTip(S(L"history"));
+	historyButton.SetToolTip(S(L"history-tip"));
 }
 
 
@@ -236,7 +236,7 @@ void RightWorkView::createOrShowDbButtons(CRect & clientRect)
 		exportDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));		
 	}
 	QWinCreater::createOrShowButton(m_hWnd, exportDatabaseButton, Config::DATABASE_EXPORT_BUTTON_ID, L"", rect, clientRect);
-	exportDatabaseButton.SetToolTip(S(L"database-export-as-sql"));
+	exportDatabaseButton.SetToolTip(SNT(L"database-export-as-sql"));
 	
 	rect.OffsetRect(w + 10, 0);
 	if (!importDatabaseButton.IsWindow()) {
@@ -246,7 +246,7 @@ void RightWorkView::createOrShowDbButtons(CRect & clientRect)
 		importDatabaseButton.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
 	}
 	QWinCreater::createOrShowButton(m_hWnd, importDatabaseButton, Config::DATABASE_IMPORT_BUTTON_ID, L"", rect, clientRect);
-	importDatabaseButton.SetToolTip(S(L"database-import-from-sql"));	
+	importDatabaseButton.SetToolTip(SNT(L"database-import-from-sql"));	
 }
 
 void RightWorkView::createOrShowTableButtons(CRect & clientRect)

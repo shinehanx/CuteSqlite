@@ -30,7 +30,7 @@ ImportFromCsvDialog::ImportFromCsvDialog(HWND parentHwnd)
 {
 	ATLASSERT(parentHwnd != nullptr);
 	this->parentHwnd = parentHwnd;
-	this->caption = S(L"database-import-from-sql");
+	this->caption = SNT(L"database-import-from-sql");
 	setFormSize(IMPORT_FROM_CSV_DIALOG_WIDTH, IMPORT_FROM_CSV_DIALOG_HEIGHT);
 }
 

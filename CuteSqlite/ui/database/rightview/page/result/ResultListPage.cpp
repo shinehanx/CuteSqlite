@@ -41,11 +41,19 @@ BOOL ResultListPage::PreTranslateMessage(MSG* pMsg)
 		&& ((GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)) { //CTRL + C 
 		if (key == _T('C')) {
 			adapter->copyAllRowsToClipboard();
+			QPopAnimate::success(S(L"copy-to-clipboard"));
 		}
 	}
 
 	if (listView.IsWindow() && listView.PreTranslateMessage(pMsg)) {
 		return TRUE;
+	}
+
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (supplier->getActiveResultTabPageHwnd() == m_hWnd 
+			&& m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
@@ -158,9 +166,9 @@ void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & c
 		pressedImagePath = imgDir + L"database\\list\\button\\filter-button-pressed.png";
 		filterButton.SetIconPath(normalImagePath, pressedImagePath);
 		filterButton.SetBkgColors(buttonColor, buttonColor, buttonColor);
-		filterButton.SetToolTip(S(L"filter"));
 	}
 	QWinCreater::createOrShowButton(m_hWnd, filterButton, Config::LISTVIEW_FILTER_BUTTON_ID, L"", rect, clientRect);
+	filterButton.SetToolTip(S(L"filter"));
 
 	rect.OffsetRect(16 + 10, 0);
 	if (!refreshButton.IsWindow()) {
@@ -474,6 +482,9 @@ int ResultListPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);
 
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(RESULT_LIST_PAGE_ACCEL));
+
 	textFont = FT(L"form-text-size");
 	createCopyMenu();
 	return ret;
@@ -680,21 +691,25 @@ void ResultListPage::OnClickLimitCheckBox(UINT uNotifyCode, int nID, HWND hwnd)
 void ResultListPage::OnClickCopyAllRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copyAllRowsToClipboard();
+	QPopAnimate::success(S(L"copy-to-clipboard"));
 }
 
 void ResultListPage::OnClickCopySelRowsToClipboardMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copySelRowsToClipboard();
+	QPopAnimate::success(S(L"copy-to-clipboard"));
 }
 
 void ResultListPage::OnClickCopyAllRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copyAllRowsAsSql();
+	QPopAnimate::success(S(L"copy-to-clipboard"));
 }
 
 void ResultListPage::OnClickCopySelRowsAsSqlMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->copySelRowsAsSql();
+	QPopAnimate::success(S(L"copy-to-clipboard"));
 }
 
 void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)

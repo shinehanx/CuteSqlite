@@ -30,7 +30,7 @@ ExportAsSqlDialog::ExportAsSqlDialog(HWND parentHwnd, ExportDatabaseAdapter * ad
 	ATLASSERT(parentHwnd != nullptr && adapter != nullptr);
 	this->parentHwnd = parentHwnd;
 	this->adapter = adapter;
-	this->caption = S(L"database-export-as-sql");
+	this->caption = SNT(L"database-export-as-sql");
 	setFormSize(EXPORT_AS_SQL_DIALOG_WIDTH, EXPORT_AS_SQL_DIALOG_HEIGHT);
 }
 

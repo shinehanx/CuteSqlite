@@ -25,6 +25,7 @@ class QueryPageSupplier : public QPageSupplier {
 public:
 	QueryPageSupplier();
 	~QueryPageSupplier();
+	
 
 	static const std::vector<std::wstring> sqlTags;
 	static const std::list<std::tuple<int, std::wstring, std::wstring>> pragmas;
@@ -52,6 +53,9 @@ public:
 	void setCacheUseSql(const std::wstring & val) { cacheUseSql = val; }
 	void clearCacheUseSql() { cacheUseSql.clear(); }
 
+	
+	HWND getActiveResultTabPageHwnd() const { return activeResultTabPageHwnd; }
+	void setActiveResultTabPageHwnd(HWND val) { activeResultTabPageHwnd = val; }
 private:
 	// template params: first - userDbId, second - user table strings
 	std::map<uint64_t, UserTableStrings> cacheUserTableMap;
@@ -61,4 +65,6 @@ private:
 
 	// 
 	std::wstring cacheUseSql;
+
+	HWND activeResultTabPageHwnd = nullptr;
 };

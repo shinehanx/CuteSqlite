@@ -118,6 +118,8 @@ public:
 
 	void changeAllItemsCheckState();
 
+	void destroySubItemElems();
+
 	// owner draw, must set the ListView style with LVS_OWNERDRAWFIXED
 	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
@@ -202,7 +204,6 @@ private:
 	void createImageList();
 	void destroyComboBox();
 	void destroyEditor();
-	void destroySubItemElems();
 	void checkedAllItems();
 
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);

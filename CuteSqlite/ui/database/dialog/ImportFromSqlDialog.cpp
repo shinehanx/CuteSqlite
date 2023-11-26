@@ -29,7 +29,7 @@ ImportFromSqlDialog::ImportFromSqlDialog(HWND parentHwnd, ImportDatabaseAdapter 
 	ATLASSERT(parentHwnd != nullptr && adapter != nullptr);
 	this->parentHwnd = parentHwnd;
 	this->adapter = adapter;
-	this->caption = S(L"database-import-from-sql");
+	this->caption = SNT(L"database-import-from-sql");
 	setFormSize(IMPORT_FROM_SQL_DIALOG_WIDTH, IMPORT_FROM_SQL_DIALOG_HEIGHT);
 }
 

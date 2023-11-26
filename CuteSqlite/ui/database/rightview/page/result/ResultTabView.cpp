@@ -93,6 +93,7 @@ void ResultTabView::activeTableDataPage()
 		createOrShowResultTableDataPage(resultTableDataPage, clientRect);
 		int nPage = tabView.AddPage(resultTableDataPage.m_hWnd, StringUtil::blkToTail(S(L"result-table-data")).c_str(), 2, &resultTableDataPage);
 		tabView.SetActivePage(nPage);
+		supplier->setActiveResultTabPageHwnd(resultTableDataPage.m_hWnd);
 		return ;
 	} 
 	
@@ -102,6 +103,7 @@ void ResultTabView::activeTableDataPage()
 			continue;
 		}
 		tabView.SetActivePage(i);
+		supplier->setActiveResultTabPageHwnd(tabView.GetPageHWND(i));
 	}
 }
 
@@ -252,7 +254,12 @@ int ResultTabView::getPageIndex(HWND hwnd)
 
 void ResultTabView::setActivePage(int pageIndex)
 {
+	if (pageIndex < 0 || pageIndex >= tabView.GetPageCount()) {
+		return;
+	}
 	tabView.SetActivePage(pageIndex);
+	HWND hwnd = tabView.GetPageHWND(pageIndex);
+	supplier->setActiveResultTabPageHwnd(hwnd);
 }
 
 void ResultTabView::activeResultInfoPage()
@@ -263,6 +270,7 @@ void ResultTabView::activeResultInfoPage()
 			continue;
 		}
 		tabView.SetActivePage(i);
+		supplier->setActiveResultTabPageHwnd(tabView.GetPageHWND(i));
 	}
 }
 
@@ -397,6 +405,7 @@ void ResultTabView::loadTabViewPages()
 		tabView.AddPage(tablePropertiesPage.m_hWnd, StringUtil::blkToTail(S(L"table-properties")).c_str(), 3, &tablePropertiesPage);
 	}
 	tabView.SetActivePage(0);
+	supplier->setActiveResultTabPageHwnd(resultInfoPage.m_hWnd);
 }
 
 int ResultTabView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -475,16 +484,17 @@ LRESULT ResultTabView::OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 LRESULT ResultTabView::OnTabViewPageActivated(int wParam, LPNMHDR lParam, BOOL &bHandled)
 {
-	if (supplier->getOperateType() == TABLE_DATA) { 
-		return 0;
-	}
-	
-
 	int activePage = tabView.GetActivePage();
 	if (activePage < 0) {
 		return 0;
 	}
 	HWND activePageHwnd = tabView.GetPageHWND(activePage);
+	supplier->setActiveResultTabPageHwnd(activePageHwnd);
+
+	if (supplier->getOperateType() == TABLE_DATA) { 
+		return 0;
+	}
+	
 	if (resultTableDataPage.m_hWnd != activePageHwnd) {
 		return 0;
 	}
@@ -501,6 +511,7 @@ void ResultTabView::activeTablePropertiesPage()
 		createOrShowTablePropertiesPage(tablePropertiesPage, clientRect);
 		int nPage = tabView.AddPage(tablePropertiesPage.m_hWnd, StringUtil::blkToTail(S(L"table-properties")).c_str(), 3, &tablePropertiesPage);
 		tabView.SetActivePage(nPage);
+		supplier->setActiveResultTabPageHwnd(tablePropertiesPage.m_hWnd);
 		return ;
 	} 
 	
@@ -510,6 +521,7 @@ void ResultTabView::activeTablePropertiesPage()
 			continue;
 		}
 		tabView.SetActivePage(i);
+		supplier->setActiveResultTabPageHwnd(tabView.GetPageHWND(i));
 	}
 }
 

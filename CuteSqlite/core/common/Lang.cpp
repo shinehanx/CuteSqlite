@@ -50,7 +50,7 @@ std::wstring Lang::langNoTab(const std::wstring & key)
 	}
 	size_t tabPos = str.find_last_of(L'\t');
 	if (tabPos != std::wstring::npos) {
-		std::wstring pre = str.substr(0, tabPos - 1);
+		std::wstring pre = str.substr(0, tabPos);
 		std::wstring tail = str.substr(tabPos+1, -1);
 		str = pre;
 		str.append(L"\t(").append(tail).append(L")");
