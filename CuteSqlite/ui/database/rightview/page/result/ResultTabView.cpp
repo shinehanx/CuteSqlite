@@ -525,4 +525,8 @@ void ResultTabView::activeTablePropertiesPage()
 	}
 }
 
+void ResultTabView::save()
+{
+	resultTableDataPage.save();
+}
 

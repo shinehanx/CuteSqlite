@@ -52,6 +52,7 @@ public:
 	void renameTable(const std::wstring &oldTableName, const std::wstring &newTableName);
 
 	void activePage(TableStructurePageType pageType);
+	void save();
 private:
 	TableStructurePageType activePageType = TABLE_COLUMNS_PAGE;
 	COLORREF editorBkgColor = RGB(238, 238, 238);

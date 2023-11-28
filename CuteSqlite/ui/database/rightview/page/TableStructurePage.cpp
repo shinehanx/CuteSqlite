@@ -82,6 +82,105 @@ void TableStructurePage::activePage(TableStructurePageType pageType)
 	tableTabView.activePage(pageType);
 }
 
+
+void TableStructurePage::save()
+{
+	int nSelItem = databaseComboBox.GetCurSel();
+	supplier->setRuntimeUserDbId(databaseComboBox.GetItemData(nSelItem));
+	ATLASSERT(supplier->getRuntimeUserDbId() > 0);
+	CString str;
+	tblNameEdit.GetWindowText(str);
+	std::wstring tblName = str.GetString();
+	StringUtil::trim(tblName);
+
+	// 1. verify the params
+	if (tblName.empty()) {
+		QPopAnimate::error(m_hWnd, S(L"tbl-name-empty"));
+		tblNameEdit.SetFocus();
+		return;
+	}
+
+	if (supplier->getOperateType() == NEW_TABLE &&
+		tableService->isExistsTblName(supplier->getRuntimeUserDbId(),
+			tblName,
+			supplier->getRuntimeSchema())) {
+		QPopAnimate::error(m_hWnd, S(L"tbl-name-duplicated"));
+		tblNameEdit.SetFocus();
+		return;
+	}
+
+	schemaComboBox.GetWindowText(str);
+	std::wstring schema = str.GetString();
+	supplier->setRuntimeSchema(schema);
+
+	// for sql log
+	uint64_t userDbId = supplier->getRuntimeUserDbId();
+	ResultInfo resultInfo;
+	resultInfo.userDbId = userDbId;
+
+	auto _begin = PerformUtil::begin();
+	UserIndexList userIndexList;
+	if (supplier->getOperateType() == MOD_TABLE) {
+		userIndexList= tableService->getUserIndexes(userDbId, tblName);
+	}
+	
+	// 2. Set the BEGIN TRANSACTION
+	std::wstring sql = L"BEGIN;";
+	tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
+	try {
+		// 3.Execute create table or alter table DDL
+		if (supplier->getOperateType() == NEW_TABLE) {
+			sql = getCreateTableRuntimeSql();
+			tableService->execBySql(userDbId, sql);
+			auto idxSqls = getCreateIndexesRuntimeSql();
+			for (auto & idxSql : idxSqls) {
+				sql = idxSql;
+				tableService->execBySql(userDbId, sql);
+			}
+			QPopAnimate::success(m_hWnd, S(L"create-table-success-text"));
+		} else {
+			sql = execAlterTable(userIndexList);
+			QPopAnimate::success(m_hWnd, S(L"alter-table-success-text"));
+		}
+
+		// For sql log
+		resultInfo.sql = sql;
+		resultInfo.execTime = PerformUtil::end(_begin);
+		resultInfo.transferTime = PerformUtil::end(_begin);
+
+		// 4.commit transaction
+		sql = L"COMMIT;";
+		tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
+
+		// 5. Do something after created table
+		afterCreatedTable(tblName);
+
+		// 6. Send result info to history page
+		resultInfo.totalTime = PerformUtil::end(_begin);
+		resultInfo.msg = S(L"create-table-success-text");
+		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&resultInfo);
+	} catch (QSqlExecuteException & ex) {
+		sql = L"ROLLBACK;";
+		tableService->execBySql(supplier->getRuntimeUserDbId(), sql); 
+
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
+		QPopAnimate::report(ex);
+
+		resultInfo.sql = ex.getSql();
+		resultInfo.execTime = PerformUtil::end(_begin);
+		resultInfo.transferTime = PerformUtil::end(_begin);
+		resultInfo.totalTime = PerformUtil::end(_begin);
+		resultInfo.code = _wtoi(ex.getCode().c_str());
+		resultInfo.msg = ex.getMsg();
+		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&resultInfo);
+		return ;
+	} catch (QRuntimeException & ex) { // Execute
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return ;
+	}
+}
+
 CRect TableStructurePage::getEditorRect(CRect & clientRect)
 {
 	int x = 20, y = clientRect.bottom - 70 - 200, w = clientRect.Width() - 40, h = 200;
@@ -326,100 +425,7 @@ void TableStructurePage::OnChangeDatabaseComboBox(UINT uNotifyCode, int nID, HWN
 
 void TableStructurePage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	int nSelItem = databaseComboBox.GetCurSel();
-	supplier->setRuntimeUserDbId(databaseComboBox.GetItemData(nSelItem));
-	ATLASSERT(supplier->getRuntimeUserDbId() > 0);
-	CString str;
-	tblNameEdit.GetWindowText(str);
-	std::wstring tblName = str.GetString();
-	StringUtil::trim(tblName);
-
-	// 1. verify the params
-	if (tblName.empty()) {
-		QPopAnimate::error(m_hWnd, S(L"tbl-name-empty"));
-		tblNameEdit.SetFocus();
-		return;
-	}
-
-	if (supplier->getOperateType() == NEW_TABLE &&
-		tableService->isExistsTblName(supplier->getRuntimeUserDbId(),
-			tblName,
-			supplier->getRuntimeSchema())) {
-		QPopAnimate::error(m_hWnd, S(L"tbl-name-duplicated"));
-		tblNameEdit.SetFocus();
-		return;
-	}
-
-	schemaComboBox.GetWindowText(str);
-	std::wstring schema = str.GetString();
-	supplier->setRuntimeSchema(schema);
-
-	// for sql log
-	uint64_t userDbId = supplier->getRuntimeUserDbId();
-	ResultInfo resultInfo;
-	resultInfo.userDbId = userDbId;
-
-	auto _begin = PerformUtil::begin();
-	UserIndexList userIndexList;
-	if (supplier->getOperateType() == MOD_TABLE) {
-		userIndexList= tableService->getUserIndexes(userDbId, tblName);
-	}
-	
-	// 2. Set the BEGIN TRANSACTION
-	std::wstring sql = L"BEGIN;";
-	tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
-	try {
-		// 3.Execute create table or alter table DDL
-		if (supplier->getOperateType() == NEW_TABLE) {
-			sql = getCreateTableRuntimeSql();
-			tableService->execBySql(userDbId, sql);
-			auto idxSqls = getCreateIndexesRuntimeSql();
-			for (auto & idxSql : idxSqls) {
-				sql = idxSql;
-				tableService->execBySql(userDbId, sql);
-			}
-			QPopAnimate::success(hwnd, S(L"create-table-success-text"));
-		} else {
-			sql = execAlterTable(userIndexList);
-			QPopAnimate::success(hwnd, S(L"alter-table-success-text"));
-		}
-
-		// For sql log
-		resultInfo.sql = sql;
-		resultInfo.execTime = PerformUtil::end(_begin);
-		resultInfo.transferTime = PerformUtil::end(_begin);
-
-		// 4.commit transaction
-		sql = L"COMMIT;";
-		tableService->execBySql(supplier->getRuntimeUserDbId(), sql);
-
-		// 5. Do something after created table
-		afterCreatedTable(tblName);
-
-		// 6. Send result info to history page
-		resultInfo.totalTime = PerformUtil::end(_begin);
-		resultInfo.msg = S(L"create-table-success-text");
-		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&resultInfo);
-	} catch (QSqlExecuteException & ex) {
-		sql = L"ROLLBACK;";
-		tableService->execBySql(supplier->getRuntimeUserDbId(), sql); 
-
-		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
-		QPopAnimate::report(ex);
-
-		resultInfo.sql = ex.getSql();
-		resultInfo.execTime = PerformUtil::end(_begin);
-		resultInfo.transferTime = PerformUtil::end(_begin);
-		resultInfo.totalTime = PerformUtil::end(_begin);
-		resultInfo.code = _wtoi(ex.getCode().c_str());
-		resultInfo.msg = ex.getMsg();
-		AppContext::getInstance()->dispatchForResponse(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, NULL, (LPARAM)&resultInfo);
-		return ;
-	} catch (QRuntimeException & ex) { // Execute
-		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::report(ex);
-		return ;
-	}
+	save();
 }
 
 

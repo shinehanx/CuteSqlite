@@ -236,8 +236,10 @@ void ResultTableDataPage::enableDataDirty()
 	::PostMessage(pHwnd, Config::MSG_DATA_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
 
 	// class chain : ResultTableDataPage(this) -> QTabView -> ResultTabView -> CHorSplitterWindow -> QueryPage -> QTabView(tabView) -> RightWorkView
-	HWND pHwnd2 = GetParent().GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
-	::PostMessage(pHwnd2, Config::MSG_DATA_DIRTY_ID, WPARAM(m_hWnd), LPARAM(isDirty));
+	HWND rightWorkViewHwnd = GetParent().GetParent().GetParent().GetParent().GetParent().GetParent().m_hWnd; // RightWorkView
+	// class chain : ResultTableDataPage(this) -> QTabView -> ResultTabView -> CHorSplitterWindow -> QueryPage
+	HWND queryPageHwnd = GetParent().GetParent().GetParent().GetParent().m_hWnd; //queryPage
+	::PostMessage(rightWorkViewHwnd, Config::MSG_DATA_DIRTY_ID, WPARAM(queryPageHwnd), LPARAM(isDirty));
 }
 
 void ResultTableDataPage::enableSaveButton()
@@ -460,12 +462,17 @@ LRESULT ResultTableDataPage::OnClickCopyRowButton(UINT uNotifyCode, int nID, HWN
 
 LRESULT ResultTableDataPage::OnClickSaveButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
+	save();
+	return 0;
+}
+
+void ResultTableDataPage::save()
+{
 	adapter->save();
 	enableSaveButton();
 	enableCancelButton();
 	enableDataDirty();
 	clearFormView();
-	return 0;
 }
 
 LRESULT ResultTableDataPage::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND wndCtl)

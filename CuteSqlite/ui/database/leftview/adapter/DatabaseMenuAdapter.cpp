@@ -73,8 +73,8 @@ void DatabaseMenuAdapter::createImageList()
 	refreshDatabaseIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\refresh-database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	deleteDatabaseIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\delete-database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	copyDatabaseIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\copy.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	exportAsSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\export-as-sql.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	importFromSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-from-sql.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	exportAsSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\export-database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	importFromSqlIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\import-database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 	
 	newMenuIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\new-menu.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	newTableIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\menu\\create-table.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);

@@ -74,6 +74,9 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, OnClickExplainSqlButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_QUERY_BUTTON_ID, OnClickQueryButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_HISTORY_BUTTON_ID, OnClickHistoryButton)
+		// save
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_SAVE_BUTTON_ID, OnClickSaveButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_SAVE_ALL_BUTTON_ID, OnClickSaveAllButton)
 		// database import/export
 		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_BUTTON_ID, BN_CLICKED, OnClickExportDatabaseButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_BUTTON_ID, BN_CLICKED, OnClickImportDatabaseButton)
@@ -114,10 +117,12 @@ public:
 
 private:
 	bool isNeedReload = true;
-	COLORREF bkgColor = RGB(255, 255, 255);
+	COLORREF bkgColor = RGB(255, 255, 255);	
+	COLORREF textColor = RGB(255, 255, 255);
 	CBrush bkgBrush;
 
-	COLORREF topbarColor = RGB(238, 238, 238);
+	COLORREF topbarColor = RGB(81, 81, 81);
+	COLORREF topbarHoverColor = RGB(102, 102, 104);
 	CBrush topbarBrush ;
 	HFONT textFont;
 
@@ -127,9 +132,10 @@ private:
 	QImageButton execSqlButton;
 	QImageButton execAllButton;
 	QImageButton explainSqlButton;
-	QStaticImage splitImage;
 	QImageButton queryButton;
 	QImageButton historyButton;
+	QImageButton saveButton;
+	QImageButton saveAllButton;
 
 	// database buttons
 	CStatic databaseLabel;
@@ -183,6 +189,7 @@ private:
 	void createOrShowUI();
 	void createOrShowToolButtons(CRect & clientRect);
 	void createOrShowExecButtons(CRect & clientRect);
+	void createOrShowSaveButtons(CRect & clientRect);
 	void createOrShowDbButtons(CRect & clientRect);
 	void createOrShowTableButtons(CRect & clientRect);
 	
@@ -206,6 +213,8 @@ private:
 	LRESULT OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickQueryButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickHistoryButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickImportDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickCreateTableButton(UINT uNotifyCode, int nID, HWND hwnd);

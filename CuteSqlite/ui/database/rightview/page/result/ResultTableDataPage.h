@@ -46,6 +46,7 @@ public:
 	virtual void setup(std::wstring & table);
 	virtual void setup(QueryPageSupplier *supplier, std::wstring sql);
 	void loadTableDatas();
+	void save();
 protected:
 	std::wstring table; // table name
 

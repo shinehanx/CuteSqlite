@@ -207,6 +207,11 @@ void QueryPage::explainAndShow()
 	}
 }
 
+void QueryPage::save()
+{
+	resultTabView.save();
+}
+
 void QueryPage::createOrShowUI()
 {
 	QPage::createOrShowUI();

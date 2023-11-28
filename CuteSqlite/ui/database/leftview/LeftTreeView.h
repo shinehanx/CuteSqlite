@@ -119,7 +119,7 @@ private:
 	bool isNeedReload = true;
 	COLORREF bkgColor = RGB(255, 255, 255);
 	CBrush bkgBrush;
-	COLORREF topbarColor = RGB(238, 238, 238);
+	COLORREF topbarColor = RGB(81, 81, 81);
 	CBrush topbarBrush;
 	HFONT comboFont = nullptr;
 

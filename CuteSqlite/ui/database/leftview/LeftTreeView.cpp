@@ -74,7 +74,7 @@ void LeftTreeView::createOrShowCreateDbButton(QImageButton & win, CRect &clientR
 		std::wstring normalImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\create-button-normal.png";
 		std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\create-button-pressed.png";
 		win.SetIconPath(normalImagePath, pressedImagePath);
-		win.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+		win.SetBkgColors(topbarColor, topbarColor, topbarColor);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | BS_OWNERDRAW, 0, Config::DATABASE_CREATE_BUTTON_ID);
 		win.SetToolTip(S(L"create-database"));
 		return;
@@ -93,7 +93,7 @@ void LeftTreeView::createOrShowOpenDbButton(QImageButton & win, CRect &clientRec
 		std::wstring normalImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\open-button-normal.png";
 		std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\open-button-pressed.png";
 		win.SetIconPath(normalImagePath, pressedImagePath);
-		win.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+		win.SetBkgColors(topbarColor, topbarColor, topbarColor);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | BS_OWNERDRAW, 0, Config::DATABASE_OPEN_BUTTON_ID);
 		win.SetToolTip(S(L"open-database"));
 		return;
@@ -112,7 +112,7 @@ void LeftTreeView::createOrShowRefreshDbButton(QImageButton & win, CRect &client
 		std::wstring normalImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\refresh-button-normal.png";
 		std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\refresh-button-pressed.png";
 		win.SetIconPath(normalImagePath, pressedImagePath);
-		win.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+		win.SetBkgColors(topbarColor, topbarColor, topbarColor);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | BS_OWNERDRAW, 0, Config::DATABASE_REFRESH_BUTTON_ID);
 		win.SetToolTip(S(L"refresh-database"));
 		return;
@@ -131,7 +131,7 @@ void LeftTreeView::createOrShowDeleteDbButton(QImageButton & win, CRect &clientR
 		std::wstring normalImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\delete-button-normal.png";
 		std::wstring pressedImagePath = ResourceUtil::getProductImagesDir() + L"database\\button\\delete-button-pressed.png";
 		win.SetIconPath(normalImagePath, pressedImagePath);
-		win.SetBkgColors(RGB(238, 238, 238), RGB(238, 238, 238), RGB(238, 238, 238));
+		win.SetBkgColors(topbarColor, topbarColor, topbarColor);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | BS_OWNERDRAW, 0, Config::DATABASE_DELETE_BUTTON_ID);
 		win.SetToolTip(S(L"delete-database"));
 		return;

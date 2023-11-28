@@ -70,6 +70,7 @@ public:
 	void activeTablePropertiesPage();
 	
 	ResultInfo & getRuntimeResultInfo() { return runtimeResultInfo; }
+	void save();
 private:
 	bool isNeedReload = true;
 	

@@ -47,6 +47,7 @@ public:
 	ResultTabView & getResultTabView();
 	void execAndShow(bool select = false);
 	void explainAndShow();
+	void save();
 private:
 	std::wstring viewName;
 	std::wstring tplPath;

@@ -57,6 +57,9 @@ typedef enum {
 	DATABASE_EXPLAIN_SQL_BUTTON_ID,
 	DATABASE_QUERY_BUTTON_ID,
 	DATABASE_HISTORY_BUTTON_ID,
+	// RIGHT VIEW TOOLBAR - SAVE
+	DATABASE_SAVE_BUTTON_ID,
+	DATABASE_SAVE_ALL_BUTTON_ID,
 	// RIGHT VIEW TOOLBAR - DATABASE
 	DATABASE_EXPORT_BUTTON_ID,
 	DATABASE_IMPORT_BUTTON_ID,
@@ -467,6 +470,8 @@ typedef enum {
 							 // wParam=NULL, lParam=null, and return 1 - No changed, 0 - Has Changed
 	MSG_ACTIVE_PANEL_ID, // When need to display DatabasePanel in LeftPanel, send this msg to LeftPanel for displaying. wParam=panelId, lParam = NULL
 	MSG_DBLIST_ITEM_CLICK_ID, // when database list item has been clicked in HomePanel, send this msg to HomePanel. wParam=item.nID, lParam = userDbId
+	MSG_SAVE_ID, // Send the msg to the current active page need saved, wParam=NULL, lParam = NULL
+	MSG_SAVE_ALL_ID,// Send the msg to all the pages need saved, wParam=NULL, lParam = NULL
 }MessageId;
 
 typedef enum {
