@@ -1173,7 +1173,7 @@ void RightWorkView::OnClickCloseLeftMenu(UINT uNotifyCode, int nID, CWindow wndC
 
 void RightWorkView::OnClickCloseRightMenu(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
-	ATLASSERT(databaseSupplier->nSelTabPage >= 0);
+	ATLASSERT(databaseSupplier->nSelTabPage >= 0); 
 	int n = tabView.GetPageCount();
 	int nPage = databaseSupplier->nSelTabPage;
 	for (int i = n - 1; i > nPage; i--) {

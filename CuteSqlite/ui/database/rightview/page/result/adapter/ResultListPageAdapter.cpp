@@ -208,8 +208,13 @@ LRESULT ResultListPageAdapter::fillDataInListViewSubItem(NMLVDISPINFO * pLvdi)
 	}
 	RowItem & rowItem = *iter;
 	if (pLvdi->item.iSubItem > 0 && (pLvdi->item.mask & LVIF_TEXT)) {
-		std::wstring val = rowItem.at(pLvdi->item.iSubItem - 1);	
-		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());		
+		std::wstring val;
+		if (resultType == QUERY_TABLE_DATA || runtimeColumns.at(0) == L"_ct_sqlite_rowid") { // ROW_ID
+			val = rowItem.at(pLvdi->item.iSubItem);
+		} else {
+			val = rowItem.at(pLvdi->item.iSubItem - 1);
+		}
+		StringCchCopy(pLvdi->item.pszText, pLvdi->item.cchTextMax, val.c_str());
 	}
 
 	return 0;
@@ -242,7 +247,11 @@ void ResultListPageAdapter::loadRuntimeHeader(QSqlStatement & query)
 	n = query.getColumnCount();
 	for (int i = 0; i < n; i++) {
 		std::wstring columnName = query.getColumnName(i);
-		dataView->InsertColumn(i+1, columnName.c_str(), LVCFMT_LEFT, 100);
+		if (!columnName.empty() && columnName != L"_ct_sqlite_rowid") {
+			int colIdx = dataView->GetHeader().GetItemCount();
+			dataView->InsertColumn(colIdx + 1, columnName.c_str(), LVCFMT_LEFT, 100);
+		}
+		
 		runtimeColumns.push_back(columnName);
 	}
 }
@@ -279,10 +288,10 @@ int ResultListPageAdapter::loadRuntimeData(QSqlStatement & query)
 	CRect rectList;
 	dataView->GetClientRect(rectList);
 
-	int cols = dataView->GetHeader().GetItemCount();
+	int n = static_cast<int>(runtimeColumns.size());
 	while (query.executeStep()) {
 		RowItem rowItem;
-		for (int i = 0; i < cols - 1; i++) {
+		for (int i = 0; i < n; i++) {
 			std::wstring columnVal = query.getColumn(i).isNull() ? L"< NULL >" : query.getColumn(i).getText();
 			rowItem.push_back(columnVal);
 		}
@@ -436,7 +445,7 @@ DataList ResultListPageAdapter::getSelectedDatas()
 	DataList result;
 	int nSelItem = -1;
 	while ((nSelItem = dataView->GetNextItem(nSelItem, LVNI_SELECTED)) != -1) {
-		DataList::iterator itor = runtimeDatas.begin();		
+		DataList::iterator itor = runtimeDatas.begin();
 		for (int i = 0; i < nSelItem && itor != runtimeDatas.end(); i++) {
 			itor++;
 		}
@@ -522,9 +531,9 @@ Columns ResultListPageAdapter::getRuntimeValidFilterColumns()
 	}
 	Columns validColums;
 
-	for (auto tblName : runtimeTables) {
+	for (auto & tblName : runtimeTables) {
 		ColumnInfoList columnInfos = getRuntimeColumnInfos(tblName);
-		for (auto column : runtimeColumns) {
+		for (auto & column : runtimeColumns) {
 			auto iter = std::find_if(columnInfos.begin(), columnInfos.end(), [&column](ColumnInfo & columnInfo) {
 				return column == columnInfo.name;
 			});
@@ -560,11 +569,19 @@ bool ResultListPageAdapter::isRuntimeFiltersEmpty()
 void ResultListPageAdapter::copyAllRowsToClipboard()
 {
 	int n = static_cast<int>(runtimeColumns.size());
+	bool hasRowId = runtimeColumns.at(0) == L"_ct_sqlite_rowid";
+
 	std::wostringstream oss;
 	// 1.write the columns to stringstream
 	for (int i = 0; i < n; i++) {
-		auto column = runtimeColumns.at(i);
-		if (i > 0) {
+		auto & column = runtimeColumns.at(i);
+		if (column == L"_ct_sqlite_rowid") {
+			continue;
+		}
+
+		if (hasRowId && i > 1) {
+			oss << L",";
+		}else if (!hasRowId && i > 0) {
 			oss << L",";
 		}
 		oss << L'"' << column << L'"';
@@ -573,14 +590,21 @@ void ResultListPageAdapter::copyAllRowsToClipboard()
 
 	// 2.write the datas to stringstream
 	n = 0;	
-	for (auto vals : runtimeDatas) {
+	for (auto & vals : runtimeDatas) {
 		if (vals.empty()) {
 			continue;
 		}
 		
 		int i = 0;
-		for (auto val : vals) {
-			if (i > 0) {
+		for (auto & val : vals) {
+			if (hasRowId && i == 0) {
+				i++;
+				continue;
+			}
+
+			if (hasRowId && i > 1) {
+				oss << L",";
+			} else if (!hasRowId && i > 0) {
 				oss << L",";
 			}
 
@@ -599,11 +623,18 @@ void ResultListPageAdapter::copyAllRowsToClipboard()
 void ResultListPageAdapter::copySelRowsToClipboard()
 {
 	int n = static_cast<int>(runtimeColumns.size());
+	bool hasRowId = runtimeColumns.at(0) == L"_ct_sqlite_rowid";
+
 	std::wostringstream oss;
 	// 1.write the columns to stringstream
 	for (int i = 0; i < n; i++) {
-		auto column = runtimeColumns.at(i);
-		if (i > 0) {
+		auto & column = runtimeColumns.at(i);
+		if (column == L"_ct_sqlite_rowid") {
+			continue;
+		}
+		if (hasRowId && i > 1) {
+			oss << L",";
+		}else if (!hasRowId && i > 0) {
 			oss << L",";
 		}
 		oss << L'"' << column << L'"';
@@ -611,16 +642,23 @@ void ResultListPageAdapter::copySelRowsToClipboard()
 	oss << endl;
 
 	// 2.write the selected datas to stringstream
-	n = 0;	
+	n = 0;
 	DataList selDatas = getSelectedDatas();
-	for (auto vals : selDatas) {
+	
+	for (auto & vals : selDatas) {
 		if (vals.empty()) {
 			continue;
 		}
 		
 		int i = 0;
-		for (auto val : vals) {
-			if (i > 0) {
+		for (auto & val : vals) {
+			if (hasRowId && i == 0) {
+				i++;
+				continue;
+			}
+			if (hasRowId && i > 1) {
+				oss << L",";
+			} else if (!hasRowId && i > 0) {
 				oss << L",";
 			}
 
@@ -642,13 +680,15 @@ void ResultListPageAdapter::copyAllRowsAsSql()
 	if (runtimeTables.empty() || runtimeTables.size() > 1) {
 		return ;
 	}
-
-	std::wstring tbl = runtimeTables.at(0);
+	
+	std::wstring & tbl = runtimeTables.at(0);
 	int n = static_cast<int>(runtimeColumns.size());
+	bool hasRowId = runtimeColumns.at(0) == L"_ct_sqlite_rowid";
+
 	std::wostringstream oss;
 	// 1.write the data to stringstream
 	n = 0;
-	for (auto vals : runtimeDatas) {
+	for (auto & vals : runtimeDatas) {
 		if (vals.empty()) {
 			continue;
 		}
@@ -659,10 +699,17 @@ void ResultListPageAdapter::copyAllRowsAsSql()
 		columnStmt << L"(";
 		valuesStmt << L" VALUES (";
 		// write the selected column data value
-		for (auto column : runtimeColumns) {			
+		for (auto & column : runtimeColumns) {
+			if (column == L"_ct_sqlite_rowid") {
+				i++;
+				continue;
+			}
 			std::wstring val = StringUtil::escapeSql(vals.at(i));
 
-			if (i > 0) {
+			if (hasRowId && i > 1) {
+				columnStmt << L", ";
+				valuesStmt <<  L", ";
+			} else if (!hasRowId && i > 0) {
 				columnStmt << L", ";
 				valuesStmt <<  L", ";
 			}
@@ -693,31 +740,40 @@ void ResultListPageAdapter::copySelRowsAsSql()
 	if (runtimeTables.empty() || runtimeTables.size() > 1) {
 		return ;
 	}
-
-	std::wstring tbl = runtimeTables.at(0);
+	std::wstring & tbl = runtimeTables.at(0);
 	int n = static_cast<int>(runtimeColumns.size());
+	bool hasRowId = runtimeColumns.at(0) == L"_ct_sqlite_rowid";
+
 	std::wostringstream oss;
 	// 1.write the data to stringstream
 	n = 0;
 	DataList selDatas = getSelectedDatas();
-	for (auto vals : selDatas) {
+	for (auto & vals : selDatas) {
 		if (vals.empty()) {
 			continue;
 		}
 		int i = 0;
 		std::wostringstream dataSql, columnStmt, valuesStmt;
-		dataSql << L"INSERT INTO " << tbl << L' ';
+		dataSql << L"INSERT INTO \"" << tbl << L"\" ";
 
 		columnStmt << L"(";
 		valuesStmt << L" VALUES (";
 		// write the selected column data value
-		for (auto column : runtimeColumns) {			
+		for (auto & column : runtimeColumns) {	
+			if (column == L"_ct_sqlite_rowid") {
+				i++;
+				continue;
+			}
 			std::wstring val = StringUtil::escapeSql(vals.at(i));
 
-			if (i > 0) {
+			if (hasRowId && i > 1) {
+				columnStmt << L", ";
+				valuesStmt <<  L", ";
+			} else if (!hasRowId && i > 0) {
 				columnStmt << L", ";
 				valuesStmt <<  L", ";
 			}
+
 			columnStmt << L"\"" << column << "\"";
 			valuesStmt << L"'" << val <<  L"'";
 			i++;
@@ -756,8 +812,8 @@ void ResultListPageAdapter::changeRuntimeDatasItem(int iItem, int iSubItem, std:
 		iter++;
 	}
 	RowItem & rowItem = *iter;
-	// rowItem.index = listView.row.iSubItem - 1 
-	rowItem[iSubItem - 1] = newText;
+	// rowItem.index = listView.row.iSubItem
+	rowItem[iSubItem] = newText;
 }
 
 void ResultListPageAdapter::invalidateSubItem(int iItem, int iSubItem)
@@ -897,26 +953,14 @@ bool ResultListPageAdapter::saveChangeVals()
 		}
 		// this row change vals vector
 		SubItemValues rowChangeVals = dataView->getRowChangedVals(iItem);
-
 		RowItem & rowItem = *iter;
 		std::wstring tblName = runtimeTables.at(0);
-		std::wstring primaryKey;
-		try {
-			primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
-		} catch (QSqlExecuteException &ex) {
-			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-			QPopAnimate::report(ex);
-			continue;
-		}
+		
 		std::wstring whereClause;
-		int nSelSubItem = iSubItem - 1;
+		int nSelSubItem = iSubItem;
 		std::wstring & origVal = subItemVal.origVal;
-		if (primaryKey.empty()) {
-			whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangeVals);
-		} else {
-			whereClause = SqlUtil::makeWhereClauseByPrimaryKey(primaryKey, runtimeColumns, rowItem, rowChangeVals);
-		}
-
+		
+		whereClause = SqlUtil::makeWhereClauseByRowId(runtimeColumns, rowItem);
 		std::wstring newVal = StringUtil::escapeSql(subItemVal.newVal);
 		std::wstring sqlUpdate(L"UPDATE ");
 		sqlUpdate.append(quo).append(tblName).append(quo)

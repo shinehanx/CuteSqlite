@@ -66,5 +66,6 @@ private:
 	// 
 	std::wstring cacheUseSql;
 
+	// The HWND of active page in ResultTabView
 	HWND activeResultTabPageHwnd = nullptr;
 };

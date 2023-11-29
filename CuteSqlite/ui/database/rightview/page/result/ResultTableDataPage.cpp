@@ -38,7 +38,7 @@ void ResultTableDataPage::setup(std::wstring & table)
 	this->table = table;
 	// generate query table sql
 	if (!table.empty()) {
-		this->sql.assign(L"SELECT * FROM \"").append(table).append(L"\"");
+		this->sql.assign(L"SELECT ROWID AS _ct_sqlite_rowid,* FROM \"").append(table).append(L"\"");
 	}
 	
 	formViewReadOnly = false;

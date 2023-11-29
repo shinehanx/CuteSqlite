@@ -128,9 +128,13 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 	CRect labelRect(5, 10, 85, 10 + pixel);
 	int perCxPixel = clientRect.Width() - 5 - 80 - 5 - 20;
 	nHeightSum = 0;
+	int idx = 0;
 	for (int i = 0; i < n; i++) {
 		std::wstring column = columns.at(i);
 		std::wstring value = rowItem.at(i);
+		if (column == L"_ct_sqlite_rowid") { // not show the rowid in the formView
+			continue;
+		}
 		CSize textSize = !value.empty() ?  FontUtil::measureTextSize(value.c_str(), pixel, false, fontName.c_str())
 			: CSize((long)perCxPixel, (long)pixel);
 		int lines = textSize.cx % perCxPixel > 0 ? (textSize.cx / perCxPixel) + 1 : textSize.cx / perCxPixel;
@@ -141,13 +145,14 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 		int x = labelRect.right + 5, y = labelRect.top, w = perCxPixel, h = (textSize.cy + 5) * lines;
 		CRect editRect(x, y, x + w, y + h);
 		CEdit * edit = new CEdit();
-		QWinCreater::createOrShowEdit(m_hWnd, *edit, Config::FORMVIEW_EDIT_ID_START + i, value, editRect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL, readOnly);
+		QWinCreater::createOrShowEdit(m_hWnd, *edit, Config::FORMVIEW_EDIT_ID_START + idx, value, editRect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL, readOnly);
 		edits.push_back(edit);
 
 		x = labelRect.left, y = editRect.bottom + 10, w = 80, h = pixel;
 		labelRect = { x, y, x + w, y + h };
 
 		nHeightSum = editRect.bottom;
+		idx++;
 	}
 
 	// onSize will trigger init the v-scrollbar

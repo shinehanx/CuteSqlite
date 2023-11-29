@@ -81,6 +81,7 @@ public:
 	// make sql
 	static std::wstring makeWhereClause(Columns & columns, RowItem &rowItem , SubItemValues &rowChangeVals);
 	static std::wstring makeWhereClauseByPrimaryKey(std::wstring & primaryKey, Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals);
+	static std::wstring makeWhereClauseByRowId(Columns & columns, RowItem &rowItem);
 	static std::wstring makeInsertColumsClause(Columns & columns);
 	static std::wstring makeInsertValuesClause(RowItem & rowItem);
 

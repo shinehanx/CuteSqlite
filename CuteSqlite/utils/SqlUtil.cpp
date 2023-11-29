@@ -32,7 +32,8 @@ std::wregex SqlUtil::limitClausePat(L"(limit .*)+", std::wregex::icase);
 
 std::wregex SqlUtil::fourthClausePat(L"((order|group|limit|having|window)\\s+.*)+", std::wregex::icase);
 
-std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?([^(\\s|\\\"|\\s)]+)\\\"?\\s+)", std::wregex::icase);
+//std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?(([0-9a-zA-Z]|\\s|\\\"|\\s|,)+)\\\"?\\s+)", std::wregex::icase);
+std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?([^(\\s|\\\"|\\s)]+)\\\"?\\s?)", std::wregex::icase);
 
 std::wregex SqlUtil::columnPat(L"(.*)\\s+\\[(.*)\\]+");
 
@@ -289,7 +290,7 @@ std::wstring SqlUtil::makeWhereClause(Columns & columns, RowItem &rowItem, SubIt
 			val = StringUtil::escapeSql(rowItem.at(i));
 		} else {
 			auto iter = std::find_if(rowChangeVals.begin(), rowChangeVals.end(), [&i](SubItemValue & subItem) {
-				auto nSubItem = subItem.iSubItem - 1;
+				auto nSubItem = subItem.iSubItem ;
 				return nSubItem == i;
 			});
 
@@ -352,6 +353,21 @@ std::wstring SqlUtil::makeWhereClauseByPrimaryKey(std::wstring & primaryKey, Col
 	return whereClause;
 }
 
+std::wstring SqlUtil::makeWhereClauseByRowId(Columns & columns, RowItem &rowItem)
+{
+	if (columns.empty() || rowItem.empty() 
+		|| columns.size() != rowItem.size()) {
+		return L"";
+	}
+	std::wstring rowIdColumnName = columns.at(0);
+	std::wstring rowIdVal = rowItem.at(0);
+	ATLASSERT(rowIdColumnName == L"_ct_sqlite_rowid" && !rowIdVal.empty());
+	std::wstring whereClause(L" WHERE ");
+	whereClause.append(quo).append(L"ROWID").append(quo) // such as "ct_sqlite_row_id = 11"
+		.append(eq).append(qua).append(rowIdVal).append(qua);
+	return whereClause;
+}
+
 /**
  * make insert sql columns clause such as id, name1, name2, email...
  * 
@@ -366,9 +382,9 @@ std::wstring SqlUtil::makeInsertColumsClause(Columns & columns)
 
 	std::wstring columnsClause(L" (");
 	int n = static_cast<int>(columns.size());
-	for (int i = 0; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		std::wstring column = columns.at(i);
-		if (i > 0) {
+		if (i > 1) {
 			columnsClause.append(L", ");
 		}
 		columnsClause.append(quo).append(column).append(quo);
@@ -391,9 +407,9 @@ std::wstring SqlUtil::makeInsertValuesClause(RowItem & rowItem)
 
 	std::wstring valuesClause(L" VALUES (");
 	int n = static_cast<int>(rowItem.size());
-	for (int i = 0; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		std::wstring val = StringUtil::escapeSql(rowItem.at(i));
-		if (i > 0) {
+		if (i > 1) {
 			valuesClause.append(L", ");
 		}
 		if (val == L"< AUTO >" || val == L"< NULL >") {
