@@ -42,11 +42,10 @@ UserViewList ViewUserRepository::getListByUserDbId(uint64_t userDbId, const std:
 			result.push_back(item);
 		}
 		return result;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200100", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -69,11 +68,10 @@ UserView ViewUserRepository::getView(uint64_t userDbId, const std::wstring & vie
 			result = toUserView(query);
 		}
 		return result;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200101", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 

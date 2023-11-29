@@ -23,6 +23,8 @@
 #include "ui/common/QWinCreater.h"
 #include "core/common/Lang.h"
 #include "common/AppContext.h"
+#include <core/common/exception/QSqlExecuteException.h>
+#include <ui/common/message/QPopAnimate.h>
 
 int TablePropertiesPage::cxChar = 5;
 int TablePropertiesPage::cyChar = 5;
@@ -169,8 +171,14 @@ void TablePropertiesPage::createOrShowTitleElems(CRect & clientRect)
 
 	rect.OffsetRect(32 + 10, 5);
 	rect.right = rect.left + 300;
-
-	UserDb userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
+	UserDb userDb;
+	try {
+		userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	std::wstring title = userDb.name;
 	title.append(L".").append(supplier->getRuntimeTblName());
 	createOrShowEdit(titleEdit, 0, title, rect, clientRect, 0);
@@ -215,11 +223,19 @@ void TablePropertiesPage::createOrShowColumnsList(CRect & clientRect)
 	CRect rcHeader0 = GdiPlusUtil::GetWindowRelativeRect(primaryKeyHeader.m_hWnd);
 	CRect rcHeader1 = GdiPlusUtil::GetWindowRelativeRect(columnNameHeader.m_hWnd);
 	CRect rcHeader2 = GdiPlusUtil::GetWindowRelativeRect(columnTypeHeader.m_hWnd);
-	ColumnInfoList list = tableService->getUserColumns(supplier->getRuntimeUserDbId(), 
-		supplier->getRuntimeTblName(), supplier->getRuntimeSchema(), false);
+	ColumnInfoList list;
+	UserDb userDb;
+	try {
+		list = tableService->getUserColumns(supplier->getRuntimeUserDbId(), 
+			supplier->getRuntimeTblName(), supplier->getRuntimeSchema(), false);
+		userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	int i = 0;
 	int n = static_cast<int>(list.size());
-	UserDb userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
 	std::wstring section = S(L"columns");
 	section.append(L" (").append(std::to_wstring(n)).append(L")");
 	columnsSection.SetWindowText(section.c_str());
@@ -306,10 +322,19 @@ void TablePropertiesPage::createOrShowIndexesList(CRect & clientRect)
 	CRect rcHeader1 = GdiPlusUtil::GetWindowRelativeRect(idxNameHeader.m_hWnd);
 	CRect rcHeader2 = GdiPlusUtil::GetWindowRelativeRect(idxColumnsHeader.m_hWnd);
 	CRect rcHeader3 = GdiPlusUtil::GetWindowRelativeRect(idxTypeHeader.m_hWnd);
-	IndexInfoList list = tableService->getIndexInfoList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+	IndexInfoList list;
+	UserDb userDb;
+	try {
+		list = tableService->getIndexInfoList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+		userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
+	
 	int i = 0;
 	int n = static_cast<int>(list.size());
-	UserDb userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
 	std::wstring section = S(L"indexes");
 	section.append(L" (").append(std::to_wstring(n)).append(L")");
 	indexesSection.SetWindowText(section.c_str());
@@ -403,10 +428,18 @@ void TablePropertiesPage::createOrShowForeignKeyList(CRect & clientRect)
 	CRect rcHeader3 = GdiPlusUtil::GetWindowRelativeRect(frkReferedColumnsHeader.m_hWnd);
 	CRect rcHeader4 = GdiPlusUtil::GetWindowRelativeRect(frkOnUpdateHeader.m_hWnd);
 	CRect rcHeader5 = GdiPlusUtil::GetWindowRelativeRect(frkOnDeleteHeader.m_hWnd);
-	ForeignKeyList list = tableService->getForeignKeyList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+	ForeignKeyList list;
+	UserDb userDb;
+	try {
+		list = tableService->getForeignKeyList(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+		userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	int i = 0;
 	int n = static_cast<int>(list.size());
-	UserDb userDb = databaseService->getUserDb(supplier->getRuntimeUserDbId());
 	std::wstring section = S(L"table-foreignkeys");
 	section.append(L" (").append(std::to_wstring(n)).append(L")");
 	foreignKeySection.SetWindowText(section.c_str());
@@ -471,12 +504,20 @@ void TablePropertiesPage::createOrShowDdlSectionElems(CRect & clientRect)
 
 	rect.OffsetRect(0, rect.Height() + 10);
 	rect.bottom = rect.top + 700;
-	UserTable userTable = tableService->getUserTable(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+	UserTable userTable;
+	UserIndexList userIndexList;
+	try {
+		userTable = tableService->getUserTable(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+		userIndexList = tableService->getUserIndexes(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
+	}catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 
 	std::wstring sql = StringUtil::replace(userTable.sql, L"\r\n", L"\n");
 	sql = StringUtil::replace(sql, L"\n", L"\r\n");
 	sql.append(L";");
-	UserIndexList userIndexList = tableService->getUserIndexes(supplier->getRuntimeUserDbId(), supplier->getRuntimeTblName());
 	for (auto userIndex : userIndexList) {
 		if (userIndex.sql.empty()) {
 			continue;

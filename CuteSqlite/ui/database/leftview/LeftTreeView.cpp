@@ -22,7 +22,6 @@
 #include "utils/Log.h"
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
-#include "core/common/exception/QRuntimeException.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
 #include "ui/database/dialog/ExportAsSqlDialog.h"
@@ -229,8 +228,13 @@ void LeftTreeView::selectComboBox(uint64_t userDbId)
 	selectedDbComboBox.SetCurSel(nSelItem);
 	
 	// change the main caption
-	UserDb userDb = databaseService->getUserDb(userDbId);
-	AppContext::getInstance()->appendMainFrmCaption(userDb.path);
+	try {
+		UserDb userDb = databaseService->getUserDb(userDbId);
+		AppContext::getInstance()->appendMainFrmCaption(userDb.path);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+	}	
 }
 
 int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -434,13 +438,19 @@ LRESULT LeftTreeView::OnShowTreeViewItemToolTip(int wParam, LPNMHDR lParam, BOOL
 	if (!userDbId) {
 		return 0;
 	}
-	UserDb userDb = databaseService->getUserDb(userDbId);
-	if (!userDb.id || userDb.path.empty()) {
-		return 0;
+	try {
+		UserDb userDb = databaseService->getUserDb(userDbId);
+		if (!userDb.id || userDb.path.empty()) {
+			return 0;
+		}
+		wchar_t cch[1025] = {0};
+		wmemcpy_s(cch, 1024, userDb.path.c_str(), userDb.path.size());
+		lpGetInfoTip->pszText = cch;
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
 	}
-	wchar_t cch[1025] = {0};
-	wmemcpy_s(cch, 1024, userDb.path.c_str(), userDb.path.size());
-	lpGetInfoTip->pszText = cch;
+	
 	return 0;
 }
 
@@ -487,12 +497,14 @@ LRESULT LeftTreeView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL 
 			tableMenuAdapter->popupMenu(pt); 
 		} else if (nImage == 3) { // 3 - field / column
 			tableMenuAdapter->popupColumnsMenu(pt, true);
-		} else if (nImage == 4) { // 4 - index
+		} else if (nImage == 4) { // 4 - table index
 			tableMenuAdapter->popupIndexesMenu(pt, true);
 		} else if (nImage == 5) { // 5 - view
 			databaseMenuAdapter->popupViewsMenu(pt, true);
 		} else if (nImage == 6) { // 6 - trigger
 			databaseMenuAdapter->popupTriggersMenu(pt, true);
+		} else if (nImage == 7) { // 7 - db index
+			tableMenuAdapter->popupIndexesMenu(pt, true);
 		}  else if (nImage == 1) { // 1 - folder
 			CTreeItem pTreeItem = treeView.GetParentItem(selItem.m_hTreeItem);
 			int npImage = -1, npSelImage = -1;
@@ -530,9 +542,15 @@ LRESULT LeftTreeView::OnChangeSelectDbComboBox(UINT uNotifyCode, int nID, HWND h
 
 	// set main caption text, such as "CuteSqlite - f:\path1\path2\xxx.db"
 	std::wstring caption = AppContext::getInstance()->getMainFrmCaption();
-	UserDb userDb = databaseService->getUserDb(userDbId);
-	AppContext::getInstance()->appendMainFrmCaption(userDb.path);
-	databaseSupplier->setSeletedUserDbId(userDbId);
+	try {
+		UserDb userDb = databaseService->getUserDb(userDbId);
+		AppContext::getInstance()->appendMainFrmCaption(userDb.path);
+		databaseSupplier->setSeletedUserDbId(userDbId);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+	}
+	
 	return 0;
 }
 

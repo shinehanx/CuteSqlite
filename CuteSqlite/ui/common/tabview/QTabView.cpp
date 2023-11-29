@@ -75,10 +75,10 @@ void QTabView::UpdateTooltipText(LPNMTTDISPINFO pTTDI)
 
 void QTabView::OnTabCloseBtn(int nPage)
 {
-	int n = GetPageCount();
-	if (n == 1) {
-		return ;
-	}
+// 	int n = GetPageCount();
+// 	if (n == 1) {
+// 		return ;
+// 	}
 	CTabViewImpl<QTabView>::OnTabCloseBtn(nPage);
 }
 

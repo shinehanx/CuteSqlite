@@ -129,14 +129,18 @@ CRect RightWorkView::getTabRect()
 
 void RightWorkView::createOrShowUI()
 {
-	CRect clientRect;	
+	CRect clientRect;
 	GetClientRect(clientRect);
 	CRect tabRect = getTabRect(clientRect);
 
 	createOrShowToolButtons(clientRect);
 	createOrShowTabView(tabView, clientRect);
-	adapter->createFirstQueryPage(tabRect);
-	createOrShowHistoryPage(historyPage, clientRect);	
+	
+	adapter->createFirstQueryPage(tabRect, isInitedPages);
+	createOrShowHistoryPage(historyPage, clientRect, !isInitedPages);
+	
+	
+	isInitedPages = true;
 }
 
 
@@ -367,14 +371,14 @@ void RightWorkView::createOrShowTabView(QTabView &win, CRect & clientRect)
 }
 
 
-void RightWorkView::createOrShowHistoryPage(HistoryPage &win, CRect & clientRect)
+void RightWorkView::createOrShowHistoryPage(HistoryPage &win, CRect & clientRect, bool isAllowCreate)
 {
 	CRect tabRect = getTabRect(clientRect);
 	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
 	CRect rect(x, y, x + w, y + h);
-	if (IsWindow() && !win.IsWindow()) {
+	if (isAllowCreate && IsWindow() && !win.IsWindow()) {
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);		
-	} else if (IsWindow() && tabView.IsWindow()) {
+	} else if (IsWindow() && tabView.IsWindow() && win.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -455,6 +459,9 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	topbarBrush.CreateSolidBrush(topbarColor);
 	bkgBrush.CreateSolidBrush(bkgColor);
 	textFont = FT(L"form-text-size");
+
+	// tab menus
+	adapter->createTabMenu();
 	return 0;
 }
 
@@ -1021,6 +1028,11 @@ LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bH
 LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
 {
 	int nPage = static_cast<int>(pnmh->idFrom);
+	return closeTabViewPage(nPage);
+}
+
+LRESULT RightWorkView::closeTabViewPage(int nPage)
+{
 	HWND pageHwnd = tabView.GetPageHWND(nPage);
 	if (pageHwnd == historyPage.m_hWnd) {
 		if (historyPage.IsWindow()) {
@@ -1028,7 +1040,7 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 		}
 		return 0;
 	}
-	
+
 	// check the close page if it is a QueryPage
 	for (auto & iter = queryPagePtrs.begin(); iter != queryPagePtrs.end(); iter++) {
 		QueryPage * ptr = *iter;
@@ -1049,8 +1061,8 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 			break;
 		}
 		// data has changed
-		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel")) 
-				== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel"))
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
 			if (ptr && ptr->IsWindow()) {
 				queryPagePtrs.erase(iter);
 				ptr->DestroyWindow();
@@ -1062,11 +1074,12 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 				ptr = nullptr;
 			}
 			return 0; // 0 - force close
-		} else {
+		}
+		else {
 			return 1; // 1 - cancel close
-		}		
+		}
 	}
-	
+
 	// check the close page if it is a QueryPage
 	for (auto & iter = tablePagePtrs.begin(); iter != tablePagePtrs.end(); iter++) {
 		TableStructurePage * ptr = *iter;
@@ -1088,8 +1101,8 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 		}
 
 		// data has changed
-		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel")) 
-				== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		if (QMessageBox::confirm(m_hWnd, S(L"data-has-changed"), S(L"not-save-and-close"), S(L"cancel"))
+			== Config::CUSTOMER_FORM_YES_BUTTON_ID) {
 			if (ptr && ptr->IsWindow()) {
 				tablePagePtrs.erase(iter);
 				ptr->DestroyWindow();
@@ -1101,16 +1114,26 @@ LRESULT RightWorkView::OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandle
 				ptr = nullptr;
 			}
 			return 0; // 0 - force close
-		} else {
+		}
+		else {
 			return 1; // 1 - cancel close
-		}		
+		}
 	}
 
 	int n = tabView.GetPageCount();
 	if (!n) {
 		UpdateWindow();
 	}
-	return 0;// 0 - force close
+	return 0;
+}
+
+LRESULT RightWorkView::OnTabViewContextMenu(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
+{
+	LPTBVCONTEXTMENUINFO menuInfo = (LPTBVCONTEXTMENUINFO)pnmh;
+	databaseSupplier->nSelTabPage =  static_cast<int>(menuInfo->hdr.idFrom);
+	CPoint pt = menuInfo->pt;
+	adapter->popupTabMenu(pt); 
+	return 0;
 }
 
 HBRUSH RightWorkView::OnCtlColorStatic(HDC hdc, HWND hwnd)
@@ -1119,4 +1142,42 @@ HBRUSH RightWorkView::OnCtlColorStatic(HDC hdc, HWND hwnd)
 	::SetTextColor(hdc, textColor);
 	::SelectObject(hdc, textFont);
 	return topbarBrush.m_hBrush;
+}
+
+void RightWorkView::OnClickCloseThisMenu(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	ATLASSERT(databaseSupplier->nSelTabPage >= 0);
+	int & nPage = databaseSupplier->nSelTabPage;
+	closeTabViewPage(nPage);
+	tabView.RemovePage(nPage);
+}
+
+void RightWorkView::OnClickCloseOthersMenu(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	ATLASSERT(databaseSupplier->nSelTabPage >= 0);
+	int & nPage = databaseSupplier->nSelTabPage;
+	OnClickCloseRightMenu(uNotifyCode, nID, wndCtl);
+	OnClickCloseLeftMenu(uNotifyCode, nID, wndCtl);
+}
+
+void RightWorkView::OnClickCloseLeftMenu(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	ATLASSERT(databaseSupplier->nSelTabPage >= 0);
+	int n = tabView.GetPageCount();
+	int nPage = databaseSupplier->nSelTabPage;
+	for (int i = nPage - 1; i >= 0; i--) {
+		closeTabViewPage(i);
+		tabView.RemovePage(i);
+	}
+}
+
+void RightWorkView::OnClickCloseRightMenu(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	ATLASSERT(databaseSupplier->nSelTabPage >= 0);
+	int n = tabView.GetPageCount();
+	int nPage = databaseSupplier->nSelTabPage;
+	for (int i = n - 1; i > nPage; i--) {
+		closeTabViewPage(i);
+		tabView.RemovePage(i);
+	}
 }

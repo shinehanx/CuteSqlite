@@ -42,11 +42,10 @@ UserTableList TableUserRepository::getListByUserDbId(uint64_t userDbId, const st
 			result.push_back(item);
 		}
 		return result;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200020", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -69,11 +68,10 @@ UserTable TableUserRepository::getTable(uint64_t userDbId, const std::wstring & 
 			result = toUserTable(query);
 		}
 		return result;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200021", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -96,11 +94,10 @@ uint64_t TableUserRepository::getDataCount(uint64_t userDbId, const std::wstring
 			n = query.getColumn(0).getInt64();
 		}
 		return n;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -124,10 +121,10 @@ DataList TableUserRepository::getPageDataList(uint64_t userDbId, const std::wstr
 			result.push_back(rowItem);
 		}
 		return result;
-	} catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200023", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -154,11 +151,10 @@ uint64_t TableUserRepository::getWhereDataCount(uint64_t userDbId, const std::ws
 			n = query.getColumn(0).getInt64();
 		}
 		return n;
-	}
-	catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200022", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -187,10 +183,10 @@ DataList TableUserRepository::getWherePageDataList(uint64_t userDbId, const std:
 			result.push_back(rowItem);
 		}
 		return result;
-	} catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200023", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }
 
@@ -223,7 +219,7 @@ void TableUserRepository::renameTable(uint64_t userDbId, const std::wstring & ol
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"rename table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
+		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err, ddl);
 	}
 }
 
@@ -259,7 +255,7 @@ void TableUserRepository::dropTable(uint64_t userDbId, const std::wstring & tblN
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"truncate table has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err);
+		throw QSqlExecuteException(std::to_wstring(e.getErrorCode()), _err, ddl);
 	}
 }
 

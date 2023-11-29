@@ -246,19 +246,24 @@ bool TableMenuAdapter::shardingTable()
 bool TableMenuAdapter::exportTable()
 {
 	ResultListPageAdapter resultAdapter(parentHwnd, nullptr);
-
 	UserTableStrings tblStrings({ supplier->selectedTable });
-	Columns tblColumns = tableService->getUserColumnStrings(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
-	DataList tblDatas = tableService->getTableDataList(supplier->getSelectedUserDbId(), 
-		supplier->selectedTable, 1, 100000000, supplier->selectedSchema);	
-	resultAdapter.setRuntimeUserDbId(supplier->getSelectedUserDbId());
-	resultAdapter.setRuntimeTables(tblStrings);
-	resultAdapter.setRuntimeColumns(tblColumns);
-	resultAdapter.setRuntimeDatas(tblDatas);
-	ExportResultDialog dialog(parentHwnd, &resultAdapter);
-	if (dialog.DoModal(parentHwnd) == Config::QDIALOG_YES_BUTTON_ID) {
-		return true;
+	try {
+		Columns tblColumns = tableService->getUserColumnStrings(supplier->getSelectedUserDbId(), supplier->selectedTable, supplier->selectedSchema);
+		DataList tblDatas = tableService->getTableDataList(supplier->getSelectedUserDbId(), 
+			supplier->selectedTable, 1, 100000000, supplier->selectedSchema);	
+		resultAdapter.setRuntimeUserDbId(supplier->getSelectedUserDbId());
+		resultAdapter.setRuntimeTables(tblStrings);
+		resultAdapter.setRuntimeColumns(tblColumns);
+		resultAdapter.setRuntimeDatas(tblDatas);
+		ExportResultDialog dialog(parentHwnd, &resultAdapter);
+		if (dialog.DoModal(parentHwnd) == Config::QDIALOG_YES_BUTTON_ID) {
+			return true;
+		}
+	}  catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
 	}
+	
 	return false;
 }
 

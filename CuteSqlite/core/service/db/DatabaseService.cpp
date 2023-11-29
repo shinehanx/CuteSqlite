@@ -171,6 +171,11 @@ uint64_t DatabaseService::copyUserDb(uint64_t fromUserDbId, const std::wstring &
 	return toUserDbId;
 }
 
+UserIndexList DatabaseService::getUserIndexes(uint64_t userDbId)
+{
+	ATLASSERT(userDbId > 0);
+	return indexUserRepository->getListByUserDbId(userDbId);
+}
 
 UserViewList DatabaseService::getUserViews(uint64_t userDbId, const std::wstring & schema)
 {

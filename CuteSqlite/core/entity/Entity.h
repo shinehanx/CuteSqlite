@@ -57,6 +57,7 @@ typedef std::vector<UserDb> UserDbList;
 
 // tables,views,triggers,index
 typedef struct {
+	uint64_t rowId = 0;
 	std::wstring name;
 	std::wstring sql;
 	std::wstring tblName;

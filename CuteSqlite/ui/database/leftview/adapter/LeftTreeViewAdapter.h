@@ -50,11 +50,12 @@ public:
 	HTREEITEM getChildFolderItem(HTREEITEM hTreeItem, const std::wstring & folderName);
 
 	void loadTablesForTreeView(HTREEITEM hTablesFolderItem, UserDb & userDb, bool isLoadColumnsAndIndex = false);
+	void loadDbIndexesForTreeView(HTREEITEM hIndexesFolderItem, UserDb & userDb);
 	void loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserDb & userDb);
 	void loadTriggersForTreeView(HTREEITEM hTriggersFolderItem, UserDb & userDb);
 
-	void loadColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable);
-	void loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable);
+	void loadTblColumsForTreeView(HTREEITEM hFieldsFolderItem, uint64_t userDbId, UserTable & userTable);
+	void loadTblIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable);
 	void expandTreeItem(LPNMTREEVIEW ptr);
 private:
 	CImageList imageList;

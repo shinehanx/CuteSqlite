@@ -23,6 +23,7 @@
 #include "core/repository/user/DatabaseUserRepository.h"
 #include "core/repository/user/ViewUserRepository.h"
 #include "core/repository/user/TriggerUserRepository.h"
+#include "core/repository/user/IndexUserRepository.h"
 
 class DatabaseService : public BaseService<DatabaseService, UserDbRepository>
 {
@@ -41,6 +42,8 @@ public:
 	bool activeUserDb(uint64_t userDbId);
 	uint64_t copyUserDb(uint64_t fromUserDbId, const std::wstring & toDbPath);
 
+	// user indexes operations
+	UserIndexList getUserIndexes(uint64_t userDbId);
 	// user views operations
 	UserViewList getUserViews(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserView getUserView(uint64_t userDbId, const std::wstring & viewName, const std::wstring & schema = std::wstring());
@@ -54,6 +57,7 @@ public:
 	Functions getFunctionsStrings(uint64_t userDbId, bool upcase = false);
 private:
 	DatabaseUserRepository * databaseUserRepository = DatabaseUserRepository::getInstance();
+	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 	ViewUserRepository * viewUserRepository = ViewUserRepository::getInstance();
 	TriggerUserRepository * triggerUserRepository = TriggerUserRepository::getInstance();
 

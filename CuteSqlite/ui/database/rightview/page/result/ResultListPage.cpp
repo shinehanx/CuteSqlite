@@ -798,8 +798,13 @@ void ResultListPage::displayRuntimeSql()
 
 void ResultListPage::displayDatabase()
 {
-	UserDb userDb = databaseService->getUserDb(adapter->getRuntimeUserDbId());
-	statusBar.SetPaneText(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, userDb.name.c_str());
+	try {
+		UserDb userDb = databaseService->getUserDb(adapter->getRuntimeUserDbId());
+		statusBar.SetPaneText(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, userDb.name.c_str());
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+	}
 }
 
 void ResultListPage::displayResultRows()

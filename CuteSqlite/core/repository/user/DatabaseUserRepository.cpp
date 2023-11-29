@@ -61,6 +61,6 @@ Functions DatabaseUserRepository::getFunctions(int64_t userDbId)
 	catch (SQLite::QSqlException &ex) {
 		std::wstring _err = ex.getErrorStr();
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
-		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr());
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
 }

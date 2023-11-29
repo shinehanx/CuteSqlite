@@ -20,8 +20,8 @@
 #include "stdafx.h"
 #include "ColumnUserRepository.h"
 #include <chrono>
-#include "core/common/exception/QRuntimeException.h"
 #include "core/common/repository/QSqlColumn.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema)
 {
@@ -39,10 +39,10 @@ ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const s
 			result.push_back(item);
 		}
 		return result;
-	} catch (SQLite::QSqlException &e) {
-		std::wstring _err = e.getErrorStr();
-		Q_ERROR(L"query db has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"200070", L"sorry, system has error when loading databases.");
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr());
 	}
 }
 

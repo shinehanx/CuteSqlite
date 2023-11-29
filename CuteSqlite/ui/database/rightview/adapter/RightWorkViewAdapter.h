@@ -35,9 +35,9 @@ public:
 	void explainSelectedSql();
 	
 
-	void createFirstQueryPage(CRect & tabRect);
+	void createFirstQueryPage(CRect & tabRect, bool isInitedPages);
 	void createNewQueryPage(CRect & tabRect);
-	void createOrShowQueryPage(QueryPage &win, CRect & tabRect);
+	void createOrShowQueryPage(QueryPage &win, CRect & tabRect, bool isAllowCreate);
 	void createOrShowTableStructurePage(TableStructurePage &win, CRect & tabRect);
 	
 	void addNewTable(CRect & tabRect);
@@ -56,10 +56,14 @@ public:
 	void dropTable();
 
 	LRESULT refreshTableDataForSameDbTablePage(uint64_t userDbId, const std::wstring & theTblName);
+
+	void createTabMenu();
+	void popupTabMenu(CPoint & pt);
 private:
 	QTabView & tabView;
 	std::vector<QueryPage *> & queryPagePtrs;
 	std::vector<TableStructurePage *> & tablePagePtrs;
+	CMenu tabMenu;
 
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

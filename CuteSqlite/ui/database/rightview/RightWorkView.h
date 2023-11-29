@@ -92,6 +92,7 @@ public:
 		COMMAND_HANDLER_EX(Config::DATABASE_EXPORT_TABLE_BUTTON_ID, BN_CLICKED, OnClickExportTableButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_TABLE_FROM_SQL_BUTTON_ID, BN_CLICKED, OnClickImportTableSqlButton)
 		COMMAND_HANDLER_EX(Config::DATABASE_IMPORT_TABLE_FROM_CSV_BUTTON_ID, BN_CLICKED, OnClickImportTableCsvButton)
+		
 
 		MESSAGE_HANDLER(Config::MSG_NEW_TABLE_ID, OnClickNewTableElem)
 		MESSAGE_HANDLER(Config::MSG_NEW_VIEW_ID, OnClickNewViewElem)
@@ -111,12 +112,20 @@ public:
 		MESSAGE_HANDLER(Config::MSG_TREEVIEW_CLICK_ID, OnChangeTreeviewItem)
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
+		NOTIFY_CODE_HANDLER (TBVN_CONTEXTMENU, OnTabViewContextMenu)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+		// tab menu
+		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_THIS_MENU_ID, OnClickCloseThisMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_OTHERS_MENU_ID, OnClickCloseOthersMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_LEFT_MENU_ID, OnClickCloseLeftMenu)
+		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_RIGHT_MENU_ID, OnClickCloseRightMenu)
+
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 private:
 	bool isNeedReload = true;
+	bool isInitedPages = false;
 	COLORREF bkgColor = RGB(255, 255, 255);	
 	COLORREF textColor = RGB(255, 255, 255);
 	CBrush bkgBrush;
@@ -194,7 +203,7 @@ private:
 	void createOrShowTableButtons(CRect & clientRect);
 	
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
-	void createOrShowHistoryPage(HistoryPage &win, CRect & clientRect);
+	void createOrShowHistoryPage(HistoryPage &win, CRect & clientRect, bool isAllowCreate = true);
 
 	void loadWindow();
 	void loadTabViewPages();
@@ -260,6 +269,12 @@ private:
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT OnTabViewContextMenu(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
+	void OnClickCloseThisMenu(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnClickCloseOthersMenu(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnClickCloseLeftMenu(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnClickCloseRightMenu(UINT uNotifyCode, int nID, CWindow wndCtl);
+	LRESULT closeTabViewPage(int nPage);
 };

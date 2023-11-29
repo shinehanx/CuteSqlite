@@ -774,7 +774,14 @@ void ResultListPageAdapter::createNewRow()
 	}
 	// 1.create a empty row and push it to runtimeDatas list
 	RowItem row;
-	std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	std::wstring primaryKey;
+	try {
+		primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	int n = static_cast<int>(runtimeColumns.size());
 	for (int i = 0; i < n; i++) {
 		auto colum = runtimeColumns.at(i);
@@ -807,7 +814,14 @@ void ResultListPageAdapter::copyNewRow()
 	if (row.empty()) {
 		return;
 	}
-	auto primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	std::wstring primaryKey;
+	try {
+		primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	if (primaryKey == runtimeColumns.at(0)) {
 		row[0] = L"< AUTO >";
 	}
@@ -886,7 +900,14 @@ bool ResultListPageAdapter::saveChangeVals()
 
 		RowItem & rowItem = *iter;
 		std::wstring tblName = runtimeTables.at(0);
-		std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+		std::wstring primaryKey;
+		try {
+			primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+		} catch (QSqlExecuteException &ex) {
+			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+			QPopAnimate::report(ex);
+			continue;
+		}
 		std::wstring whereClause;
 		int nSelSubItem = iSubItem - 1;
 		std::wstring & origVal = subItemVal.origVal;
@@ -1134,7 +1155,14 @@ int ResultListPageAdapter::removeRowFromDb(int nSelItem, RowItem & rowItem)
 
 	// delete row from database 
 	std::wstring sqlDelete = L"DELETE FROM ";
-	std::wstring primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, tblName, runtimeColumns);
+	std::wstring primaryKey;
+	try {
+		primaryKey = tableService->getPrimaryKeyColumn(runtimeUserDbId, runtimeTables.at(0), runtimeColumns);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return 1;
+	}
 	std::wstring whereClause;
 	if (primaryKey.empty()) {
 		whereClause = SqlUtil::makeWhereClause(runtimeColumns, rowItem, rowChangedVals);

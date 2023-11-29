@@ -81,18 +81,21 @@ void RightWorkViewAdapter::explainSelectedSql()
 }
 
 
-void RightWorkViewAdapter::createFirstQueryPage(CRect & tabRect)
+void RightWorkViewAdapter::createFirstQueryPage(CRect & tabRect, bool isInitedPages)
 {
 	//queryPagePtrs.clear();
 	QueryPage * firstQueryPage = nullptr;
 	if (queryPagePtrs.empty()) {
+		if (isInitedPages) {
+			return;
+		}
 		firstQueryPage = new QueryPage();
 		firstQueryPage->setup(QUERY_DATA);
-		createOrShowQueryPage(*firstQueryPage, tabRect); 
+		createOrShowQueryPage(*firstQueryPage, tabRect, true); 
 		queryPagePtrs.push_back(firstQueryPage);
 	} else {
 		firstQueryPage = queryPagePtrs.at(0);
-		createOrShowQueryPage(*firstQueryPage, tabRect);		
+		createOrShowQueryPage(*firstQueryPage, tabRect, true);
 	}
 }
 
@@ -101,19 +104,18 @@ void RightWorkViewAdapter::createNewQueryPage(CRect & tabRect)
 	//queryPagePtrs.clear();
 	QueryPage * newQueryPage  = new QueryPage();
 	newQueryPage->setup(QUERY_DATA);
-	createOrShowQueryPage(*newQueryPage, tabRect); 
+	createOrShowQueryPage(*newQueryPage, tabRect, true); 
 	queryPagePtrs.push_back(newQueryPage);
 	tabView.AddPage(newQueryPage->m_hWnd, StringUtil::blkToTail(S(L"query-editor")).c_str(), 0, newQueryPage);
 }
 
-void RightWorkViewAdapter::createOrShowQueryPage(QueryPage &win, CRect & tabRect)
+void RightWorkViewAdapter::createOrShowQueryPage(QueryPage &win, CRect & tabRect, bool isAllowCreate)
 {
 	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
 	CRect rect(x, y, x + w, y + h);
-	if (::IsWindow(tabView.m_hWnd) && !win.IsWindow()) {
+	if (::IsWindow(tabView.m_hWnd) && !win.IsWindow() && isAllowCreate) {
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);
-	}
-	else if (::IsWindow(tabView.m_hWnd) && win.IsWindow()) {
+	} else if (::IsWindow(tabView.m_hWnd) && win.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -127,8 +129,7 @@ void RightWorkViewAdapter::createOrShowTableStructurePage(TableStructurePage &wi
 	CRect rect(x, y, x + w, y + h);
 	if (::IsWindow(tabView.m_hWnd) && !win.IsWindow()) {
 		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);
-	}
-	else if (::IsWindow(tabView.m_hWnd) && win.IsWindow()) {
+	} else if (::IsWindow(tabView.m_hWnd) && win.IsWindow()) {
 		win.MoveWindow(rect);
 		win.ShowWindow(true);
 	}
@@ -164,7 +165,7 @@ void RightWorkViewAdapter::addNewView(CRect & tabRect)
 
 	QueryPage * newViewPage = new QueryPage();
 	newViewPage->setup(CREATE_VIEW, content);
-	createOrShowQueryPage(*newViewPage, tabRect);
+	createOrShowQueryPage(*newViewPage, tabRect, true);
 	queryPagePtrs.push_back(newViewPage);
 
 	// nImage = 3 : view 
@@ -187,7 +188,7 @@ void RightWorkViewAdapter::addNewTrigger(CRect & tabRect)
 
 	QueryPage * newTriggerPage = new QueryPage();
 	newTriggerPage->setup(CREATE_TRIGGER, content);
-	createOrShowQueryPage(*newTriggerPage, tabRect); 
+	createOrShowQueryPage(*newTriggerPage, tabRect, true); 
 	queryPagePtrs.push_back(newTriggerPage); 
 
 	// nImage = 2 : table 
@@ -198,23 +199,28 @@ void RightWorkViewAdapter::addNewTrigger(CRect & tabRect)
 
 void RightWorkViewAdapter::openView(CRect & tabRect)
 {
-	UserView userView = databaseService->getUserView(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedViewName);
-	if (userView.name.empty()) {
-		QPopAnimate::error(E(L"200004"));
-		return ;
-	}
-	std::wstring & content = userView.sql;
+	try {
+		UserView userView = databaseService->getUserView(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedViewName);
+		if (userView.name.empty()) {
+			QPopAnimate::error(E(L"200004"));
+			return ;
+		}
+		std::wstring & content = userView.sql;
 	
-	QueryPage * newViewPage = new QueryPage();
-	newViewPage->setup(MODIFY_VIEW, content);
-	createOrShowQueryPage(*newViewPage, tabRect);
-	queryPagePtrs.push_back(newViewPage);
+		QueryPage * newViewPage = new QueryPage();
+		newViewPage->setup(MODIFY_VIEW, content);
+		createOrShowQueryPage(*newViewPage, tabRect, true);
+		queryPagePtrs.push_back(newViewPage);
 
-	// nImage = 3 : view 
-	std::wstring name = L"[View]";
-	name.append(userView.name);
-	tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(name).c_str(), 3, newViewPage);
-	databaseSupplier->activeTabPageHwnd = newViewPage->m_hWnd;
+		// nImage = 3 : view 
+		std::wstring name = L"[View]";
+		name.append(userView.name);
+		tabView.AddPage(newViewPage->m_hWnd, StringUtil::blkToTail(name).c_str(), 3, newViewPage);
+		databaseSupplier->activeTabPageHwnd = newViewPage->m_hWnd;
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+	}
 }
 
 void RightWorkViewAdapter::dropView()
@@ -262,7 +268,14 @@ void RightWorkViewAdapter::dropView()
 
 void RightWorkViewAdapter::openTrigger(CRect & tabRect)
 {
-	UserTrigger userTrigger = databaseService->getUserTrigger(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedTriggerName);
+	UserTrigger userTrigger;
+	try {
+		userTrigger = databaseService->getUserTrigger(databaseSupplier->getSelectedUserDbId(), databaseSupplier->selectedTriggerName);
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
 	if (userTrigger.name.empty()) {
 		QPopAnimate::error(E(L"200004"));
 		return ;
@@ -270,7 +283,7 @@ void RightWorkViewAdapter::openTrigger(CRect & tabRect)
 	std::wstring & content = userTrigger.sql;
 	QueryPage * newViewPage = new QueryPage();
 	newViewPage->setup(MODIFY_TRIGGER, content);
-	createOrShowQueryPage(*newViewPage, tabRect);
+	createOrShowQueryPage(*newViewPage, tabRect, true);
 	queryPagePtrs.push_back(newViewPage);
 
 	// nImage = 4 : trigger 
@@ -367,7 +380,7 @@ void RightWorkViewAdapter::showTableData(CRect & tabRect, bool isPropertyPage)
 		CRect clientRect;
 		QueryPage * tableDataPage = new QueryPage();
 		tableDataPage->setup(TABLE_DATA);
-		createOrShowQueryPage(*tableDataPage, clientRect);
+		createOrShowQueryPage(*tableDataPage, clientRect, true);
 		queryPagePtrs.push_back(tableDataPage);
 
 		// nImage = 3 : view 
@@ -573,4 +586,21 @@ LRESULT RightWorkViewAdapter::refreshTableDataForSameDbTablePage(uint64_t userDb
 		}
 	}
 	return true;
+}
+
+void RightWorkViewAdapter::createTabMenu()
+{
+	if (tabMenu.IsMenu()) {
+		return;
+	}
+	tabMenu.CreatePopupMenu();
+	tabMenu.AppendMenu(MF_STRING, Config::TABVIEW_CLOSE_THIS_MENU_ID, S(L"tab-close-this").c_str());
+	tabMenu.AppendMenu(MF_STRING, Config::TABVIEW_CLOSE_OTHERS_MENU_ID, S(L"tab-close-others").c_str());
+	tabMenu.AppendMenu(MF_STRING, Config::TABVIEW_CLOSE_LEFT_MENU_ID, S(L"tab-close-left").c_str());
+	tabMenu.AppendMenu(MF_STRING, Config::TABVIEW_CLOSE_RIGHT_MENU_ID, S(L"tab-close-right").c_str());
+}
+
+void RightWorkViewAdapter::popupTabMenu(CPoint & pt)
+{
+	tabMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
 }

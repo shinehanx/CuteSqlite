@@ -278,3 +278,8 @@ void TableService::dropTable(uint64_t userDbId, const std::wstring & tblName, co
 
 	tableUserRepository->dropTable(userDbId, tblName, schema);
 }
+
+UserIndex TableService::getUserIndexByRowId(uint64_t userDbId, uint64_t rowId)
+{
+	return indexUserRepository->getByRowId(userDbId, rowId);
+}

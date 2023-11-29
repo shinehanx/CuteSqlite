@@ -57,7 +57,7 @@ public:
 	// Rename table
 	std::wstring oldTableName;
 	std::wstring newTableName;
-
+	int nSelTabPage = -1;
 	// // --------------------------------
 
 	void setSeletedUserDbId(uint64_t userDbId) { selectedUserDbId = userDbId; }

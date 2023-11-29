@@ -597,6 +597,10 @@ void TableIndexesPageAdapter::selectListViewItemForManage()
 			if (name == databaseSupplier->selectedIndexName) {
 				dataView->SelectItem(i);
 				break;
+			} else if (!databaseSupplier->selectedIndexName.empty() 
+				&& databaseSupplier->selectedIndexName.find(L"sqlite_autoindex_") != std::wstring::npos
+				&& item.name.empty() && item.type == L"Primary Key" && item.ai == 1) {
+				dataView->SelectItem(i);
 			}
 		}		
 	}

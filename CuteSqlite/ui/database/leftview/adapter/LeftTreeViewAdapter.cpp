@@ -46,10 +46,9 @@ void LeftTreeViewAdapter::createUserDatabase(std::wstring & dbPath)
 		
 		QPopAnimate::success(parentHwnd, S(L"create-db-success-text"));
 		loadTreeView();
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -65,10 +64,9 @@ void LeftTreeViewAdapter::openUserDatabase(std::wstring & dbPath)
 		databaseSupplier->selectedUserDbId = databaseService->openUserDb(dbPath);
 		QPopAnimate::success(parentHwnd, S(L"open-db-success-text"));
 		loadTreeView();
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -82,9 +80,9 @@ void LeftTreeViewAdapter::activeUserDatabase(uint64_t userDbId)
 	try {
 		databaseService->activeUserDb(userDbId);
 		loadDbs(); // reload dbs
-	} catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -107,6 +105,7 @@ void LeftTreeViewAdapter::loadTreeView()
 		dataView->SetItemData(hDbItem, item.id);
 		
 		HTREEITEM hTablesFolderItem = dataView->InsertItem(S(L"tables").c_str(), 1, 1, hDbItem, TVI_LAST);
+		HTREEITEM hIndexesFolderItem = dataView->InsertItem(S(L"indexes").c_str(), 1, 1, hDbItem, TVI_LAST);
 		HTREEITEM hViewsFolderItem = dataView->InsertItem(S(L"views").c_str(), 1, 1, hDbItem, TVI_LAST);
 		HTREEITEM hTriggersFolderItem = dataView->InsertItem(S(L"triggers").c_str(), 1, 1, hDbItem, TVI_LAST);
 
@@ -115,6 +114,7 @@ void LeftTreeViewAdapter::loadTreeView()
 			databaseSupplier->setSeletedUserDbId(item.id);
 
 			loadTablesForTreeView(hTablesFolderItem, item);
+			loadDbIndexesForTreeView(hIndexesFolderItem, item);
 			loadViewsForTreeView(hViewsFolderItem, item);
 			loadTriggersForTreeView(hTriggersFolderItem, item);
 		}
@@ -173,10 +173,9 @@ void LeftTreeViewAdapter::removeSeletedDbTreeItem()
 			QPopAnimate::success(parentHwnd, S(L"delete-db-success-text"));
 			dataView->DeleteItem(HTREEITEM(treeItem));
 			loadDbs(); // reload dblist
-		}
-		catch (QRuntimeException &ex) {
+		} catch (QSqlExecuteException &ex) {
 			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-			QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+			QPopAnimate::report(ex);
 		}
 	}
 }
@@ -236,10 +235,9 @@ void LeftTreeViewAdapter::loadDbs()
 {
 	try {
 		dbs = databaseService->getAllUserDbs();
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -305,9 +303,9 @@ void LeftTreeViewAdapter::copyUserDatabase(const std::wstring & toDbPath)
 			QPopAnimate::success(parentHwnd, S(L"copy-db-success-text"));
 			
 			loadTreeView(); // reload db list
-		} catch (QRuntimeException &ex) {
+		} catch (QSqlExecuteException &ex) {
 			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-			QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+			QPopAnimate::report(ex);
 		}
 	}
 }
@@ -327,14 +325,15 @@ void LeftTreeViewAdapter::createImageList()
 	viewIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\view.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	triggerIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\tree\\trigger.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
-	imageList.Create(16, 16, ILC_COLOR32, 7, 7);
+	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(databaseIcon); // 0 - database
 	imageList.AddIcon(folderIcon); // 1 - folder 
 	imageList.AddIcon(tableIcon); // 2 - table 
 	imageList.AddIcon(fieldIcon); // 3 - field/column
-	imageList.AddIcon(indexIcon); // 4 - index 
+	imageList.AddIcon(indexIcon); // 4 - table index 
 	imageList.AddIcon(viewIcon);// 5 - view
 	imageList.AddIcon(triggerIcon);// 6 - trigger
+	imageList.AddIcon(indexIcon);// 7 - db index
 }
 
 /**
@@ -361,7 +360,7 @@ void LeftTreeViewAdapter::initDatabaseSupplier()
 	treeItem.GetText(cch);
 	ATLASSERT(cch);
 	if (nImage == 0) { // 0 - database
-		databaseSupplier->selectedUserDbId = (uint64_t)treeItem.GetData();		
+		databaseSupplier->selectedUserDbId = (uint64_t)treeItem.GetData();
 	} else if (nImage == 1) { // 1 - folder
 		doTrackParentTreeItemForSupplier(treeItem);
 	} else if (nImage == 2) { // 2 - table
@@ -378,7 +377,7 @@ void LeftTreeViewAdapter::initDatabaseSupplier()
 			databaseSupplier->selectedColumn = columns;
 		}		
 		doTrackParentTreeItemForSupplier(treeItem);
-	} else if (nImage == 4) { // 4 - index
+	} else if (nImage == 4) { // 4 - table index
 		databaseSupplier->selectedIndexName.assign(cch);
 		doTrackParentTreeItemForSupplier(treeItem);
 	} else if (nImage == 5) { // 5 - view		
@@ -386,6 +385,9 @@ void LeftTreeViewAdapter::initDatabaseSupplier()
 		doTrackParentTreeItemForSupplier(treeItem);
 	} else if (nImage == 6) { // 6 - trigger
 		databaseSupplier->selectedTriggerName.assign(cch);
+		doTrackParentTreeItemForSupplier(treeItem);
+	} else if (nImage == 7) { // 7 - db index
+		databaseSupplier->selectedIndexName.assign(cch);
 		doTrackParentTreeItemForSupplier(treeItem);
 	}
 	::SysFreeString(cch);
@@ -404,9 +406,26 @@ void LeftTreeViewAdapter::doTrackParentTreeItemForSupplier(CTreeItem &treeItem)
 				databaseSupplier->selectedTable.assign(cch);
 			}
 			::SysFreeString(cch);
-		}
-		else if (nImage == 0) {// 0- database
+		} else if (nImage == 0) {// 0- database
 			databaseSupplier->selectedUserDbId = (uint64_t)pTreeItem.GetData();
+
+			int nCurImage = -1, nCurSelImage = -1;
+			treeItem.GetImage(nCurImage, nCurSelImage);
+			if (nCurImage == 7) {// 7 - db index
+				if (treeItem.GetData() == 0) {
+					return;
+				}
+				uint64_t rowId = static_cast<uint64_t>(treeItem.GetData());
+				try {
+					UserIndex userIndex;
+					userIndex = tableService->getUserIndexByRowId(databaseSupplier->selectedUserDbId, rowId);
+					databaseSupplier->selectedTable = userIndex.tblName;
+				} catch (QSqlExecuteException &ex) {
+					Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+					QPopAnimate::report(ex);
+				}				
+			}
+
 			break;
 		}
 		pTreeItem = pTreeItem.GetParent();
@@ -430,15 +449,30 @@ void LeftTreeViewAdapter::loadTablesForTreeView(HTREEITEM hTablesFolderItem, Use
 			HTREEITEM hIndexesFolderItem = dataView->InsertItem(S(L"indexes").c_str(), 1, 1, hTblItem, TVI_LAST);
 
 			if (isLoadColumnsAndIndex) {
-				loadColumsForTreeView(hColumnsFolderItem, userDb.id, item);
-				loadIndexesForTreeView(hIndexesFolderItem, userDb.id, item);
+				loadTblColumsForTreeView(hColumnsFolderItem, userDb.id, item);
+				loadTblIndexesForTreeView(hIndexesFolderItem, userDb.id, item);
 			}			
 		}		
-	} catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 	
+}
+
+void LeftTreeViewAdapter::loadDbIndexesForTreeView(HTREEITEM hIndexesFolderItem, UserDb & userDb)
+{
+	try {
+		UserIndexList indexList = databaseService->getUserIndexes(userDb.id);
+		for (UserTable & item : indexList) {
+			CTreeItem indexItem  = dataView->InsertItem(item.name.c_str(), 7, 7, hIndexesFolderItem, TVI_LAST);
+			indexItem.SetData((DWORD_PTR)item.rowId);
+						
+		}		
+	} catch (QSqlExecuteException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+	}
 }
 
 /**
@@ -451,13 +485,12 @@ void LeftTreeViewAdapter::loadViewsForTreeView(HTREEITEM hViewsFolderItem, UserD
 {
 	try {
 		UserTableList list = databaseService->getUserViews(userDb.id);
-		for (UserTable item : list) {
+		for (UserTable & item : list) {
 			dataView->InsertItem(item.name.c_str(), 5, 5, hViewsFolderItem, TVI_LAST);
 		}
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -471,34 +504,32 @@ void LeftTreeViewAdapter::loadTriggersForTreeView(HTREEITEM hTriggersFolderItem,
 {
 	try {
 		UserTableList list = databaseService->getUserTriggers(userDb.id);
-		for (UserTable item : list) {
+		for (UserTable & item : list) {
 			dataView->InsertItem(item.name.c_str(), 6, 6, hTriggersFolderItem, TVI_LAST);
 		}
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
-void LeftTreeViewAdapter::loadColumsForTreeView(HTREEITEM hColumnsFolderItem, uint64_t userDbId, UserTable & userTable)
+void LeftTreeViewAdapter::loadTblColumsForTreeView(HTREEITEM hColumnsFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
 		ColumnInfoList list = tableService->getUserColumns(userDbId, userTable.name);
-		for (ColumnInfo item : list) {
+		for (ColumnInfo & item : list) {
 			std::wstring field = item.name;
 			field.append(L" [").append(item.type).append(L", ").append(item.notnull ? L"NOT NULL" : L"NULL").append(L"]");
 			CTreeItem treeItem = dataView->InsertItem(field.c_str(), 3, 3, hColumnsFolderItem, TVI_LAST);
 			treeItem.SetData((DWORD_PTR)item.cid);
 		}
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
-void LeftTreeViewAdapter::loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable)
+void LeftTreeViewAdapter::loadTblIndexesForTreeView(HTREEITEM hIndexesFolderItem, uint64_t userDbId, UserTable & userTable)
 {
 	try {
 		IndexInfoList list = tableService->getIndexInfoList(userDbId, userTable.name);
@@ -507,10 +538,9 @@ void LeftTreeViewAdapter::loadIndexesForTreeView(HTREEITEM hIndexesFolderItem, u
 				: item.type + L"(" + item.columns + L")";
 			dataView->InsertItem(name.c_str(), 4, 4, hIndexesFolderItem, TVI_LAST);
 		}
-	}
-	catch (QRuntimeException &ex) {
+	} catch (QSqlExecuteException &ex) {
 		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-		QPopAnimate::error(parentHwnd, S(L"error-text").append(ex.getMsg()).append(L",[code:").append(ex.getCode()).append(L"]"));
+		QPopAnimate::report(ex);
 	}
 }
 
@@ -531,11 +561,13 @@ void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
 		UserDb userDb;
 		userDb.id = userDbId;
 		HTREEITEM hTablesFolderItem = getChildFolderItem(hSelTreeItem, S(L"tables"));
+		HTREEITEM hIndexesFolderItem = getChildFolderItem(hSelTreeItem, S(L"indexes"));
 		HTREEITEM hViewsFolderItem = getChildFolderItem(hSelTreeItem, S(L"views"));
 		HTREEITEM hTriggersFolderItem = getChildFolderItem(hSelTreeItem, S(L"triggers"));
 
 		// if folder item has children, then it is loaded before
 		if ((hTablesFolderItem && dataView->ItemHasChildren(hTablesFolderItem))
+			|| (hIndexesFolderItem && dataView->ItemHasChildren(hIndexesFolderItem))
 			|| (hViewsFolderItem && dataView->ItemHasChildren(hViewsFolderItem))
 			|| (hTriggersFolderItem && dataView->ItemHasChildren(hTriggersFolderItem))) {
 			return ;
@@ -543,6 +575,7 @@ void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
 
 		// reload
 		loadTablesForTreeView(hTablesFolderItem, userDb);
+		loadDbIndexesForTreeView(hIndexesFolderItem, userDb);
 		loadViewsForTreeView(hViewsFolderItem, userDb);
 		loadTriggersForTreeView(hTriggersFolderItem, userDb);
 				
@@ -573,8 +606,8 @@ void LeftTreeViewAdapter::expandTreeItem(LPNMTREEVIEW ptr)
 		uint64_t userDbId = static_cast<uint64_t>(dbTreeItem.GetData());
 		ATLASSERT(userDbId);
 		
-		loadColumsForTreeView(hColumnsFolderItem, userDbId, userTable);		
-		loadIndexesForTreeView(hIndexesFolderItem, userDbId, userTable);
+		loadTblColumsForTreeView(hColumnsFolderItem, userDbId, userTable);		
+		loadTblIndexesForTreeView(hIndexesFolderItem, userDbId, userTable);
 		
 		dataView->Expand(hColumnsFolderItem);
 		dataView->Expand(hIndexesFolderItem);
