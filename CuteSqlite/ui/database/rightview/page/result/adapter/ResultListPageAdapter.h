@@ -69,11 +69,11 @@ public:
 	uint64_t getRuntimeUserDbId() { return runtimeUserDbId; }
 	void setRuntimeUserDbId(uint64_t userDbId);
 
-	UserTableStrings getRuntimeTables();
+	const UserTableStrings & getRuntimeTables();
 	void setRuntimeTables(const UserTableStrings & val);
-	Columns getRuntimeColumns();
+	const Columns & getRuntimeColumns() ;
 	void setRuntimeColumns(const Columns & columns);
-	DataList getRuntimeDatas();
+	const DataList & getRuntimeDatas();
 	void setRuntimeDatas(const DataList & dataList);
 
 	void addListViewChangeVal(SubItemValue &subItemVal);
@@ -82,7 +82,7 @@ public:
 	UserTable getRuntimeUserTable(std::wstring & tblName);
 	Columns getRuntimeValidFilterColumns();
 
-	DataFilters getRuntimeFilters();
+	const DataFilters & getRuntimeFilters();
 	void setRuntimeFilters(DataFilters & filters);
 	void clearRuntimeFilters();
 	bool isRuntimeFiltersEmpty();

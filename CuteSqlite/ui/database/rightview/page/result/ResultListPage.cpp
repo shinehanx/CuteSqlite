@@ -50,7 +50,13 @@ BOOL ResultListPage::PreTranslateMessage(MSG* pMsg)
 	}
 
 	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		HWND queryPageHwnd = nullptr;
+		if (IsWindow()) {
+			// class chain : ResultListPage(this)->QTabView->ResultTabView->CHorSplitterWindow->QueryPage
+			queryPageHwnd = GetParent().GetParent().GetParent().GetParent().m_hWnd; // QueryPage
+		}
 		if (supplier->getActiveResultTabPageHwnd() == m_hWnd 
+			&& databaseSupplier->isActivePage(queryPageHwnd)
 			&& m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
 			return TRUE;
 		}

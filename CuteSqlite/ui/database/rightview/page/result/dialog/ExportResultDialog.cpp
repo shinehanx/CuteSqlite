@@ -425,7 +425,10 @@ void ExportResultDialog::loadSelectFieldsListBox()
 	if (columns.empty()) {
 		return;
 	}
-	for (auto column : columns) {
+	for (auto & column : columns) {
+		if (column == L"_ct_sqlite_rowid") {
+			continue;
+		}
 		selectFieldsListBox.AddString(column.c_str());
 	}
 	selectFieldsListBox.SelItemRange(true, 0, selectFieldsListBox.GetCount()-1);
@@ -642,9 +645,9 @@ bool ExportResultDialog::getExportSelectedColumns(ExportSelectedColumns & params
 	}
 	int selIndexes[1024];
 	int n = selectFieldsListBox.GetSelItems(1024, selIndexes);
-	
+	bool hasRowId = adapter->getRuntimeColumns().at(0) == L"_ct_sqlite_rowid";
 	for (int i = 0; i < n; i++) {
-		int selIndex = selIndexes[i];
+		int selIndex = hasRowId ? selIndexes[i] + 1 : selIndexes[i];
 		std::wstring fieldName = adapter->getRuntimeColumns().at(selIndex);
 		params.push_back(fieldName);
 	}
@@ -900,11 +903,13 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	ExportSelectedColumns selectedColumns;
 	if (!getExportSelectedColumns(selectedColumns) || selectedColumns.empty()) {
+		yesButton.EnableWindow(true);
 		return ;
 	}
 
 	std::wstring exportPath;
 	if (!getExportPath(exportPath)) {
+		yesButton.EnableWindow(true);
 		return ;
 	}
 	yesButton.EnableWindow(FALSE);
@@ -918,6 +923,7 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	if (selHwnd == csvRadio.m_hWnd) {
 		ExportCsvParams csvParams;
 		if (!getExportCsvParams(csvParams)) {
+			yesButton.EnableWindow(true);
 			return ;
 		}
 		exportRows = exportResultService->exportToCsv(exportPath, columns, selectedColumns, datas, csvParams);
@@ -935,6 +941,7 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	} else if (selHwnd == excelXmlRadio.m_hWnd) {
 		ExportExcelParams excelParams;
 		if (!getExportExcelParams(excelParams)) {
+			yesButton.EnableWindow(true);
 			return ;
 		}
 		exportRows = exportResultService->exportToExcelXml(exportPath, columns, selectedColumns, datas, excelParams);
@@ -943,13 +950,14 @@ void ExportResultDialog::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 	} else if (selHwnd == sqlRadio.m_hWnd) {
 		ExportSqlParams sqlParams;
 		if (!getExportSqlParams(sqlParams)) {
-			
+			yesButton.EnableWindow(true);
 			return ;
 		}
 		UserTableStrings tbls = adapter->getRuntimeTables();
 		if (tbls.empty() || tbls.size() > 1) {
 			QPopAnimate::error(m_hWnd, S(L"sql-notsupport-multitable-query-error"));
 			sqlRadio.SetFocus();
+			yesButton.EnableWindow(true);
 			return ;
 		}
 

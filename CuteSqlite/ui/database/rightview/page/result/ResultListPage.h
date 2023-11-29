@@ -100,6 +100,7 @@ protected:
 
 	ResultListPageAdapter * adapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

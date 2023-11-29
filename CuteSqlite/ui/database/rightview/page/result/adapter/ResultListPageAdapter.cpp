@@ -467,7 +467,7 @@ void ResultListPageAdapter::setRuntimeUserDbId(uint64_t userDbId)
 	runtimeUserDbId = userDbId;
 }
 
-UserTableStrings ResultListPageAdapter::getRuntimeTables()
+const UserTableStrings & ResultListPageAdapter::getRuntimeTables()
 {
 	return runtimeTables;
 }
@@ -477,7 +477,7 @@ void ResultListPageAdapter::setRuntimeTables(const UserTableStrings & val)
 	runtimeTables = val;
 }
 
-Columns ResultListPageAdapter::getRuntimeColumns()
+const Columns & ResultListPageAdapter::getRuntimeColumns()
 {
 	return runtimeColumns;
 }
@@ -487,7 +487,7 @@ void ResultListPageAdapter::setRuntimeColumns(const Columns & columns)
 	runtimeColumns = columns;
 }
 
-DataList ResultListPageAdapter::getRuntimeDatas()
+const DataList & ResultListPageAdapter::getRuntimeDatas()
 {
 	return runtimeDatas;
 }
@@ -546,7 +546,7 @@ Columns ResultListPageAdapter::getRuntimeValidFilterColumns()
 	return validColums;
 }
 
-DataFilters ResultListPageAdapter::getRuntimeFilters()
+const DataFilters & ResultListPageAdapter::getRuntimeFilters()
 {
 	return runtimeFilters;
 }
@@ -878,7 +878,10 @@ void ResultListPageAdapter::copyNewRow()
 		QPopAnimate::report(ex);
 		return;
 	}
-	if (primaryKey == runtimeColumns.at(0)) {
+	bool hasRowId = runtimeColumns.at(0) == L"_ct_sqlite_rowid";
+	if (hasRowId && primaryKey == runtimeColumns.at(1)) {
+		row[1] = L"< AUTO >";
+	} else if (!hasRowId && primaryKey == runtimeColumns.at(0)) {
 		row[0] = L"< AUTO >";
 	}
 	runtimeDatas.push_back(row);

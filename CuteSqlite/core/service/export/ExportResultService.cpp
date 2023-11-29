@@ -39,7 +39,7 @@ int ExportResultService::exportToCsv(std::wstring & exportPath, Columns & column
 	if (csvParams.hasColumnOnTop) {
 		int n = static_cast<int>(selColumns.size());
 		for (int i = 0; i < n; i++) {
-			auto selColumn = selColumns.at(i);
+			auto & selColumn = selColumns.at(i);
 			if (i > 0) {
 				ofs << csvParams.csvFieldTerminatedBy;
 			}
