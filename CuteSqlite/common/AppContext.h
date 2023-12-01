@@ -40,6 +40,16 @@ public:
 	void subscribe(HWND hwnd, UINT msgId);
 	void unsuscribe(HWND hwnd, UINT msgId);
 	void unsuscribeAll(HWND hwnd);
+
+	std::vector<CWindow *> & getPopAnimatePtrs();
+	void addPopAnimatePtr(CWindow * ptr);
+	void erasePopAnimatePtr(CWindow * ptr);
+	void clearPopAnimatePtrs();
+
+	std::vector<CWindow *> & getDialogPtrs();
+	void addDialogPtr(CWindow * ptr);
+	void eraseDialogPtr(CWindow * ptr);
+	void clearDialogPtrs();
 private:
 	AppContext();
 	~AppContext();
@@ -52,6 +62,11 @@ private:
 	HWND mainFrmHwnd = nullptr;
 	// HomeView的窗口句柄
 	HWND homeViewHwnd = nullptr;
+
+	// MessageBoxes and PopAnimates
+	std::vector<CWindow *> popAnimatePtrs;
+	std::vector<CWindow *> messageBoxPtrs;
+	std::vector<CWindow *> dialogPtrs;
 	
 	// 全局的配置
 	std::unordered_map<std::wstring, std::wstring> settings;

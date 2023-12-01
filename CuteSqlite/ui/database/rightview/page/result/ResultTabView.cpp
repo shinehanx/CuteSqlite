@@ -314,6 +314,7 @@ void ResultTabView::resetRuntimeResultInfo()
 	runtimeResultInfo.totalTime.clear();
 	runtimeResultInfo.code = 0;
 	runtimeResultInfo.msg.clear();
+	runtimeResultInfo.createdAt = DateUtil::getCurrentDateTime();
 }
 
 void ResultTabView::createOrShowUI()

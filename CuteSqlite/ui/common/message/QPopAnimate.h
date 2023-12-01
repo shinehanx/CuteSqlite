@@ -21,6 +21,7 @@
 #define QPOPANIMATE_HEIGHT 70
 class QPopAnimate : public CDialogImpl<QPopAnimate> {
 public:
+	BOOL PreTranslateMessage(MSG* pMsg);
 	enum { IDD = IDD_QFORM_DIALOG };
 
 	BEGIN_MSG_MAP_EX(QPopAnimate)
@@ -32,7 +33,9 @@ public:
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
 		MSG_WM_CTLCOLORSTATIC(OnCtlEditColor)
-		COMMAND_HANDLER_EX(Config::CLOSE_IMAGE_BUTTON_ID, BN_CLICKED, OnClickCloseButton)
+		COMMAND_ID_HANDLER_EX(Config::CLOSE_IMAGE_BUTTON_ID, OnClickCloseButton)
+		COMMAND_ID_HANDLER_EX(Config::QDIALOG_YES_BUTTON_ID, OnClickCloseButton)
+		COMMAND_ID_HANDLER_EX(Config::QDIALOG_NO_BUTTON_ID, OnClickCloseButton)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -62,8 +65,6 @@ public:
 	void setImagePath(const std::wstring & imagePath);
 	void setCloseImagePath(const std::wstring & closeImagePath);
 private:
-	static std::vector<QPopAnimate *> popAnimatePtrs;
-
 	int width = QPOPANIMATE_WIDTH;
 	int height = QPOPANIMATE_HEIGHT;
 	CRect winRect;
@@ -81,11 +82,12 @@ private:
 	COLORREF bkgColor = RGB(201, 211, 216);
 	CBrush bkgBrush;
 	HFONT textFont = nullptr;
+
+	HACCEL m_hAccel = nullptr;
+
 	QStaticImage image;
 	QImageButton closeButton;
 	CEdit textEdit;
-
-	static void clearPopAnimatePtrs();
 
 	void createOrShowImage(CRect & clientRect);
 	void createOrShowCloseButton(CRect & clientRect);
@@ -97,8 +99,7 @@ private:
 	LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnForwardMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
 	LRESULT OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd);
 };
-
-

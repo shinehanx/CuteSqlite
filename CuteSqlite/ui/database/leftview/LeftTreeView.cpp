@@ -57,6 +57,7 @@ void LeftTreeView::createOrShowUI()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
+
 	createOrShowCreateDbButton(createDbButton, clientRect);
 	createOrShowOpenDbButton(openDbButton, clientRect);
 	createOrShowRefreshDbButton(refreshDbButton, clientRect);
@@ -256,6 +257,7 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_FILES_ID);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
 	exportDatabaseAdapter = new ExportDatabaseAdapter(m_hWnd, nullptr);
 	return 0;
@@ -273,6 +275,7 @@ int LeftTreeView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_FILES_ID);
 
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
@@ -783,6 +786,19 @@ LRESULT LeftTreeView::OnImportTableFromSql(UINT uMsg, WPARAM wParam, LPARAM lPar
 LRESULT LeftTreeView::OnImportTableFromCsv(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	doImportFromCsv();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (databaseSupplier->dragFilePaths.empty()) {
+		return 0;
+	}
+	for (auto & databasePath : databaseSupplier->dragFilePaths) {
+		treeViewAdapter->openUserDatabase(databasePath);
+		loadComboBox();
+	}
+	databaseSupplier->dragFilePaths.clear();
 	return 0;
 }
 

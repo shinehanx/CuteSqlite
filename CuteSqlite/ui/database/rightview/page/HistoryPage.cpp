@@ -88,7 +88,6 @@ int HistoryPage::OnDestroy()
 	if (textFont) ::DeleteObject(textFont);
 	if (infoEdit.IsWindow()) infoEdit.DestroyWindow();
 
-	sqlLogService->clearOldSqlLog();
 	return ret;
 }
 
@@ -99,7 +98,8 @@ LRESULT HistoryPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lPa
 		return 0;
 	}
 	
-	std::wstring str = DateUtil::getCurrentDateTime();
+	std::wstring str = runtimeResultInfo->createdAt.empty() ? 
+		DateUtil::getCurrentDateTime() : runtimeResultInfo->createdAt;
 	runtimeResultInfo->createdAt = str;
 	str.append(L" - ");
 	str.append(StringUtil::formatBreak(runtimeResultInfo->sql));
@@ -119,8 +119,6 @@ LRESULT HistoryPage::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lPa
 	text.Append(str.c_str());
 	infoEdit.SetWindowText(text);
 	infoEdit.UpdateWindow();
-	// save sql log to db
-	sqlLogService->createSqlLog(*runtimeResultInfo);
 	return 0;
 }
 

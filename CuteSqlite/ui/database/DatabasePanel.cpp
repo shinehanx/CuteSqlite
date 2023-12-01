@@ -121,8 +121,6 @@ LRESULT DatabasePanel::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 {
 	CPaintDC pdc(m_hWnd);
 	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
-	CRect rect;
-	GetClientRect(&rect);
 	
 	//HBRUSH brush = AtlGetStockBrush(GRAY_BRUSH);
 	HBRUSH brush = ::CreateSolidBrush(RGB(0x2c, 0x2c, 0x2c));

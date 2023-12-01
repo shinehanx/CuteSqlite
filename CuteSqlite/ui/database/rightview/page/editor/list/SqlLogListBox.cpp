@@ -117,6 +117,7 @@ void SqlLogListBox::createOrShowUI()
 	CRect clientRect;
 	GetClientRect(clientRect);
 
+	resizeGroupsAndItems(clientRect);
 	// calc the scrollbar sum height
 	if (!winHwnds.empty()) {
 		nHeightSum = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back()).bottom;
@@ -130,13 +131,30 @@ void SqlLogListBox::createOrShowGroupLabel(CStatic & win, std::wstring text, CRe
 	QWinCreater::createOrShowLabel(m_hWnd, win, text, rect, clientRect, SS_LEFT, 14);
 }
 
+
+void SqlLogListBox::resizeGroupsAndItems(CRect & clientRect)
+{
+	CRect rect;
+	for (auto item : items) {
+		rect = GdiPlusUtil::GetWindowRelativeRect(item->m_hWnd);
+		rect.right = rect.left + clientRect.Width();
+		item->MoveWindow(rect);
+	}
+
+	for (auto group : groups) {
+		rect = GdiPlusUtil::GetWindowRelativeRect(group->m_hWnd);
+		rect.right = rect.left + clientRect.Width();
+		group->MoveWindow(rect);
+	}
+}
+
 void SqlLogListBox::createOrShowItem(SqlLogListItem & win, CRect & rect, CRect & clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		DWORD dwStyle = WS_CHILD | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
 		win.Create(m_hWnd, rect);	
 		return;
-	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
 		win.ShowWindow(SW_SHOW);
 	}

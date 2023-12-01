@@ -262,7 +262,6 @@ void SqlLogListItem::createMiddleElems(CRect & clientRect)
 		stateImage.setToolTip(tip.c_str());
 	}
 	
-
 	rect.OffsetRect(rect.Width() + 10, 3);
 	rect.right = rect.left + 200;
 	rect.bottom = rect.top + 20;
@@ -271,7 +270,7 @@ void SqlLogListItem::createMiddleElems(CRect & clientRect)
 		.append(std::to_wstring(getInfo().code));
 	QWinCreater::createOrShowLabel(m_hWnd, resultMsgLabel, resultMsg, rect, clientRect, SS_LEFT, 10);
 
-	rect.OffsetRect(rect.Width() + 10, 0);
+	rect.MoveToX(clientRect.right - 200 - 20);
 	std::wstring execTime = L"Total Times:";
 	execTime.append(getInfo().totalTime);
 	QWinCreater::createOrShowLabel(m_hWnd, execTimeLabel, execTime, rect, clientRect, SS_RIGHT, 10);
@@ -330,8 +329,8 @@ void SqlLogListItem::createOrShowButton(HWND hwnd, CButton & win, UINT id, std::
 
 		return ;
 	} else if (::IsWindow(hwnd) && (clientRect.bottom - clientRect.top) > 0) {
-		//win.MoveWindow(&rect);
-		//win.ShowWindow(SW_SHOW);
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
 	}
 }
 void SqlLogListItem::loadWindow()

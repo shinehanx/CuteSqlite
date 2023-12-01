@@ -13,8 +13,8 @@
 
  * @file   RightWorkView.cpp
  * @brief  Right work space for splitter,include data query, sql execute and so on.
- * @ClassChain  RightWorkView
- *                |->QTabView(tabView)
+  * @Class Tree  RightWorkView
+ *                 |->QTabView(tabView)
  *                         |-> QueryPage
  *                         |      |-> CHorSplitterWindow
  *                         |            |-> QHelpEdit ** QSqlEdit(Scintilla)
@@ -23,13 +23,12 @@
  *                         |                          |-> ResultListPage
  *                         |                          |-> ResultInfoPage
  *                         |                          |-> ResultTableDataPage
- *                         |                          |-> ResultTableInfoPage
  *                         |-> TableStructurePage
  *                         |       |-> TableTabView
  *                         |              |->QTabView(tabView)  
  *                         |                    |->TableColumnsPage
  *                         |                    |->TableIndexesPage
- *                         |                    |->TableForeignKeysPage
+ *                         |                    |->TableForeignPage
  *                         |-> HistoryPage
  * @author Xuehan Qin
  * @date   2023-05-21
@@ -131,7 +130,8 @@ void RightWorkView::createOrShowUI()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
-	CRect tabRect = getTabRect(clientRect);
+
+	CRect tabRect = getTabRect(clientRect);	
 
 	createOrShowToolButtons(clientRect);
 	createOrShowTabView(tabView, clientRect);
@@ -445,7 +445,8 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
-	AppContext::getInstance()->subscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
 
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(RIGHT_WORKVIEW_ACCEL));
@@ -485,8 +486,8 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
 	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
-
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
 	
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -563,6 +564,7 @@ int RightWorkView::OnDestroy()
 		delete adapter;
 		adapter = nullptr;
 	}
+	sqlLogService->clearOldSqlLog();
 	return 0;
 }
 
@@ -1010,6 +1012,19 @@ LRESULT RightWorkView::OnChangeTreeviewItem(UINT uMsg, WPARAM wParam, LPARAM lPa
 	if (importTableSqlButton.IsWindow()) enableButton(importTableSqlButton, std::wstring(L"import-table-sql"));
 	if (importTableCsvButton.IsWindow()) enableButton(importTableCsvButton, std::wstring(L"import-table-csv"));
 
+	return 0;
+}
+
+LRESULT RightWorkView::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	auto runtimeResultInfo = (ResultInfo *)lParam;
+	if (runtimeResultInfo == nullptr) {
+		return 0;
+	}
+	runtimeResultInfo->createdAt = runtimeResultInfo->createdAt.empty()  ? 
+		DateUtil::getCurrentDateTime() : runtimeResultInfo->createdAt;
+	// save sql log to db
+	sqlLogService->createSqlLog(*runtimeResultInfo);
 	return 0;
 }
 

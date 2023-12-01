@@ -12,7 +12,8 @@ UINT QMessageBox::confirm(HWND parentHwnd, std::wstring & text, std::wstring & y
 	QMessageBox win;
 	win.setup(text, yesBtnText, noBtnText);
 	// win.Create(parentHwnd);
-	return static_cast<UINT>(win.DoModal());
+	UINT ret = static_cast<UINT>(win.DoModal());
+	return ret;
 }
 
 void QMessageBox::setup(std::wstring & text, std::wstring & yesBtnText, std::wstring & noBtnText)
@@ -45,6 +46,7 @@ void QMessageBox::createOrShowUI()
 	noButton.SetFocus();
 }
 
+
 CRect QMessageBox::getInitRect()
 {
 	// 获得桌面的位置	
@@ -60,8 +62,29 @@ void QMessageBox::createOrShowTextEdit(CRect & clientRect)
 	int x = clientRect.left + 20 , y = clientRect.top + 20, w = clientRect.Width() - 20 * 2 , h = clientRect.Height() - 20 * 2 - 40;
 	CRect rect(x, y, x + w, y + h);
 	std::wstring showText = StringUtil::replaceBreak(text);
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, showText, rect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL);
+	createOrShowEdit(textEdit, 0, showText, rect, clientRect, ES_MULTILINE | ES_AUTOVSCROLL);
 
+}
+
+void QMessageBox::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle, bool readOnly)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_TABSTOP ;
+		if (exStyle) {
+			dwStyle |= exStyle;
+		}
+		win.Create(m_hWnd, rect, text.c_str(), dwStyle , 0, id);
+		HFONT hfont = GdiPlusUtil::GetHFONT(14, DEFAULT_CHARSET, true);
+		win.SetFont(hfont);
+		win.SetReadOnly(readOnly);
+		win.SetWindowText(text.c_str());
+		::DeleteObject(hfont);
+
+		return;
+	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
 }
 
 void QMessageBox::createOrShowButtons(CRect & clientRect)
@@ -78,6 +101,8 @@ void QMessageBox::createOrShowButtons(CRect & clientRect)
 
 LRESULT QMessageBox::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+
 	winRect = QMessageBox::getInitRect();
 	MoveWindow(winRect); //  注意，这个winRect必须赋值，不然不显示
 
@@ -162,13 +187,13 @@ HBRUSH QMessageBox::OnCtlStaticColor(HDC hdc, HWND hwnd)
 
 LRESULT QMessageBox::OnClickNoButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	EndDialog(nID);
+	EndDialog(Config::CUSTOMER_FORM_NO_BUTTON_ID);
 	return 0;
 }
 
 LRESULT QMessageBox::OnClickYesButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	EndDialog(nID);
+	EndDialog(Config::CUSTOMER_FORM_YES_BUTTON_ID);
 	return 0;
 }
 

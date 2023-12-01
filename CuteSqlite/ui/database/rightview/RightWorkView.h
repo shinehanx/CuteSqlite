@@ -17,8 +17,8 @@
  *			handler: RightWorkView.
  *			view: QPage and it's subclass in the page folder.
  *			supplier: DatabaseSupplier
- * @ClassChain  RightWorkView
- *                |->QTabView(tabView)
+ * @Class Tree  RightWorkView
+ *                 |->QTabView(tabView)
  *                         |-> QueryPage
  *                         |      |-> CHorSplitterWindow
  *                         |            |-> QHelpEdit ** QSqlEdit(Scintilla)
@@ -68,6 +68,8 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+
 		// Exec sql
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, OnClickExecSqlButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, OnClickExecAllButton)
@@ -110,10 +112,12 @@ public:
 		MESSAGE_HANDLER(Config::MSG_DATA_DIRTY_ID, OnHandleDataDirty)
 		MESSAGE_HANDLER(Config::MSG_TABLE_STRUCTURE_DIRTY_ID, OnHandleTableStructureDirty)
 		MESSAGE_HANDLER(Config::MSG_TREEVIEW_CLICK_ID, OnChangeTreeviewItem)
+		MESSAGE_HANDLER(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, OnExecSqlResultMessage)
+
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 		NOTIFY_CODE_HANDLER (TBVN_CONTEXTMENU, OnTabViewContextMenu)
-		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+		
 		// tab menu
 		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_THIS_MENU_ID, OnClickCloseThisMenu)
 		COMMAND_ID_HANDLER_EX(Config::TABVIEW_CLOSE_OTHERS_MENU_ID, OnClickCloseOthersMenu)
@@ -186,6 +190,7 @@ private:
 	RightWorkViewAdapter * adapter = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
+	SqlLogService * sqlLogService = SqlLogService::getInstance();
 	ExportDatabaseAdapter * exportDatabaseAdapter = nullptr;
 	ImportDatabaseAdapter * importDatabaseAdapter = nullptr;
 	
@@ -266,6 +271,9 @@ private:
 	LRESULT OnHandleDataDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHandleTableStructureDirty(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnChangeTreeviewItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	// After executed the SQL statement, system record the sql log£¬wParam- NULL£¬lParam - point of adapter.runtimeResultInfo
+	LRESULT OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);

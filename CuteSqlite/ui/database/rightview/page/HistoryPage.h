@@ -41,7 +41,6 @@ protected:
 	HFONT textFont = nullptr;
 
 	CEdit infoEdit;
-	SqlLogService * sqlLogService = SqlLogService::getInstance();
 
 	virtual void createOrShowUI();
 	virtual void loadWindow();

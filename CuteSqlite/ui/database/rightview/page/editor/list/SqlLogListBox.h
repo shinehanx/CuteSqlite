@@ -67,6 +67,7 @@ private:
 
 	void createOrShowUI();
 	void createOrShowGroupLabel(CStatic & win, std::wstring text, CRect & rect, CRect & clientRect);
+	void resizeGroupsAndItems(CRect & clientRect);
 	void createOrShowItem(SqlLogListItem & win, CRect & rect, CRect & clientRect);
 	
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);

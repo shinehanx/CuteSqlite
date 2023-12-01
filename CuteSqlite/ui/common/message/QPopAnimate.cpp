@@ -6,18 +6,27 @@
 #include "utils/ResourceUtil.h"
 #include "ui/common/QWinCreater.h"
 #include "common/AppContext.h"
+#include "utils/Log.h"
 
-std::vector<QPopAnimate *> QPopAnimate::popAnimatePtrs;
+BOOL QPopAnimate::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 
 void QPopAnimate::error(HWND parentHwnd, std::wstring & text)
 {
-	clearPopAnimatePtrs();
+	AppContext::getInstance()->clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
-	popAnimatePtrs.push_back(win);
+	AppContext::getInstance()->addPopAnimatePtr(win);
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	win->setImagePath(imagePath);
-	win->Create(parentHwnd);
+	HWND hwnd = win->Create(parentHwnd);
 	win->ShowWindow(SW_SHOW);
 }
 
@@ -28,16 +37,16 @@ void QPopAnimate::error(std::wstring & text)
 
 void QPopAnimate::report(HWND parentHwnd, const std::wstring & code, const std::wstring & text)
 {
-	clearPopAnimatePtrs();
+	AppContext::getInstance()->clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
-	popAnimatePtrs.push_back(win);
+	AppContext::getInstance()->addPopAnimatePtr(win);
 
 	win->setup(code, text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	std::wstring closeImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close.bmp";
 	win->setImagePath(imagePath);
 	win->setCloseImagePath(closeImagePath);
-	win->Create(parentHwnd);
+	win->Create(parentHwnd);	
 	win->ShowWindow(SW_SHOW);
 }
 
@@ -56,27 +65,27 @@ void QPopAnimate::report(const QSqlExecuteException & ex)
 {
 	//clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
-	popAnimatePtrs.push_back(win);
-
+	AppContext::getInstance()->addPopAnimatePtr(win);
+	
 	win->setup(ex.getCode(), ex.getMsg(),ex.getSql(), ex.getRollBack());
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\error.bmp";
 	std::wstring closeImagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\close.bmp";
 	win->setImagePath(imagePath);
 	win->setCloseImagePath(closeImagePath);
-	win->Create(AppContext::getInstance()->getMainFrmHwnd());
+	win->Create(AppContext::getInstance()->getMainFrmHwnd());	
 	win->ShowWindow(SW_SHOW);
 }
 
 void QPopAnimate::success(HWND parentHwnd, std::wstring & text)
 {
-	clearPopAnimatePtrs();
+	AppContext::getInstance()->clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
-	popAnimatePtrs.push_back(win);
+	AppContext::getInstance()->addPopAnimatePtr(win);
 
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\success.bmp";
 	win->setImagePath(imagePath);
-	win->Create(parentHwnd);
+	win->Create(parentHwnd);	
 	win->ShowWindow(SW_SHOW);
 }
 
@@ -87,13 +96,13 @@ void QPopAnimate::success(std::wstring & text)
 
 void QPopAnimate::warn(HWND parentHwnd, std::wstring & text)
 {
-	clearPopAnimatePtrs();
+	AppContext::getInstance()->clearPopAnimatePtrs();
 	QPopAnimate * win = new QPopAnimate();
-	popAnimatePtrs.push_back(win);
+	AppContext::getInstance()->addPopAnimatePtr(win);
 	win->setup(text);
 	std::wstring imagePath = ResourceUtil::getProductImagesDir() + L"common\\message\\warn.bmp";
 	win->setImagePath(imagePath);
-	win->Create(parentHwnd);
+	win->Create(parentHwnd);	
 	win->ShowWindow(SW_SHOW);
 }
 
@@ -239,12 +248,14 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 		}
 	}
 	
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, textFont, dwStyle, true);
-	//::SetWindowLong(textEdit.m_hWnd, GWL_STYLE, ::GetWindowLongW(textEdit.m_hWnd, GWL_STYLE) & ~WS_BORDER);
+	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, dwStyle, true);
 }
 
 LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(QDIALOG_ACCEL));
+
 	winRect = getInitRect();
 	MoveWindow(winRect); //  注意，这个winRect必须赋值，不然不显示
 
@@ -330,26 +341,11 @@ HBRUSH QPopAnimate::OnCtlEditColor(HDC hdc, HWND hwnd)
 
 LRESULT QPopAnimate::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	AppContext::getInstance()->erasePopAnimatePtr(this);
 	// 悬停结束，关闭销毁窗口
-	::CloseWindow(m_hWnd);
+	::CloseWindow(m_hWnd);	
 	DestroyWindow();
 	m_hWnd = nullptr;
 	return 0;
-}
-
-
-void QPopAnimate::clearPopAnimatePtrs()
-{
-	for (QPopAnimate * ptr : popAnimatePtrs) {
-		if (ptr && ptr->IsWindow()) {
-			::CloseWindow(ptr->m_hWnd);
-			ptr->DestroyWindow();
-		}
-		if (ptr) {
-			delete ptr;
-			ptr = nullptr;
-		}
-	}
-	popAnimatePtrs.clear();
 }
 

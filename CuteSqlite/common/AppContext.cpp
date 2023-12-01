@@ -82,6 +82,10 @@ AppContext::~AppContext()
 	if (AppContext::theInstance) {
 		delete AppContext::theInstance;
 	}
+
+	clearPopAnimatePtrs();
+	clearDialogPtrs();
+
 }
 
 /**
@@ -137,4 +141,64 @@ void AppContext::unsuscribe(HWND hwnd, UINT msgId)
 void AppContext::unsuscribeAll(HWND hwnd)
 {
 	msgDispatcher.unsuscribeAll(hwnd);
+}
+
+std::vector<CWindow *> & AppContext::getPopAnimatePtrs()
+{
+	return popAnimatePtrs;
+}
+
+void AppContext::addPopAnimatePtr(CWindow * ptr)
+{
+	popAnimatePtrs.push_back(ptr);
+}
+
+void AppContext::erasePopAnimatePtr(CWindow * ptr)
+{
+	auto iter = popAnimatePtrs.begin();
+	for (; iter != popAnimatePtrs.end(); iter++) {
+		if ((*iter)->m_hWnd != ptr->m_hWnd) {
+			continue;
+		}
+		popAnimatePtrs.erase(iter);
+		break;
+	}
+}
+
+void AppContext::clearPopAnimatePtrs()
+{
+	for (auto & ptr : popAnimatePtrs) {
+		if (ptr && ptr->IsWindow()) {
+			::CloseWindow(ptr->m_hWnd);
+			ptr->DestroyWindow();
+		}
+	}
+	popAnimatePtrs.clear();
+}
+
+std::vector<CWindow *> & AppContext::getDialogPtrs()
+{
+	return dialogPtrs;
+}
+
+void AppContext::addDialogPtr(CWindow * ptr)
+{
+	dialogPtrs.push_back(ptr);
+}
+
+void AppContext::eraseDialogPtr(CWindow * ptr)
+{
+	auto iter = dialogPtrs.begin();
+	for (; iter != dialogPtrs.end(); iter++) {
+		if ((*iter)->m_hWnd != ptr->m_hWnd) {
+			continue;
+		}
+		dialogPtrs.erase(iter);
+		break;
+	}
+}
+
+void AppContext::clearDialogPtrs()
+{
+	dialogPtrs.clear();
 }

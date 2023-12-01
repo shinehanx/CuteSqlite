@@ -55,7 +55,8 @@ public:
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
-
+		COMMAND_ID_HANDLER_EX(IDOK, OnOk)
+		COMMAND_ID_HANDLER_EX(IDCANCEL, OnClickCloseButton)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	void setup(HWND parentHwnd, QueryPageEditorAdapter * adapter, CRect parentWinRect);
@@ -103,6 +104,7 @@ private:
 	LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
+	LRESULT OnOk(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickFirstPageButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickPrevPageButton(UINT uNotifyCode, int nID, HWND hwnd);

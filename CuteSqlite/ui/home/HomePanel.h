@@ -74,11 +74,12 @@ public:
 
 	void createOrShowUI();
 	void createOrShowDbButtons(CRect & clientRect);
-	void createOrShowUserDbList(CRect & clientRect);
+	void createOrShowUserDbListItems(CRect & clientRect);
 	void createOrShowListItem(DatabaseListItem & win, UINT id, CRect & rect, CRect & clientRect);
 
 	void loadWindow();
 	void loadBkgImage();
+	void loadUserDbList();
 	void clearDbListItemPtrs();
 
 	virtual LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

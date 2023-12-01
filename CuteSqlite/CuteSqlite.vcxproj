@@ -274,6 +274,10 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="HomeView.cpp" />
+    <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
+    <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp" />
+    <ClCompile Include="ui\analysis\rightview\RightAnalysisView.cpp" />
     <ClCompile Include="ui\common\button\QImageTextButton.cpp" />
     <ClCompile Include="ui\common\button\QDropButton.cpp" />
     <ClCompile Include="ui\common\button\QImageButton.cpp" />
@@ -348,6 +352,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\database\supplier\DatabaseSupplier.cpp" />
     <ClCompile Include="ui\home\HomePanel.cpp" />
     <ClCompile Include="ui\home\LeftPanel.cpp" />
+    <ClCompile Include="ui\analysis\leftview\LeftNavigationView.cpp" />
     <ClCompile Include="ui\home\list\DatabaseListItem.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
@@ -404,6 +409,10 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="HomeView.h" />
+    <ClInclude Include="ui\analysis\AnalysisPanel.h" />
+    <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h" />
+    <ClInclude Include="ui\analysis\rightview\RightAnalysisView.h" />
     <ClInclude Include="ui\common\adapter\QAdapter.h" />
     <ClInclude Include="ui\common\button\QImageTextButton.h" />
     <ClInclude Include="ui\common\button\QDropButton.h" />
@@ -483,6 +492,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\database\rightview\RightWorkView.h" />
     <ClInclude Include="ui\home\HomePanel.h" />
     <ClInclude Include="ui\home\LeftPanel.h" />
+    <ClInclude Include="ui\analysis\leftview\LeftNavigationView.h" />
     <ClInclude Include="ui\home\list\DatabaseListItem.h" />
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />

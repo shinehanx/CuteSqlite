@@ -88,7 +88,7 @@ typedef enum {
 	LISTVIEW_CANCEL_BUTTON_ID,
 
 	QDIALOG_CLEAR_BUTTON_ID,
-	QDIALOG_YES_BUTTON_ID,
+	QDIALOG_YES_BUTTON_ID = WM_USER + 81,
 	QDIALOG_NO_BUTTON_ID,
 
 	// EXPORT-FEILDS
@@ -197,6 +197,7 @@ typedef enum {
 typedef enum {
 	DATABASE_TREEVIEW_ID = WM_USER + 120,
 	DATABASE_OBJECTS_TREEVIEW_ID,
+	ANALYSIS_NAVIGATION_TREEVIEW_ID,
 } TreeViewId;
 
 
@@ -477,6 +478,7 @@ typedef enum {
 	MSG_DBLIST_ITEM_CLICK_ID, // when database list item has been clicked in HomePanel, send this msg to HomePanel. wParam=item.nID, lParam = userDbId
 	MSG_SAVE_ID, // Send the msg to the current active page need saved, wParam=NULL, lParam = NULL
 	MSG_SAVE_ALL_ID,// Send the msg to all the pages need saved, wParam=NULL, lParam = NULL
+	MSG_DROP_FILES_ID, // When user drag files to MainFrm window, send the message to LeftTreeView for opening databases by drag file paths, wParam=NULL , lParam=NULL
 }MessageId;
 
 typedef enum {

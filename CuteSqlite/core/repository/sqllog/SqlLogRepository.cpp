@@ -336,7 +336,10 @@ uint64_t SqlLogRepository::getCountByKeyword(const std::wstring & keyword)
 	}
 	try {
 		QSqlStatement query(getSysConnect(), sql.c_str());
-
+		if (!whereClause.empty()) {
+			query.bind(L":low_keyword", L"%" + StringUtil::tolower(keyword) + L"%");
+			query.bind(L":up_keyword", L"%" + StringUtil::toupper(keyword) + L"%");
+		}
 		if (query.executeStep()) {
 			uint64_t total = query.getColumn(L"total").isNull() ? 0 
 				: query.getColumn(L"total").getInt64();

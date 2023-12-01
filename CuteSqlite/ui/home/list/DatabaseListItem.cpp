@@ -136,6 +136,7 @@ void DatabaseListItem::OnPaint(CDCHandle dc)
 	mdc.DrawText(text.c_str(), static_cast<int>(text.size()), rect, DT_LEFT | DT_VCENTER);
 	mdc.SetTextColor(oldColor);
 	mdc.SelectFont(oldFont);
+	mdc.SetBkMode(oldMode);
 }
 
 BOOL DatabaseListItem::OnEraseBkgnd(CDCHandle dc)

@@ -10,7 +10,7 @@ void HomePanel::createOrShowUI()
 	CRect clientRect;
 	GetClientRect(clientRect);
 	createOrShowDbButtons(clientRect);
-	createOrShowUserDbList(clientRect);
+	createOrShowUserDbListItems(clientRect);
 }
 
 /**
@@ -50,11 +50,36 @@ void HomePanel::createOrShowDbButtons(CRect & clientRect)
 	modDatabaseButton.SetToolTip(S(L"database"));
 }
 
-void HomePanel::createOrShowUserDbList(CRect & clientRect)
+void HomePanel::createOrShowUserDbListItems(CRect & clientRect)
 {
 	if (clientRect.Width() < DATABASE_LIST_ITEM_WIDTH) {
 		return;
 	}
+	CRect lastRect = GdiPlusUtil::GetWindowRelativeRect(createDababaseButton.m_hWnd);
+	int x = 20, y = lastRect.bottom + 20, 
+		w = DATABASE_LIST_ITEM_WIDTH, h = DATABASE_LIST_ITEM_HEIGHT;
+	int dbLen = static_cast<int>(dbListItemPtrs.size());
+	CRect rect(x, y, x + w, y + h);
+	for (int i = 0; i < dbLen; i++) {
+		DatabaseListItem * item = dbListItemPtrs.at(i);
+		if (i > 0) {
+			if (rect.right + w > clientRect.right) {
+				rect.left = x;
+				rect.top = rect.top + h + 10;
+				rect.right = rect.left + w;
+				rect.bottom = rect.top + h;
+			} else {
+				rect.OffsetRect(w + 10, 0);
+			}			
+		}
+		createOrShowListItem(*item, Config::DB_LIST_ITEM_ID_START + i, rect, clientRect);
+	}
+}
+
+void HomePanel::loadUserDbList()
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
 	clearDbListItemPtrs();
 	userDbList = databaseService->getAllUserDbs();
 	int dbLen = static_cast<int>(userDbList.size());
@@ -105,6 +130,7 @@ void HomePanel::loadWindow()
 	isNeedReload = false;
 
 	loadBkgImage();
+	loadUserDbList();
 }
 
 void HomePanel::loadBkgImage()
@@ -162,6 +188,10 @@ LRESULT HomePanel::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	if (titleFont) ::DeleteObject(titleFont);
 	if (homeFont) ::DeleteObject(homeFont);
 	if (sectionFont) ::DeleteObject(sectionFont);
+	
+	if (!bkgBitmap.IsNull()) bkgBitmap.DeleteObject();
+	if (createDababaseButton.IsWindow()) createDababaseButton.DestroyWindow();
+	if (modDatabaseButton.IsWindow()) modDatabaseButton.DestroyWindow();
 
 	clearDbListItemPtrs();
 	return 0;
@@ -178,11 +208,7 @@ LRESULT HomePanel::OnShowWindow(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
 	if (!wParam) {
 		return 0;
 	}
-	CRect clientRect;
-	GetClientRect(clientRect);
-	if (clientRect.Width() < 10) {
-		return 0;
-	}
+	
 	loadWindow();
 	return 0;
 }
@@ -263,7 +289,6 @@ void HomePanel::getDbSectionRect(CRect &clientRect, std::wstring &sectionText)
 	w = size.cx + 10;
 	dbSectionRect = { x, y, x + w, y + h };
 }
-
 
 BOOL HomePanel::OnEraseBkgnd(CDCHandle dc)
 {

@@ -49,6 +49,12 @@ public:
 	bool getIsSelected();	
 	void setIsSelected(bool isSelected);
 private:
+	COLORREF bkgColor = RGB(0xff, 0xff, 0xff);
+	CBrush bkgBrush;
+	CFont font;
+	//CStatic背景画刷，用于OnCtlColorStatic响应方法使用
+	CBrush ctlColorStaticBrush;
+	
 	WTL::CBitmapButton button;
 	WTL::CStatic label;
 	WTL::CImageList imageList; // 未选中项图片列表
@@ -63,9 +69,7 @@ private:
 	CRect labelRect;
 	CRect rect;
 
-	CFont font;
-	//CStatic背景画刷，用于OnCtlColorStatic响应方法使用
-	CBrush ctlColorStaticBrush;
+	
 
 	Config::FrmButtonId buttonId = Config::UNSED_BUTTON_ID;
 

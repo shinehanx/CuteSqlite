@@ -23,9 +23,10 @@ void HomeView::createOrShowUI()
 	createOrShowLeftPanel(clientRect);
 
 	// create or show panel
+	
 	createOrShowPanel(Config::HOME_PANEL, (CWindowImpl &)homePanel, clientRect);
 	createOrShowPanel(Config::DATABASE_PANEL, (CWindowImpl &)databasePanel, clientRect);
-
+	createOrShowPanel(Config::ANALYSIS_PANEL, (CWindowImpl &)analysisPanel, clientRect);	
 	std::wstring initPanel = SettingService::getInstance()->getSysInit(L"init-panel");
 	int nPanel = initPanel.empty() ? Config::HOME_PANEL : std::stoi(initPanel);
 	
@@ -59,7 +60,7 @@ void HomeView::createOrShowPanel(Config::PanelId panelId, CWindowImpl & panel, C
 	if (::IsWindow(m_hWnd) && !panel.IsWindow()) {
 		// 控制显示/隐藏
 		DWORD dwStyle;		
-		dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;		
+		dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 		panel.Create(m_hWnd, rect, L"", dwStyle);
 		//panel放置到MAP，便于控制显示/隐藏
 		panels[panelId] = (CWindowImpl *)&panel;
@@ -92,9 +93,7 @@ ATL::CWindow * HomeView::changePanelByButtonId(UINT selButtonId)
 			break;
 		}
 	}
-
 	
-
 	CWindow * selPanel = nullptr;
 	// 2.使用panels<panelId, panels> 根据panelId定位具体是哪一个panel
 	for (auto item : panels) {
@@ -146,6 +145,7 @@ LRESULT HomeView::OnCreate(UINT, WPARAM, LPARAM, BOOL &)
 	//左边的按钮ID和panel的id对应关系
 	buttonPanelRelations[Config::HOME_BUTTON_ID] = Config::HOME_PANEL;
 	buttonPanelRelations[Config::DATABASE_BUTTON_ID] = Config::DATABASE_PANEL;
+	buttonPanelRelations[Config::ANALYSIS_BUTTON_ID] = Config::ANALYSIS_PANEL;
 	return 0;
 }
 

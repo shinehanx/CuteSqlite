@@ -204,13 +204,20 @@ typedef enum {
 	STRUCT_ONLY = 1,
 	DATA_ONLY = 2,
 	STRUCTURE_AND_DATA = 3
-}StructAndDataSetting;
+} StructAndDataSetting;
 
 typedef enum {
 	TABLE_COLUMNS_PAGE = 0,
 	TABLE_INDEXS_PAGE = 1,
 	TABLE_FOREIGN_KEYS_PAGE = 2
-}TableStructurePageType;
+} TableStructurePageType;
+
+typedef enum {
+	SQL_LOG_PAGE,
+	ANALYSIS_REPORT_PAGE,
+	STORE_ANALYSIS_PAGE,
+	DATABASE_PARAMS_PAGE
+} AnalysisPageType;
 
 // use for select statement such as "tbl1 as m1 left join tbl2 as m2"
 typedef struct {

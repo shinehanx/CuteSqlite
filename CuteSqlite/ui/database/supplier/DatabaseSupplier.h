@@ -59,6 +59,7 @@ public:
 	std::wstring newTableName;
 	int nSelTabPage = -1;
 	// // --------------------------------
+	std::vector<std::wstring> dragFilePaths;
 
 	void setSeletedUserDbId(uint64_t userDbId) { selectedUserDbId = userDbId; }
 	uint64_t getSelectedUserDbId() { return selectedUserDbId; }

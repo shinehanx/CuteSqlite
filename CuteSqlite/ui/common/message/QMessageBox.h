@@ -20,7 +20,6 @@
 class QMessageBox : public CDialogImpl<QMessageBox> {
 public:
 	enum { IDD = IDD_QFORM_DIALOG };
-
 	BEGIN_MSG_MAP_EX(QMessageBox)
 		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
@@ -29,8 +28,10 @@ public:
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
-		COMMAND_HANDLER_EX(Config::CUSTOMER_FORM_NO_BUTTON_ID, BN_CLICKED, OnClickNoButton)
-		COMMAND_HANDLER_EX(Config::CUSTOMER_FORM_YES_BUTTON_ID, BN_CLICKED, OnClickYesButton)
+		COMMAND_ID_HANDLER_EX(Config::CUSTOMER_FORM_NO_BUTTON_ID, OnClickNoButton)
+		COMMAND_ID_HANDLER_EX(Config::CUSTOMER_FORM_YES_BUTTON_ID, OnClickYesButton)
+		COMMAND_ID_HANDLER_EX(IDOK, OnClickYesButton)
+		COMMAND_ID_HANDLER_EX(IDCANCEL, OnClickNoButton)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	static CRect getInitRect();
@@ -60,6 +61,7 @@ private:
 	QImageButton noButton;
 	
 	void createOrShowTextEdit(CRect & clientRect);
+	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0, bool readOnly = true);
 	void createOrShowButtons(CRect & clientRect);
 
 	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

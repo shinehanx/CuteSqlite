@@ -252,6 +252,11 @@ LRESULT SqlLogDialog::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 }
 
 
+LRESULT SqlLogDialog::OnOk(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	return OnClickSearchButton(uNotifyCode, nID, (LPARAM)hwnd);
+}
+
 LRESULT SqlLogDialog::OnClickCloseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	EndDialog(0);

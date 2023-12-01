@@ -13,11 +13,8 @@ void QImageTextButton::setButtonId(Config::FrmButtonId btnId)
 void QImageTextButton::createButton()
 {	
 	ATLASSERT(buttonId != Config::UNSED_BUTTON_ID);
-	button.Create(m_hWnd, 0, L"HomeButton", WS_CHILD | WS_VISIBLE , 0, buttonId);	
-
-	std::wstringstream ss;
-	ss << "ImageTextButton::OnClickButton,id:" << buttonId;
-	OutputDebugStringW(ss.str().c_str());
+	button.Create(m_hWnd, 0, L"HomeButton", WS_CHILD | WS_VISIBLE , 0, buttonId);
+	
 }
 
 void QImageTextButton::createLabel()
@@ -189,10 +186,12 @@ int QImageTextButton::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	createButton();
 	createLabel();
 
-	//
-	transparent(m_hWnd);
+	// 
+	// transparent(m_hWnd);
 
-	//static±³¾°»­Ë¢
+	//window background brush
+	bkgBrush.CreateSolidBrush(bkgColor);
+	//static background brush
 	ctlColorStaticBrush.CreateSolidBrush(RGB(0xff, 0xff, 0xff));
 
 	return TRUE;
@@ -201,8 +200,9 @@ int QImageTextButton::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int QImageTextButton::OnDestroy()
 {
 	if (font) DeleteObject(font);
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!ctlColorStaticBrush.IsNull()) ctlColorStaticBrush.DeleteObject();
-
+	
 	// Gdiplus::DllExports::GdipDisposeImage(normalBitmap);
 	if (normalBitmap) DeleteObject(normalBitmap);
 	if (pushedBitmap) DeleteObject(pushedBitmap);
@@ -227,13 +227,8 @@ int QImageTextButton::OnDestroy()
 LRESULT QImageTextButton::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	CPaintDC dc(m_hWnd);
-	RECT rect;
-	GetClientRect(&rect);
-	
-	//HBRUSH brush = AtlGetStockBrush(BLACK_BRUSH);
-	HBRUSH brush = ::CreateSolidBrush(RGB(0xff, 0xff, 0xff));
-	dc.FillRect(&dc.m_ps.rcPaint, brush);
-	::DeleteObject(brush);
+	CMemoryDC mdc(dc, dc.m_ps.rcPaint);
+	mdc.FillRect(&dc.m_ps.rcPaint, bkgBrush.m_hBrush);
 	return 0;
 }
 
@@ -270,5 +265,5 @@ LRESULT QImageTextButton::OnClickButton(UINT /*wNotifyCode*/, WORD wID, HWND /*h
 
 BOOL QImageTextButton::OnEraseBkgnd(CDCHandle dc)
 {
-	return true;
+	return false;
 }

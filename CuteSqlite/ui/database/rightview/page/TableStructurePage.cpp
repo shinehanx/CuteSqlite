@@ -117,6 +117,7 @@ void TableStructurePage::save()
 	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	ResultInfo resultInfo;
 	resultInfo.userDbId = userDbId;
+	resultInfo.createdAt = DateUtil::getCurrentDateTime();
 
 	auto _begin = PerformUtil::begin();
 	UserIndexList userIndexList;
@@ -163,7 +164,7 @@ void TableStructurePage::save()
 		sql = L"ROLLBACK;";
 		tableService->execBySql(supplier->getRuntimeUserDbId(), sql); 
 
-		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());		
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
 		QPopAnimate::report(ex);
 
 		resultInfo.sql = ex.getSql();

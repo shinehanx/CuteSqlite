@@ -108,6 +108,7 @@ void QStaticImage::setToolTip(const wchar_t * text)
 	}
 
 	if(tooltipCtrl.IsWindow()) {
+		tooltipCtrl.DelTool(this->m_hWnd);
 		tooltipCtrl.Pop();
 		tooltipCtrl.Activate(TRUE);
 		tooltipCtrl.AddTool(this->m_hWnd, toolTipText.c_str());

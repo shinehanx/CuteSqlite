@@ -134,6 +134,7 @@ Config::FrmButtonId LeftPanel::getSelButtonId()
 
 LRESULT LeftPanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	bkgBrush.CreateSolidBrush(bkgColor);
 	//创建home图形按钮
 	createHomeButton();
 
@@ -161,11 +162,12 @@ LRESULT LeftPanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT LeftPanel::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	if (homeButton) homeButton.DestroyWindow();
-	if (databaseButton) databaseButton.DestroyWindow();
-	if (analysisButton) analysisButton.DestroyWindow();
-	if (viewButton) viewButton.DestroyWindow();
-	if (settingButton) settingButton.DestroyWindow();
+	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	if (homeButton.IsWindow()) homeButton.DestroyWindow();
+	if (databaseButton.IsWindow()) databaseButton.DestroyWindow();
+	if (analysisButton.IsWindow()) analysisButton.DestroyWindow();
+	if (viewButton.IsWindow()) viewButton.DestroyWindow();
+	if (settingButton.IsWindow()) settingButton.DestroyWindow();
 
 	return 0;
 }
@@ -175,14 +177,13 @@ LRESULT LeftPanel::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	CRect rectParent;
 	GetClientRect(&rectParent);
 
-	std::wstringstream ss;
-	ss << "LeftPanel rect: w=" << rectParent.Width() << ",h=" << rectParent.Height() <<endl;
-	::OutputDebugStringW(ss.str().c_str());
-
 	CRect rect ;
 	settingButton.GetClientRect(&rect);
 	rect.MoveToXY(6, rectParent.Height() - (48 * 2 + 25));
+	settingButton.ShowWindow(SW_HIDE);
 	settingButton.MoveWindow(rect);
+	settingButton.ShowWindow(SW_SHOW);
+	settingButton.Invalidate(true);
 	settingButton.UpdateWindow();
 	return 0;
 }
@@ -190,15 +191,8 @@ LRESULT LeftPanel::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 LRESULT LeftPanel::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	CPaintDC dc(m_hWnd);
-	RECT rect;
-	GetClientRect(&rect);
-	
-	//HBRUSH brush = AtlGetStockBrush(GRAY_BRUSH);
-	HBRUSH brush = ::CreateSolidBrush(RGB(0xff, 0xff, 0xff));
-	dc.FillRect(&dc.m_ps.rcPaint, brush);
-	::DeleteObject(brush);
-
-	settingButton.UpdateWindow();
+	CMemoryDC mdc(dc, dc.m_ps.rcPaint);
+	mdc.FillRect(&dc.m_ps.rcPaint, bkgBrush.m_hBrush);
 	return 0;
 }
 

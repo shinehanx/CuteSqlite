@@ -378,6 +378,21 @@
     <ClCompile Include="ui\home\list\DatabaseListItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\AnalysisPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\leftview\LeftNavigationView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\RightAnalysisView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -789,6 +804,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\home\list\DatabaseListItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\AnalysisPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\leftview\LeftNavigationView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\RightAnalysisView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

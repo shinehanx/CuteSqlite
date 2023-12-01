@@ -89,6 +89,7 @@ private:
 	// tooltip是参考CBimapButton的思路搞出来的
 	std::wstring tooltip;
 	CToolTipCtrl tooltipCtrl;
+	UINT tooltipId = 1024;
 
 	bool	m_bTracking;
 	int		status;
