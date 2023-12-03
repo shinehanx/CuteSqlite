@@ -70,12 +70,12 @@ void SqlLogListBox::addGroup(const std::wstring & group, const std::wstring & or
 	nHeightSum += rect.Height() + offset;
 }
 
-void SqlLogListBox::addItem(ResultInfo & info)
+void SqlLogListBox::addItem(ResultInfo & info, int enableBtns)
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
 
-	SqlLogListItem * item = new SqlLogListItem(info, supplier);
+	SqlLogListItem * item = new SqlLogListItem(info, supplier, enableBtns);
 	int x = 0, y = 0, w = clientRect.Width(), h = SQL_LOG_LISTBOX_ITEM_HEIGHT;
 	CRect rect;
 	int offset = 0;
@@ -124,6 +124,10 @@ void SqlLogListBox::createOrShowUI()
 	} else {
 		nHeightSum = 0;
 	}
+// 	for (HWND hwnd : winHwnds) {
+// 		CRect rect = GdiPlusUtil::GetWindowRelativeRect(hwnd);
+// 		nHeightSum = rect.Height() + 5;
+// 	}
 }
 
 void SqlLogListBox::createOrShowGroupLabel(CStatic & win, std::wstring text, CRect & rect, CRect & clientRect)
@@ -322,6 +326,24 @@ LRESULT SqlLogListBox::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		int scrollHeight = nHeightSum * (iVscrollPos - si.nPos) / 100;
 		::ScrollWindow(m_hWnd, 0, scrollHeight, nullptr, nullptr);
 		Invalidate(true);
+	}
+
+	if (si.nPos == 100 && !winHwnds.empty()) {
+		CRect lastRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.back());
+		CRect clientRect;
+		GetClientRect(clientRect);
+		if (lastRect.bottom != clientRect.bottom) {
+			::ScrollWindow(m_hWnd, 0, clientRect.bottom - lastRect.bottom, nullptr, nullptr);
+			Invalidate(true);
+		}
+	} else if (si.nPos == 0 && !winHwnds.empty()) { 
+		CRect firstRect = GdiPlusUtil::GetWindowRelativeRect(winHwnds.front());
+		CRect clientRect;
+		GetClientRect(clientRect);
+		if (firstRect.top != clientRect.top) {
+			::ScrollWindow(m_hWnd, 0, clientRect.top - firstRect.top, nullptr, nullptr);
+			Invalidate(true);
+		}
 	}
 	return 0;
 }

@@ -11,64 +11,61 @@
 
  * limitations under the License.
 
- * @file   LeftNavigationView.h
- * @brief  Performance analysis 
+ * @file   FirstPage.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-12-01
+ * @date   2023-12-03
  *********************************************************************/
 #pragma once
-#include <atlwin.h>
-#include <atlcrack.h>
-#include <atltypes.h>
-#include "ui/common/treeview/QTreeViewCtrl.h"
-#include "ui/analysis/leftview/adapter/LeftNaigationViewAdapter.h"
+#include "ui/database/rightview/common/QTabPage.h"
+#include "ui/common/button/QImageButton.h"
 #include "common/Config.h"
 
-class LeftNavigationView : public CWindowImpl<LeftNavigationView>
+class FirstPage : public QTabPage<FirstPage>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
-
 	DECLARE_WND_CLASS(NULL)
 
-	BEGIN_MSG_MAP_EX(LeftNavigationView)
+	BEGIN_MSG_MAP_EX(FirstPage)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
-		NOTIFY_HANDLER(Config::ANALYSIS_NAVIGATION_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SQL_LOG_BUTTON_ID, OnClickSqlLogButton)
+		CHAIN_MSG_MAP(QPage)
+		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
+
 private:
 	bool isNeedReload = true;
-	COLORREF bkgColor = RGB(255, 255, 255);
-	COLORREF topbarColor = RGB(17, 24, 39);
-	COLORREF titleColor = RGB(255, 255, 255);
+	
+	COLORREF bkgColor = RGB(171, 171, 171);	
+	COLORREF textColor = RGB(255, 255, 255);
+	COLORREF sectionColor = RGB(255, 255, 255);
 	CBrush bkgBrush;
-	CBrush topbarBrush;
-	HFONT titleFont = nullptr;
-
-	QTreeViewCtrl navigationTreeView;
-
-	LeftNaigationViewAdapter * adapter = nullptr;
-
-	CRect getTopRect(CRect & clientRect);
-	CRect getTreeRect(CRect & clientRect);
-
+	HFONT textFont = nullptr;
+	HFONT sectionFont = nullptr;
+	
+	CRect perfAnalysisSectionRect;
+	QImageButton sqlLogButton;
 
 	void createOrShowUI();
-	void createOrShowNavigationTreeView(QTreeViewCtrl & win, CRect & clientRect);
-
-	void loadWindow();
+	void createOrShowPerfAnalysisButton(CRect & clientRect);
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	void OnDestroy();
+	int OnDestroy();
 	void OnSize(UINT nType, CSize size);
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
-	// double click treeview item .
-	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+
+	LRESULT OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void drawAnalysisText(CMemoryDC &mdc, CRect &clientRect);
+	void drawPerfAnalysisSection(CMemoryDC &mdc, CRect &clientRect);
+
+	void getPerfAnalysisSectionRect(CRect &clientRect, std::wstring &sectionText);
 };

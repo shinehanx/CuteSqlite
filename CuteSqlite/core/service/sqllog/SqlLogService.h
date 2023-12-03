@@ -45,5 +45,6 @@ public:
 	SqlLogList getTopSqlLogByKeyword(const std::wstring & keyword);
 	SqlLogList getPageSqlLogByKeyword(const std::wstring & keyword, int page, int perPage);
 	uint64_t getSqlLogCountByKeyword(const std::wstring & keyword);
+	SqlLog getSqlLog(uint64_t sqlLogId);
 };
 

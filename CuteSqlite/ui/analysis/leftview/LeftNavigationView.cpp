@@ -21,6 +21,8 @@
 #include "LeftNavigationView.h"
 #include "common/Config.h"
 #include "core/common/Lang.h"
+#include <utils/Log.h>
+#include <common/AppContext.h>
 
 #define NAVIGATION_TOPBAR_HEIGHT 30
 
@@ -135,5 +137,25 @@ void LeftNavigationView::OnPaint(CDCHandle dc)
 BOOL LeftNavigationView::OnEraseBkgnd(CDCHandle dc)
 {
 	return true;
+}
+
+LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
+{
+	Q_DEBUG(L"LeftNavigationView::OnDbClickTreeViewItem");
+	auto ptr = (LPNMTREEVIEW)lParam;
+	HTREEITEM hSelTreeItem = ptr->itemNew.hItem;
+	if (!hSelTreeItem) {
+		return 0;
+	}
+
+	CTreeItem treeItem = navigationTreeView.GetSelectedItem();
+	int nImage = -1, nSeletedImage = -1;
+	bool ret = treeItem.GetImage(nImage, nSeletedImage);
+
+	if (nImage == 4) { // 4 - sql log
+		AppContext::getInstance()->dispatch(Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	}
+	
+	return 0;
 }
 

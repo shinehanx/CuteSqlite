@@ -21,7 +21,11 @@
  *                 |->QTabView(tabView)
  *                         |-> QueryPage
  *                         |      |-> CHorSplitterWindow
- *                         |            |-> QHelpEdit ** QSqlEdit(Scintilla)
+ *                         |            |-> QueryPageEditor <- QHelpEdit <- QHelpPage
+ *                         |            |      |                 |-> QSqlEdit (Scintilla)
+ *                         |            |      |-> SqlLogDialog 
+ *                         |            |               |-> SqlLogList
+ *                         |            |                      |->SqlLogListItem         
  *                         |            |-> ResultTabView
  *                         |                    |-> QTabView
  *                         |                          |-> ResultListPage

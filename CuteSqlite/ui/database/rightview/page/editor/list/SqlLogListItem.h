@@ -26,6 +26,13 @@
 #include "ui/common/button/QImageButton.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 
+#define SW_USE_BTN			0b000001
+#define SW_EXPLAIN_BTN		0b000010
+#define SW_COPY_BTN			0b000100
+#define SW_TOP_BTN			0b001000
+#define SW_DELELE_BTN		0b010000
+#define SW_ANALYSIS_BTN		0b100000
+
 class  SqlLogListItem : public CWindowImpl<SqlLogListItem>
 {
 public:
@@ -41,6 +48,7 @@ public:
 		MSG_WM_MOUSELEAVE(OnMouseLeave)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
+		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_ANALYSIS_BUTTON_ID, BN_CLICKED, OnClickAnalysisButton)
 		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_USE_BUTTON_ID, BN_CLICKED, OnClickUseButton)
 		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID, BN_CLICKED, OnClickExplainButton)
 		COMMAND_HANDLER_EX(Config::SQL_LOG_ITEM_COPY_BUTTON_ID, BN_CLICKED, OnClickCopyButton)
@@ -49,13 +57,15 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
-	SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier);
+	SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier, 
+		int enableBtns = SW_USE_BTN | SW_EXPLAIN_BTN | SW_COPY_BTN | SW_TOP_BTN | SW_DELELE_BTN);
 	void select(bool state);	
 	const ResultInfo & getInfo() { return info; }
 private:
 	ResultInfo info;
 	bool selectState = false;
 	bool bTracking = false;
+	int enableBtns = 0;
 
 	COLORREF bkgColor = RGB(238, 238, 238);
 	COLORREF bkgMouseOverColor = RGB(238, 238, 238);
@@ -79,6 +89,7 @@ private:
 	CStatic execTimeLabel;
 	
 	//bottom elem
+	CButton analysisButton;
 	CButton useButton;
 	CButton topButton;
 	CButton explainButton;
@@ -106,6 +117,7 @@ private:
 	void OnMouseMove(UINT nFlags, CPoint point);
 	void OnMouseHover(WPARAM wParam, CPoint ptPos);
 	void OnMouseLeave();
+	void OnClickAnalysisButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickUseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickExplainButton(UINT uNotifyCode, int nID, HWND hwnd);

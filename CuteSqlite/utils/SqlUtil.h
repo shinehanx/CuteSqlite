@@ -42,6 +42,7 @@ class SqlUtil {
 public:
 	// select sql regex pattern
 	static std::wregex selectPat;
+	static std::wregex selectPat2;
 
 	// where clause regex pattern
 	static std::wregex whereClausePat1;

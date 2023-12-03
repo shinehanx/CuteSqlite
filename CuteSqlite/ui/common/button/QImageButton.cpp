@@ -192,7 +192,7 @@ void QImageButton::SetToolTip(std::wstring & tooltip)
 		tooltipCtrl.DelTool(this->m_hWnd);
 		tooltipCtrl.Pop();
 		tooltipCtrl.Activate(TRUE);
-		tooltipCtrl.AddTool(this->m_hWnd, tooltip.c_str());
+		tooltipCtrl.AddTool(this->m_hWnd, tooltip.c_str()); 
 	}	
 }
 

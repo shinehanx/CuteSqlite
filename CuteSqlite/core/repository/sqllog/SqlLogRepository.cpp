@@ -68,7 +68,7 @@ SqlLog SqlLogRepository::getById(uint64_t id)
 		return SqlLog();
 	}
 
-	std::wstring sql = L"SELECT * FROM user_log WHERE id=:id";
+	std::wstring sql = L"SELECT * FROM sql_log WHERE id=:id";
 
 	try {
 		QSqlStatement query(getSysConnect(), sql.c_str());

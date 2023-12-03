@@ -117,4 +117,9 @@ uint64_t SqlLogService::getSqlLogCountByKeyword(const std::wstring & keyword)
 	return getRepository()->getCountByKeyword(keyword);
 }
 
+SqlLog SqlLogService::getSqlLog(uint64_t sqlLogId)
+{
+	return getRepository()->getById(sqlLogId);
+}
+
 

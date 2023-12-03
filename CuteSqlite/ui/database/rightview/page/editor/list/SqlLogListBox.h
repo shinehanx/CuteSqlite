@@ -40,7 +40,7 @@ public:
 	void setup(QueryPageSupplier * supplier);
 
 	void addGroup(const std::wstring & group, const std::wstring & origDate = std::wstring());
-	void addItem(ResultInfo & info);
+	void addItem(ResultInfo & info, int enableBtns);
 	void reloadVScroll();
 
 	void clearAllItems();

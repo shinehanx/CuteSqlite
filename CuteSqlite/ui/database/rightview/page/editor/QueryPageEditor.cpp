@@ -105,13 +105,13 @@ int QueryPageEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	int ret = QHelpEdit::OnCreate(lpCreateStruct);
 
 	adapter = new QueryPageEditorAdapter(m_hWnd, supplier);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_QUERY_PAGE_USE_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_USE_SQL_ID);
 	return ret;
 }
 
 int QueryPageEditor::OnDestroy()
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_QUERY_PAGE_USE_SQL_ID);
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_USE_SQL_ID);
 
 	int ret = QHelpEdit::OnDestroy();
 	if (templatesButton.IsWindow()) templatesButton.DestroyWindow();

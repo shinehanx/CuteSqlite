@@ -143,6 +143,7 @@ typedef enum {
 	COMMON_SEARCH_BUTTON_ID,
 	
 	// SQL LOG LIST ITEM
+	SQL_LOG_ITEM_ANALYSIS_BUTTON_ID,
 	SQL_LOG_ITEM_USE_BUTTON_ID,
 	SQL_LOG_ITEM_EXPLAIN_BUTTON_ID,
 	SQL_LOG_ITEM_TOP_BUTTON_ID,
@@ -158,6 +159,9 @@ typedef enum {
 	// HOME PANEL
 	HOME_CREATE_DB_BUTTON_ID,
 	HOME_MOD_DB_BUTTON_ID,
+
+	// ANALYSIS PANEL
+	ANALYSIS_SQL_LOG_BUTTON_ID,
 } ButtonId;
 
 // TabView id
@@ -465,10 +469,11 @@ typedef enum {
 	MSG_COPY_TABLE_PROCESS_ID, // Table CopyTableDialog progress message, wParam is the completion status, lParam is the percent complete
 	MSG_LOADING_SQL_PREVIEW_EDIT_ID, // When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
 	MSG_SEARCH_BUTTON_ID, // When search edit button has clicked, send this msg to parent window, wParam=NULL, lParam = NULL
-	MSG_QUERY_PAGE_USE_SQL_ID, // When use button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=NULL, lParam = NULL
-	MSG_QUERY_PAGE_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam = NULL
-	MSG_QUERY_PAGE_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog, send this msg to SqlLogDialog, wParam=SqlLog.id, lParam= NULL
-	MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, // When SqlLogListBox v-scroll scroll down 70% in the SqlLogDialog, send this msg to SqlLogDialog, wParam=si.nPos, lParam=si.nMax
+	MSG_ANALYSIS_SQL_ID, // When analysis button has clicked in the SqlLogPage, send this msg to SqlLogPage, wParam=NULL, lParam = NULL
+	MSG_USE_SQL_ID, // When use button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=NULL, lParam = NULL
+	MSG_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=SqlLog.id, lParam = NULL
+	MSG_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=SqlLog.id, lParam= NULL
+	MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, // When SqlLogListBox v-scroll scroll down 70% in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=si.nPos, lParam=si.nMax
 	MSG_DATA_DIRTY_ID, // When data has be changed in ResultTablePgae, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
 	MSG_TABLE_STRUCTURE_DIRTY_ID, // When table struct has be changed in TableColumnsPage/TableIndexesPage/TableForeignKeysPage, 
 								  //  send this msg to parent tabView to display dirty icon for TableStruecturePage title icon, wParam=dirtyPage.m_hWnd, lParam=isDirty
@@ -479,6 +484,8 @@ typedef enum {
 	MSG_SAVE_ID, // Send the msg to the current active page need saved, wParam=NULL, lParam = NULL
 	MSG_SAVE_ALL_ID,// Send the msg to all the pages need saved, wParam=NULL, lParam = NULL
 	MSG_DROP_FILES_ID, // When user drag files to MainFrm window, send the message to LeftTreeView for opening databases by drag file paths, wParam=NULL , lParam=NULL
+	MSG_SHOW_SQL_LOG_PAGE_ID, // Send the msg to show SqlLogPage in the RightAnalysisView::tabView, wParam=NULL , lParam=NULL
+	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
 }MessageId;
 
 typedef enum {

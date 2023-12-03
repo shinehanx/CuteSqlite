@@ -32,10 +32,11 @@
 #include "utils/Log.h"
 #include "ui/common/message/QPopAnimate.h"
 
-SqlLogListItem::SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier)
+SqlLogListItem::SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier, int enableBtns)
 {
 	this->info = EntityUtil::copy(info);
 	this->supplier = supplier;
+	this->enableBtns = enableBtns;
 }
 
 void SqlLogListItem::select(bool state)
@@ -70,6 +71,7 @@ int SqlLogListItem::OnDestroy()
 	if (stateImage.IsWindow()) stateImage.DestroyWindow();
 	if (resultMsgLabel.IsWindow()) resultMsgLabel.DestroyWindow();
 	if (execTimeLabel.IsWindow()) execTimeLabel.DestroyWindow();
+	if (analysisButton.IsWindow()) analysisButton.DestroyWindow();
 	if (useButton.IsWindow()) useButton.DestroyWindow();
 	if (topButton.IsWindow()) topButton.DestroyWindow();
 	if (explainButton.IsWindow()) explainButton.DestroyWindow();
@@ -150,13 +152,21 @@ void SqlLogListItem::OnMouseLeave()
 	//select(false);
 }
 
+void SqlLogListItem::OnClickAnalysisButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	supplier->setCacheUseSql(info.sql.c_str());
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogPage(here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd;
+	::PostMessage(ppHwnd, Config::MSG_ANALYSIS_SQL_ID, WPARAM(info.userDbId), LPARAM(info.id));
+}
+
 void SqlLogListItem::OnClickUseButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	supplier->setCacheUseSql(getInfo().sql.c_str());
+	supplier->setCacheUseSql(info.sql.c_str());
 
 	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
 	HWND ppHwnd = GetParent().GetParent().m_hWnd;
-	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_USE_SQL_ID, NULL, NULL);
+	::PostMessage(ppHwnd, Config::MSG_USE_SQL_ID, NULL, NULL);
 }
 
 void SqlLogListItem::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
@@ -169,30 +179,30 @@ void SqlLogListItem::OnClickCopyButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 void SqlLogListItem::OnClickExplainButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	std::wstring sql = getInfo().sql;
-	std::wstring upline = StringUtil::toupper(getInfo().sql);
+	std::wstring sql = info.sql;
+	std::wstring upline = StringUtil::toupper(info.sql);
 	if (!upline.empty() && upline.find(L"EXPLAIN") != 0) {
-		sql = L"EXPLAIN " + getInfo().sql;
+		sql = L"EXPLAIN " + info.sql;
 	}
 	supplier->setCacheUseSql(sql.c_str());
-
+	
 	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
 	HWND ppHwnd = GetParent().GetParent().m_hWnd;
-	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_USE_SQL_ID, NULL, NULL);
+	::PostMessage(ppHwnd, Config::MSG_USE_SQL_ID, NULL, NULL);
 }
 
 void SqlLogListItem::OnClickTopButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog/SqlLogPage(here)
 	HWND ppHwnd = GetParent().GetParent().m_hWnd;
-	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_TOP_SQL_LOG_ID, WPARAM(getInfo().id), LPARAM(getInfo().top));
+	::PostMessage(ppHwnd, Config::MSG_TOP_SQL_LOG_ID, WPARAM(info.id), LPARAM(info.top));
 }
 
 void SqlLogListItem::OnClickDeleteButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog(here)
+	//class chain : SqlLogListItem(this) -> SqlLogListBox -> SqlLogDialog/SqlLogPage(here)
 	HWND ppHwnd = GetParent().GetParent().m_hWnd;
-	::PostMessage(ppHwnd, Config::MSG_QUERY_PAGE_DEL_SQL_LOG_ID, WPARAM(getInfo().id), NULL);
+	::PostMessage(ppHwnd, Config::MSG_DEL_SQL_LOG_ID, WPARAM(info.id), NULL);
 }
 
 void SqlLogListItem::createOrShowUI()
@@ -219,10 +229,12 @@ void SqlLogListItem::createTopElems(CRect & clientRect)
 {
 	int x = 10, y = 5, w = 150, h = 12;
 	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowLabel(m_hWnd, createdAtLabel, getInfo().createdAt, rect, clientRect, SS_LEFT, 10);
+	std::wstring labelText = info.createdAt;
+	labelText.append(L" - #").append(std::to_wstring(info.id));
+	QWinCreater::createOrShowLabel(m_hWnd, createdAtLabel, labelText, rect, clientRect, SS_LEFT, 10);
 
 	x = clientRect.right - 20, w = 12, h = 12;
-	if (getInfo().top) {
+	if (info.top) {
 		rect = { x, y, x + w, y + h };
 		topImage.load(GdiUtil::copyBitmap(supplier->topBitmap));
 		topImage.setBkgColor(bkgColor); 
@@ -238,17 +250,17 @@ void SqlLogListItem::createMiddleElems(CRect & clientRect)
 	CRect rect(x, y, x + w, y + h);
 	DWORD dwStyle = ES_MULTILINE;
 	std::wstring fontName = Lang::fontName();
-	CSize  size = FontUtil::measureTextSize(getInfo().sql.c_str(), Lang::fontSize(L"log-list-item-sql-size"), false, fontName.c_str());
+	CSize  size = FontUtil::measureTextSize(info.sql.c_str(), Lang::fontSize(L"log-list-item-sql-size"), false, fontName.c_str());
 	if (size.cx / (w * 1.0) > 3.0) {
 		dwStyle = dwStyle | WS_VSCROLL;
 	}
-	QWinCreater::createOrShowEdit(m_hWnd, sqlEdit, 0, getInfo().sql, rect, clientRect, textFont, dwStyle);
+	QWinCreater::createOrShowEdit(m_hWnd, sqlEdit, 0, info.sql, rect, clientRect, textFont, dwStyle);
 
 	rect.OffsetRect(0, h + 5);
 	rect.right = rect.left + 14;
 	rect.bottom = rect.top + 14;
 	
-	if (getInfo().code == 0 && supplier->sucessBitmap) {
+	if (info.code == 0 && supplier->sucessBitmap) {
 		stateImage.load(GdiUtil::copyBitmap(supplier->sucessBitmap));
 	}else if (supplier->errorBitmap){
 		stateImage.load(GdiUtil::copyBitmap(supplier->errorBitmap));
@@ -266,55 +278,67 @@ void SqlLogListItem::createMiddleElems(CRect & clientRect)
 	rect.right = rect.left + 200;
 	rect.bottom = rect.top + 20;
 	std::wstring resultMsg = L"Effect Rows:";
-	resultMsg.append(std::to_wstring(getInfo().effectRows)).append(L", Code:")
-		.append(std::to_wstring(getInfo().code));
+	resultMsg.append(std::to_wstring(info.effectRows));
+	resultMsg.append(L", Code: ").append(std::to_wstring(info.code));
+	if (info.code) {
+		std::wstring errMsg = resultMsg;
+		errMsg.append(L", Message: ").append(info.msg);
+		CSize  msgSize = FontUtil::measureTextSize(errMsg.c_str(), Lang::fontSize(L"log-list-item-text-size"), false, fontName.c_str());
+		int calcWidth = clientRect.Width() - 20 * 2 - 5 - 14 - 10 - 200;
+		if (calcWidth > msgSize.cx) {
+			resultMsg = errMsg;
+		}
+		rect.right = rect.left + msgSize.cx;
+	} 
+	
 	QWinCreater::createOrShowLabel(m_hWnd, resultMsgLabel, resultMsg, rect, clientRect, SS_LEFT, 10);
 
 	rect.MoveToX(clientRect.right - 200 - 20);
+	rect.right = rect.left + 200;
 	std::wstring execTime = L"Total Times:";
-	execTime.append(getInfo().totalTime);
+	execTime.append(info.totalTime);
 	QWinCreater::createOrShowLabel(m_hWnd, execTimeLabel, execTime, rect, clientRect, SS_RIGHT, 10);
 }
 
 void SqlLogListItem::createBottomElems(CRect & clientRect)
 {
-	auto _begin1 = PerformUtil::begin();
+	
 	CRect rcMid = GdiPlusUtil::GetWindowRelativeRect(execTimeLabel);
 
-	auto end1 = PerformUtil::end(_begin1);
-	auto _begin2 = PerformUtil::begin();
-
-	int x = clientRect.right - 5 * (50 + 10) - 20, y = rcMid.bottom + 5, w = 50, h = 20; 
+	int x = clientRect.right - 10, y = rcMid.bottom + 5, w = 50, h = 20; 
 	CRect rect(x, y, x + w, y + h);
-	createOrShowButton(m_hWnd, useButton, Config::SQL_LOG_ITEM_USE_BUTTON_ID, S(L"use"), rect, clientRect);
 
-	auto end2 = PerformUtil::end(_begin2);
-	auto _begin3 = PerformUtil::begin();
+	if (enableBtns & SW_DELELE_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		createOrShowButton(m_hWnd, deleteButton, Config::SQL_LOG_ITEM_DELELE_BUTTON_ID, S(L"delete"), rect, clientRect);
+	}
+	
+	if (enableBtns & SW_COPY_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		createOrShowButton(m_hWnd, copyButton, Config::SQL_LOG_ITEM_COPY_BUTTON_ID, S(L"copy"), rect, clientRect);
+	}
 
-	rect.OffsetRect(w + 10, 0);
-	createOrShowButton(m_hWnd, explainButton, Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID,S( L"explain"), rect, clientRect);
+	if (enableBtns & SW_TOP_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		std::wstring topText = info.top ? S(L"untop") : S(L"top");
+		createOrShowButton(m_hWnd, topButton, Config::SQL_LOG_ITEM_TOP_BUTTON_ID, topText, rect, clientRect);
+	}
 
-	auto end3 = PerformUtil::end(_begin3);
-	auto _begin4 = PerformUtil::begin();
+	if (enableBtns & SW_EXPLAIN_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		createOrShowButton(m_hWnd, explainButton, Config::SQL_LOG_ITEM_EXPLAIN_BUTTON_ID, S(L"explain"), rect, clientRect);
+	}
 
-	rect.OffsetRect(w + 10, 0);
-	std::wstring topText = info.top ? S(L"untop") : S(L"top");
-	createOrShowButton(m_hWnd, topButton, Config::SQL_LOG_ITEM_TOP_BUTTON_ID, topText, rect, clientRect);
+	if (enableBtns & SW_USE_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		std::wstring topText = info.top ? S(L"untop") : S(L"top");
+		createOrShowButton(m_hWnd, useButton, Config::SQL_LOG_ITEM_USE_BUTTON_ID, S(L"use"), rect, clientRect);
+	}
 
-	auto end4 = PerformUtil::end(_begin4);
-	auto _begin5 = PerformUtil::begin();
-
-	rect.OffsetRect(w + 10, 0);
-	createOrShowButton(m_hWnd, copyButton, Config::SQL_LOG_ITEM_COPY_BUTTON_ID, S(L"copy"), rect, clientRect);
-
-	auto end5 = PerformUtil::end(_begin5);
-	auto _begin6 = PerformUtil::begin();
-
-	rect.OffsetRect(w + 10, 0);
-	createOrShowButton(m_hWnd, deleteButton, Config::SQL_LOG_ITEM_DELELE_BUTTON_ID, S(L"delete"), rect, clientRect);
-
-	auto end6 = PerformUtil::end(_begin6);
-	Q_DEBUG(L"t1:{},t2:{},t3:{},t4:{},t5:{},t6:{}", end1, end2, end3, end4, end5, end6);
+	if (enableBtns & SW_ANALYSIS_BTN) {
+		rect.OffsetRect(- w - 10, 0);
+		createOrShowButton(m_hWnd, analysisButton, Config::SQL_LOG_ITEM_ANALYSIS_BUTTON_ID, S(L"analysis"), rect, clientRect);
+	}
 }
 
 void SqlLogListItem::createOrShowButton(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle)

@@ -12,7 +12,12 @@
  * limitations under the License.
 
  * @file   RightAnalysisView.h
- * @brief  
+ * 
+ * @Class Tree  RightAnalysisView
+ *                 |->QTabView(tabView)
+ *                         |-> SqlLogPage
+ *                               |-> SqlLogListBox
+ *                                        |-> SqlLogListItem
  * 
  * @author Xuehan Qin
  * @date   2023-12-01
@@ -23,6 +28,8 @@
 #include <atltypes.h>
 #include "ui/common/tabview/QTabView.h"
 #include "ui/analysis/rightview/page/SqlLogPage.h"
+#include "ui/analysis/rightview/page/FirstPage.h"
+#include "ui/analysis/rightview/page/PerfAnalysisPage.h"
 
 class RightAnalysisView : public CWindowImpl<RightAnalysisView>
 {
@@ -38,23 +45,33 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
+
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
+		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
+
+		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
+
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
 	bool isNeedReload = true;
-	
-	COLORREF bkgColor = RGB(255, 255, 255);	
-	COLORREF textColor = RGB(255, 255, 255);
-	CBrush bkgBrush;
+	bool isInitedPages = false;
 
+	COLORREF bkgColor = RGB(171, 171, 171);	
 	COLORREF topbarColor = RGB(17, 24, 39);
+	CBrush bkgBrush;	
 	CBrush topbarBrush ;
-	HFONT textFont;
 
 	QTabView tabView;
+	FirstPage firstPage;
 	SqlLogPage sqlLogPage;
+	std::vector<PerfAnalysisPage *> perfAnalysisPagePtrs;
 
+	SqlLogService * sqlLogService = SqlLogService::getInstance();
+
+	HICON firstIcon = nullptr;
 	HICON sqlLogIcon = nullptr;
+	HICON perfReportIcon = nullptr;
 	CImageList imageList;
 	void createImageList();
 
@@ -64,7 +81,9 @@ private:
 
 	void createOrShowUI();
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
+	void createOrShowFirstPage(FirstPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowSqlLogPage(SqlLogPage &win, CRect & clientRect, bool isAllowCreate = true);
+	void createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
 
 	void loadWindow();
 	void loadTabViewPages();
@@ -76,4 +95,10 @@ private:
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
+
+	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
+	LRESULT closeTabViewPage(int nPage);
+	void clearPerfAnalysisPagePtrs();
 };

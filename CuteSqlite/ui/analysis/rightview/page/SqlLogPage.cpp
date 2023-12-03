@@ -69,7 +69,7 @@ void SqlLogPage::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRe
 	int x = 2, y = rcLast.bottom + 10, w = clientRect.Width() - 4, h = clientRect.Height() - y - 33;
 	CRect rect = { x, y, x + w, y + h }; 
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.setup(&supplier);
+		win.setup(&queryPageSupplier);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL | WS_BORDER, 0, Config::DIALOG_SQL_LOG_LIST_ID);
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
@@ -81,8 +81,17 @@ void SqlLogPage::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRe
 void SqlLogPage::createOrShowPageElems(CRect & clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(sqlLogListBox.m_hWnd);
-	int x = 10, y = rcLast.bottom + 5, w = 80, h = 20 ;
+	int x = 10, y = rcLast.bottom + 5, w = 120, h = 20 ;
 	CRect rect = { x, y, x + w, y + h }; 
+	CString str;
+	if (pageLabel.IsWindow()) {
+		pageLabel.GetWindowText(str);
+	}
+	QWinCreater::createOrShowLabel(m_hWnd, pageLabel, str.GetString(), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	rect.OffsetRect(w + 5, 0);
+	w = 80;
+	rect.right = rect.left + w;
 	QWinCreater::createOrShowButton(m_hWnd, firstPageButton, Config::FIRST_PAGE_BUTTON_ID, S(L"first-page"), rect, clientRect);
 
 	rect.OffsetRect(w + 5, 0);
@@ -94,13 +103,6 @@ void SqlLogPage::createOrShowPageElems(CRect & clientRect)
 	rect.OffsetRect(w + 5, 0);
 	QWinCreater::createOrShowButton(m_hWnd, lastPageButton, Config::LAST_PAGE_BUTTON_ID, S(L"last-page"), rect, clientRect);
 
-	rect.OffsetRect(w + 10, 0);
-	rect.right = rect.left + 120;
-	CString str;
-	if (pageLabel.IsWindow()) {
-		pageLabel.GetWindowText(str);
-	}
-	QWinCreater::createOrShowLabel(m_hWnd, pageLabel, str.GetString(), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 }
 
 void SqlLogPage::loadWindow()
@@ -149,10 +151,11 @@ void SqlLogPage::loadSqlLogListBox(int page)
 	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
 	auto _begin = PerformUtil::begin();
 	
+	int enableBtns = SW_ANALYSIS_BTN | SW_COPY_BTN | SW_TOP_BTN | SW_DELELE_BTN ;
 	if (!topList.empty() && page == 1) {
 		sqlLogListBox.addGroup(L"Top");
 		for (auto & item : topList) {
-			sqlLogListBox.addItem(item);
+			sqlLogListBox.addItem(item, enableBtns);
 		}
 	}
 	
@@ -164,7 +167,7 @@ void SqlLogPage::loadSqlLogListBox(int page)
 		sqlLogListBox.addGroup(fmtDate, date);
 		SqlLogList dateList = sqlLogService->getFilteredListByDate(list, date);
 		for (auto & item : dateList) {			
-			sqlLogListBox.addItem(item);			
+			sqlLogListBox.addItem(item, enableBtns);
 		}		
 	}
 	sqlLogListBox.reloadVScroll();
@@ -276,6 +279,15 @@ LRESULT SqlLogPage::OnClickLastPageButton(UINT uNotifyCode, int nID, HWND hwnd)
 	return 0;
 }
 
+
+LRESULT SqlLogPage::OnClickAnalysisButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	// class chain : SqlLogPage(this)->QTabView->RightAnalysisView(Here)
+	HWND ppHwnd = GetParent().GetParent().m_hWnd; // RightAnalysisView
+	// wParam - userDbId, lParam = sql.c_str()
+	::PostMessage(ppHwnd, Config::MSG_ANALYSIS_SQL_ID, wParam, lParam);
+	return 0;
+}
 
 LRESULT SqlLogPage::OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

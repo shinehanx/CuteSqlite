@@ -22,17 +22,16 @@
 #include <chrono>
 #include "StringUtil.h"
 
-std::wregex SqlUtil::selectPat(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
+std::wregex SqlUtil::selectPat(L"^select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
+std::wregex SqlUtil::selectPat2(L"^with\\s(.*)\\sselect\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
 
 std::wregex SqlUtil::whereClausePat1(L"((where)\\s+.*)\\s+(order|group|limit|having|window)+(.*)?", std::wregex::icase);
-
 std::wregex SqlUtil::whereClausePat2(L"(where .*)+", std::wregex::icase);
 
 std::wregex SqlUtil::limitClausePat(L"(limit .*)+", std::wregex::icase);
 
 std::wregex SqlUtil::fourthClausePat(L"((order|group|limit|having|window)\\s+.*)+", std::wregex::icase);
 
-//std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?(([0-9a-zA-Z]|\\s|\\\"|\\s|,)+)\\\"?\\s+)", std::wregex::icase);
 std::wregex SqlUtil::primaryKeyPat(L"\\s+primary\\s+key\\s?\\(?(\\\"?([^(\\s|\\\"|\\s)]+)\\\"?\\s?)", std::wregex::icase);
 
 std::wregex SqlUtil::columnPat(L"(.*)\\s+\\[(.*)\\]+");
@@ -49,7 +48,7 @@ bool SqlUtil::isSelectSql(std::wstring & sql)
 		return false;
 	}
 
-	if (std::regex_search(sql, SqlUtil::selectPat)) {
+	if (std::regex_search(sql, SqlUtil::selectPat) || std::regex_search(sql, SqlUtil::selectPat2)) {
 		return true;
 	}
 	return false;

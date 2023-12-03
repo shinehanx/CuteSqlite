@@ -276,6 +276,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="HomeView.cpp" />
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\FirstPage.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\RightAnalysisView.cpp" />
     <ClCompile Include="ui\common\button\QImageTextButton.cpp" />
@@ -411,6 +413,8 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="HomeView.h" />
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\FirstPage.h" />
+    <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h" />
     <ClInclude Include="ui\analysis\rightview\RightAnalysisView.h" />
     <ClInclude Include="ui\common\adapter\QAdapter.h" />

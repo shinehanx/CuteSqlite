@@ -104,8 +104,17 @@ void SqlLogDialog::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & client
 void SqlLogDialog::createOrShowPageElems(CRect & clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(sqlLogListBox.m_hWnd);
-	int x = 10, y = rcLast.bottom + 5, w = 80, h = 20 ;
+	int x = 10, y = rcLast.bottom + 5, w = 120, h = 20 ;
 	CRect rect = { x, y, x + w, y + h }; 
+	CString str;
+	if (pageLabel.IsWindow()) {
+		pageLabel.GetWindowText(str);
+	}
+	QWinCreater::createOrShowLabel(m_hWnd, pageLabel, str.GetString(), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	rect.OffsetRect(w + 5, 0);
+	w = 80;
+	rect.right = rect.left + w;
 	QWinCreater::createOrShowButton(m_hWnd, firstPageButton, Config::FIRST_PAGE_BUTTON_ID, S(L"first-page"), rect, clientRect);
 
 	rect.OffsetRect(w + 5, 0);
@@ -116,10 +125,6 @@ void SqlLogDialog::createOrShowPageElems(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, 0);
 	QWinCreater::createOrShowButton(m_hWnd, lastPageButton, Config::LAST_PAGE_BUTTON_ID, S(L"last-page"), rect, clientRect);
-
-	rect.OffsetRect(w + 10, 0);
-	rect.right = rect.left + 120;
-	QWinCreater::createOrShowLabel(m_hWnd, pageLabel, L"", rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 }
 
 void SqlLogDialog::loadWindow()
@@ -168,10 +173,11 @@ void SqlLogDialog::loadSqlLogListBox(int page)
 	std::vector<std::wstring> dates = sqlLogService->getDatesFromList(list);
 	auto _begin = PerformUtil::begin();
 	
+	int enableBtns = SW_USE_BTN | SW_EXPLAIN_BTN | SW_COPY_BTN | SW_TOP_BTN | SW_DELELE_BTN;
 	if (!topList.empty() && page == 1) {
 		sqlLogListBox.addGroup(L"Top");
 		for (auto & item : topList) {
-			sqlLogListBox.addItem(item);
+			sqlLogListBox.addItem(item, enableBtns);
 		}
 	}
 	
@@ -183,7 +189,7 @@ void SqlLogDialog::loadSqlLogListBox(int page)
 		sqlLogListBox.addGroup(fmtDate, date);
 		SqlLogList dateList = sqlLogService->getFilteredListByDate(list, date);
 		for (auto & item : dateList) {			
-			sqlLogListBox.addItem(item);			
+			sqlLogListBox.addItem(item, enableBtns);
 		}		
 	}
 	sqlLogListBox.reloadVScroll();

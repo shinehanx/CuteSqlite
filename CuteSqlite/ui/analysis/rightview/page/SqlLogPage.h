@@ -43,8 +43,9 @@ public:
 		COMMAND_HANDLER_EX(Config::NEXT_PAGE_BUTTON_ID, BN_CLICKED, OnClickNextPageButton)
 		COMMAND_HANDLER_EX(Config::LAST_PAGE_BUTTON_ID, BN_CLICKED, OnClickLastPageButton)
 		
-		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_TOP_SQL_LOG_ID, OnClickTopButton)
-		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_DEL_SQL_LOG_ID, OnClickDeleteButton)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnClickAnalysisButton)
+		MESSAGE_HANDLER_EX(Config::MSG_TOP_SQL_LOG_ID, OnClickTopButton)
+		MESSAGE_HANDLER_EX(Config::MSG_DEL_SQL_LOG_ID, OnClickDeleteButton)
 		MESSAGE_HANDLER_EX(Config::MSG_SEARCH_BUTTON_ID, OnClickSearchButton)
 		MESSAGE_HANDLER_EX(Config::MSG_QUERY_PAGE_NEXT_PAGE_SQL_LOG_ID, OnLoadNextPageSqlLog)
 
@@ -74,7 +75,7 @@ private:
 	int perPage = 10;
 	std::wstring keyword;
 
-	QueryPageSupplier supplier;
+	QueryPageSupplier queryPageSupplier;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 
@@ -99,6 +100,7 @@ private:
 	LRESULT OnClickNextPageButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickLastPageButton(UINT uNotifyCode, int nID, HWND hwnd);
 
+	LRESULT OnClickAnalysisButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnClickTopButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnClickDeleteButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnClickSearchButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
