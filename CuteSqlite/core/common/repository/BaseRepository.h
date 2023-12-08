@@ -81,9 +81,9 @@ protected:
 	std::wstring limitClause(const QPagePair & pagePair);
 
 	//生成IN语句
-	std::wstring BaseRepository<T>::whereInClause(std::wstring field, std::vector<uint64_t> & vec);
+	std::wstring whereInClause(std::wstring field, std::vector<uint64_t> & vec);
 
-	void queryBind(QSqlStatement & query, QCondition & condition) const;	
+	void queryBind(QSqlStatement & query, QCondition & condition) const;
 };
 
 template <typename T>
@@ -371,3 +371,5 @@ void BaseRepository<T>::queryBind(QSqlStatement & query, QCondition & condition)
 
 
 #endif // BaseLocalRepository_H
+
+

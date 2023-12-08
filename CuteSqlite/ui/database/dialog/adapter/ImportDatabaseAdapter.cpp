@@ -67,7 +67,7 @@ bool ImportDatabaseAdapter::importFromSql(uint64_t userDbId, const std::wstring 
 		UserDb userDb = databaseService->getUserDb(userDbId);
 		std::wstring dbPath = userDb.path;
 		std::wstring cmdline;
-		std::wstring sqlite3exePath = L"sqlite3.exe";
+		std::wstring sqlite3exePath = L"sqlite3.exe"; 
 		
 		std::wstring importRepPath = importPath;
 		// If the file path contains spaces, assign a copy to the local tmp directory

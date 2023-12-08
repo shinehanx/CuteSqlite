@@ -401,7 +401,7 @@ std::wstring CopyTableAdapter::genderatePageDataSql(const DataList & pageDataLis
 		int j = 0;
 		for (auto val : row) {
 			if (j++ > 0) sql.append(cma) ;
-			(val == L"[NULL]") ? sql.append(nil) :
+			(val == L"[ NULL ]") ? sql.append(nil) :
 				sql.append(qua).append(StringUtil::escapeSql(val)).append(qua);
 		}
 		sql.append(cme);

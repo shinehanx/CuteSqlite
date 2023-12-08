@@ -32,4 +32,6 @@ public:
 	QSqlStatement tryExecSql(uint64_t userDbId, const std::wstring &sql);
 
 	int execSql(uint64_t userDbId, const std::wstring &sql);
+
+	DataList explainSql(uint64_t userDbId, const std::wstring &sql);
 };

@@ -185,6 +185,14 @@ typedef struct {
 } ResultInfo, SqlLog;
 // Store the sql log list for execute result
 typedef std::list<SqlLog> SqlLogList;
+
+typedef struct {
+	int tableNo;
+	uint64_t rootPage;
+	std::vector<std::wstring> columns;
+	std::vector<std::wstring> idxColumns;
+}TableIndexAnalysis;
+typedef std::vector<TableIndexAnalysis> TableIndexAnalysisVector;
 #endif
 
 // Support create/modify table
@@ -218,6 +226,19 @@ typedef enum {
 	STORE_ANALYSIS_PAGE,
 	DATABASE_PARAMS_PAGE
 } AnalysisPageType;
+
+// Explain sql statement column idx
+typedef enum  {
+	EXP_ADDR = 0, // addr
+	EXP_OPCODE, // opcode
+	EXP_P1,	// p1
+	EXP_P2,	// p2
+	EXP_P3,	// p3
+	EXP_P4,	// p4
+	EXP_P5,	// p5
+	EXP_COMMENT, //comment	
+
+} ExplainColumn;
 
 // use for select statement such as "tbl1 as m1 left join tbl2 as m2"
 typedef struct {

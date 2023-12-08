@@ -42,5 +42,4 @@ public:
 	void dropTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema);
 private:
 	UserTable toUserTable(QSqlStatement &query);
-	RowItem toRowItem(QSqlStatement &query);
 };

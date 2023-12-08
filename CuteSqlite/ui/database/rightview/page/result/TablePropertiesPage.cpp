@@ -26,11 +26,6 @@
 #include <core/common/exception/QSqlExecuteException.h>
 #include <ui/common/message/QPopAnimate.h>
 
-int TablePropertiesPage::cxChar = 5;
-int TablePropertiesPage::cyChar = 5;
-int TablePropertiesPage::iVscrollPos = 5;
-int TablePropertiesPage::vScrollPages = 5;
-
 void TablePropertiesPage::setup(QueryPageSupplier * supplier)
 {
 	this->supplier = supplier;
@@ -185,7 +180,7 @@ void TablePropertiesPage::createOrShowTitleElems(CRect & clientRect)
 
 	rect.OffsetRect(700 - rect.left - 60, 0);
 	rect.right = rect.left + 60;
-	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, S(L"refresh"), rect, clientRect);
+	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, S(L"refresh-page"), rect, clientRect);
 }
 
 void TablePropertiesPage::createOrShowColumnsSectionElems(CRect & clientRect)

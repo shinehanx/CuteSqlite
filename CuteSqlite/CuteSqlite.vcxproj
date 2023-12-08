@@ -128,7 +128,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -151,12 +151,13 @@
 
 xcopy res "$(OutDir)res" /Y /s
 
-
 xcopy ..\lib\libcurl\libcurl.dll "$(OutDir)" /Y
 
 xcopy ..\lib\sqlite3\sqlite3.dll "$(OutDir)" /Y
 
-xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
+xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y
+
+xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -204,7 +205,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -227,12 +228,13 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
 
 xcopy res "$(OutDir)res" /Y /s
 
-
 xcopy ..\lib\libcurl\libcurl.dll "$(OutDir)" /Y
 
 xcopy ..\lib\sqlite3\sqlite3.dll "$(OutDir)" /Y
 
-xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
+xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y
+
+xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -258,6 +260,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="core\repository\user\TableUserRepository.cpp" />
     <ClCompile Include="core\repository\user\TriggerUserRepository.cpp" />
     <ClCompile Include="core\repository\user\ViewUserRepository.cpp" />
+    <ClCompile Include="core\service\analysis\SelectSqlAnalysisService.cpp" />
     <ClCompile Include="core\service\db\DatabaseService.cpp" />
     <ClCompile Include="core\service\db\SqlService.cpp" />
     <ClCompile Include="core\service\db\TableService.cpp" />
@@ -276,9 +279,12 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClCompile Include="HomeView.cpp" />
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\FirstPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.cpp" />
     <ClCompile Include="ui\analysis\rightview\RightAnalysisView.cpp" />
     <ClCompile Include="ui\common\button\QImageTextButton.cpp" />
     <ClCompile Include="ui\common\button\QDropButton.cpp" />
@@ -400,6 +406,7 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="core\repository\user\TableUserRepository.h" />
     <ClInclude Include="core\repository\user\TriggerUserRepository.h" />
     <ClInclude Include="core\repository\user\ViewUserRepository.h" />
+    <ClInclude Include="core\service\analysis\SelectSqlAnalysisService.h" />
     <ClInclude Include="core\service\db\DatabaseService.h" />
     <ClInclude Include="core\service\db\SqlService.h" />
     <ClInclude Include="core\service\db\TableService.h" />
@@ -413,9 +420,12 @@ xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y</Command>
     <ClInclude Include="HomeView.h" />
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\FirstPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h" />
+    <ClInclude Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.h" />
     <ClInclude Include="ui\analysis\rightview\RightAnalysisView.h" />
     <ClInclude Include="ui\common\adapter\QAdapter.h" />
     <ClInclude Include="ui\common\button\QImageTextButton.h" />

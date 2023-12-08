@@ -399,6 +399,18 @@
     <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\service\analysis\SelectSqlAnalysisService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -831,6 +843,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\analysis\SelectSqlAnalysisService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

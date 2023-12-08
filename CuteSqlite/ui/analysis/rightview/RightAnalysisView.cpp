@@ -246,8 +246,8 @@ void RightAnalysisView::clearPerfAnalysisPagePtrs()
 			ptr->DestroyWindow();
 		}
 		if (ptr) {
-			delete ptr;
-			ptr = nullptr;
+			//delete ptr;
+			//ptr = nullptr;
 		}
 	}
 	perfAnalysisPagePtrs.clear();

@@ -92,7 +92,7 @@ protected:
 	TEXTMETRIC tm;
 	SCROLLINFO si;
 	int nHeightSum = 0;
-	static int cxChar, cyChar, iVscrollPos, vScrollPages;
+	int cxChar = 5, cyChar = 5, iVscrollPos = 5, vScrollPages = 5;
 	void initScrollBar(CSize & clientSize);
 
 	

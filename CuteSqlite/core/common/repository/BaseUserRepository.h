@@ -29,12 +29,26 @@ class BaseUserRepository : public BaseRepository<T>
 public:
 	QSqlDatabase * getUserConnect(uint64_t userDbId);
 	void closeUserConnect(uint64_t userDbId);
-private:
+protected:
 	
 	UserDb getUserDbById(uint64_t userDbId);
 	std::wstring initUserDbFile(uint64_t userDbId);
 	UserDb toUserDb(QSqlStatement &query);
+	
+	RowItem toRowItem(QSqlStatement &query);
 };
+
+template <typename T>
+RowItem BaseUserRepository<T>::toRowItem(QSqlStatement &query)
+{
+	RowItem rowItem;
+	int columnCount = query.getColumnCount();
+	for (int i = 0; i < columnCount; i++) {
+		std::wstring val = query.getColumn(i).isNull() ? L"[ NULL ]" : query.getColumn(i).getText();
+		rowItem.push_back(val);
+	}
+	return rowItem;
+}
 
 /**
 * Read dbName and dbPath from the table CuteSqlite.user_db

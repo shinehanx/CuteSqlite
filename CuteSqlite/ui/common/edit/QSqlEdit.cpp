@@ -51,7 +51,7 @@ const char sqlKeyWords[] =
 "join "
 "key "
 "language large last lateral leading left less level like "
-"limit local localtime localtimestamp locator "
+"limit local localtime localtimestamp locator rowid query plan "
 "map match merge minute modifies modify module month "
 "names national natural nchar nclob new next no none "
 "not null numeric pragma explain offset "

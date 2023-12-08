@@ -267,16 +267,3 @@ UserTable TableUserRepository::toUserTable(QSqlStatement &query)
 	item.tblName = query.getColumn(L"tbl_name").isNull() ? L"" : query.getColumn(L"tbl_name").getText();
 	return item;
 }
-
-RowItem TableUserRepository::toRowItem(QSqlStatement &query)
-{
-	RowItem rowItem;
-	int columnCount = query.getColumnCount();
-	for (int i = 0; i < columnCount; i++) {
-		std::wstring val = query.getColumn(i).isNull() ? L"[NULL]" : query.getColumn(i).getText();
-		rowItem.push_back(val);
-	}
-	return rowItem;
-}
-
-

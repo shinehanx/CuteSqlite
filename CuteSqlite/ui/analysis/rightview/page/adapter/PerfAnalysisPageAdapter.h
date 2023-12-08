@@ -20,22 +20,22 @@
 #pragma once
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
+#include "ui/analysis/rightview/page/supplier/PerfAnalysisSupplier.h"
+#include "core/service/analysis/SelectSqlAnalysisService.h"
 
 class PerfAnalysisPageAdapter : public QAdapter<PerfAnalysisPageAdapter, CWindow>
 {
 public:
-	PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view);
+	PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier = nullptr);
 	~PerfAnalysisPageAdapter();
-	void loadTreeView();
-private:
-	HICON perfAnalysisIcon = nullptr;
-	HICON storeAnalysisIcon = nullptr;
-	HICON dbParamsIcon = nullptr;
-	HICON folderIcon = nullptr;
-	HICON sqlLogIcon = nullptr;
-	HICON analysisReportIcon = nullptr;
-	
-	CImageList imageList;
 
-	void createImageList();
+	int getWhereClauseCount();
+	int getWhereColumnCount(const std::wstring& fromAddr, const std::wstring& toAddr);
+	int getWhereColumnCountForIdx(const std::wstring& idxOpCode);
+private:
+	PerfAnalysisSupplier * supplier = nullptr;
+	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();
+
+	void initSupplier();
+	
 };

@@ -49,3 +49,30 @@ int SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sq
 	}
 	return 0;
 }
+
+DataList SqlExecutorUserRepository::explainSql(uint64_t userDbId, const std::wstring &sql)
+{
+	DataList result;
+	std::wstring explainSql;
+	if (!StringUtil::startWith(sql, L"EXPLAIN")) {
+		explainSql = L"EXPLAIN ";
+		explainSql.append(sql);
+	} else {
+		explainSql = sql;
+	}
+	
+	try {
+		QSqlStatement query(getUserConnect(userDbId), explainSql.c_str());
+
+		while (query.executeStep()) {
+			RowItem rowItem = toRowItem(query);
+			result.push_back(rowItem);
+		}
+		return result;
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
+	}
+}
+

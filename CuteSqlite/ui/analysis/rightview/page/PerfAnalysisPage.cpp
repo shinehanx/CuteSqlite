@@ -33,60 +33,350 @@ BOOL PerfAnalysisPage::PreTranslateMessage(MSG* pMsg)
 
 PerfAnalysisPage::PerfAnalysisPage(uint64_t sqlLogId)
 {
-	this->sqlLogId = sqlLogId;
-	this->sqlLog = sqlLogService->getSqlLog(sqlLogId);
+	supplier.setSqlLogId(sqlLogId);
+	supplier.setSqlLog(sqlLogService->getSqlLog(sqlLogId));
+
 }
 
 
 uint64_t PerfAnalysisPage::getSqlLogId()
 {
-	return sqlLogId;
+	return supplier.getSqlLogId();
 }
 
 void PerfAnalysisPage::createOrShowUI()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
+	nHeightSum = 0;
+
+	createOrShowTitleElems(clientRect);
+	createOrShowOrigSqlEditor(clientRect);
+	createOrShowWhereAnalysisElems(clientRect);
+
+	// onSize will trigger init the v-scrollbar
+	CSize size(clientRect.Width(), clientRect.Height());
+	initScrollBar(size);
+}
+
+void PerfAnalysisPage::createOrShowTitleElems(CRect & clientRect)
+{
+	int x = 20, y = 15, w = 32, h = 32;
+	CRect rect(x, y, x + w, y + h);
+	createOrShowImage(titleImage, rect, clientRect);
+
+	rect.OffsetRect(32 + 10, 5);
+	rect.right = clientRect.Width() - 100;
+	
+	std::wstring title = S(L"analysis-text1");
+	createOrShowEdit(titleEdit, 0, title, rect, clientRect, 0);
+
+	rect.left = clientRect.Width() - 20 - 60;
+	rect.right = rect.left + 60;
+	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, S(L"refresh-page"), rect, clientRect);
+}
+
+void PerfAnalysisPage::createOrShowOrigSqlEditor(CRect &clientRect)
+{
+	CRect rcTop = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
+	int x = 20, y = rcTop.bottom + 30, w = 200, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, origSqlLabel, S(L"original-sql").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	rect.OffsetRect(0, h + 5);
+	rect.right = rect.left + clientRect.Width() - 40;
+	rect.bottom = rect.top + 100;
+	crateOrShowEditor(origSqlEditor, rect, clientRect);
+}
+
+void PerfAnalysisPage::crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clientRect)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		win.Create(m_hWnd, rect, 0); // cancel WS_EX_CLIENTEDGE ( 3D )
+		win.initEdit(10, _T("Courier New"));
+	}else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+		Q_INFO(L"QHelpEdit(editor),rect.w{}:{},rect.h:{}", rect.Width(), rect.Height());
+	}
+}
+
+
+void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
+{
+	int whereClauseCount = adapter->getWhereClauseCount();
+	if (!whereClauseCount) {
+		return;
+	}
+
+	CRect rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, whereAnalysisLabel, S(L"where-clause-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	createOrShowTableIdxElems(clientRect);
+}
+
+
+void PerfAnalysisPage::createOrShowTableIdxElems(CRect &clientRect)
+{
+	clearTableIdxElemPtrs();
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisLabel.m_hWnd);
+	int x = 20, y = rcLast.bottom + 20, w = clientRect.Width() - 40, h = 150;
+	CRect rect(x, y, x + w, y + h);
+
+	supplier.addTableIndexAnalysis(TableIndexAnalysis());
+	WhereAnalysisTableIdxElem * tableIdxElemPtr = new WhereAnalysisTableIdxElem(supplier.getTableIndexAnalysisVector().at(0));
+	tableIdxElemPtrs.push_back(tableIdxElemPtr);
+	createOrShowTableIdxElem(*tableIdxElemPtr, rect, clientRect);
+}
+
+void PerfAnalysisPage::createOrShowTableIdxElem(WhereAnalysisTableIdxElem & win, CRect & rect, CRect & clientRect)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
+		win.Create(m_hWnd, rect);	
+		return;
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
+}
+
+
+void PerfAnalysisPage::createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
+		std::wstring imgDir = ResourceUtil::getProductImagesDir();
+		std::wstring imgPath = imgDir + L"analysis\\page\\perf-analysis.png";
+		win.load(imgPath.c_str(), BI_PNG, true);
+		win.Create(m_hWnd, rect, L"", dwStyle , 0);
+		return;
+	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
+}
+
+void PerfAnalysisPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle /*= 0*/)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_TABSTOP;
+		if (exStyle) {
+			dwStyle |= exStyle;
+		}
+		win.Create(m_hWnd, rect, text.c_str(), dwStyle , 0, id);
+		win.SetReadOnly(TRUE);
+		win.SetWindowText(text.c_str());
+
+		return;
+	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+		win.SetWindowText(text.c_str());
+	}
+}
+
+
+void PerfAnalysisPage::clearTableIdxElemPtrs()
+{
+	for (auto ptr : tableIdxElemPtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+		}
+		if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+	tableIdxElemPtrs.clear();
+}
+
+void PerfAnalysisPage::loadWindow()
+{
+	if (!isNeedReload) {
+		return;
+	}
+	isNeedReload = false;
+	laodOrigSqlEditor();
+}
+
+void PerfAnalysisPage::laodOrigSqlEditor()
+{
+	origSqlEditor.addText(supplier.getSqlLog().sql);
 }
 
 int PerfAnalysisPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	bkgBrush.CreateSolidBrush(bkgColor);
-	textFont = FT(L"analysis-text-size");
-	sectionFont = FTB(L"analysis-section-size", true);
-	return 0;
+	bool ret = QPage::OnCreate(lpCreateStruct);
+	textFont = FT(L"form-text-size");
+	titleFont = FTB(L"properites-title-font", true);
+	sectionFont = FTB(L"properites-section-font", true);
+
+	linePen.CreatePen(PS_SOLID, 1, lineColor);
+	headerBrush.CreateSolidBrush(headerBkgColor);
+
+	adapter = new PerfAnalysisPageAdapter(m_hWnd, this, &supplier);
+
+	
+	return ret;
 }
 
 int PerfAnalysisPage::OnDestroy()
 {
-	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
+	bool ret = QPage::OnDestroy();
 	if (!textFont) ::DeleteObject(textFont);
-	if (!sectionFont) ::DeleteObject(sectionFont);
+	if (!sectionFont) ::DeleteObject(sectionFont); 
+
+	if (origSqlLabel.IsWindow()) origSqlLabel.DestroyWindow();
+	if (origSqlEditor.IsWindow()) origSqlEditor.DestroyWindow();
+	if (newSqlEditor.IsWindow()) newSqlEditor.DestroyWindow();
+
+	clearTableIdxElemPtrs();
+
+	if (adapter) delete adapter;	
+	return ret;
+}
+
+
+void PerfAnalysisPage::paintItem(CDC & dc, CRect & paintRect)
+{
+	dc.FillRect(paintRect, bkgColor);
+	int nPos = GetScrollPos(SB_VERT);
+	int x = 20, y = 15 + 32 + 10 - nPos * cyChar, w = paintRect.Width() - 2 * 20, h = 1;
+
+	HPEN oldPen = dc.SelectPen(linePen);
+	dc.MoveTo(x, y);
+	dc.LineTo(x + w, y);
+	dc.SelectPen(oldPen);
 
 	
+}
+
+void PerfAnalysisPage::initScrollBar(CSize & clientSize)
+{
+	if (clientSize.cx == 0 || clientSize.cy == 0 || nHeightSum == 0) {
+		return ;
+	}
+	int pageNums = nHeightSum % clientSize.cy ? 
+		nHeightSum / clientSize.cy + 1 : nHeightSum / clientSize.cy;
+	si.cbSize = sizeof(SCROLLINFO);   // setting the scrollbar
+
+	// change 3 values(SIF_RANGE: si.nMin, si.nMax, si.nPage; SIF_PAGE:si.nPage; SIF_POS: si.nPos)
+	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
+	si.nMin = 0; // must set si.fMask = SIF_RANGE
+	si.nMax = 100; // must set si.fMask = SIF_RANGE
+	si.nPos = 0; // must set si.fMask = SIF_POS
+
+	// must set si.fMask = SIF_PAGE
+	si.nPage = si.nMax % pageNums ? 
+		si.nMax / pageNums + 1 : si.nMax / pageNums;
+
+	vScrollPages = si.nPage;
+	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
+}
+
+LRESULT PerfAnalysisPage::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	UINT nSBCode = LOWORD(wParam);
+	int nPos = GetScrollPos(SB_VERT);
+	si.cbSize = sizeof(si);
+	si.fMask = SIF_ALL;
+	::GetScrollInfo(m_hWnd, SB_VERT, &si);
+	iVscrollPos = si.nPos;
+
+
+	switch (LOWORD(wParam))
+	{
+	case SB_LINEDOWN:
+		si.nPos  += 1;
+		break;
+	case SB_LINEUP:
+		si.nPos -= 1;
+		break;
+	case SB_PAGEDOWN:
+		si.nPos += vScrollPages;
+		break;
+	case SB_PAGEUP:
+		si.nPos -= vScrollPages;
+		break;
+	case SB_THUMBTRACK:
+		si.nPos = si.nTrackPos ;
+		break;
+	}
+	si.nPos = min(100 - vScrollPages, max(0, si.nPos));
+	si.fMask = SIF_POS;
+	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
+	::GetScrollInfo(m_hWnd, SB_VERT, &si);
+
+	if (iVscrollPos != si.nPos) {
+		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
+		Invalidate(true);
+	}
+	 return 0;
+}
+
+
+LRESULT PerfAnalysisPage::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	int fwKeys = GET_KEYSTATE_WPARAM(wParam);
+	short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+	
+	if (zDelta == 120) { // 正向
+		WPARAM newParam = MAKEWPARAM(SB_LINEUP, 0) ;
+		OnVScroll(0, newParam, NULL, bHandled);
+	}else if (zDelta == -120) { // 反向
+		WPARAM newParam = MAKEWPARAM(SB_LINEDOWN, 0) ;
+		OnVScroll(0, newParam, NULL, bHandled);
+	}
 	return 0;
 }
 
-void PerfAnalysisPage::OnSize(UINT nType, CSize size)
-{
-	createOrShowUI();
-}
 
-void PerfAnalysisPage::OnShowWindow(BOOL bShow, UINT nStatus)
+LRESULT PerfAnalysisPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
+	nHeightSum = 0;
 
-}
-
-void PerfAnalysisPage::OnPaint(CDCHandle dc)
-{
-	CPaintDC pdc(m_hWnd);
-	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
 	CRect clientRect;
 	GetClientRect(clientRect);
-	mdc.FillRect(&pdc.m_ps.rcPaint, bkgBrush.m_hBrush);
+	
+	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
+	si.nMin = 0; // must set si.fMask = SIF_RANGE
+	si.nMax = 100; // must set si.fMask = SIF_RANGE
+	si.nPos = 0; // must set si.fMask = SIF_POS
+
+	// must set si.fMask = SIF_PAGE
+	si.nPage = 1;
+	vScrollPages = si.nPage;
+	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
+
+	createOrShowUI();
+	Invalidate(true);
+	return 0;
 }
 
-BOOL PerfAnalysisPage::OnEraseBkgnd(CDCHandle dc)
+HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
-	return true;
+	::SetBkColor(hdc, bkgColor);
+	if (hwnd == origSqlLabel.m_hWnd) {
+		::SetTextColor(hdc, sectionColor); 
+		::SelectObject(hdc, sectionFont);
+	}else if (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd) {
+		::SetTextColor(hdc, sectionColor); 
+		::SelectObject(hdc, sectionFont);
+	}  else {
+		::SetTextColor(hdc, textColor); 
+		::SelectObject(hdc, textFont);
+	}
+	
+	return bkgBrush.m_hBrush;
+}
+
+HBRUSH PerfAnalysisPage::OnCtlBtnColor(HDC hdc, HWND hwnd)
+{
+	::SetBkColor(hdc, btnBkgColor);
+	::SetTextColor(hdc, textColor); 
+	::SelectObject(hdc, textFont);
+	return bkgBrush.m_hBrush;
 }
