@@ -29,6 +29,7 @@ public:
 
 	UserTableList getListByUserDbId(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	UserTable getTable(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
+	UserTable getByRootPage(uint64_t userDbId, uint64_t rootpage);
 
 	uint64_t getDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	DataList getPageDataList(uint64_t userDbId, const std::wstring & tblName, int page, int perpage, const std::wstring & schema = std::wstring());

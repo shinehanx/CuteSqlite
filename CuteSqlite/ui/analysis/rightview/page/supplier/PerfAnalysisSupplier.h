@@ -33,17 +33,21 @@ public:
 	const SqlLog & getSqlLog() { return sqlLog; }
 	void setSqlLog(const SqlLog & val) { sqlLog = val; }
 
-	const DataList & getRuntimeExplainDataList()  { return runtimeExplainDataList; }
-	void setRuntimeExplainDataList(const DataList & val) { runtimeExplainDataList = val; }
+	const DataList & getExplainDataList()  { return explainDataList; }
+	void setExplainDataList(const DataList & val) { explainDataList = val; }
 
-	const TableIndexAnalysisVector & getTableIndexAnalysisVector() { return tableIndexAnalysisVector; }
-	void setTableIndexAnalysisVector(const TableIndexAnalysisVector & val) { tableIndexAnalysisVector = val; }
-	void addTableIndexAnalysis(TableIndexAnalysis & item); 
+	const ByteCodeResults & getByteCodeResults() { return byteCodeResults; }
+	void setByteCodeResults(const ByteCodeResults & val) { byteCodeResults = val; }
+	void addByteCodeResult(ByteCodeResult & item); 
+
+	const ExplainQueryPlans & getExplainQueryPlans()  { return explainQueryPlans; }
+	void setExplainQueryPlans(const ExplainQueryPlans & val) { explainQueryPlans = val; }
 private:
 	uint64_t sqlLogId = 0;
 	SqlLog sqlLog;
-	TableIndexAnalysisVector tableIndexAnalysisVector;
+	ByteCodeResults byteCodeResults;
+	ExplainQueryPlans explainQueryPlans;
 
-	DataList runtimeExplainDataList;
+	DataList explainDataList;
 };
 

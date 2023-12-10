@@ -62,7 +62,6 @@ IndexInfoList IndexUserRepository::getInfoListByTblName(uint64_t userDbId, const
 	sql.append(L"index_list(").append(L"\"").append(tblName).append(L"\")");
 	try {
 		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
-		query.bind(L":tbl_name", tblName);
 
 		while (query.executeStep()) {
 			IndexInfo item = toIndexInfo(query);
@@ -120,6 +119,52 @@ UserIndex IndexUserRepository::getByRowId(uint64_t userDbId, uint64_t rowId)
 	}
 }
 
+
+
+UserIndex IndexUserRepository::getByIndexName(uint64_t userDbId, const std::wstring &idxName, const std::wstring & schema /*= std::wstring()*/)
+{
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
+	std::wstring sql = L"SELECT \"rowid\", * FROM ";
+	sql.append(L"\"sqlite_master\"");
+	sql.append(L" WHERE type='index' AND name=:name ORDER BY name ASC");
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":name", idxName);
+		if (query.executeStep()) {
+			UserIndex item = toUserIndex(query);
+			return item;
+		}
+		return UserIndex();
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
+	}
+}
+
+PragmaIndexColumns IndexUserRepository::getPragmaIndexColumns(uint64_t userDbId, const std::wstring &indexName)
+{
+	PragmaIndexColumns result;
+	//std::wstring sql = L"SELECT * FROM sqlite_master WHERE type='index' and tbl_name=:tbl_name ORDER BY name ASC";
+	std::wstring sql = L"PRAGMA ";
+	
+	sql.append(L"index_info(").append(L"\"").append(indexName).append(L"\")");
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+
+		while (query.executeStep()) {
+			PragmaIndexColumn item = toPragmaIndexColumn(query);
+			result.push_back(item);
+		}
+		return result;
+	}
+	catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
+	}
+}
+
 UserIndex IndexUserRepository::toUserIndex(QSqlStatement &query)
 {
 	UserIndex item;
@@ -134,8 +179,16 @@ IndexInfo IndexUserRepository::toIndexInfo(QSqlStatement &query)
 {
 	IndexInfo item;
 	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
-	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
+	item.un = query.getColumn(L"unique").isNull() ? 0 : query.getColumn(L"unique").getInt();
 	return item;
 }
 
+PragmaIndexColumn IndexUserRepository::toPragmaIndexColumn(QSqlStatement &query)
+{
+	PragmaIndexColumn item;
+	item.seqno = query.getColumn(L"seqno").isNull() ? 0 : query.getColumn(L"seqno").getInt();
+	item.cid = query.getColumn(L"cid").isNull() ? 0 : query.getColumn(L"cid").getInt();
+	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
+	return item;
+}
 

@@ -34,4 +34,8 @@ public:
 	int execSql(uint64_t userDbId, const std::wstring &sql);
 
 	DataList explainSql(uint64_t userDbId, const std::wstring &sql);
+	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring &sql);
+
+private:
+	ExplainQueryPlan toExplainQueryPlan(QSqlStatement &query);
 };

@@ -21,9 +21,10 @@
 #include "WhereAnalysisTableIdxElem.h"
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
+#include "utils/StringUtil.h"
 
-WhereAnalysisTableIdxElem::WhereAnalysisTableIdxElem(const TableIndexAnalysis & _tableIndexAnalysis)
-	: tableIndexAnalysis(_tableIndexAnalysis)
+WhereAnalysisTableIdxElem::WhereAnalysisTableIdxElem(const ByteCodeResult & _byteCodeResult)
+	: byteCodeResult(_byteCodeResult)
 {
 	
 }
@@ -40,7 +41,8 @@ void WhereAnalysisTableIdxElem::OnDestroy()
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
 
-	if (tableColumnLabel.IsWindow()) tableColumnLabel.DestroyWindow();
+	if (useColsLabel.IsWindow()) useColsLabel.DestroyWindow();
+	if (useIdxLabel.IsWindow()) useIdxLabel.DestroyWindow();
 	if (createIdxForPerfLabel.IsWindow()) createIdxForPerfLabel.DestroyWindow();
 	if (createIdxTogetherButton.IsWindow()) createIdxTogetherButton.DestroyWindow();
 	if (createIdxIndividButton.IsWindow()) createIdxIndividButton.DestroyWindow();
@@ -89,6 +91,25 @@ HBRUSH WhereAnalysisTableIdxElem::OnCtlBtnColor(HDC hdc, HWND hwnd)
 	return bkgBrush.m_hBrush;
 }
 
+
+bool WhereAnalysisTableIdxElem::isEqualColumns(std::vector<std::wstring> whereColumns, std::vector<std::pair<int, std::wstring>> indexColumns)
+{
+	if (whereColumns.size() != indexColumns.size()) {
+		return false;
+	}
+	size_t n = whereColumns.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & columnName = whereColumns.at(i);
+		auto iter = std::find_if(indexColumns.begin(), indexColumns.end(), [&columnName](const auto & idx) {
+			return columnName == idx.second;
+		});
+		if (iter == indexColumns.end()) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void WhereAnalysisTableIdxElem::createOrShowUI()
 {
 	CRect clientRect;
@@ -101,31 +122,94 @@ void WhereAnalysisTableIdxElem::createOrShowUI()
 
 void WhereAnalysisTableIdxElem::createOrShowLabels(CRect & clientRect)
 {
-	std::wstring text1 = S(L"where-use-table-column");
-	std::wstring text2 = S(L"create-index-for-performance");
+	std::wstring text1 = S(L"in-table");
+	std::wstring text2 = S(L"where-use-column");
+	std::wstring text3 = S(L"where-use-index");
+	std::wstring text4 = S(L"create-index-for-performance");
 
-	int x = 5, y = 5, w = clientRect.Width() - 10, h = 20;
+	int x = 5, y = 0, w = clientRect.Width() - 10, h = 20;
 	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowLabel(m_hWnd, tableColumnLabel, text1, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	std::wstring tblName = L"\"" + byteCodeResult.name + L"\"";
+	text1.append(L": ").append(tblName);
+	QWinCreater::createOrShowLabel(m_hWnd, tableLabel, text1, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	rect.OffsetRect(0, h + 5);
-	QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text2, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	std::wstring columns = L"NONE";
+	if (!byteCodeResult.whereColumns.empty()) {
+		columns = StringUtil::implode(byteCodeResult.whereColumns, L",");
+		columns = StringUtil::addSymbolToWords(columns, L",", L"\"");
+	}
+	text2.append(L": ").append(columns);
+	QWinCreater::createOrShowLabel(m_hWnd, useColsLabel, text2, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	text3.append(L":");
+	if (!byteCodeResult.useIndexes.empty()) {		
+		std::wstring idxText;
+		int i = 0,j = 0;
+		for (auto & item : byteCodeResult.useIndexes) {
+			if (i++)  idxText.append(L","); 
+			idxText.append(L"\"").append(item.second).append(L"\" (using: ");
+			j = 0;
+			for (auto &col : byteCodeResult.indexColumns) {
+				if (col.first != item.first)  continue;
+				if (j++)  idxText.append(L",");			
+				idxText.append(L"\"").append(col.second).append(L"\"");				
+			}
+			idxText.append(L")");
+		}
+		text3.append(idxText);
+	} else {
+		text3.append(L"NONE");
+	}
+	rect.OffsetRect(0, h + 5);
+	QWinCreater::createOrShowLabel(m_hWnd, useIdxLabel, text3, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	if (!isEqualColumns(byteCodeResult.whereColumns, byteCodeResult.indexColumns)) {
+		rect.OffsetRect(0, h + 5);
+		QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	}
 }
 
 void WhereAnalysisTableIdxElem::createOrShowCheckBoxes(CRect & clientRect)
 {
+	if (isEqualColumns(byteCodeResult.whereColumns, byteCodeResult.indexColumns)) {
+		return ;
+	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(createIdxForPerfLabel.m_hWnd);
 	int x = 10, y = rcLast.bottom + 5, w = 150, h = 20;
 	CRect rect(x, y, x + w, y + h);
-	CButton * columnCheckBoxPtr = new CButton();
-	std::wstring text = L"Column1";
-	QWinCreater::createOrShowCheckBox(m_hWnd, *columnCheckBoxPtr, 0, text, rect, clientRect);
-	tableColumnCheckBoxPtrs.push_back(columnCheckBoxPtr);
+	for (auto & column : byteCodeResult.whereColumns) {
+		auto iter = std::find_if(tableColumnCheckBoxPtrs.begin(), tableColumnCheckBoxPtrs.end(), [&column](const auto & ptr) {
+			if (!ptr || !ptr->IsWindow()) {
+				return false;
+			}
+			CString str;
+			ptr->GetWindowText(str);
+			return column == str.GetString();
+		});
+
+		if (iter != tableColumnCheckBoxPtrs.end()) {
+			QWinCreater::createOrShowCheckBox(m_hWnd, **iter, 0, column, rect, clientRect);
+			rect.OffsetRect(w + 10, 0);
+			continue;
+		}
+		CButton * columnCheckBoxPtr = new CButton();
+		QWinCreater::createOrShowCheckBox(m_hWnd, *columnCheckBoxPtr, 0, column, rect, clientRect);
+		tableColumnCheckBoxPtrs.push_back(columnCheckBoxPtr);
+		rect.OffsetRect(w + 10, 0);
+	}
+	
 }
 
 
 void WhereAnalysisTableIdxElem::createOrShowButtons(CRect & clientRect)
 {
+	if (tableColumnCheckBoxPtrs.empty()) {
+		return;
+	}
+	if (isEqualColumns(byteCodeResult.whereColumns, byteCodeResult.indexColumns)) {
+		return ;
+	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(tableColumnCheckBoxPtrs.back()->m_hWnd);
 	int x = clientRect.Width() - 20 - 180, y = rcLast.bottom + 5, w = 180, h = 30;
 	CRect rect(x, y, x + w, y + h);
@@ -161,3 +245,5 @@ void WhereAnalysisTableIdxElem::clearTableColumnCheckBoxPtrs()
 	}
 	tableColumnCheckBoxPtrs.clear();
 }
+
+

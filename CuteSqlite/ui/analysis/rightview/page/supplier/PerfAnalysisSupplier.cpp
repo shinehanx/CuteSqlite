@@ -21,7 +21,7 @@
 #include "PerfAnalysisSupplier.h"
 
 
-void PerfAnalysisSupplier::addTableIndexAnalysis(TableIndexAnalysis & item)
+void PerfAnalysisSupplier::addByteCodeResult(ByteCodeResult & item)
 {
-	tableIndexAnalysisVector.push_back(item);
+	byteCodeResults.push_back(item);
 }

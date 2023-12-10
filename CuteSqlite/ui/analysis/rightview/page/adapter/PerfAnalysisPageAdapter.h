@@ -28,10 +28,6 @@ class PerfAnalysisPageAdapter : public QAdapter<PerfAnalysisPageAdapter, CWindow
 public:
 	PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier = nullptr);
 	~PerfAnalysisPageAdapter();
-
-	int getWhereClauseCount();
-	int getWhereColumnCount(const std::wstring& fromAddr, const std::wstring& toAddr);
-	int getWhereColumnCountForIdx(const std::wstring& idxOpCode);
 private:
 	PerfAnalysisSupplier * supplier = nullptr;
 	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();

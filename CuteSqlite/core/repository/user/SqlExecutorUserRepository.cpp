@@ -54,11 +54,13 @@ DataList SqlExecutorUserRepository::explainSql(uint64_t userDbId, const std::wst
 {
 	DataList result;
 	std::wstring explainSql;
-	if (!StringUtil::startWith(sql, L"EXPLAIN")) {
+	if (StringUtil::startWith(sql, L"EXPLAIN QUERY PLAN")) {
+		explainSql = StringUtil::replace(sql, L"EXPLAIN QUERY PLAN", L"EXPLAIN", true);
+	}else if (StringUtil::startWith(sql, L"EXPLAIN")) {
+		explainSql = sql;
+	} else {
 		explainSql = L"EXPLAIN ";
 		explainSql.append(sql);
-	} else {
-		explainSql = sql;
 	}
 	
 	try {
@@ -74,5 +76,43 @@ DataList SqlExecutorUserRepository::explainSql(uint64_t userDbId, const std::wst
 		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
 		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
 	}
+}
+
+ExplainQueryPlans SqlExecutorUserRepository::explainQueryPlanSql(uint64_t userDbId, const std::wstring &sql)
+{
+	ExplainQueryPlans results;
+	std::wstring explainSql;
+	if (StringUtil::startWith(sql, L"EXPLAIN QUERY PLAN")) {
+		explainSql = sql;		
+	} else if (StringUtil::startWith(sql, L"EXPLAIN")) {
+		explainSql = StringUtil::replace(sql, L"EXPLAIN", L"EXPLAIN QUERY PLAN", true);
+	} else {
+		explainSql = L"EXPLAIN QUERY PLAN ";
+		explainSql.append(sql);
+	}
+	
+	try {
+		QSqlStatement query(getUserConnect(userDbId), explainSql.c_str());
+
+		while (query.executeStep()) {
+			auto item = toExplainQueryPlan(query);
+			results.push_back(item);
+		}
+		return results;
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
+	}
+}
+
+ExplainQueryPlan SqlExecutorUserRepository::toExplainQueryPlan(QSqlStatement &query)
+{
+	ExplainQueryPlan item;
+	item.id = query.getColumn(L"id").isNull() ? 0 : query.getColumn(L"id").getInt();
+	item.parent = query.getColumn(L"parent").isNull() ? 0 : query.getColumn(L"parent").getInt();
+	item.notused = query.getColumn(L"notused").isNull() ? 0 : query.getColumn(L"notused").getInt();
+	item.detail = query.getColumn(L"detail").isNull() ? L"" : query.getColumn(L"detail").getText();
+	return item;
 }
 

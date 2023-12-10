@@ -71,10 +71,16 @@ private:
 	CEdit titleEdit;
 	QImageButton refreshButton;
 
+	// orignal sql statement
 	CStatic origSqlLabel;
 	QSqlEdit origSqlEditor;
 	QSqlEdit newSqlEditor;
 
+	// Explain query plan
+	CStatic explainQueryPlanLabel;
+	std::vector<CStatic *> expQueryPlanPtrs;
+
+	// WHERE clause analysis
 	CStatic whereAnalysisLabel;
 	std::vector<WhereAnalysisTableIdxElem *> tableIdxElemPtrs;
 	
@@ -93,12 +99,14 @@ private:
 	void createOrShowTitleElems(CRect & clientRect);
 	void createOrShowOrigSqlEditor(CRect &clientRect);
 	void crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clientRect);
+	void createOrShowExpQueryPlanElems(CRect &clientRect);
 	void createOrShowWhereAnalysisElems(CRect &clientRect);
 	void createOrShowTableIdxElems(CRect &clientRect);
 	void createOrShowTableIdxElem(WhereAnalysisTableIdxElem & win, CRect & rect, CRect & clientRect);
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 
+	void clearExpQueryPlanPtrs();
 	void clearTableIdxElemPtrs();
 
 	virtual void loadWindow();

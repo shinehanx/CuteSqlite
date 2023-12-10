@@ -52,6 +52,7 @@ void PerfAnalysisPage::createOrShowUI()
 
 	createOrShowTitleElems(clientRect);
 	createOrShowOrigSqlEditor(clientRect);
+	createOrShowExpQueryPlanElems(clientRect);
 	createOrShowWhereAnalysisElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
@@ -102,14 +103,50 @@ void PerfAnalysisPage::crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clie
 }
 
 
-void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
+void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 {
-	int whereClauseCount = adapter->getWhereClauseCount();
-	if (!whereClauseCount) {
+	ExplainQueryPlans queryPlans = supplier.getExplainQueryPlans();
+	if (queryPlans.empty()) {
 		return;
 	}
 
 	CRect rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	int x = 20, y = rectLast.bottom + 20, w = w = clientRect.Width() - 40, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, explainQueryPlanLabel, S(L"explain-query-plan").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	
+	size_t i = 0;
+	for (auto & item : queryPlans) {
+		rect.OffsetRect(0, h + 10);
+		if (expQueryPlanPtrs.size() > i) {
+			auto ptr = expQueryPlanPtrs.at(i);
+			if (ptr && ptr->IsWindow()) {
+				ptr->MoveWindow(rect);
+				i++;
+				continue;
+			}			
+		}
+		CStatic * ptr = new CStatic();
+		QWinCreater::createOrShowLabel(m_hWnd, *ptr, item.detail, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+		expQueryPlanPtrs.push_back(ptr);
+		i++;
+	}
+}
+
+void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
+{
+	size_t n = supplier.getByteCodeResults().size();
+	if (!n) {
+		return;
+	}
+
+	CRect rectLast;
+	if (expQueryPlanPtrs.size()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(expQueryPlanPtrs.back()->m_hWnd);
+	} else {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	}
 	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowLabel(m_hWnd, whereAnalysisLabel, S(L"where-clause-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
@@ -120,22 +157,38 @@ void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
 
 void PerfAnalysisPage::createOrShowTableIdxElems(CRect &clientRect)
 {
-	clearTableIdxElemPtrs();
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisLabel.m_hWnd);
-	int x = 20, y = rcLast.bottom + 20, w = clientRect.Width() - 40, h = 150;
+	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 180;
 	CRect rect(x, y, x + w, y + h);
 
-	supplier.addTableIndexAnalysis(TableIndexAnalysis());
-	WhereAnalysisTableIdxElem * tableIdxElemPtr = new WhereAnalysisTableIdxElem(supplier.getTableIndexAnalysisVector().at(0));
-	tableIdxElemPtrs.push_back(tableIdxElemPtr);
-	createOrShowTableIdxElem(*tableIdxElemPtr, rect, clientRect);
+	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
+	for (auto & item : byteCodeResults) {
+		if (item.type != L"table") {
+			continue;
+		}
+		auto iter = std::find_if(tableIdxElemPtrs.begin(), tableIdxElemPtrs.end(), [&item](auto ptr) {
+			return ptr->getByteCodeResult().no == item.no;
+		});
+		
+		if (iter != tableIdxElemPtrs.end()) {
+			createOrShowTableIdxElem(*(*iter), rect, clientRect);
+			rect.OffsetRect(0, h + 10);
+			continue;
+		}
+		WhereAnalysisTableIdxElem * tableIdxElemPtr = new WhereAnalysisTableIdxElem(item);
+		createOrShowTableIdxElem(*tableIdxElemPtr, rect, clientRect);
+		tableIdxElemPtrs.push_back(tableIdxElemPtr);
+		rect.OffsetRect(0, h + 10);
+		
+	}
+	
 }
 
 void PerfAnalysisPage::createOrShowTableIdxElem(WhereAnalysisTableIdxElem & win, CRect & rect, CRect & clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS | SS_NOTIFY; // SS_NOTIFY - 表示static接受点击事件
-		win.Create(m_hWnd, rect);	
+		win.Create(m_hWnd, rect);
 		return;
 	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
@@ -178,6 +231,20 @@ void PerfAnalysisPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring 
 	}
 }
 
+
+void PerfAnalysisPage::clearExpQueryPlanPtrs()
+{
+	for (auto ptr : expQueryPlanPtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+		}
+		if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+	expQueryPlanPtrs.clear();
+}
 
 void PerfAnalysisPage::clearTableIdxElemPtrs()
 {
@@ -233,6 +300,7 @@ int PerfAnalysisPage::OnDestroy()
 	if (origSqlEditor.IsWindow()) origSqlEditor.DestroyWindow();
 	if (newSqlEditor.IsWindow()) newSqlEditor.DestroyWindow();
 
+	clearExpQueryPlanPtrs();
 	clearTableIdxElemPtrs();
 
 	if (adapter) delete adapter;	
@@ -362,7 +430,8 @@ HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 	if (hwnd == origSqlLabel.m_hWnd) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
-	}else if (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd) {
+	}else if ((explainQueryPlanLabel.IsWindow() && hwnd == explainQueryPlanLabel.m_hWnd)
+		|| (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd)) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
 	}  else {

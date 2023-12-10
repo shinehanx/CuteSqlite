@@ -37,10 +37,11 @@ public:
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
-	WhereAnalysisTableIdxElem(const TableIndexAnalysis & _tableIndexAnalysis);
+	WhereAnalysisTableIdxElem(const ByteCodeResult & _byteCodeResult);
+	const ByteCodeResult & getByteCodeResult() const { return byteCodeResult; }
 private:
 	bool isNeedReload = true;
-	const TableIndexAnalysis & tableIndexAnalysis;
+	const ByteCodeResult & byteCodeResult;
 
 	//COLORREF bkgColor = RGB(238, 238, 238);	
 	COLORREF bkgColor = RGB(255, 255, 255);
@@ -50,7 +51,9 @@ private:
 	CBrush bkgBrush;
 	HFONT textFont = nullptr;
 
-	CStatic tableColumnLabel;
+	CStatic tableLabel;
+	CStatic useColsLabel;
+	CStatic useIdxLabel;
 	CStatic createIdxForPerfLabel;
 	std::vector<CButton *> tableColumnCheckBoxPtrs;
 	CButton createIdxTogetherButton;
@@ -73,5 +76,5 @@ private:
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlBtnColor(HDC hdc, HWND hwnd);
 	
-	
+	bool isEqualColumns(std::vector<std::wstring> whereColumns, std::vector<std::pair<int, std::wstring>> indexColumns);
 };

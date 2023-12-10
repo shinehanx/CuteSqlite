@@ -75,6 +75,27 @@ UserTable TableUserRepository::getTable(uint64_t userDbId, const std::wstring & 
 	}
 }
 
+UserTable TableUserRepository::getByRootPage(uint64_t userDbId, uint64_t rootpage)
+{
+	UserTable result;
+	// sql : SELECT * FROM sqlite_master WHERE type='table' and name=:name ORDER BY name ASC
+	std::wstring sql = L"SELECT * FROM \"sqlite_master\"";
+	sql.append(L" WHERE rootpage=:rootpage ORDER BY name ASC");
+	try {
+		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
+		query.bind(L":rootpage", rootpage);
+
+		if (query.executeStep()) {
+			result = toUserTable(query);
+		}
+		return result;
+	} catch (SQLite::QSqlException &ex) {
+		std::wstring _err = ex.getErrorStr();
+		Q_ERROR(L"query db has error:{}, msg:{}", ex.getErrorCode(), _err);
+		throw QSqlExecuteException(std::to_wstring(ex.getErrorCode()), ex.getErrorStr(), sql);
+	}
+}
+
 uint64_t TableUserRepository::getDataCount(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema)
 {
 	uint64_t n = 0;
@@ -262,8 +283,10 @@ void TableUserRepository::dropTable(uint64_t userDbId, const std::wstring & tblN
 UserTable TableUserRepository::toUserTable(QSqlStatement &query)
 {
 	UserTable item;
+	item.type = query.getColumn(L"type").isNull() ? L"" : query.getColumn(L"type").getText();
 	item.name = query.getColumn(L"name").isNull() ? L"" : query.getColumn(L"name").getText();
-	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
 	item.tblName = query.getColumn(L"tbl_name").isNull() ? L"" : query.getColumn(L"tbl_name").getText();
+	item.rootpage = query.getColumn(L"rootpage").isNull() ? 0 : query.getColumn(L"rootpage").getInt64();
+	item.sql = query.getColumn(L"sql").isNull() ? L"" : query.getColumn(L"sql").getText();
 	return item;
 }

@@ -58,15 +58,24 @@ typedef std::vector<UserDb> UserDbList;
 // tables,views,triggers,index
 typedef struct {
 	uint64_t rowId = 0;
+	std::wstring type;
 	std::wstring name;
-	std::wstring sql;
 	std::wstring tblName;
+	uint64_t rootpage = 0;
+	std::wstring sql;	
 } UserTable, UserView, UserTrigger, UserIndex;
 
 typedef std::vector<UserTable> UserTableList;
 typedef std::vector<UserView> UserViewList;
 typedef std::vector<UserTrigger> UserTriggerList;
 typedef std::vector<UserIndex> UserIndexList;
+
+typedef struct {
+	int seqno = 0;
+	int cid = 0;
+	std::wstring name;
+} PragmaIndexColumn;
+typedef std::vector<PragmaIndexColumn> PragmaIndexColumns;
 
 // table fields
 typedef struct {
@@ -186,13 +195,28 @@ typedef struct {
 // Store the sql log list for execute result
 typedef std::list<SqlLog> SqlLogList;
 
+// Explain query plan
 typedef struct {
-	int tableNo;
+	int id = 0;
+	int parent = 0;
+	int notused = 0;
+	std::wstring detail;
+} ExplainQueryPlan;
+typedef std::vector<ExplainQueryPlan> ExplainQueryPlans;
+
+// Explain sql to this struct
+typedef struct {
+	int no; // OpenRead/OpenWrite p1
+	std::wstring addr;
+	std::wstring name;
+	std::wstring type; // index, table, view, trigger
 	uint64_t rootPage;
-	std::vector<std::wstring> columns;
-	std::vector<std::wstring> idxColumns;
-}TableIndexAnalysis;
-typedef std::vector<TableIndexAnalysis> TableIndexAnalysisVector;
+	std::vector<std::pair<int, std::wstring>> useIndexes; // useing index in this table, pair item params: first(int) - index no, second(std::wstring) - index name
+	std::vector<std::wstring> whereColumns; // where clause used columns in this table
+	std::vector<std::pair<int, std::wstring>> indexColumns; // using index columns in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+} ByteCodeResult;
+typedef std::vector<ByteCodeResult> ByteCodeResults;
+
 #endif
 
 // Support create/modify table

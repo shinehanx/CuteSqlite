@@ -31,7 +31,10 @@ public:
 	IndexInfoList getInfoListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema = std::wstring());
 	UserIndexList getListByUserDbId(uint64_t userDbId);
 	UserIndex getByRowId(uint64_t userDbId, uint64_t rowId);
+	UserIndex getByIndexName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema = std::wstring());
+	PragmaIndexColumns getPragmaIndexColumns(uint64_t userDbId, const std::wstring &indexName);
 private:
 	UserIndex toUserIndex(QSqlStatement &query);
 	IndexInfo toIndexInfo(QSqlStatement &query);
+	PragmaIndexColumn toPragmaIndexColumn(QSqlStatement &query);
 };
