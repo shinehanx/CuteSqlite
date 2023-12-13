@@ -145,17 +145,17 @@ LRESULT LeftPanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	createAnalysisButton();
 
 	//view°´Å¥
-	createViewButton();
+	// createViewButton();
 
 	//setting°´Å¥
-	createSettingButton();
+	//createSettingButton();
 
 	
 	buttonMap[Config::HOME_BUTTON_ID] = &homeButton;		
 	buttonMap[Config::DATABASE_BUTTON_ID] = &databaseButton;
 	buttonMap[Config::ANALYSIS_BUTTON_ID] = &analysisButton;
-	buttonMap[Config::VIEW_BUTTON_ID] = &viewButton;
-	buttonMap[Config::SETTING_BUTTON_ID] = &settingButton;
+	//buttonMap[Config::VIEW_BUTTON_ID] = &viewButton;
+	//buttonMap[Config::SETTING_BUTTON_ID] = &settingButton;
 
 	return 0;
 }
@@ -177,14 +177,17 @@ LRESULT LeftPanel::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	CRect rectParent;
 	GetClientRect(&rectParent);
 
-	CRect rect ;
-	settingButton.GetClientRect(&rect);
-	rect.MoveToXY(6, rectParent.Height() - (48 * 2 + 25));
-	settingButton.ShowWindow(SW_HIDE);
-	settingButton.MoveWindow(rect);
-	settingButton.ShowWindow(SW_SHOW);
-	settingButton.Invalidate(true);
-	settingButton.UpdateWindow();
+	
+	if (settingButton.IsWindow()) {
+		CRect rect ;
+		settingButton.GetClientRect(&rect);
+		rect.MoveToXY(6, rectParent.Height() - (48 * 2 + 25));
+		settingButton.MoveWindow(rect);
+		settingButton.ShowWindow(SW_SHOW);
+		settingButton.Invalidate(true);
+		settingButton.UpdateWindow();
+	}
+	
 	return 0;
 }
 
@@ -216,8 +219,8 @@ LRESULT LeftPanel::OnChangeLang(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	homeButton.setText(S(L"home"));
 	databaseButton.setText(S(L"customer"));
 	analysisButton.setText(S(L"analysis"));
-	viewButton.setText(S(L"view"));
-	settingButton.setText(S(L"setting"));
+	if (viewButton.IsWindow()) viewButton.setText(S(L"view"));
+	if (settingButton.IsWindow()) settingButton.setText(S(L"setting"));
 	
 	return 0;
 }

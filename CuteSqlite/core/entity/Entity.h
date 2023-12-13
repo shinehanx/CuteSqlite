@@ -213,6 +213,7 @@ typedef struct {
 	uint64_t rootPage;
 	std::vector<std::pair<int, std::wstring>> useIndexes; // useing index in this table, pair item params: first(int) - index no, second(std::wstring) - index name
 	std::vector<std::wstring> whereColumns; // where clause used columns in this table
+	std::vector<std::wstring> orderColumns; // order clause used columns in this table
 	std::vector<std::pair<int, std::wstring>> indexColumns; // using index columns in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
@@ -250,6 +251,17 @@ typedef enum {
 	STORE_ANALYSIS_PAGE,
 	DATABASE_PARAMS_PAGE
 } AnalysisPageType;
+
+typedef enum {
+	FROM_CLAUSE,
+	WHERE_CLAUSE,
+	ORDER_CLAUSE,
+	INSERT_COLUMNS_CLAUSE,
+	INSERT_VALUES_CLAUSE,
+	GROUP_CLAUSE,
+	HAVING_CLAUSE,
+	LIMIT_CLAUSE,
+} SqlClauseType;
 
 // Explain sql statement column idx
 typedef enum  {

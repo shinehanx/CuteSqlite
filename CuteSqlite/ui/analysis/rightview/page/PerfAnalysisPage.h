@@ -27,7 +27,7 @@
 #include "ui/common/edit/QSqlEdit.h"
 #include "ui/analysis/rightview/page/supplier/PerfAnalysisSupplier.h"
 #include "ui/analysis/rightview/page/adapter/PerfAnalysisPageAdapter.h"
-#include "ui/analysis/rightview/page/elem/WhereAnalysisTableIdxElem.h"
+#include "ui/analysis/rightview/page/elem/WhereOrderClauseAnalysisElem.h"
 #include "ui/common/image/QStaticImage.h"
 
 class PerfAnalysisPage : public QTabPage<PerfAnalysisPage>
@@ -82,7 +82,11 @@ private:
 
 	// WHERE clause analysis
 	CStatic whereAnalysisLabel;
-	std::vector<WhereAnalysisTableIdxElem *> tableIdxElemPtrs;
+	std::vector<WhereOrderClauseAnalysisElem *> whereAnalysisElemPtrs;
+
+	// ORDER clause analysis
+	CStatic orderAnalysisLabel;
+	std::vector<WhereOrderClauseAnalysisElem *> orderAnalysisElemPtrs;
 	
 	PerfAnalysisSupplier supplier;
 	PerfAnalysisPageAdapter * adapter = nullptr;
@@ -101,13 +105,16 @@ private:
 	void crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clientRect);
 	void createOrShowExpQueryPlanElems(CRect &clientRect);
 	void createOrShowWhereAnalysisElems(CRect &clientRect);
-	void createOrShowTableIdxElems(CRect &clientRect);
-	void createOrShowTableIdxElem(WhereAnalysisTableIdxElem & win, CRect & rect, CRect & clientRect);
+	void createOrShowWhereAnalysisItemsForTable(CRect &clientRect);
+	void createOrShowOrderAnalysisElems(CRect &clientRect);
+	void createOrShowOrderAnalysisItemsForTable(CRect &clientRect);
+	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 
 	void clearExpQueryPlanPtrs();
-	void clearTableIdxElemPtrs();
+	void clearWhereAnalysisElemPtrs();
+	void clearOrderAnalysisElemPtrs();
 
 	virtual void loadWindow();
 	void laodOrigSqlEditor();

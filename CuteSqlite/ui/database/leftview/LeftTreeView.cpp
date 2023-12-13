@@ -796,8 +796,9 @@ LRESULT LeftTreeView::OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	for (auto & databasePath : databaseSupplier->dragFilePaths) {
 		treeViewAdapter->openUserDatabase(databasePath);
-		loadComboBox();
 	}
+	loadComboBox();
+	AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 	databaseSupplier->dragFilePaths.clear();
 	return 0;
 }
@@ -813,6 +814,7 @@ void LeftTreeView::doCreateDatabase()
 		std::wstring databasePath = fileDlg.m_szFileName;
 		treeViewAdapter->createUserDatabase(databasePath);
 		loadComboBox();
+		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 	}
 }
 
@@ -827,7 +829,7 @@ void LeftTreeView::doOpenDatabase()
 		std::wstring databasePath = fileDlg.m_szFileName;
 		treeViewAdapter->openUserDatabase(databasePath);
 		loadComboBox();
-		
+		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 	}
 }
 
@@ -842,6 +844,7 @@ void LeftTreeView::doCopyDatabase()
 		std::wstring databasePath = fileDlg.m_szFileName;
 		treeViewAdapter->copyUserDatabase(databasePath);
 		loadComboBox();
+		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 	}
 }
 
@@ -857,6 +860,7 @@ void LeftTreeView::doDeleteDatabase()
 {
 	treeViewAdapter->removeSeletedDbTreeItem();
 	loadComboBox();
+	AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 }
 
 void LeftTreeView::doExportAsSql()

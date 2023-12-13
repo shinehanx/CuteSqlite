@@ -726,6 +726,7 @@ std::wstring & StringUtil::cutParensAndQuotes(std::wstring & str)
 	str = StringUtil::replace(str, L"`", L"");
 	str = StringUtil::replace(str, L"'", L"");
 	str = StringUtil::replace(str, L"\"", L"");
+	StringUtil::trim(str);
 
 	return str;
 }

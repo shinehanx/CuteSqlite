@@ -40,7 +40,7 @@ ExplainQueryPlans SelectSqlAnalysisService::explainQueryPlanSql(uint64_t userDbI
  * @param byteCodeList
  * @return 
  */
-ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList)
+ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql)
 {
 	ByteCodeResults results;
 	for (auto iter = byteCodeList.begin(); iter != byteCodeList.end(); iter++) {
@@ -53,9 +53,9 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 		} else if (opcode == L"IdxGE" || opcode == L"IdxGT" || opcode == L"IdxLE" || opcode == L"IdxLE") { // index column
 			parseIdxColumnsFromExplainRow(userDbId, rowItem, results);
 		} else if (opcode == L"Eq" || opcode == L"Ne" || opcode == L"Lt" || opcode == L"Le" || opcode == L"Gt" || opcode == L"Ge") { // compare opcode
-			parseTblOrIdxFromCompare(userDbId, rowItem, results, iter, byteCodeList);
+			parseTblOrIdxColumnFromOpCompare(userDbId, rowItem, results, iter, byteCodeList);
 		} else if (opcode == L"SeekRowid" || opcode == L"NotExists") {
-			parseTblOrIdxFromSeekRowid(userDbId, rowItem, results, iter, byteCodeList);
+			parseTblOrIdxColumnFromSeekRowid(userDbId, rowItem, results, iter, byteCodeList);
 		} else if (opcode == L"Column") { // where column 
 			auto nextIter = std::next(iter);
 			auto & nextOpcode = (*nextIter).at(EXP_OPCODE);
@@ -64,7 +64,9 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 				|| nextOpcode == L"Rowid" || nextOpcode == L"MakeRecord") {
 				continue;
 			}
-			parseTblOrIdxFromColumn(userDbId, rowItem, results);
+			parseTblOrIdxColumnFromOpColumn(userDbId, rowItem, results);
+		} else if (opcode == L"IfNot" || opcode == L"If") {
+			parseTblOrIdxNullColumnFromSql(userDbId, rowItem, results, sql);
 		}
 	}
 	return results;
@@ -187,7 +189,7 @@ void SelectSqlAnalysisService::parseIdxColumnsFromExplainRow(uint64_t userDbId, 
  * @param rowItem - Opcode row
  * @param results - For ByteCodeResults
  */
-void SelectSqlAnalysisService::parseTblOrIdxFromColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results)
+void SelectSqlAnalysisService::parseTblOrIdxColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results)
 {
 	int no = std::stoi(rowItem.at(EXP_P1)); // P1 - Table No. in the VDBE
 	
@@ -271,7 +273,7 @@ void SelectSqlAnalysisService::parseTblOrIdxFromColumn(uint64_t userDbId, const 
  * @param iter
  * @param byteCodeList
  */
-void SelectSqlAnalysisService::parseTblOrIdxFromCompare(uint64_t userDbId, const RowItem& rowItem, 
+void SelectSqlAnalysisService::parseTblOrIdxColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, 
 	ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList)
 {
 	std::wstring r1 = rowItem.at(EXP_P1); // Compare opcode: P1 - register
@@ -280,7 +282,7 @@ void SelectSqlAnalysisService::parseTblOrIdxFromCompare(uint64_t userDbId, const
 	for (auto prevIter = std::prev(iter); prevIter != byteCodeList.begin(); prevIter = std::prev(prevIter)) {
 		if ((*prevIter).at(EXP_OPCODE) == L"Column" && 
 			((*prevIter).at(EXP_P3) == r1 || (*prevIter).at(EXP_P3) == r3)) { // Column row : p3 - register
-			parseTblOrIdxFromColumn(userDbId, (*prevIter), results);
+			parseTblOrIdxColumnFromOpColumn(userDbId, (*prevIter), results);
 		}
 	}
 }
@@ -294,7 +296,7 @@ void SelectSqlAnalysisService::parseTblOrIdxFromCompare(uint64_t userDbId, const
  * @param iter
  * @param byteCodeList
  */
-void SelectSqlAnalysisService::parseTblOrIdxFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList)
+void SelectSqlAnalysisService::parseTblOrIdxColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList)
 {
 	int no = std::stoi(rowItem.at(EXP_P1)); // SeekRowid opcode: P1 - table no
 
@@ -404,7 +406,7 @@ void SelectSqlAnalysisService::parseTblOrIdxFromSeekRowid(uint64_t userDbId, con
 	}
 	for (auto prevIter = std::prev(iter); prevIter != byteCodeList.begin(); prevIter = std::prev(prevIter)) {
 		if ((*prevIter).at(EXP_OPCODE) == L"Column" && (*prevIter).at(EXP_P3) == r3) { // Column opcode : p3 - register
-			parseTblOrIdxFromColumn(userDbId, (*prevIter), results);
+			parseTblOrIdxColumnFromOpColumn(userDbId, (*prevIter), results);
 		}
 	}
 }
@@ -440,4 +442,90 @@ std::wstring SelectSqlAnalysisService::getPrimaryKeyColumn(uint64_t userDbId, co
 		}
 	}
 	return L"";
+}
+
+void SelectSqlAnalysisService::parseTblOrIdxNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql)
+{
+	// 1.Get all table from database
+	UserTableStrings allTables = getUserTableStrings(userDbId);
+	if (allTables.empty()) {
+		return;
+	}
+	
+
+	// 2. Get using table names from sql statement 
+	auto tableNames = SqlUtil::getTablesFromSelectSql(sql, allTables);
+	if (tableNames.empty()) {
+		return;
+	}
+	
+	// 3.Split the sql to words
+	std::wstring upsql = StringUtil::toupper(sql);
+	upsql = StringUtil::replace(upsql, L",", L" ");
+	upsql = StringUtil::replace(upsql, L"(", L" ");
+	upsql = StringUtil::replace(upsql, L")", L" ");
+	auto & upWords = StringUtil::splitByBlank(upsql);
+
+	// 4.Get using table alias from sql statement
+	// pair.left - alias, pair.second - table name
+	std::vector<std::pair<std::wstring, std::wstring>> allAliases;
+	size_t n = tableNames.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & table = tableNames.at(i);
+		std::wstring alias = SqlUtil::parseTableAliasFromSelectSqlUpWords(upWords, table, allTables);
+		allAliases.push_back({ alias, table });
+	}
+	if (allAliases.empty()) {
+		return;
+	}
+	
+	// 6.Get using columns of "is null" or "not null" in the sql statement words 
+	// return columnPairs, params: pair.first - table name, pair.second - column name of "is null" or "not null"
+	auto columnPairs = SqlUtil::parseWhereNullColumnsFromSelectSqlUpWords(upWords, allAliases);
+	if (columnPairs.empty()) {
+		return;
+	}
+
+	// 7.add to results
+	n = columnPairs.size();
+	for (size_t i = 0; i < n; i++) {
+		auto & columnPair = columnPairs.at(i);
+		auto & tableName = columnPair.first;
+		auto & columnName = columnPair.second;
+
+		auto iter = std::find_if(results.begin(), results.end(), [&tableName](const auto & result) {
+			return result.name == tableName;
+		});
+		if (iter == results.end()) {
+			continue;
+		}
+
+		auto & whereColumns = (*iter).whereColumns;
+		auto findIter = std::find_if(whereColumns.begin(), whereColumns.end(), [&columnName](const auto & item) {
+			return StringUtil::toupper(item) == columnName;
+		});
+		if (findIter != whereColumns.end()) {
+			continue;
+		}
+
+		Columns columns = getUserColumnStrings(userDbId, tableName);
+		auto findIter2 = std::find_if(columns.begin(), columns.end(), [&columnName](const auto & item) {
+			return StringUtil::toupper(item) == columnName;
+		});
+		if (findIter2 == columns.end()) {
+			continue;
+		}
+		whereColumns.push_back(*findIter2);
+	}
+}
+
+UserTableStrings SelectSqlAnalysisService::getUserTableStrings(uint64_t userDbId, const std::wstring & schema)
+{
+	ATLASSERT(userDbId > 0);
+	UserTableStrings result;
+	UserTableList userTableList = tableUserRepository->getListByUserDbId(userDbId, schema);
+	for (auto userTable : userTableList) {
+		result.push_back(userTable.name);
+	}
+	return result;
 }

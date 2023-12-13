@@ -134,7 +134,7 @@ std::wstring BaseUserRepository<T>::initUserDbFile(uint64_t userDbId)
 {
 	UserDb userDb = getUserDbById(userDbId);
 	if (userDb.id == 0) {
-		throw QRuntimeException(L"10023", L"sorry, user db init error, userDbId:" + userDbId);
+		throw QRuntimeException(L"10023", L"sorry, user db init error, userDbId:" + std::to_wstring(userDbId));
 		return L"";
 	}
 	std::wstring userDbDir = FileUtil::getFileDir(userDb.path);

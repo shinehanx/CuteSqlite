@@ -107,7 +107,7 @@ std::wstring SqlUtil::getColumnName(std::wstring & str)
  * @param tables - All tables of databases 
  * @return the vector of table(s)
  */
-std::vector<std::wstring> SqlUtil::getTablesFromSelectSql(std::wstring & selectSql, std::vector<std::wstring> allTables)
+std::vector<std::wstring> SqlUtil::getTablesFromSelectSql(const std::wstring & selectSql, std::vector<std::wstring> allTables)
 {
 	std::vector<std::wstring> tbls;
 	if (selectSql.empty()) {
@@ -1315,6 +1315,7 @@ TableAliasVector SqlUtil::parseTableClauseFromUpdateSql(const std::wstring & upS
 	return result;
 }
 
+
 /**
  * Pars the create index DDL statement to IndexInfo.
  * For example : CREATE UNIQUE INDEX "name" ON "analysis_sample_class_16" ("sample_lib_id","inspection_id");
@@ -1356,6 +1357,9 @@ IndexInfo SqlUtil::parseCreateIndex(const std::wstring & createIndexSql)
 		return IndexInfo();
 	}	
 	auto columns = createIndexSql.substr(paren_first + 1, paren_end - paren_first - 1);
+	columns = StringUtil::cutParensAndQuotes(columns);
+	auto columnVector = StringUtil::split(columns, L",");
+	columns = StringUtil::implode(columnVector, L",");
 	result.columns = StringUtil::cutParensAndQuotes(columns);
 
 	// Find the partial clause, it must be start with "WHERE"
@@ -1366,3 +1370,129 @@ IndexInfo SqlUtil::parseCreateIndex(const std::wstring & createIndexSql)
 
 	return result;
 }
+
+/**
+ * Parse the sql, get the alias of specified table.
+ * 
+ * @param sql - sql statement
+ * @param table - specified table
+ * @param tables - all table names of sql
+ * @return UPCASE alias/table
+ */
+std::wstring SqlUtil::parseTableAliasFromSelectSql(const std::wstring & sql, const std::wstring & table, const std::vector<std::wstring> & tables)
+{
+	std::wstring uptable = StringUtil::toupper(table);
+	size_t tblLen = tables.size();
+	if (tables.empty()) {
+		return uptable;
+	}
+	std::wstring alias;	
+	std::wstring upsql = StringUtil::toupper(sql);
+	upsql = StringUtil::replace(upsql, L",", L" ");
+
+	std::vector<std::wstring> words = StringUtil::splitByBlank(upsql);
+	return parseTableAliasFromSelectSqlUpWords(words, uptable, tables);
+}
+
+/**
+ * Parse the sql up case words vector, get the alias of specified table..
+ * 
+ * @param upWords - Up case word vector of sql statement split by blank
+ * @param upTable - Table name of up case
+ * @param tables - All of table names for sql
+ * @return table alias such as : "customer as c" return "c", "customer c" return "c"
+ */
+std::wstring SqlUtil::parseTableAliasFromSelectSqlUpWords(const std::vector<std::wstring>& upWords, std::wstring & upTable, const UserTableStrings & tables)
+{
+	if (upWords.empty() || upTable.empty() || tables.empty()) {
+		return upTable;
+	}
+	size_t n = upWords.size();
+	int i = 0;
+	for (int i = 0; i < n - 1; i++) {
+		auto & word = upWords.at(i);
+		if (word != upTable) {
+			continue;
+		}
+		
+		if (i < n - 2 && upWords.at(i + 1) == L"AS" && !(upWords.at(i + 2).empty())) {
+			return upWords.at(i + 2);
+		}
+		auto & nextWord = upWords.at(i + 1);
+		if (nextWord == L"NATURAL" || nextWord == L"JOIN"
+			|| nextWord == L"LEFT" || nextWord == L"RIGHT"
+			|| nextWord == L"FULL" || nextWord == L"INNER"
+			|| nextWord == L"CROSS" || nextWord == L"OUTER"
+			|| nextWord == L"WHERE" || nextWord == L"ORDER" 
+			|| nextWord == L"ON" || nextWord == L"GROUP"
+			|| nextWord == L"HAVING" || nextWord == L"LIMIT"
+			|| nextWord == L"OFFSET" || nextWord == L"WINDOW"
+			|| nextWord == L"(" || nextWord == L"(SELECT") {
+			return upTable;
+		}
+
+		auto iter = std::find_if(tables.begin(), tables.end(), [&nextWord] (auto & tblName) {
+			return nextWord == StringUtil::toupper(tblName);
+		});
+		if (iter == tables.end()) {
+			return nextWord;
+		}
+		
+	}
+	return L"";
+}
+
+/**
+ * Parse columns of "is null" or "is not null" in the sql statement
+ * 
+ * @param sqlWords - word vector of be splitted sql statement with blank
+ * @param allAliases - pair vector, params: pair.first - table, pair.second - table alias
+ * @return columns tuple, tuple params: pair.first - table name, pair.second - columns or is not null columns
+ */
+std::vector<std::pair<std::wstring, std::wstring>> SqlUtil::parseWhereNullColumnsFromSelectSqlUpWords(
+	const std::vector<std::wstring>& upSqlWords, 
+	const std::vector<std::pair<std::wstring, std::wstring>> & allAliases)
+{
+	std::vector<std::pair<std::wstring, std::wstring>> results;
+	int n = static_cast<int>(upSqlWords.size());
+	for (int i = 0; i < n - 1; i++) {
+		auto & word = upSqlWords.at(i);
+		auto & nextWord = upSqlWords.at(i + 1);
+		if ((word == L"IS" && (nextWord == L"NOT" || nextWord == L"NULL"))
+			|| word == L"ISNULL" || word == L"NOTNULL") {
+			auto & columnWord = upSqlWords.at(i - 1);
+			auto pos = columnWord.find_first_of(L'.');
+			if (pos != std::wstring::npos) {
+				// columnWord, such as "t.name" or "tbl.name"
+				std::wstring tblAlias = columnWord.substr(0, pos); // table alias or table name, "t.name"--get->"t", "tbl.name"--get->"tbl"
+				std::wstring columnName = columnWord.substr(pos + 1); // column name, "tbl.name"--get->"name"
+				for (auto & pair : allAliases) {
+					// pair.first - alias, pair.second - table 
+					if (StringUtil::toupper(pair.first) == tblAlias || StringUtil::toupper(pair.second) == tblAlias) {
+						 // found, add to results, {tableName, columnName}
+						results.push_back({ pair.second, columnName });
+					}
+				}
+			} else {
+				const std::wstring & columnName = columnWord;
+				if (i == 0) {
+					continue;
+				}
+				// Find backward from i-1
+				for (int j = i - 1; j >= 0; j--) {
+					auto & prevWord = upSqlWords.at(j);
+					for (auto & pair : allAliases) {
+						// pair.first - alias, pair.second - table
+						if (StringUtil::toupper(pair.first) == prevWord || StringUtil::toupper(pair.second) == prevWord) {	
+							 // found, add to results, {tableName, columnName}
+							results.push_back({ pair.second, columnName });
+						}
+					}// for allAliases
+				} // for upSqlWords, Find backward from i-1
+			}  // if pos != std::wstring::npos
+		} // if ((word == L"IS"..
+	} // upSqlWords
+
+	return results;
+}
+

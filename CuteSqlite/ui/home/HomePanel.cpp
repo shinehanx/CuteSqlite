@@ -175,6 +175,7 @@ void HomePanel::clearDbListItemPtrs()
 
 LRESULT HomePanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_HOME_REFRESH_DATABASE_ID);
 	bkgBrush.CreateSolidBrush(bkgColor);
 	titleFont = FT(L"welcome-text-size");
 	homeFont = FT(L"home-text-size");
@@ -184,6 +185,7 @@ LRESULT HomePanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT HomePanel::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_HOME_REFRESH_DATABASE_ID);
 	if (bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (titleFont) ::DeleteObject(titleFont);
 	if (homeFont) ::DeleteObject(homeFont);
@@ -323,5 +325,11 @@ LRESULT HomePanel::OnClickDbListItem(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	databaseService->activeUserDb(selectedUserDbId);
 	AppContext::getInstance()->dispatch(Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID, NULL, NULL);
 	AppContext::getInstance()->dispatch(Config::MSG_ACTIVE_PANEL_ID, Config::DATABASE_PANEL, NULL);
+	return 0;
+}
+
+LRESULT HomePanel::OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	loadUserDbList();
 	return 0;
 }

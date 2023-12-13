@@ -33,7 +33,7 @@ public:
 
 	DataList explainSql(uint64_t userDbId, const std::wstring & sql);
 	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring & sql);
-	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList);
+	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
 
 private:
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
@@ -43,11 +43,15 @@ private:
 
 	void parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
-	void parseTblOrIdxFromColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseTblOrIdxColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 
-	void parseTblOrIdxFromCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
-	void parseTblOrIdxFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseTblOrIdxColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseTblOrIdxColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
 
 	Columns getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
+
+	void parseTblOrIdxNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql);
+	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
+	std::vector<std::tuple<std::wstring, std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(std::vector<std::wstring>& words, const std::vector<std::pair<std::wstring, std::wstring>> & allAliases);
 };

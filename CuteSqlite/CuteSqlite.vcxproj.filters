@@ -408,7 +408,7 @@
     <ClCompile Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.cpp">
+    <ClCompile Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -854,7 +854,7 @@
     <ClInclude Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.h">
+    <ClInclude Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

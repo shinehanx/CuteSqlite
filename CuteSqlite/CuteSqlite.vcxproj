@@ -128,7 +128,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libsqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsqlite3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -153,7 +153,7 @@ xcopy res "$(OutDir)res" /Y /s
 
 xcopy ..\lib\libcurl\libcurl.dll "$(OutDir)" /Y
 
-xcopy ..\lib\sqlite3\sqlite3.dll "$(OutDir)" /Y
+xcopy ..\lib\sqlite3\sqlite3d.dll "$(OutDir)" /Y
 
 xcopy ..\lib\scintilla\SciLexer.dll "$(OutDir)" /Y
 
@@ -280,7 +280,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
-    <ClCompile Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\FirstPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp" />
@@ -421,7 +421,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
-    <ClInclude Include="ui\analysis\rightview\page\elem\WhereAnalysisTableIdxElem.h" />
+    <ClInclude Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\FirstPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h" />

@@ -28,7 +28,7 @@ PerfAnalysisPageAdapter::PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view
 {
 	this->parentHwnd = parentHwnd;
 	this->dataView = view;
-	this->supplier = supplier;
+	this->supplier = supplier;	
 	initSupplier();
 }
 
@@ -52,9 +52,11 @@ void PerfAnalysisPageAdapter::initSupplier()
 		supplier->setExplainQueryPlans(expQueryPlans);
 
 		// 3. Convert explain data list to ByteCodeResults
-		ByteCodeResults results = selectSqlAnalysisService->explainReadByteCodeToResults(supplier->getRuntimeUserDbId(), explainDatas);
+		ByteCodeResults results = selectSqlAnalysisService->explainReadByteCodeToResults(supplier->getRuntimeUserDbId(), explainDatas, supplier->getSqlLog().sql);
 		supplier->setByteCodeResults(results);
 	} catch (QSqlExecuteException & ex) {
+		QPopAnimate::report(ex);
+	} catch (QRuntimeException & ex) {
 		QPopAnimate::report(ex);
 	}
 	

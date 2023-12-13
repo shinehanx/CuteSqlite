@@ -488,6 +488,7 @@ typedef enum {
 	MSG_DROP_FILES_ID, // When user drag files to MainFrm window, send the message to LeftTreeView for opening databases by drag file paths, wParam=NULL , lParam=NULL
 	MSG_SHOW_SQL_LOG_PAGE_ID, // Send the msg to show SqlLogPage in the RightAnalysisView::tabView, wParam=NULL , lParam=NULL
 	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
+	MSG_HOME_REFRESH_DATABASE_ID, // Send this msg when created a table or altering a table , wParam = NULL, lParam=NULL
 }MessageId;
 
 typedef enum {

@@ -74,8 +74,11 @@ public:
 	static bool isPragmaStmt(std::wstring & sql, bool excludeEqual);
 	static bool hasLimitClause(std::wstring & sql);
 	static std::wstring getColumnName(std::wstring & str);
-	static std::vector<std::wstring> getTablesFromSelectSql(std::wstring & sql, std::vector<std::wstring> allTables);
+	static std::vector<std::wstring> getTablesFromSelectSql(const std::wstring & sql, std::vector<std::wstring> allTables);
 	static std::vector<std::wstring> parseTablesFromTableClause(std::wstring & tblStmt);
+	static std::wstring parseTableAliasFromSelectSql(const std::wstring & sql, const std::wstring & table, const std::vector<std::wstring> & tables);
+	static std::wstring parseTableAliasFromSelectSqlUpWords(const std::vector<std::wstring>& upSqlWords, std::wstring & upTable, const UserTableStrings & tables);
+
 	static std::wstring parsePrimaryKey(std::wstring & createTblSql);
 	static std::wstring getWhereClause(std::wstring & sql);
 	static std::wstring getFourthClause(std::wstring & sql);
@@ -108,6 +111,11 @@ public:
 	static TableAliasVector parseTableClauseFromUpdateSql(const std::wstring & upSelectSql);
 
 	static IndexInfo parseCreateIndex(const std::wstring & createIndexSql);
+	
+	
+	static std::vector<std::pair<std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(
+		const std::vector<std::wstring>& upSqlWords, 
+		const std::vector<std::pair<std::wstring, std::wstring>> & allAliases);
 private:
 	static IndexInfo parseConstraintFromLine(const std::wstring& line);
 	static IndexInfo parseLineToPrimaryKey(const std::wstring& line, bool isConstaintLine = true);
@@ -121,5 +129,4 @@ private:
 	static ColumnInfo parseColumnFromLine(const std::wstring& line);
 	static ForeignKey parseForeignKeyFromLine(const std::wstring& line);
 	static std::wstring getPartialClauseFromForeignKeyLine(const std::wstring& line);
-	
 };

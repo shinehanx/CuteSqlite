@@ -43,6 +43,7 @@ public:
 		COMMAND_HANDLER_EX(Config::HOME_CREATE_DB_BUTTON_ID, BN_CLICKED, OnClickCreateDatabaseButton)
 		COMMAND_HANDLER_EX(Config::HOME_MOD_DB_BUTTON_ID, BN_CLICKED, OnClickModDatabaseButton)
 		MESSAGE_HANDLER_EX(Config::MSG_DBLIST_ITEM_CLICK_ID, OnClickDbListItem)
+		MESSAGE_HANDLER_EX(Config::MSG_HOME_REFRESH_DATABASE_ID, OnRefreshDatabase)
 		REFLECT_NOTIFICATIONS() // must declare this, otherwise the QImageButton buttons is not calling the DrawItem
 	END_MSG_MAP()
 
@@ -94,6 +95,7 @@ public:
 	LRESULT OnClickCreateDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickModDatabaseButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickDbListItem(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnRefreshDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 		
 	void drawHomeText(CMemoryDC &mdc, CRect &clientRect);
 	void drawDbSection(CMemoryDC &mdc, CRect &clientRect);
