@@ -214,7 +214,8 @@ typedef struct {
 	std::vector<std::pair<int, std::wstring>> useIndexes; // useing index in this table, pair item params: first(int) - index no, second(std::wstring) - index name
 	std::vector<std::wstring> whereColumns; // where clause used columns in this table
 	std::vector<std::wstring> orderColumns; // order clause used columns in this table
-	std::vector<std::pair<int, std::wstring>> indexColumns; // using index columns in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+	std::vector<std::pair<int, std::wstring>> whereIndexColumns; // using index columns of where clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+	std::vector<std::pair<int, std::wstring>> orderIndexColumns; // using index columns of order clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 

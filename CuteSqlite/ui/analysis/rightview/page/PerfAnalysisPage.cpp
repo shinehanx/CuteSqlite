@@ -54,6 +54,7 @@ void PerfAnalysisPage::createOrShowUI()
 	createOrShowOrigSqlEditor(clientRect);
 	createOrShowExpQueryPlanElems(clientRect);
 	createOrShowWhereAnalysisElems(clientRect);
+	createOrShowOrderAnalysisElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -225,7 +226,9 @@ void PerfAnalysisPage::createOrShowOrderAnalysisElems(CRect &clientRect)
 	}
 
 	CRect rectLast;
-	if (expQueryPlanPtrs.size()) {
+	if (!whereAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!expQueryPlanPtrs.empty()) {
 		rectLast = GdiPlusUtil::GetWindowRelativeRect(expQueryPlanPtrs.back()->m_hWnd);
 	} else {
 		rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
@@ -543,7 +546,9 @@ HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
 	}else if ((explainQueryPlanLabel.IsWindow() && hwnd == explainQueryPlanLabel.m_hWnd)
-		|| (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd)) {
+		|| (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd)
+		|| (orderAnalysisLabel.IsWindow() && hwnd == orderAnalysisLabel.m_hWnd)
+		) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
 	}  else {

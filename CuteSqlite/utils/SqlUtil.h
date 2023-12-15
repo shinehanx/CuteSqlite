@@ -43,11 +43,17 @@ public:
 	// select sql regex pattern
 	static std::wregex selectPat;
 	static std::wregex selectPat2;
+	static std::wregex selectPat3;
+	static std::wregex selectPat4;
 	static std::wregex explainPat;
 
 	// where clause regex pattern
 	static std::wregex whereClausePat1;
 	static std::wregex whereClausePat2;
+
+	// order clause regex pattern
+	static std::wregex orderClausePat1;
+	static std::wregex orderClausePat2;
 
 	// limit clause regex patter
 	static std::wregex limitClausePat;
@@ -80,8 +86,11 @@ public:
 	static std::wstring parseTableAliasFromSelectSqlUpWords(const std::vector<std::wstring>& upSqlWords, std::wstring & upTable, const UserTableStrings & tables);
 
 	static std::wstring parsePrimaryKey(std::wstring & createTblSql);
-	static std::wstring getWhereClause(std::wstring & sql);
-	static std::wstring getFourthClause(std::wstring & sql);
+	static std::wstring getWhereClause(const std::wstring & sql);
+	static std::wstring getOrderClause(const std::wstring & sql);
+	static std::vector<std::wstring> getSelectColumnsClause(const std::wstring & sql);
+	static std::wstring getOrderExpresses(const std::wstring & sql);
+	static std::wstring getFourthClause(const std::wstring & sql);
 
 	// make sql
 	static std::wstring makeWhereClause(Columns & columns, RowItem &rowItem , SubItemValues &rowChangeVals);

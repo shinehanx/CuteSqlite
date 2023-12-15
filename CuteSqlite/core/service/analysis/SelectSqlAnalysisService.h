@@ -34,24 +34,37 @@ public:
 	DataList explainSql(uint64_t userDbId, const std::wstring & sql);
 	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring & sql);
 	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
-
 private:
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
 
+	void doConvertByteCodeForWhereColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
+	void doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
+
+	void parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+	void parseOrderOrIndexColumnFromIdxInsertAndSort(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+	void parseOrderOrIndexColumnFromOpSorter(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+	void parseOrderClauseColumnFromSql(ByteCodeResults::iterator tblIter, uint64_t userDbId, const std::wstring & sql, ByteCodeResults &results);
 
 	void parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
-	void parseIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
-	void parseTblOrIdxColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseWhereIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseWhereOrIndexColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 
-	void parseTblOrIdxColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
-	void parseTblOrIdxColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseWhereOrIndexColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
 
 	Columns getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
 
-	void parseTblOrIdxNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql);
+	void parseWhereOrIndexNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql);
 	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
-	std::vector<std::tuple<std::wstring, std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(std::vector<std::wstring>& words, const std::vector<std::pair<std::wstring, std::wstring>> & allAliases);
+	std::vector<std::tuple<std::wstring, std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(
+		std::vector<std::wstring>& words, const std::vector<std::pair<std::wstring, std::wstring>> & allAliases);
+	
+	Columns getOrderColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & sql);
+	std::wstring parseColumnByAliasFromSql(uint64_t userDbId, const std::wstring & tblName, 
+	const TableAliasVector & tblAliasVector, const std::wstring & upColOrAlias, const std::wstring & upsql);
+
+	bool isMatchIndexColumnSortNo(PragmaIndexColumns & idxColumns, const std::wstring orderExpColumn, int sortNo);
 };

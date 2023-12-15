@@ -125,7 +125,7 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 {
 	std::wstring text1 = S(L"in-table");
 	std::wstring text2 = clauseType == WHERE_CLAUSE ? S(L"where-use-column") : S(L"order-use-column");
-	std::wstring text3 = S(L"use-index");
+	std::wstring text3 = clauseType == WHERE_CLAUSE ? S(L"where-use-index") :  S(L"order-use-index");
 	std::wstring text4 = S(L"create-index-for-performance");
 
 	int x = 5, y = 0, w = clientRect.Width() - 10, h = 20;
@@ -149,24 +149,32 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 		std::wstring idxText;
 		int i = 0,j = 0;
 		for (auto & item : byteCodeResult.useIndexes) {
+			auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+			if (indexColumns.empty()) {
+				continue;
+			}
+
 			if (i++)  idxText.append(L","); 
 			idxText.append(L"\"").append(item.second).append(L"\" (using: ");
 			j = 0;
-			for (auto &col : byteCodeResult.indexColumns) {
+			
+			for (auto &col : indexColumns) {
 				if (col.first != item.first)  continue;
 				if (j++)  idxText.append(L",");			
 				idxText.append(L"\"").append(col.second).append(L"\"");				
 			}
 			idxText.append(L")");
 		}
-		text3.append(idxText);
+		
+		text3.append(idxText.empty() ? L"NONE" : idxText);
 	} else {
 		text3.append(L"NONE");
 	}
 	rect.OffsetRect(0, h + 5);
 	QWinCreater::createOrShowLabel(m_hWnd, useIdxLabel, text3, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
-	if (!isEqualColumns(clauseColumns, byteCodeResult.indexColumns)) {
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	if (!isEqualColumns(clauseColumns, indexColumns)) {
 		rect.OffsetRect(0, h + 5);
 		QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 	}
@@ -175,7 +183,8 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 void WhereOrderClauseAnalysisElem::createOrShowCheckBoxes(CRect & clientRect)
 {
 	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : byteCodeResult.orderColumns;
-	if (isEqualColumns(clauseColumns, byteCodeResult.indexColumns)) {
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;
 	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(createIdxForPerfLabel.m_hWnd);
@@ -211,7 +220,8 @@ void WhereOrderClauseAnalysisElem::createOrShowButtons(CRect & clientRect)
 		return;
 	}
 	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : byteCodeResult.orderColumns;
-	if (isEqualColumns(clauseColumns, byteCodeResult.indexColumns)) {
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;
 	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(tableColumnCheckBoxPtrs.back()->m_hWnd);

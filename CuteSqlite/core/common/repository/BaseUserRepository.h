@@ -44,7 +44,7 @@ RowItem BaseUserRepository<T>::toRowItem(QSqlStatement &query)
 	RowItem rowItem;
 	int columnCount = query.getColumnCount();
 	for (int i = 0; i < columnCount; i++) {
-		std::wstring val = query.getColumn(i).isNull() ? L"[ NULL ]" : query.getColumn(i).getText();
+		std::wstring val = query.getColumn(i).isNull() ? L"< NULL >" : query.getColumn(i).getText();
 		rowItem.push_back(val);
 	}
 	return rowItem;
