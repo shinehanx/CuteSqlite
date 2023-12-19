@@ -20,6 +20,8 @@
  *********************************************************************/
 #pragma once
 #include "ui/database/rightview/common/QPageSupplier.h"
+#include "core/common/parser/SQLParserResult.h"
+
 class PerfAnalysisSupplier : public QPageSupplier {
 public:
 	
@@ -42,11 +44,14 @@ public:
 
 	const ExplainQueryPlans & getExplainQueryPlans()  { return explainQueryPlans; }
 	void setExplainQueryPlans(const ExplainQueryPlans & val) { explainQueryPlans = val; }
+
+	SQLParserResult & getSqlParserResult() { return sqlParserResult; }
 private:
 	uint64_t sqlLogId = 0;
 	SqlLog sqlLog;
 	ByteCodeResults byteCodeResults;
 	ExplainQueryPlans explainQueryPlans;
+	SQLParserResult sqlParserResult;
 
 	DataList explainDataList;
 };

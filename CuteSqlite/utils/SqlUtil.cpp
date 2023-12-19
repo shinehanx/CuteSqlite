@@ -25,14 +25,13 @@
 std::wregex SqlUtil::selectPat(L"^select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
 std::wregex SqlUtil::selectPat2(L"^with\\s(.*)?\\s?select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::wregex::icase);
 std::wregex SqlUtil::selectPat3(L"select\\s+(.*)\\s+from\\s+(.*)\\s*(order .*)+", std::wregex::icase);
-std::wregex SqlUtil::selectPat4(L"select\\s+(.*)\\s+from(.*)", std::wregex::icase);
+std::wregex SqlUtil::selectPat4(L"(select\\s+(.*))\\s+from(.*)", std::wregex::icase);
 std::wregex SqlUtil::explainPat(L"^explain(query|\\s|plan)+(.*)+", std::wregex::icase);
 
 std::wregex SqlUtil::whereClausePat1(L"((where)\\s+.*)\\s+(order|group|limit|having|window)+(.*)?", std::wregex::icase);
 std::wregex SqlUtil::whereClausePat2(L"(where .*\\)?)+", std::wregex::icase);
 
-std::wregex SqlUtil::orderClausePat1(L"((order\\sby)\\s+.*)\\s+(limit|offset)+(.*)?", std::wregex::icase);
-std::wregex SqlUtil::orderClausePat2(L"(order\\sby\\s.*\\)?)+", std::wregex::icase);
+//std::wregex SqlUtil::orderClausePat(L"(select.*((order\\s+by)\\s+.*)(limit|offset)+(.*)?)|(\\(select.*(order\\s+by.*)\\))|(select.*(order\\s+by\\s+.*)+)", std::wregex::icase);
 
 std::wregex SqlUtil::limitClausePat(L"(limit .*)+", std::wregex::icase);
 
@@ -243,51 +242,65 @@ std::wstring SqlUtil::getWhereClause(const std::wstring & sql)
 	return whereClause;
 }
 
+std::wregex SqlUtil::orderClausePat(L"(((order\\s+by)\\s+.+)(limit|offset)+(.*)?)|(\\(.*(order\\s+by.*)\\))|(order\\s+by\\s+.*)", std::wregex::icase);
+
 /**
  * Fetch the ORDER clause such as "select * from [tbl clause] [where clause] [order clause] [fourth clause : limit...]"...
  * 
  * @param sql
  * @return The string of whereClause
  */
-std::wstring SqlUtil::getOrderClause(const std::wstring & sql)
+std::vector<std::wstring> SqlUtil::getOrderClauses(const std::wstring & sql)
 {
+	std::vector<std::wstring> result;
 	if (sql.empty()) {
-		return L"";
+		return result;
 	}
-	std::wsmatch results;
-	if (!std::regex_search(sql, results, SqlUtil::selectPat3)) {
-		return L"";
+	std::wstring upsql = StringUtil::toupper(sql);
+	if (upsql.find(L"ORDER") == std::wstring::npos) {
+		return result;
 	}
-	if (results.size() < 3 || results[3].matched == false) {
-		return L"";
-	}
-	std::wsmatch orderResults;
-	std::wstring orderStmt = results[3];
-	std::wstring orderClause;
 
-	while (!orderStmt.empty() && std::regex_search(orderStmt, orderResults, SqlUtil::orderClausePat1)) {
-		if (orderResults[1].matched == false) {
-			return L"";
+	
+	std::wsmatch orderResults;
+	std::wstring orderClause;
+	std::wstring orderInSql;
+
+	auto iter_begin = std::wsregex_iterator(sql.begin(), sql.end(), SqlUtil::orderClausePat);
+    auto iter_end= std::wsregex_iterator();
+
+	for (std::wsregex_iterator iter = iter_begin; iter != iter_end; ++iter) {
+		orderResults = *iter;
+		bool foundFirst = orderResults[2].matched;
+		bool foundSecond = orderResults[7].matched;
+		bool foundThird = orderResults[8].matched;
+		if (foundFirst == false && foundSecond == false && foundThird == false) {
+			break;
 		}
-		orderClause = orderResults[1];
-		if (std::regex_search(orderClause, SqlUtil::fourthClausePat)) {
-			orderStmt = orderClause;
+		orderClause.clear();
+		// Fetch valid order by clause
+		if (foundFirst) {
+			orderClause = orderResults[2];
+		} else if (foundSecond) {
+			orderClause = orderResults[7];			
+		} else if (foundThird) {
+			orderClause = orderResults[8];
+		}
+		if (orderClause.empty() || orderClause == sql 
+			|| StringUtil::toupper(orderClause.substr(0, 5)) != L"ORDER") {
 			continue;
 		}
-		break;
-	}
+		
+		auto & iter2 = std::find_if(result.begin(), result.end(), [&orderClause](auto & express) {
+			return orderClause == express;
+		});
 
-	if (orderClause.empty() && std::regex_search(orderStmt, orderResults, SqlUtil::orderClausePat2)) {
-		if (orderResults[1].matched == false) {
-			return L"";
+		if (iter2 == result.end()) {
+			result.push_back(orderClause);
 		}
-		orderClause = orderResults[1];
 	}
 
-	if (orderClause.empty() || StringUtil::toupper(orderClause.substr(0, 5)) != L"ORDER") {
-		return L"";
-	}
-	return orderClause;
+	return result;
 }
 
 /**
@@ -296,26 +309,59 @@ std::wstring SqlUtil::getOrderClause(const std::wstring & sql)
  * @param sql
  * @return The string of whereClause
  */
-std::vector<std::wstring> SqlUtil::getSelectColumnsClause(const std::wstring & sql)
+std::vector<std::wstring> SqlUtil::getSelectColumnsClause(const std::wstring & upsql)
 {
 	std::vector<std::wstring> result;
-	if (sql.empty()) {
+	if (upsql.empty()) {
 		return result;
 	}
-	std::wsmatch columnResults;
-	std::wstring selectColumnClause;
-	while (std::regex_search(sql, columnResults, SqlUtil::selectPat4)) {
-		if (columnResults[1].matched == false) {
+
+	size_t startPos = 0;
+	for (;;) {
+		auto selectPos = upsql.find(L"SELECT",startPos);
+		auto fromPos = upsql.find(L"FROM",startPos);
+		auto selectSize = 6;
+		auto fromSize = 4;
+		if (selectPos == std::wstring::npos || fromPos == std::wstring::npos) {
 			return result;
 		}
+		std::wstring selectColumnClause = upsql.substr(selectPos + selectSize, fromPos - selectPos - selectSize);
+		if (!selectColumnClause.empty()) {
+			result.push_back(selectColumnClause);
+		}
+		startPos = fromPos + fromSize;
+	}
+	return result;
+	/*
+	auto iter_begin = std::wsregex_iterator(upsql.begin(), upsql.end(), SqlUtil::selectPat4);
+    auto iter_end= std::wsregex_iterator();
+
+	for (std::wsregex_iterator iter = iter_begin; iter != iter_end; ++iter) {
+		std::wsmatch columnResults = *iter;
+
+		if (columnResults[1].matched == false) {
+			break;
+		}
 		selectColumnClause = columnResults[1];
-		if (selectColumnClause.empty()) {
+		while (!selectColumnClause.empty() && std::regex_search(selectColumnClause, columnResults, SqlUtil::selectPat4)) {
+			if (columnResults[1].matched == false) {
+				break;
+			}
+			selectColumnClause = columnResults[1];
+		}
+
+		if (!selectColumnClause.empty() && selectColumnClause == sql) {
 			continue;
 		}
-		result.push_back(selectColumnClause);
-	}
 
-	return result;
+		if (selectColumnClause.substr(0, 6) != L"SELECT") {
+			return result;
+		}
+		std::wstring cols = selectColumnClause.substr(7);
+		result.push_back(cols);
+	}
+	
+	return result;*/
 }
 
 /**
@@ -324,18 +370,23 @@ std::vector<std::wstring> SqlUtil::getSelectColumnsClause(const std::wstring & s
  * @param sql
  * @return 
  */
-std::wstring SqlUtil::getOrderExpresses(const std::wstring & sql)
+std::vector<std::wstring> SqlUtil::getOrderExpresses(const std::wstring & sql)
 {
-	std::wstring orderClause = getOrderClause(sql);
-	if (orderClause.empty()) {
-		return L"";
+	std::vector<std::wstring> orderClauses = getOrderClauses(sql);
+	std::vector<std::wstring> result;
+	for (auto & orderClause : orderClauses) {
+		if (orderClause.empty()) {
+			continue;
+		}
+		std::wstring upOrderClause = StringUtil::toupper(orderClause);
+		size_t byPos = upOrderClause.find(L"BY");
+		if (byPos == std::wstring::npos) {
+			continue;
+		}
+		std::wstring express = orderClause.substr(byPos + 2);
+		result.push_back(express);
 	}
-	std::wstring upOrderClause = StringUtil::toupper(orderClause);
-	size_t byPos = upOrderClause.find(L"BY");
-	if (byPos == std::wstring::npos) {
-		return L"";
-	}
-	std::wstring result = orderClause.substr(byPos + 2);
+	
 	return result;
 }
 

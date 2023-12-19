@@ -648,7 +648,7 @@ std::wstring StringUtil::escapeSql(std::wstring &source)
 
 std::wstring StringUtil::toupper(std::wstring s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), [](wchar_t c){ 
+	std::transform(s.begin(), s.end(), s.begin(), [](wchar_t & c){ 
 		return std::towupper(c); 
 	});
 	return s;
@@ -656,7 +656,7 @@ std::wstring StringUtil::toupper(std::wstring s)
 
 std::wstring StringUtil::tolower(std::wstring s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), [](wchar_t c){ 
+	std::transform(s.begin(), s.end(), s.begin(), [](wchar_t & c){ 
 		return std::towlower(c); 
 	});
 	return s;
@@ -711,7 +711,7 @@ std::wstring & StringUtil::blkToTail(std::wstring & str, int nBlk /*= 3*/)
 }
 
 /**
-* Get gid of the parens and quetes.
+* Get gid of the parens and quotes.
 * 
 * @param str
 * @return 
@@ -723,6 +723,26 @@ std::wstring & StringUtil::cutParensAndQuotes(std::wstring & str)
 	}
 		
 	str = StringUtil::replace(str, L")", L"");
+	str = StringUtil::replace(str, L"`", L"");
+	str = StringUtil::replace(str, L"'", L"");
+	str = StringUtil::replace(str, L"\"", L"");
+	StringUtil::trim(str);
+
+	return str;
+}
+
+/**
+* Get gid of the quotes.
+* 
+* @param str
+* @return 
+*/
+std::wstring & StringUtil::cutQuotes(std::wstring & str)
+{
+	if (str.empty()) {
+		return str;
+	}
+
 	str = StringUtil::replace(str, L"`", L"");
 	str = StringUtil::replace(str, L"'", L"");
 	str = StringUtil::replace(str, L"\"", L"");

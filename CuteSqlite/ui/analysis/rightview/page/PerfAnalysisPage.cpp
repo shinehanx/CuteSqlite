@@ -56,6 +56,7 @@ void PerfAnalysisPage::createOrShowUI()
 	createOrShowWhereAnalysisElems(clientRect);
 	createOrShowOrderAnalysisElems(clientRect);
 
+
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
 	initScrollBar(size);
@@ -76,6 +77,7 @@ void PerfAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 	rect.left = clientRect.Width() - 20 - 60;
 	rect.right = rect.left + 60;
 	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, S(L"refresh-page"), rect, clientRect);
+	nHeightSum = rect.bottom;
 }
 
 void PerfAnalysisPage::createOrShowOrigSqlEditor(CRect &clientRect)
@@ -89,6 +91,7 @@ void PerfAnalysisPage::createOrShowOrigSqlEditor(CRect &clientRect)
 	rect.right = rect.left + clientRect.Width() - 40;
 	rect.bottom = rect.top + 100;
 	crateOrShowEditor(origSqlEditor, rect, clientRect);
+	nHeightSum = rect.bottom;
 }
 
 void PerfAnalysisPage::crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clientRect)
@@ -115,7 +118,7 @@ void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 	int x = 20, y = rectLast.bottom + 20, w = w = clientRect.Width() - 40, h = 24;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowLabel(m_hWnd, explainQueryPlanLabel, S(L"explain-query-plan").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
-
+	nHeightSum = rect.bottom;
 	
 	size_t i = 0;
 	for (auto & item : queryPlans) {
@@ -124,6 +127,7 @@ void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 			auto ptr = expQueryPlanPtrs.at(i);
 			if (ptr && ptr->IsWindow()) {
 				ptr->MoveWindow(rect);
+				nHeightSum = rect.bottom;
 				i++;
 				continue;
 			}			
@@ -131,6 +135,7 @@ void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 		CStatic * ptr = new CStatic();
 		QWinCreater::createOrShowLabel(m_hWnd, *ptr, item.detail, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 		expQueryPlanPtrs.push_back(ptr);
+		nHeightSum = rect.bottom;
 		i++;
 	}
 }
@@ -165,6 +170,7 @@ void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
 	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowLabel(m_hWnd, whereAnalysisLabel, S(L"where-clause-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	nHeightSum = rect.bottom;
 
 	createOrShowWhereAnalysisItemsForTable(clientRect);
 }
@@ -192,12 +198,15 @@ void PerfAnalysisPage::createOrShowWhereAnalysisItemsForTable(CRect &clientRect)
 		
 		if (iter != whereAnalysisElemPtrs.end()) {
 			createOrShowClauseAnalysisElem(*(*iter), rect, clientRect);
+			nHeightSum = rect.bottom;
 			rect.OffsetRect(0, h + 10);
 			continue;
 		}
 		WhereOrderClauseAnalysisElem * ptr = new WhereOrderClauseAnalysisElem(WHERE_CLAUSE, item);
 		createOrShowClauseAnalysisElem(*ptr, rect, clientRect);
 		whereAnalysisElemPtrs.push_back(ptr);
+		nHeightSum = rect.bottom;
+
 		rect.OffsetRect(0, h + 10);		
 	}
 	
@@ -236,6 +245,7 @@ void PerfAnalysisPage::createOrShowOrderAnalysisElems(CRect &clientRect)
 	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
 	CRect rect(x, y, x + w, y + h);
 	QWinCreater::createOrShowLabel(m_hWnd, orderAnalysisLabel, S(L"order-clause-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	nHeightSum = rect.bottom;
 
 	createOrShowOrderAnalysisItemsForTable(clientRect);
 }
@@ -263,12 +273,15 @@ void PerfAnalysisPage::createOrShowOrderAnalysisItemsForTable(CRect &clientRect)
 		
 		if (iter != orderAnalysisElemPtrs.end()) {
 			createOrShowClauseAnalysisElem(*(*iter), rect, clientRect);
+			nHeightSum = rect.bottom;
 			rect.OffsetRect(0, h + 10);
 			continue;
 		}
 		WhereOrderClauseAnalysisElem * ptr = new WhereOrderClauseAnalysisElem(ORDER_CLAUSE, item);
 		createOrShowClauseAnalysisElem(*ptr, rect, clientRect);
 		orderAnalysisElemPtrs.push_back(ptr);
+		nHeightSum = rect.bottom;
+
 		rect.OffsetRect(0, h + 10);		
 	}
 }

@@ -52,8 +52,7 @@ public:
 	static std::wregex whereClausePat2;
 
 	// order clause regex pattern
-	static std::wregex orderClausePat1;
-	static std::wregex orderClausePat2;
+	static std::wregex orderClausePat;
 
 	// limit clause regex patter
 	static std::wregex limitClausePat;
@@ -87,9 +86,9 @@ public:
 
 	static std::wstring parsePrimaryKey(std::wstring & createTblSql);
 	static std::wstring getWhereClause(const std::wstring & sql);
-	static std::wstring getOrderClause(const std::wstring & sql);
-	static std::vector<std::wstring> getSelectColumnsClause(const std::wstring & sql);
-	static std::wstring getOrderExpresses(const std::wstring & sql);
+	static std::vector<std::wstring> getOrderClauses(const std::wstring & upsql);
+	static std::vector<std::wstring> getSelectColumnsClause(const std::wstring & upsql);
+	static std::vector<std::wstring> getOrderExpresses(const std::wstring & sql);
 	static std::wstring getFourthClause(const std::wstring & sql);
 
 	// make sql

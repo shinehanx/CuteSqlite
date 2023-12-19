@@ -236,6 +236,14 @@ public:
 	static std::wstring & cutParensAndQuotes(std::wstring & str);
 
 	/**
+	 * Get gid of the parens and quotes.
+	 * 
+	 * @param str
+	 * @return 
+	 */
+	static std::wstring & cutQuotes(std::wstring & str);
+
+	/**
 	 * Fetch a substring between begin pos and end pos that start find from offset position.
 	 * 
 	 * @param str - string

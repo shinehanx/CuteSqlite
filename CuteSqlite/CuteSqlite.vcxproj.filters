@@ -411,6 +411,24 @@
     <ClCompile Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\common\parser\SqlSyntaxTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\parser\SQLParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\parser\SQLParserResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\parser\sql\SQLStatement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\parser\sql\Expr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\common\parser\sql\statements.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -855,6 +873,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\SqlSyntaxTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\SQLParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\SQLParserResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\sql\SQLStatement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\sql\Expr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\sql\SelectStatement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\sql\Table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\common\parser\sql\statements.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

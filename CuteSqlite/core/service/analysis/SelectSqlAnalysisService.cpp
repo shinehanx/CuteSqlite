@@ -19,9 +19,8 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "SelectSqlAnalysisService.h"
-#include "core\common\exception\QRuntimeException.h"
-#include <utils\SqlUtil.h>
-
+#include "core/common/exception/QRuntimeException.h"
+#include "utils/SqlUtil.h"
 
 DataList SelectSqlAnalysisService::explainSql(uint64_t userDbId, const std::wstring & sql)
 {
@@ -46,7 +45,7 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 	// For results.whereColumns
 	doConvertByteCodeForWhereColumns(userDbId, byteCodeList, sql, results);
 	// For results.orderColumns
-	doConvertByteCodeForOrderColumns(userDbId, byteCodeList, sql, results);
+	//doConvertByteCodeForOrderColumns(userDbId, byteCodeList, sql, results);
 	return results;
 }
 
@@ -121,8 +120,6 @@ void SelectSqlAnalysisService::doConvertByteCodeForOrderColumns(uint64_t userDbI
 	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
 		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
 	}
-
-	return;
 }
 
 
@@ -759,63 +756,66 @@ UserTableStrings SelectSqlAnalysisService::getUserTableStrings(uint64_t userDbId
 Columns SelectSqlAnalysisService::getOrderColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & sql)
 {
 	Columns result;
-	std::wstring orderExpressClause = SqlUtil::getOrderExpresses(sql);
-	if (orderExpressClause.empty()) {
-		return result;
-	}
+	auto & orderClauses = SqlUtil::getOrderExpresses(sql);
+	for (auto & orderExpressClause : orderClauses) {
+		if (orderExpressClause.empty()) {
+			return result;
+		}
 
-	auto expresses = StringUtil::split(orderExpressClause, L",");
-	std::wstring upsql = StringUtil::toupper(sql);
-	// tblAliasVec is up case vector
-	TableAliasVector tblAliasVec = SqlUtil::parseTableClauseFromSelectSql(upsql);
-	ColumnInfoList tblColumns = columnUserRepository->getListByTblName(userDbId, tblName);
-	for (auto & express : expresses) {
-		auto & expWords = StringUtil::splitByBlank(express);
-		for (auto & word : expWords) {
-			auto upword = StringUtil::toupper(word);
-			if (upword == L"ASC" || upword == L"DESC") {
-				continue;
-			}
-			size_t dotPos = word.find_first_of(L'.');
-			if (dotPos == std::wstring::npos) {				
-				auto iter = std::find_if(tblColumns.begin(), tblColumns.end(), [&upword](auto & columnInfo) {
-					return StringUtil::toupper(columnInfo.name) == upword;
+		auto expresses = StringUtil::split(orderExpressClause, L",");
+		std::wstring upsql = StringUtil::toupper(sql);
+		// tblAliasVec is up case vector
+		TableAliasVector tblAliasVec = SqlUtil::parseTableClauseFromSelectSql(upsql);
+		ColumnInfoList tblColumns = columnUserRepository->getListByTblName(userDbId, tblName);
+		for (auto & express : expresses) {
+			auto & expWords = StringUtil::splitByBlank(express);
+			for (auto & word : expWords) {
+				auto upword = StringUtil::toupper(word);
+				if (upword == L"ASC" || upword == L"DESC") {
+					continue;
+				}
+				size_t dotPos = word.find_first_of(L'.');
+				if (dotPos == std::wstring::npos) {				
+					auto iter = std::find_if(tblColumns.begin(), tblColumns.end(), [&upword](auto & columnInfo) {
+						return StringUtil::toupper(columnInfo.name) == upword;
+					});
+					// found in the columns of table
+					if (iter != tblColumns.end()) {
+						result.push_back(word);
+						continue;
+					}
+
+					//not found in the columns of table
+					std::wstring upcolumnName = parseColumnByAliasFromSql(userDbId, tblName, tblAliasVec, upword, upsql);
+					if (upcolumnName.empty()) {
+						continue;
+					}
+
+					auto iter2 = std::find_if(tblColumns.begin(), tblColumns.end(), [&upcolumnName](auto & columnInfo) {
+						return StringUtil::toupper(columnInfo.name) == upcolumnName;
+					});
+					// found in the columns of table
+					if (iter2 != tblColumns.end()) {
+						result.push_back((*iter2).name);
+						continue;
+					}
+					continue;
+				}
+
+				// tblPrefix.columnSuffix, such as "analysis.uid"
+				std::wstring tblPrefix = upword.substr(0, dotPos);
+				std::wstring columnSuffix = word.substr(dotPos+1);
+				auto findIter = std::find_if(tblAliasVec.begin(), tblAliasVec.end(), [&tblPrefix](auto & alias){
+					return alias.tbl == tblPrefix || alias.alias == tblPrefix;
 				});
-				// found in the columns of table
-				if (iter != tblColumns.end()) {
-					result.push_back(word);
+				if (findIter == tblAliasVec.end() || (*findIter).tbl != StringUtil::toupper(tblName)) {
 					continue;
 				}
-
-				//not found in the columns of table
-				std::wstring upcolumnName = parseColumnByAliasFromSql(userDbId, tblName, tblAliasVec, upword, upsql);
-				if (upcolumnName.empty()) {
-					continue;
-				}
-
-				auto iter2 = std::find_if(tblColumns.begin(), tblColumns.end(), [&upcolumnName](auto & columnInfo) {
-					return StringUtil::toupper(columnInfo.name) == upcolumnName;
-				});
-				// found in the columns of table
-				if (iter != tblColumns.end()) {
-					result.push_back((*iter).name);
-					continue;
-				}
-				continue;
+				result.push_back(columnSuffix);
 			}
-
-			// tblPrefix.columnSuffix, such as "analysis.uid"
-			std::wstring tblPrefix = upword.substr(0, dotPos);
-			std::wstring columnSuffix = word.substr(dotPos+1);
-			auto findIter = std::find_if(tblAliasVec.begin(), tblAliasVec.end(), [&tblPrefix](auto & alias){
-				return alias.tbl == tblPrefix || alias.alias == tblPrefix;
-			});
-			if (findIter == tblAliasVec.end() || (*findIter).tbl != StringUtil::toupper(tblName)) {
-				continue;
-			}
-			result.push_back(columnSuffix);
 		}
 	}
+	
 	return result;
 }
 
