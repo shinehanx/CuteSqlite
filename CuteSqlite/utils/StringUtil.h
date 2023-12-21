@@ -244,7 +244,7 @@ public:
 	static std::wstring & cutQuotes(std::wstring & str);
 
 	/**
-	 * Fetch a substring between begin pos and end pos that start find from offset position.
+	 * Fetch a substring between begin char and end char that start find from offset position.
 	 * 
 	 * @param str - string
 	 * @param begin - begin symbol
@@ -254,6 +254,12 @@ public:
 	 * @return 
 	 */
 	static std::wstring inSymbolString(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure = true);
+
+	//  Fetch a substring between begin char and end char that start find from offset position.
+	static std::vector<std::wstring> inSymbolStrings(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure = true);
+
+	// Fetch a substring between begin char and end char that start find from offset position.
+	static std::wstring notInSymbolString(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure = true);
 
 	/**
 	 * Find the next character that it is not blank character.

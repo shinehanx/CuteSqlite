@@ -35,4 +35,5 @@ public:
 	
 private:
 	static std::wstring tokenFromSql(const std::wstring &sql, size_t & offset);
+	static void parseSelect(SQLParserResult * result, const std::vector<std::wstring> & tokens);
 };

@@ -752,13 +752,15 @@ std::wstring & StringUtil::cutQuotes(std::wstring & str)
 }
 
 /**
- * Fetch a substring between begin pos and end pos that start find from offset position.
+ * Fetch a substring between begin char and end char that start find from offset position.
+ * e.g., SQL statement:    "SELECT a.*, b.uid, FROM analysis a, (select name1,created_at from customer where name1='jack') b WHERE a.uid=b.uid and a.name2='ma'"
+ *       return statement: select name1,created_at from customer where name1='jack'
  * 
  * @param str - string
  * @param begin - begin symbol
  * @param end - end symbol
  * @param offset - offset to start finding
- * @param rescure - 
+ * @param rescure - rescure search begin symbol and end symbol
  * @return 
  */
 std::wstring StringUtil::inSymbolString(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure /*= true*/)
@@ -803,6 +805,63 @@ std::wstring StringUtil::inSymbolString(const std::wstring & str, wchar_t begin,
 		return str;
 	}
 	return str.substr(_begin_pos + 1, _end_pos - _begin_pos - 1);
+}
+
+
+std::vector<std::wstring> StringUtil::inSymbolStrings(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure /*= true*/)
+{
+	std::vector<std::wstring> result;
+	if (str.empty()) {
+		return result;
+	}
+
+	size_t pos = offset;
+	size_t nMax = str.size();
+	for (;;) {
+		std::wstring instr = inSymbolString(str, begin, end, pos, rescure);
+		if (instr == str || instr.empty()) {
+			break;
+		}
+		result.push_back(instr);
+		pos = str.find(instr) + instr.size();
+		if (pos == std::wstring::npos || pos >= nMax) {
+			break;
+		}		
+	}
+
+	return result;
+}
+
+/**
+ * Fetch a substring not between begin char and end char that start find from offset position.
+ * e.g., SQL statement:    "SELECT a.*, b.uid, FROM analysis a, (select name1,created_at from customer where name1='jack') b WHERE a.uid=b.uid and a.name2='ma'"
+ *       return statement: "SELECT a.*, b.uid, FROM analysis a, b WHERE a.uid=b.uid and a.name2='ma'"
+ * 
+ * @param str - string
+ * @param begin - begin symbol
+ * @param end - end symbol
+ * @param offset - offset to start finding
+ * @param rescure - rescure search begin symbol and end symbol
+ * @return 
+ */
+std::wstring StringUtil::notInSymbolString(const std::wstring & str, wchar_t begin, wchar_t end, size_t offset, bool rescure /*= true*/)
+{
+	if (str.empty()) {
+		return str;
+	}
+
+	size_t pos = offset;
+	std::wstring newstr = str;
+	for (;;) {
+		std::wstring instr = inSymbolString(newstr, begin, end, pos, rescure);
+		if (instr == newstr || instr.empty()) {
+			break;
+		}
+		newstr = replace(newstr, instr, L"");
+		pos = 0;
+	}
+
+	return newstr;
 }
 
 /**

@@ -21,6 +21,7 @@
 #include "SQLParser.h"
 #include "utils/StringUtil.h"
 #include "core/common/exception/QRuntimeException.h"
+#include "sql/SelectStatement.h"
 
 
 bool SQLParser::parse(const std::wstring & sql, SQLParserResult * result)
@@ -31,6 +32,8 @@ bool SQLParser::parse(const std::wstring & sql, SQLParserResult * result)
 	if (!ret) {
 		throw QRuntimeException(L"200001");
 	}
+
+	parseSelect(result, tokens);
 
 
 	return true;
@@ -78,4 +81,71 @@ std::wstring SQLParser::tokenFromSql(const std::wstring &sql, size_t & offset)
 	}
 	token = StringUtil::cutQuotes(token);
 	return token;
+}
+
+void SQLParser::parseSelect(SQLParserResult * result, const std::vector<std::wstring> & tokens)
+{
+	SelectStatement * curStmt = nullptr;
+	Expr * lastExpr = nullptr;
+
+	for (auto tokenIter = tokens.begin(); tokenIter != tokens.end(); tokenIter++) {
+		auto & token = *tokenIter;
+		std::wstring upToken = StringUtil::toupper(token);
+
+		// token
+		wchar_t * string = new wchar_t[token.size() + 1]{0};
+		wmemcpy_s(string, token.size() + 1, token.c_str(), token.size());
+
+		bool isUseString = false;
+		if (upToken == L"SELECT") {			
+			if (curStmt == nullptr) {
+				curStmt = new SelectStatement();
+				result->addStatement(curStmt);
+			} else {
+				curStmt = new SelectStatement();
+			}
+			
+			Expr * expr = Expr::makeSelect(curStmt);
+			expr->name = string;
+
+			curStmt->selectList->push_back(expr);
+			lastExpr = expr;
+
+			isUseString = true;
+		} else if (upToken == L"DISTINCT") {
+			Expr * expr = Expr::makeLiteral(string);
+			expr->select = curStmt;
+
+			curStmt->selectDistinct = true;
+			curStmt->selectList->push_back(expr);
+			lastExpr->exprList->push_back(expr);
+
+			lastExpr = expr;
+			isUseString = true;
+		} else if (upToken == L"UNION") {			
+			Expr * expr = Expr::makeLiteral(string);
+			expr->select = curStmt;
+
+			curStmt->selectDistinct = true;
+			curStmt->selectList->push_back(expr);
+			isUseString = true;
+		} else if (upToken == L",") {			
+			Expr * expr = Expr::makeLiteral(string);
+			expr->select = curStmt;
+
+			curStmt->selectDistinct = true;
+			curStmt->selectList->push_back(expr);
+			isUseString = true;
+		} else {			
+			Expr * expr = Expr::makeLiteral(string);
+			curStmt->selectList->push_back(expr);
+
+			lastExpr->exprList->push_back(expr);
+			isUseString = true;
+		}
+
+		if (!isUseString) {
+			delete[] string;
+		}
+	}
 }

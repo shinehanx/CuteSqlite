@@ -19,8 +19,9 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "SelectSqlAnalysisService.h"
-#include "core/common/exception/QRuntimeException.h"
 #include "utils/SqlUtil.h"
+#include "core/common/exception/QRuntimeException.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 DataList SelectSqlAnalysisService::explainSql(uint64_t userDbId, const std::wstring & sql)
 {
@@ -45,7 +46,7 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 	// For results.whereColumns
 	doConvertByteCodeForWhereColumns(userDbId, byteCodeList, sql, results);
 	// For results.orderColumns
-	//doConvertByteCodeForOrderColumns(userDbId, byteCodeList, sql, results);
+	doConvertByteCodeForOrderColumns(userDbId, byteCodeList, sql, results);
 	return results;
 }
 
@@ -111,19 +112,23 @@ void SelectSqlAnalysisService::doConvertByteCodeForWhereColumns(uint64_t userDbI
  */
 void SelectSqlAnalysisService::doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList & byteCodeList, const std::wstring & sql, ByteCodeResults & results)
 {
+
 	// opcode Last and opcode Prev exists in byteCodeList at the same time
-	//parseOrderOrIndexColumnFromLastAndPrev(userDbId, byteCodeList, sql, results);
+	parseOrderOrIndexColumnFromLastAndPrev(userDbId, byteCodeList, sql, results);
 
 	// opcode IdxInsert and opcode Sort exists in byteCodeList at the same time
-	// parseOrderOrIndexColumnFromIdxInsertAndSort(userDbId, byteCodeList, sql, results);
+	parseOrderOrIndexColumnFromIdxInsertAndSort(userDbId, byteCodeList, sql, results);
 
-	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
-		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
-	}
+	// opcode SorterInsert and opcode Sort exists in byteCodeList at the same time
+	parseOrderOrIndexColumnFromSorter(userDbId, byteCodeList, sql, results);
+
+// 	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
+// 		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
+// 	}
 }
 
 
-void SelectSqlAnalysisService::parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
+bool SelectSqlAnalysisService::parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
 {
 	int hasLast = false, hasPrev = false;
 	int lastP1 = -1, prevP1 = -1;
@@ -143,21 +148,34 @@ void SelectSqlAnalysisService::parseOrderOrIndexColumnFromLastAndPrev(uint64_t u
 		}
 	}
 
-	if (!hasLast || !hasPrev || lastP1 == -1 || prevP1 == -1 || lastP1 != prevP1) return;
+	if (!hasLast || !hasPrev || lastP1 == -1 || prevP1 == -1 || lastP1 != prevP1) return false;
 
 	auto tblIter = std::find_if(results.begin(), results.end(), [&lastP1](auto & result) {
 		return result.no == lastP1;
 	});
 	if (tblIter == results.end()) {
-		return;
+		return false;
 	}
 
-	parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
-	return;
+	// Get gid of all sub-select statements that between '(' and ')'
+	std::wstring mainSelectClause = StringUtil::notInSymbolString(sql, L'(', L')', 0, true);
+
+	parseOrderColumnFromSql(tblIter, userDbId, mainSelectClause, results);
+
+	// parse the order columns by sub-select clause that between '(' and ')'
+	parseOrderColumnsBySubSelectClause(userDbId, sql,  results);
 }
 
-
-void SelectSqlAnalysisService::parseOrderClauseColumnFromSql(ByteCodeResults::iterator tblIter, uint64_t userDbId, const std::wstring & sql, ByteCodeResults &results)
+/**
+ * Parse Order Clause's Column From Sql.
+ * 
+ * @param tblIter
+ * @param userDbId
+ * @param sql
+ * @param results
+ * @return 
+ */
+bool SelectSqlAnalysisService::parseOrderColumnFromSql(ByteCodeResults::iterator tblIter, uint64_t userDbId, const std::wstring & sql, ByteCodeResults &results)
 {
 	int no = (*tblIter).no;
 	auto & orderColumns = (*tblIter).orderColumns;
@@ -187,7 +205,7 @@ void SelectSqlAnalysisService::parseOrderClauseColumnFromSql(ByteCodeResults::it
 			return resItem.name == userIndex.tblName;
 		});
 		if (pTblIter == results.end()) {
-			return;
+			return false;
 		}
 		auto & tblName = (*pTblIter).name;
 		auto & parentTblResult = *pTblIter;
@@ -237,32 +255,358 @@ void SelectSqlAnalysisService::parseOrderClauseColumnFromSql(ByteCodeResults::it
 			sortNo++;
 		}
 	}
+	return true;
 }
 
 void SelectSqlAnalysisService::parseOrderOrIndexColumnFromIdxInsertAndSort(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
 {
-	bool hasIdxInsert = false, hasSort = false;
-	int IdxInsertP1 = -1, sortP1 = -1;
-
+	// 1.parse using columns in sorter(opcode order: OpenEphemeral--...-->MakeRecord---->IdxInsert---...--->Sort)
+	bool hasOpenEphemeral = false, hasMakeRecord = false, hasIdxInsert = false, hasSort = false;
+	int openEphemeralP1 = -1, idxInsertP1 = -1, sortP1 = -1,
+		idxInsertP2 = -1,
+		makeRecordP1 = -1, makeRecordP2 = -1, makeRecordP3 = -1;
+	DataList::const_iterator makeRecordIter = byteCodeList.end();
+	
 	for (auto iter = byteCodeList.begin(); iter != byteCodeList.end(); iter++) {
 		auto & rowItem = *iter;
 		auto & opcode = rowItem.at(EXP_OPCODE);
-		if (opcode == L"IdxInsert") {
+		if (opcode == L"OpenEphemeral") {
+			hasOpenEphemeral = true;
+			openEphemeralP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+		} else if (opcode == L"MakeRecord" && (*std::next(iter)).at(EXP_OPCODE) == L"IdxInsert") {
+			hasMakeRecord = true;
+			makeRecordP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+			makeRecordP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1;
+			makeRecordP3 = rowItem.at(EXP_P3) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P3)) : -1;
+			makeRecordIter = iter;
+		} else if (opcode == L"IdxInsert") {
 			hasIdxInsert = true;
-			IdxInsertP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;			
+			idxInsertP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+			idxInsertP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1;
 		} else if (opcode == L"Sort") {
 			hasSort = true;
 			sortP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
 		}
 	}
 
-	if (!hasIdxInsert || !hasSort || IdxInsertP1 == -1 || sortP1 == -1 || IdxInsertP1 != sortP1) return;
+	if (!hasOpenEphemeral || !hasMakeRecord || !hasIdxInsert || !hasSort
+		|| openEphemeralP1 == -1 || idxInsertP1 == -1 || sortP1 == -1
+		|| makeRecordP1 == -1 || makeRecordP2 == -1 || makeRecordP3 == -1
+		|| idxInsertP2 != makeRecordP3
+		|| idxInsertP1 != sortP1) return;
 
-	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
-		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
+	std::vector<int> makeRecordColumnRegNos;
+	for (int i = 0; i < makeRecordP2; i++) {
+		makeRecordColumnRegNos.push_back(makeRecordP1 + i);
+	}
+
+	// pair : first(std::wstring) - tbl name, second(std::wstring) - column name
+	ByteCodeUseColumns byteCodeUseColumns;
+	// 2. travel the column opcode row item from MakeRecord to Rewind
+	for (int regNo : makeRecordColumnRegNos) {		
+		for (auto iter = std::prev(makeRecordIter); iter != byteCodeList.begin(); iter = std::prev(iter)) {
+			auto & rowItem = *iter;
+			auto rowItemP3 = rowItem.at(EXP_P3) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P3)) : -1;
+			if (rowItem.at(EXP_OPCODE) == L"Rewind") {
+				break;
+			}
+			if (rowItem.at(EXP_OPCODE) != L"Column" || rowItemP3 != regNo) { // Column p3 - register number,must equals each other
+				continue;
+			}
+			auto rowItemP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1; // Column p1 - OpenRead p1
+			auto rowItemP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1; // Column p2 - Table / Index index
+
+			auto tblIter = std::find_if(results.begin(), results.end(), [&rowItemP1](auto & tbl) {
+				return rowItemP1 == tbl.no;
+			});
+			if (tblIter == results.end()) {
+				return ;
+			}
+			int tblNo = (*tblIter).no;
+			std::wstring tblName = (*tblIter).name;
+			std::wstring tblType = (*tblIter).type;
+			if (tblType == L"table") {
+				ColumnInfoList columnInfoList = columnUserRepository->getListByTblName(userDbId, tblName);
+
+				//ByteCodeUseColumn params: 0-table no, 1-table name, 2-index no, 3-index name, 4-column name
+				ByteCodeUseColumn sortColumn{tblNo, tblName, -1, L"", columnInfoList.at(rowItemP2).name};
+				byteCodeUseColumns.push_back(sortColumn);
+			} else if (tblType == L"index") {
+				PragmaIndexColumns idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, (*tblIter).name);	
+				const auto & colomnName = idxColumns.at(rowItemP2).name;
+
+				// parent table item in the results
+				UserIndex userIndex = indexUserRepository->getByIndexName(userDbId, (*tblIter).name);
+				auto pTblIter = std::find_if(results.begin(), results.end(), [&userIndex](auto & resItem) {
+					return resItem.name == userIndex.tblName;
+				});
+				if (pTblIter == results.end()) {
+					return ;
+				}
+				//ByteCodeUseColumn params: 0-table no, 1-table name, 2-index no, 3-index name, 4-column name
+				ByteCodeUseColumn sortColumn{(*pTblIter).no, (*pTblIter).name, tblNo, tblName, colomnName};
+				byteCodeUseColumns.push_back(sortColumn);
+			}
+		}		
+	}
+	if (byteCodeUseColumns.empty()) {
+		return;
+	}
+
+	// Get gid of all sub-select statements that between '(' and ')'
+	std::wstring mainSelectClause = StringUtil::notInSymbolString(sql, L'(', L')', 0, true);
+	parseOrderColumnFromByteCodeUseColumnAndSql(userDbId, byteCodeUseColumns,  mainSelectClause, results);
+
+	// parse the order columns by sub-select clause that between '(' and ')'
+	parseOrderColumnsBySubSelectClause(userDbId, sql,  results);
+}
+
+
+void SelectSqlAnalysisService::parseOrderOrIndexColumnFromSorter(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
+{
+	// 1.parse using columns in sorter(opcode order: OpenEphemeral--...-->MakeRecord---->IdxInsert---...--->Sort)
+	bool hasSorterOpen = false, hasMakeRecord = false, hasSorterInsert = false, hasSorterSort = false;
+	int sorterOpenP1 = -1, sorterInsertP1 = -1, sorterSortP1 = -1,
+		sorterInsertP2 = -1,
+		makeRecordP1 = -1, makeRecordP2 = -1, makeRecordP3 = -1;
+	DataList::const_iterator makeRecordIter = byteCodeList.end();
+	
+	for (auto iter = byteCodeList.begin(); iter != byteCodeList.end(); iter++) {
+		auto & rowItem = *iter;
+		auto & opcode = rowItem.at(EXP_OPCODE);
+		if (opcode == L"SorterOpen") {
+			hasSorterOpen = true;
+			sorterOpenP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+		} else if (opcode == L"MakeRecord" && (*std::next(iter)).at(EXP_OPCODE) == L"SorterInsert") {
+			hasMakeRecord = true;
+			makeRecordP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1; // MakeRecord P1 = Column opcode start index 
+			makeRecordP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1;
+			makeRecordP3 = rowItem.at(EXP_P3) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P3)) : -1;
+			makeRecordIter = iter;
+		} else if (opcode == L"SorterInsert") {
+			hasSorterInsert = true;
+			sorterInsertP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+			sorterInsertP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1;
+		} else if (opcode == L"SorterSort") {
+			hasSorterSort = true;
+			sorterSortP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1;
+		}
+	}
+
+	if (!hasSorterOpen || !hasMakeRecord || !hasSorterInsert || !hasSorterSort
+		|| sorterOpenP1 == -1 || sorterInsertP1 == -1 || sorterSortP1 == -1
+		|| makeRecordP1 == -1 || makeRecordP2 == -1 || makeRecordP3 == -1
+		|| sorterInsertP1 != sorterOpenP1
+		|| sorterInsertP2 != makeRecordP3 
+		|| sorterInsertP1 != sorterSortP1) return;
+
+	std::vector<int> makeRecordColumnRegNos;
+	for (int i = 0; i < makeRecordP2; i++) {
+		makeRecordColumnRegNos.push_back(makeRecordP1 + i);
+	}
+
+	// pair : first(std::wstring) - tbl name, second(std::wstring) - column name
+	ByteCodeUseColumns byteCodeUseColumns;
+	// 2. travel the column opcode row item from MakeRecord to Rewind
+	for (int regNo : makeRecordColumnRegNos) {		
+		for (auto iter = std::prev(makeRecordIter); iter != byteCodeList.begin(); iter = std::prev(iter)) {
+			auto & rowItem = *iter;
+			auto rowItemP3 = rowItem.at(EXP_P3) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P3)) : -1;
+			if (rowItem.at(EXP_OPCODE) == L"Rewind") {
+				break;
+			}
+			if (rowItem.at(EXP_OPCODE) != L"Column" || rowItemP3 != regNo) { // Column p3 - register number,must equals each other
+				continue;
+			}
+			auto rowItemP1 = rowItem.at(EXP_P1) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P1)) : -1; // Column p1 - OpenRead p1
+			auto rowItemP2 = rowItem.at(EXP_P2) != L"< NULL >" ? std::stoi(rowItem.at(EXP_P2)) : -1; // Column p2 - Table / Index index
+
+			auto tblIter = std::find_if(results.begin(), results.end(), [&rowItemP1](auto & tbl) {
+				return rowItemP1 == tbl.no;
+			});
+			if (tblIter == results.end()) {
+				return ;
+			}
+			int tblNo = (*tblIter).no;
+			std::wstring tblName = (*tblIter).name;
+			std::wstring tblType = (*tblIter).type;
+			if (tblType == L"table") {
+				ColumnInfoList columnInfoList = columnUserRepository->getListByTblName(userDbId, tblName);
+
+				//ByteCodeUseColumn params: 0-table no, 1-table name, 2-index no, 3-index name, 4-column name
+				ByteCodeUseColumn sortColumn{tblNo, tblName, -1, L"", columnInfoList.at(rowItemP2).name};
+				byteCodeUseColumns.push_back(sortColumn);
+			} else if (tblType == L"index") {
+				PragmaIndexColumns idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, (*tblIter).name);	
+				const auto & colomnName = idxColumns.at(rowItemP2).name;
+
+				// parent table item in the results
+				UserIndex userIndex = indexUserRepository->getByIndexName(userDbId, (*tblIter).name);
+				auto pTblIter = std::find_if(results.begin(), results.end(), [&userIndex](auto & resItem) {
+					return resItem.name == userIndex.tblName;
+				});
+				if (pTblIter == results.end()) {
+					return ;
+				}
+				//ByteCodeUseColumn params: 0-table no, 1-table name, 2-index no, 3-index name, 4-column name
+				ByteCodeUseColumn sortColumn{(*pTblIter).no, (*pTblIter).name, tblNo, tblName, colomnName};
+				byteCodeUseColumns.push_back(sortColumn);
+			}
+		}		
+	}
+	if (byteCodeUseColumns.empty()) {
+		return;
+	}
+
+	// Get gid of all sub-select clause that between '(' and ')'
+	std::wstring mainSelectClause = StringUtil::notInSymbolString(sql, L'(', L')', 0, true);
+	parseOrderColumnFromByteCodeUseColumnAndSql(userDbId, byteCodeUseColumns,  mainSelectClause, results);
+
+	// parse the order columns by sub-select clause that between '(' and ')'
+	parseOrderColumnsBySubSelectClause(userDbId, sql,  results);
+
+}
+
+/**
+ * parse the order columns by sub-select clause 
+ * 
+ * @param userDbId
+ * @param sql
+ * @param results
+ */
+void SelectSqlAnalysisService::parseOrderColumnsBySubSelectClause(uint64_t userDbId, const std::wstring & sql,  ByteCodeResults & results)
+{
+	// Get all sub-select clause that between '(' and ')'
+	auto subSelectClauses = StringUtil::inSymbolStrings(sql, L'(', L')', 0, true);
+	for (auto subSelectClause : subSelectClauses) {
+		if (subSelectClause == sql || !SqlUtil::isSelectSql(subSelectClause)) {
+			continue;
+		}
+
+		try {
+			DataList subByteCodeList = explainSql(userDbId, subSelectClause);
+			ByteCodeResults subResults;
+
+			// For results.whereColumns, recursion calling doConvertByteCodeForWhereColumns
+			doConvertByteCodeForWhereColumns(userDbId, subByteCodeList, subSelectClause, subResults);
+			// For results.orderColumns, recursion calling doConvertByteCodeForWhereColumns
+			doConvertByteCodeForOrderColumns(userDbId, subByteCodeList, subSelectClause, subResults);
+
+			if (subResults.empty()) {
+				continue;
+			}
+			mergeByteCodeResults(results, subResults);
+		}
+		catch (QSqlExecuteException & ex) {
+			Q_ERROR(L"Parse sql to order columns has QSqlExecuteException, code:{},msg:{}", ex.getCode(), ex.getMsg());
+			continue;
+		}
+		catch (QRuntimeException & ex) {
+			Q_ERROR(L"Parse sql to order columns has QRuntimeException, code:{},msg:{}", ex.getCode(), ex.getMsg());
+			continue;
+		}
 	}
 }
 
+/**
+ * .
+ * 
+ * @param userDbId
+ * @param byteCodeSortColumns - parse all sorter columns 
+ * @param mainSelectClause
+ * @param results
+ */
+void SelectSqlAnalysisService::parseOrderColumnFromByteCodeUseColumnAndSql(
+	uint64_t userDbId, 
+	const ByteCodeUseColumns & byteCodeUseColumns, 
+	const std::wstring & sql, 
+	ByteCodeResults & results)
+{
+	if (byteCodeUseColumns.empty()) {
+		return;
+	}
+	auto & orderClauses = SqlUtil::getOrderExpresses(sql);
+	if (orderClauses.empty() || orderClauses.size() > 1) {
+		return;
+	}
+	auto orderExpresses = StringUtil::split(orderClauses.at(0), L",");
+	size_t n = orderExpresses.size();
+	if (n > byteCodeUseColumns.size()) {
+		return;
+	}
+
+	for (size_t i = 0; i < n; i++) {
+		auto & byteCodeUseColumn = byteCodeUseColumns.at(i);
+		
+		auto tblIter = std::find_if(results.begin(), results.end(), [&byteCodeUseColumn](auto & result) {
+			return result.no == byteCodeUseColumn.tblNo;
+		});
+
+		if (tblIter != results.end()) {
+			auto & useIndexes = (*tblIter).useIndexes;
+			auto & orderColumns = (*tblIter).orderColumns;
+			auto & orderIndexColumns = (*tblIter).orderIndexColumns;
+
+			auto foundIter1 = std::find_if(orderColumns.begin(), orderColumns.end(), [&byteCodeUseColumn] (auto & item) {
+				return byteCodeUseColumn.columnName == item;
+			});
+			if (foundIter1 == orderColumns.end()) {
+				orderColumns.push_back(byteCodeUseColumn.columnName);
+			}
+			
+			if (byteCodeUseColumn.idxNo != -1 && byteCodeUseColumn.idxName.empty() == false) {
+				auto foundIter2 = std::find_if(useIndexes.begin(), useIndexes.end(), [&byteCodeUseColumn] (auto & item) {
+					return byteCodeUseColumn.idxNo == item.first && byteCodeUseColumn.idxName == item.second;
+				});
+				if (foundIter2 == useIndexes.end()) {
+					useIndexes.push_back({ byteCodeUseColumn.idxNo, byteCodeUseColumn.idxName });
+				}
+
+				auto foundIter3 = std::find_if(orderIndexColumns.begin(), orderIndexColumns.end(), [&byteCodeUseColumn] (auto & item) {
+					return byteCodeUseColumn.idxNo == item.first && byteCodeUseColumn.columnName == item.second;
+				});
+
+				if (foundIter3 == orderIndexColumns.end()) {
+					orderIndexColumns.push_back({ byteCodeUseColumn.idxNo, byteCodeUseColumn.columnName });
+				}
+			}
+		}
+		
+		auto tblIter2 = std::find_if(results.begin(), results.end(), [&byteCodeUseColumn](auto & result) {
+			return result.no == byteCodeUseColumn.idxNo;
+		});
+
+		if (tblIter2 != results.end()) {
+			auto & useIndexes = (*tblIter2).useIndexes;
+			auto & orderColumns = (*tblIter2).orderColumns;
+			auto & orderIndexColumns = (*tblIter2).orderIndexColumns;
+
+			auto foundIter1 = std::find_if(orderColumns.begin(), orderColumns.end(), [&byteCodeUseColumn] (auto & item) {
+				return byteCodeUseColumn.columnName == item;
+			});
+			if (foundIter1 == orderColumns.end()) {
+				orderColumns.push_back(byteCodeUseColumn.columnName);
+			}
+			
+			if (byteCodeUseColumn.idxNo != -1 && byteCodeUseColumn.idxName.empty() == false) {
+				auto foundIter2 = std::find_if(useIndexes.begin(), useIndexes.end(), [&byteCodeUseColumn] (auto & item) {
+					return byteCodeUseColumn.idxNo == item.first && byteCodeUseColumn.idxName == item.second;
+				});
+				if (foundIter2 == useIndexes.end()) {
+					useIndexes.push_back({ byteCodeUseColumn.idxNo, byteCodeUseColumn.idxName });
+				}
+
+				auto foundIter3 = std::find_if(orderIndexColumns.begin(), orderIndexColumns.end(), [&byteCodeUseColumn] (auto & item) {
+					return byteCodeUseColumn.idxNo == item.first && byteCodeUseColumn.columnName == item.second;
+				});
+
+				if (foundIter3 == orderIndexColumns.end()) {
+					orderIndexColumns.push_back({ byteCodeUseColumn.idxNo, byteCodeUseColumn.columnName });
+				}
+			}
+		}
+	}
+}
 
 void SelectSqlAnalysisService::parseOrderOrIndexColumnFromOpSorter(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
 {
@@ -284,7 +628,7 @@ void SelectSqlAnalysisService::parseOrderOrIndexColumnFromOpSorter(uint64_t user
 	if (!hasSorterOpen || !hasSorterSort || sorterOpenP1 == -1 || sorterSortP1 == -1 || sorterOpenP1 != sorterSortP1) return;
 
 	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
-		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
+		parseOrderColumnFromSql(tblIter, userDbId, sql, results);
 	}
 }
 
@@ -511,7 +855,8 @@ void SelectSqlAnalysisService::parseWhereOrIndexColumnFromOpCompare(uint64_t use
  * @param iter
  * @param byteCodeList
  */
-void SelectSqlAnalysisService::parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList)
+void SelectSqlAnalysisService::parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, 
+	DataList::const_iterator iter, const DataList & byteCodeList)
 {
 	int no = std::stoi(rowItem.at(EXP_P1)); // SeekRowid opcode: P1 - table no
 
@@ -767,7 +1112,7 @@ Columns SelectSqlAnalysisService::getOrderColumns(uint64_t userDbId, const std::
 		// tblAliasVec is up case vector
 		TableAliasVector tblAliasVec = SqlUtil::parseTableClauseFromSelectSql(upsql);
 		ColumnInfoList tblColumns = columnUserRepository->getListByTblName(userDbId, tblName);
-		for (auto & express : expresses) {
+		for (auto & express : expresses) { // expresses - e.g., "uid desc, c.uid asc"
 			auto & expWords = StringUtil::splitByBlank(express);
 			for (auto & word : expWords) {
 				auto upword = StringUtil::toupper(word);
@@ -785,7 +1130,7 @@ Columns SelectSqlAnalysisService::getOrderColumns(uint64_t userDbId, const std::
 						continue;
 					}
 
-					//not found in the columns of table
+					//not found in the select columns clause with table
 					std::wstring upcolumnName = parseColumnByAliasFromSql(userDbId, tblName, tblAliasVec, upword, upsql);
 					if (upcolumnName.empty()) {
 						continue;
@@ -802,7 +1147,7 @@ Columns SelectSqlAnalysisService::getOrderColumns(uint64_t userDbId, const std::
 					continue;
 				}
 
-				// tblPrefix.columnSuffix, such as "analysis.uid"
+				// tblPrefix.columnSuffix in order by clause, such as "analysis.uid"
 				std::wstring tblPrefix = upword.substr(0, dotPos);
 				std::wstring columnSuffix = word.substr(dotPos+1);
 				auto findIter = std::find_if(tblAliasVec.begin(), tblAliasVec.end(), [&tblPrefix](auto & alias){
@@ -891,3 +1236,122 @@ bool SelectSqlAnalysisService::isMatchIndexColumnSortNo(PragmaIndexColumns & idx
 	}
 	return false;
 }
+
+/**
+ * Merge subResults to results.
+ * 
+ * @param results[in, out]
+ * @param subResult[in]
+ */
+void SelectSqlAnalysisService::mergeByteCodeResults(ByteCodeResults &results, ByteCodeResults & subResults)
+{
+	if (subResults.empty()) {
+		return;
+	}
+
+	for (auto subResult : subResults) {
+		auto & subUseIndexes = subResult.useIndexes;
+		auto & subWhereColumns = subResult.whereColumns;
+		auto & subOrderColumns = subResult.orderColumns;
+		auto & subWhereIndexColumns = subResult.whereIndexColumns;
+		auto & subOrderIndexColumns = subResult.orderIndexColumns;
+
+		for (auto & result : results) {
+			if (result.name != subResult.name || result.rootPage != subResult.rootPage) {
+				continue;
+			}
+
+			auto & useIndexes = result.useIndexes;
+			auto & whereColumns = result.whereColumns;
+			auto & orderColumns = result.orderColumns;
+			auto & whereIndexColumns = result.whereIndexColumns;
+			auto & orderIndexColumns = result.orderIndexColumns;
+
+			for (auto & subUseIndex : subUseIndexes) {
+				auto iter = std::find_if(useIndexes.begin(), useIndexes.end(), [&subUseIndex](auto & item) {
+					return subUseIndex.second == item.second;
+				});
+				if (iter == useIndexes.end()) {
+					useIndexes.push_back(subUseIndex);
+				}
+			}
+
+			for (auto & subWhereColumn : subWhereColumns) {
+				auto iter = std::find_if(whereColumns.begin(), whereColumns.end(), [&subWhereColumn](auto & item) {
+					return subWhereColumn == item;
+				});
+				if (iter == whereColumns.end()) {
+					whereColumns.push_back(subWhereColumn);
+				}
+			}
+
+			for (auto & subOrderColumn : subOrderColumns) {
+				auto iter = std::find_if(orderColumns.begin(), orderColumns.end(), [&subOrderColumn](auto & item) {
+					return subOrderColumn == item;
+				});
+				if (iter == orderColumns.end()) {
+					orderColumns.push_back(subOrderColumn);
+				}
+			}
+
+			for (auto & subWhereIndexColumn : subWhereIndexColumns) {
+				auto iter = std::find_if(whereIndexColumns.begin(), whereIndexColumns.end(), [&subWhereIndexColumn](auto & item) {
+					return subWhereIndexColumn.second == item.second;
+				});
+				if (iter == whereIndexColumns.end()) {
+					//convert index no. of subUseIndexes in subResults --------to-------> index no. of result.useIndexes
+					// 1) find index name by  index no. in subResults.useIndexes.
+					auto iter2 = std::find_if(subUseIndexes.begin(), subUseIndexes.end(), [&subWhereIndexColumn](auto & item) {
+						return subWhereIndexColumn.first == item.first; // first - index no.
+					});
+					if (iter2 == subUseIndexes.end()) {
+						continue;
+					}
+					// found it.
+					auto indexName = (*iter2).second;
+
+					// 2) find index no. by  index name in results.useIndexes.
+					auto iter3 = std::find_if(useIndexes.begin(), useIndexes.end(), [&indexName](auto & item) {
+						return indexName == item.second;
+					});
+
+					if (iter3 == useIndexes.end()) {
+						continue;
+					}
+					auto & idxNo = (*iter3).first;
+					whereIndexColumns.push_back({idxNo,subWhereIndexColumn.second });
+				}
+			}
+			
+			for (auto & subOrderIndexColumn : subOrderIndexColumns) {
+				auto iter = std::find_if(orderIndexColumns.begin(), orderIndexColumns.end(), [&subOrderIndexColumn](auto & item) {
+					return subOrderIndexColumn.second == item.second;
+				});
+				if (iter == orderIndexColumns.end()) {
+					//convert index no. of subUseIndexes in subResults --------to-------> index no. of useIndexes in results
+					// 1) find index name by  index no. in subResults.useIndexes.
+					auto iter2 = std::find_if(subUseIndexes.begin(), subUseIndexes.end(), [&subOrderIndexColumn](auto & item) {
+						return subOrderIndexColumn.first == item.first; // first - index no.
+					});
+					if (iter2 == subUseIndexes.end()) {
+						continue;
+					}
+					// found it.
+					auto indexName = (*iter2).second;
+
+					// 2) find index no. by  index name in results.useIndexes.
+					auto iter3 = std::find_if(useIndexes.begin(), useIndexes.end(), [&indexName](auto & item) {
+						return indexName == item.second;
+					});
+
+					if (iter3 == useIndexes.end()) {
+						continue;
+					}
+					auto & idxNo = (*iter3).first;
+					orderIndexColumns.push_back({ idxNo, subOrderIndexColumn.second });
+				}
+			}
+		}
+	}
+}
+

@@ -86,3 +86,51 @@ SelectStatement::~SelectStatement() {
 		delete order;
 	}
 }
+
+// TableRef
+TableRef::TableRef(TableRefType type) :
+	type(type),
+	schema(nullptr),
+	name(nullptr),
+	alias(nullptr),
+	select(nullptr),
+	list(nullptr),
+	join(nullptr) {}
+
+TableRef::~TableRef() {
+	free(schema);
+	free(name);
+	free(alias);
+
+	delete select;
+	delete join;
+
+	if (list != nullptr) {
+		for (TableRef* table : *list) {
+			delete table;
+		}
+		delete list;
+	}
+}
+
+bool TableRef::hasSchema() const {
+	return schema != nullptr;
+}
+
+const wchar_t* TableRef::getName() const {
+	if (alias != nullptr) return alias;
+	else return name;
+}
+
+// JoinDefinition
+JoinDefinition::JoinDefinition() :
+	left(nullptr),
+	right(nullptr),
+	condition(nullptr),
+	type(kJoinInner) {}
+
+JoinDefinition::~JoinDefinition() {
+	delete left;
+	delete right;
+	delete condition;
+}

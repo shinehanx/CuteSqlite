@@ -219,6 +219,14 @@ typedef struct {
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 
+typedef struct {
+	int tblNo; // OpenRead/OpenWrite p1
+	std::wstring tblName;
+	int idxNo;
+	std::wstring idxName;
+	std::wstring columnName;
+} ByteCodeUseColumn;
+typedef std::vector<ByteCodeUseColumn> ByteCodeUseColumns;
 #endif
 
 // Support create/modify table

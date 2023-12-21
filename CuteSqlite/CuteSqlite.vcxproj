@@ -255,7 +255,6 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="core\common\repository\QSqlException.cpp" />
     <ClCompile Include="core\common\repository\QSqlStatement.cpp" />
     <ClCompile Include="core\common\supplier\QSupplier.cpp" />
-    <ClCompile Include="core\common\parser\SqlSyntaxTree.cpp" />
     <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
     <ClCompile Include="core\repository\sqllog\SqlLogRepository.cpp" />
     <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
@@ -408,7 +407,6 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="core\common\repository\QSqlUtil.h" />
     <ClInclude Include="core\common\service\BaseService.h" />
     <ClInclude Include="core\common\supplier\QSupplier.h" />
-    <ClInclude Include="core\common\parser\SqlSyntaxTree.h" />
     <ClInclude Include="core\entity\Entity.h" />
     <ClInclude Include="core\repository\db\UserDbRepository.h" />
     <ClInclude Include="core\repository\sqllog\SqlLogRepository.h" />

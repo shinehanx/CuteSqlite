@@ -42,10 +42,19 @@ private:
 	void doConvertByteCodeForWhereColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 	void doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 
-	void parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+	bool parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
 	void parseOrderOrIndexColumnFromIdxInsertAndSort(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+	void parseOrderOrIndexColumnFromSorter(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
+
+	void parseOrderColumnsBySubSelectClause(uint64_t userDbId, const std::wstring & sql,  ByteCodeResults & results);
+
 	void parseOrderOrIndexColumnFromOpSorter(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
-	void parseOrderClauseColumnFromSql(ByteCodeResults::iterator tblIter, uint64_t userDbId, const std::wstring & sql, ByteCodeResults &results);
+	bool parseOrderColumnFromSql(ByteCodeResults::iterator tblIter, uint64_t userDbId, const std::wstring & sql, ByteCodeResults &results);
+	void parseOrderColumnFromByteCodeUseColumnAndSql(
+		uint64_t userDbId, 
+		const ByteCodeUseColumns & byteCodeUseColumns, 
+		const std::wstring & sql, 
+		ByteCodeResults & results);
 
 	void parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseWhereIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
@@ -58,13 +67,17 @@ private:
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
 
 	void parseWhereOrIndexNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql);
+	
 	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	std::vector<std::tuple<std::wstring, std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(
 		std::vector<std::wstring>& words, const std::vector<std::pair<std::wstring, std::wstring>> & allAliases);
 	
 	Columns getOrderColumns(uint64_t userDbId, const std::wstring & tblName, const std::wstring & sql);
 	std::wstring parseColumnByAliasFromSql(uint64_t userDbId, const std::wstring & tblName, 
-	const TableAliasVector & tblAliasVector, const std::wstring & upColOrAlias, const std::wstring & upsql);
+		const TableAliasVector & tblAliasVector, const std::wstring & upColOrAlias, const std::wstring & upsql);
+	
 
 	bool isMatchIndexColumnSortNo(PragmaIndexColumns & idxColumns, const std::wstring orderExpColumn, int sortNo);
+	void mergeByteCodeResults(ByteCodeResults &results, ByteCodeResults & subResults);
+	
 };

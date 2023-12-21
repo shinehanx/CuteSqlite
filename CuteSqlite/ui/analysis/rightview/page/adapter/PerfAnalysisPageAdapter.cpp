@@ -22,7 +22,6 @@
 #include "utils/ResourceUtil.h"
 #include "core/common/Lang.h"
 #include "core/common/exception/QSqlExecuteException.h"
-#include "core/common/parser/SQLParser.h"
 #include "ui/common/message/QPopAnimate.h"
 
 PerfAnalysisPageAdapter::PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier)
@@ -56,9 +55,6 @@ void PerfAnalysisPageAdapter::initSupplier()
 		ByteCodeResults results = selectSqlAnalysisService->explainReadByteCodeToResults(supplier->getRuntimeUserDbId(), explainDatas, supplier->getSqlLog().sql);
 		supplier->setByteCodeResults(results);
 
-		// 4.Parse sql to result
-		SQLParserResult & sqlParserResult = supplier->getSqlParserResult();
-		SQLParser::parse(supplier->getSqlLog().sql, &sqlParserResult);
 	} catch (QSqlExecuteException & ex) {
 		QPopAnimate::report(ex);
 	} catch (QRuntimeException & ex) {
