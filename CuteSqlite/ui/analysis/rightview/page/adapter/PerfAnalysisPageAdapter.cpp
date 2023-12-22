@@ -38,6 +38,7 @@ PerfAnalysisPageAdapter::~PerfAnalysisPageAdapter()
 	
 }
 
+
 void PerfAnalysisPageAdapter::initSupplier()
 {
 	try {

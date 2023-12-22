@@ -472,26 +472,26 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int RightWorkView::OnDestroy()
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_OPEN_VIEW_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_VIEW_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_OPEN_TRIGGER_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_TRIGGER_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_REFRESH_SAME_TABLE_DATA_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_SQL_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_NEW_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_NEW_VIEW_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_OPEN_VIEW_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DROP_VIEW_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_NEW_TRIGGER_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_OPEN_TRIGGER_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DROP_TRIGGER_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_TABLE_DATA_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ALTER_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_RENAME_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_REFRESH_SAME_TABLE_DATA_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DROP_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_COPY_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_EXPORT_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_IMPORT_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_IMPORT_CSV_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_MANAGE_INDEX_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
 	
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();

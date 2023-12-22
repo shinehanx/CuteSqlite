@@ -111,7 +111,7 @@ int QueryPageEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int QueryPageEditor::OnDestroy()
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_USE_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_USE_SQL_ID);
 
 	int ret = QHelpEdit::OnDestroy();
 	if (templatesButton.IsWindow()) templatesButton.DestroyWindow();

@@ -199,6 +199,89 @@ void LeftTreeViewAdapter::selectDbTreeItem(uint64_t userDbId)
 	}
 }
 
+void LeftTreeViewAdapter::selectTableTreeItem(uint64_t userDbId, const std::wstring tableName)
+{
+	if (userDbId <= 0) {
+		return ;
+	}
+
+	// find path : db tree item --> Tables folder tree item --> table tree item
+
+	// 1.find db tree item
+	CTreeItem treeItem = dataView->GetFirstVisibleItem();
+	int nImage = -1, nSelImage = -1;
+	while (!treeItem.IsNull()) {
+		uint64_t itemDataId = static_cast<uint64_t>(dataView->GetItemData(treeItem.m_hTreeItem));
+		if (itemDataId != userDbId) {
+			treeItem = treeItem.GetNextSibling();
+			continue;
+		}
+		// found db true, select the db item, then expand the item
+		dataView->SelectItem(treeItem.m_hTreeItem);
+		dataView->SetFocus();
+		dataView->Expand(treeItem.m_hTreeItem);
+
+		// 2.find "Tables" folder
+		CTreeItem folderTreeItem = treeItem.GetChild();
+		while (!folderTreeItem.IsNull()) {
+			bool ret = folderTreeItem.GetImage(nImage, nSelImage);
+			if (!ret || nImage != 1) {// 1 - folder
+				folderTreeItem = folderTreeItem.GetNextSibling();
+				continue;
+			}
+			wchar_t * cch = nullptr;
+			std::wstring folderName;
+			folderTreeItem.GetText(cch);
+			if (!cch) {
+				folderTreeItem = folderTreeItem.GetNextSibling();
+				continue;
+			}
+			folderName.assign(cch);
+			::SysFreeString(cch);
+			if (folderName != S(L"tables")) {
+				folderTreeItem = folderTreeItem.GetNextSibling();
+				continue;
+			}
+			break;
+		}
+		if (folderTreeItem.IsNull()) {
+			continue;
+		}
+
+		// 3.find table tree item
+		CTreeItem tblTreeItem = folderTreeItem.GetChild();
+		while (!tblTreeItem.IsNull()) {
+			bool ret = tblTreeItem.GetImage(nImage, nSelImage);
+			if (!ret || nImage != 2) { // 2 - table
+				folderTreeItem = folderTreeItem.GetNextSibling();
+				continue;
+			}
+
+			wchar_t * cch = nullptr;
+			std::wstring theTblName;
+			tblTreeItem.GetText(cch);
+			if (!cch) {
+				tblTreeItem = tblTreeItem.GetNextSibling();
+				continue;
+			}
+			theTblName.assign(cch);
+			::SysFreeString(cch);
+
+			if (theTblName != tableName) {
+				tblTreeItem = tblTreeItem.GetNextSibling();
+				continue;
+			}
+			break;
+		}
+		if (tblTreeItem.IsNull()) {
+			continue;
+		}
+		// 4.found it, then select it
+		tblTreeItem.Select();
+		break;		
+	}
+}
+
 /**
  * Get the selected item to find it's parent db item and return userDbId.
  * 

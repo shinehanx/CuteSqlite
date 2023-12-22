@@ -185,7 +185,7 @@ LRESULT HomePanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT HomePanel::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_HOME_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_HOME_REFRESH_DATABASE_ID);
 	if (bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (titleFont) ::DeleteObject(titleFont);
 	if (homeFont) ::DeleteObject(homeFont);

@@ -38,7 +38,7 @@ public:
 
 	// ÏûÏ¢¶©ÔÄ
 	void subscribe(HWND hwnd, UINT msgId);
-	void unsuscribe(HWND hwnd, UINT msgId);
+	void unsubscribe(HWND hwnd, UINT msgId);
 	void unsuscribeAll(HWND hwnd);
 
 	std::vector<CWindow *> & getPopAnimatePtrs();

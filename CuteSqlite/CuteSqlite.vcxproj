@@ -244,11 +244,6 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="core\common\exception\QRuntimeException.cpp" />
     <ClCompile Include="core\common\exception\QSqlExecuteException.cpp" />
     <ClCompile Include="core\common\Lang.cpp" />
-    <ClCompile Include="core\common\parser\SQLParser.cpp" />
-    <ClCompile Include="core\common\parser\SQLParserResult.cpp" />
-    <ClCompile Include="core\common\parser\sql\Expr.cpp" />
-    <ClCompile Include="core\common\parser\sql\SQLStatement.cpp" />
-    <ClCompile Include="core\common\parser\sql\statements.cpp" />
     <ClCompile Include="core\common\repository\QConnect.cpp" />
     <ClCompile Include="core\common\repository\QSqlColumn.cpp" />
     <ClCompile Include="core\common\repository\QSqlDatabase.cpp" />
@@ -369,6 +364,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\home\list\DatabaseListItem.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
+    <ClCompile Include="utils\ColumnsUtil.cpp" />
     <ClCompile Include="utils\EntityUtil.cpp" />
     <ClCompile Include="utils\FileUtil.cpp" />
     <ClCompile Include="utils\FontUtil.cpp" />
@@ -389,13 +385,6 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="core\common\exception\QRuntimeException.h" />
     <ClInclude Include="core\common\exception\QSqlExecuteException.h" />
     <ClInclude Include="core\common\Lang.h" />
-    <ClInclude Include="core\common\parser\SQLParser.h" />
-    <ClInclude Include="core\common\parser\SQLParserResult.h" />
-    <ClInclude Include="core\common\parser\sql\Expr.h" />
-    <ClInclude Include="core\common\parser\sql\SelectStatement.h" />
-    <ClInclude Include="core\common\parser\sql\SQLStatement.h" />
-    <ClInclude Include="core\common\parser\sql\statements.h" />
-    <ClInclude Include="core\common\parser\sql\Table.h" />
     <ClInclude Include="core\common\repository\BaseRepository.h" />
     <ClInclude Include="core\common\repository\BaseUserRepository.h" />
     <ClInclude Include="core\common\repository\QConnect.h" />
@@ -522,6 +511,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\home\list\DatabaseListItem.h" />
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />
+    <ClInclude Include="utils\ColumnsUtil.h" />
     <ClInclude Include="utils\DateUtil.h" />
     <ClInclude Include="utils\EntityUtil.h" />
     <ClInclude Include="utils\FileUtil.h" />

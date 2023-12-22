@@ -241,7 +241,7 @@ LRESULT ImportFromSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 {
 	QDialog::OnDestroy(uMsg, wParam, lParam, bHandled);
 
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_IMPORT_PROCESS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_IMPORT_PROCESS_ID);
 
 	if (!linePen.IsNull()) linePen.DeleteObject();
 	if (elemFont) ::DeleteObject(elemFont);

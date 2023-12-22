@@ -22,6 +22,7 @@
 #include "utils/SqlUtil.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/exception/QSqlExecuteException.h"
+#include "utils/ColumnsUtil.h"
 
 DataList SelectSqlAnalysisService::explainSql(uint64_t userDbId, const std::wstring & sql)
 {
@@ -47,6 +48,8 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 	doConvertByteCodeForWhereColumns(userDbId, byteCodeList, sql, results);
 	// For results.orderColumns
 	doConvertByteCodeForOrderColumns(userDbId, byteCodeList, sql, results);
+	// For results.mergeColumns and result.coveringIndexName
+	doMergeColumnsToResults(userDbId, results);
 	return results;
 }
 
@@ -121,12 +124,23 @@ void SelectSqlAnalysisService::doConvertByteCodeForOrderColumns(uint64_t userDbI
 
 	// opcode SorterInsert and opcode Sort exists in byteCodeList at the same time
 	parseOrderOrIndexColumnFromSorter(userDbId, byteCodeList, sql, results);
-
-// 	for (auto tblIter = results.begin(); tblIter != results.end(); tblIter++) {
-// 		parseOrderClauseColumnFromSql(tblIter, userDbId, sql, results);
-// 	}
 }
 
+void SelectSqlAnalysisService::doMergeColumnsToResults(uint64_t userDbId, ByteCodeResults & results)
+{
+	for (auto & item : results) {
+		if (item.type != L"table") {
+			continue;
+		}
+		if (!item.whereColumns.empty() && !item.orderColumns.empty()) {
+			// merge the columns of where clause and columns of order clause, then match if column names and orders are extract same of all indexes in the table
+			item.mergeColumns = ColumnsUtil::mergeColumns(item.whereColumns, item.orderColumns);
+			item.coveringIndexName = matchColumnsInAllIndexesOfTable(item.mergeColumns, userDbId, item.name);
+			
+		}		
+
+	}
+}
 
 bool SelectSqlAnalysisService::parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results)
 {
@@ -164,6 +178,7 @@ bool SelectSqlAnalysisService::parseOrderOrIndexColumnFromLastAndPrev(uint64_t u
 
 	// parse the order columns by sub-select clause that between '(' and ')'
 	parseOrderColumnsBySubSelectClause(userDbId, sql,  results);
+	return true;
 }
 
 /**
@@ -487,9 +502,9 @@ void SelectSqlAnalysisService::parseOrderColumnsBySubSelectClause(uint64_t userD
 			DataList subByteCodeList = explainSql(userDbId, subSelectClause);
 			ByteCodeResults subResults;
 
-			// For results.whereColumns, recursion calling doConvertByteCodeForWhereColumns
+			// For results.whereColumns, Recursively call doConvertByteCodeForWhereColumns
 			doConvertByteCodeForWhereColumns(userDbId, subByteCodeList, subSelectClause, subResults);
-			// For results.orderColumns, recursion calling doConvertByteCodeForWhereColumns
+			// For results.orderColumns, Recursively call doConvertByteCodeForWhereColumns
 			doConvertByteCodeForOrderColumns(userDbId, subByteCodeList, subSelectClause, subResults);
 
 			if (subResults.empty()) {
@@ -635,6 +650,7 @@ void SelectSqlAnalysisService::parseOrderOrIndexColumnFromOpSorter(uint64_t user
 void SelectSqlAnalysisService::parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results)
 {
 	ByteCodeResult result;
+	result.userDbId = userDbId;
 	result.no = std::stoi(rowItem.at(EXP_P1)); // P1 - Table No. in the VDBE
 	result.rootPage = std::stoull(rowItem.at(EXP_P2)); // p2 - root page in the VDBE
 	UserTable userTable = tableUserRepository->getByRootPage(userDbId, result.rootPage);
@@ -1353,5 +1369,45 @@ void SelectSqlAnalysisService::mergeByteCodeResults(ByteCodeResults &results, By
 			}
 		}
 	}
+}
+
+
+/**
+ *  Match the specified columns in all indexes of specified table.
+ *  Make sure that the columns and order are exactly the same
+ * 
+ * @param columns - match the specified columns
+ * @param userDbId
+ * @param tblName
+ * @return - if matched return index name, otherwise return empty
+ */
+
+std::wstring SelectSqlAnalysisService::matchColumnsInAllIndexesOfTable(const Columns & columns, uint64_t userDbId, const std::wstring & tblName)
+{
+	std::wstring idxName;
+
+	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName);
+	size_t columnsSize = columns.size();
+	for (auto userIndex : userIndexList) {
+		auto idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, userIndex.name);
+		auto idxColumnsSize = idxColumns.size();
+		if (columnsSize != idxColumnsSize) {
+			continue;
+		}
+		bool bMatched = true;
+		for (size_t i = 0; i < columnsSize; i++) {
+			if (columns.at(i) != idxColumns.at(i).name) {
+				bMatched = false;
+				break;
+			}
+		}
+
+		if (bMatched) {
+			idxName = userIndex.name;
+			break;
+		}
+	}
+
+	return idxName;
 }
 

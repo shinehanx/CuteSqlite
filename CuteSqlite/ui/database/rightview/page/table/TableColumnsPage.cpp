@@ -175,7 +175,7 @@ int TableColumnsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int TableColumnsPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
 
 	if (textFont) ::DeleteObject(textFont);
 

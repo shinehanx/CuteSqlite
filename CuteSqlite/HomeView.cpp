@@ -151,7 +151,7 @@ LRESULT HomeView::OnCreate(UINT, WPARAM, LPARAM, BOOL &)
 
 LRESULT HomeView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_ACTIVE_PANEL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ACTIVE_PANEL_ID);
 
 	if (leftPanel.IsWindow()) leftPanel.DestroyWindow();
 	if (homePanel.IsWindow()) homePanel.DestroyWindow();

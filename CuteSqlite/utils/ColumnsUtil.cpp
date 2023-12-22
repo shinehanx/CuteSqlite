@@ -11,38 +11,29 @@
 
  * limitations under the License.
 
- * @file   SQLStatement.cpp
+ * @file   ColumnsUtil.cpp
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-12-19
+ * @date   2023-12-22
  *********************************************************************/
 #include "stdafx.h"
-#include "SQLStatement.h"
+#include "ColumnsUtil.h"
+#include <algorithm>
 
 
-// SQLStatement
-SQLStatement::SQLStatement(StatementType type) :
-	hints(nullptr),
-	type_(type) {};
+Columns ColumnsUtil::mergeColumns(const Columns & columns1, const Columns & columns2)
+{
+	Columns result = columns1;
 
-SQLStatement::~SQLStatement() {
-	if (hints != nullptr) {
-		for (Expr* hint : *hints) {
-			delete hint;
+	for (auto column : columns2) {
+		auto iter = std::find_if(result.begin(), result.end(), [&column](auto & item) {
+			return column == item;
+		});
+
+		if (iter == result.end()) {
+			result.push_back(column);
 		}
 	}
-	delete hints;
-}
-
-StatementType SQLStatement::type() const {
-	return type_;
-}
-
-bool SQLStatement::isType(StatementType type) const {
-	return (type_ == type);
-}
-
-bool SQLStatement::is(StatementType type) const {
-	return isType(type);
+	return result;
 }

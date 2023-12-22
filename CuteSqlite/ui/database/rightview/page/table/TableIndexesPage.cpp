@@ -149,6 +149,7 @@ int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bool ret = QPage::OnCreate(lpCreateStruct);	
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_INDEX_CREATE_ID);
 	textFont = FT(L"form-text-size");
 	return ret;
 }
@@ -156,7 +157,8 @@ int TableIndexesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int TableIndexesPage::OnDestroy()
 {
 	bool ret = QPage::OnDestroy();
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_INDEX_CREATE_ID);
 	if (textFont) ::DeleteObject(textFont);
 
 	if (newIndexButton.IsWindow()) newIndexButton.DestroyWindow();
@@ -357,9 +359,26 @@ LRESULT TableIndexesPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARA
 	return supplier->getIsDirty() ? 0 : 1;
 }
 
+
+LRESULT TableIndexesPage::OnHandleTableIndexCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	Columns * colums = (Columns *)wParam;
+	std::wstring * type = (std::wstring *)lParam;
+	if (!colums || !type) {
+		return 1;
+	}
+	adapter->createNewIndex(L"New_Index", *colums, *type);
+	
+	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
+	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
+	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
+	enableDataDirty();
+	return 1;
+}
+
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->createNewIndex();
+	adapter->createNewIndex(L"New_Index");
 	
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;

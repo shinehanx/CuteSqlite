@@ -263,11 +263,13 @@ void TableIndexesPageAdapter::invalidateSubItem(int iItem, int iSubItem)
 	dataView->InvalidateRect(subItemRect, false);
 }
 
-void TableIndexesPageAdapter::createNewIndex()
+void TableIndexesPageAdapter::createNewIndex(const std::wstring & name, const Columns &columns, const std::wstring & type)
 {
 	// 1.create a empty row and push it to runtimeDatas list
 	IndexInfo row;
-	row.name = L"";
+	row.name = name;
+	row.columns = columns.empty() ? L"" : StringUtil::implode(columns, L"," , true);
+	row.type = type;
 	supplier->getIdxRuntimeDatas().push_back(row);
 
 	// 2.update the item count and selected the new row	

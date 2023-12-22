@@ -27,6 +27,7 @@
 #include "ui/database/dialog/ExportAsSqlDialog.h"
 #include "ui/database/dialog/ImportFromSqlDialog.h"
 #include "ui/database/dialog/ImportFromCsvDialog.h"
+#include "ui/analysis/rightview/page/elem/WhereOrderClauseAnalysisElem.h"
 
 #define TREEVIEW_TOPBAR_HEIGHT 30
 #define TREEVIEW_BUTTON_WIDTH 16
@@ -258,6 +259,7 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DROP_FILES_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_LEFTVIEW_SELECT_TABLE_ID);
 	importDatabaseAdapter = new ImportDatabaseAdapter(m_hWnd, nullptr);
 	exportDatabaseAdapter = new ExportDatabaseAdapter(m_hWnd, nullptr);
 	return 0;
@@ -265,17 +267,18 @@ int LeftTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int LeftTreeView::OnDestroy()
 {	
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_CREATE_DATABASE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_COPY_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_SHARDING_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DROP_FILES_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_REFRESH_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_CREATE_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_RENAME_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_TRUNCATE_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_DROP_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_COPY_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_SHARDING_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_EXPORT_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DROP_FILES_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_LEFTVIEW_SELECT_TABLE_ID);
 
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
@@ -800,6 +803,18 @@ LRESULT LeftTreeView::OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	loadComboBox();
 	AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 	databaseSupplier->dragFilePaths.clear();
+	return 0;
+}
+
+LRESULT LeftTreeView::OnSelectTable(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	std::wstring * tableName =(std::wstring *)(lParam);
+	if (!userDbId || !tableName || tableName->empty()) {
+		Q_ERROR(L"params has error.userDbId:{}, tableName:{}", userDbId, *tableName);
+		return 0;
+	}
+	treeViewAdapter->selectTableTreeItem(userDbId, *tableName);
 	return 0;
 }
 

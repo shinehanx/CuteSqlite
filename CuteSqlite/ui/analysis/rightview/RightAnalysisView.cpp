@@ -172,7 +172,7 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void RightAnalysisView::OnDestroy()
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();

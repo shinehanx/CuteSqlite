@@ -324,8 +324,8 @@ int QueryPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 int QueryPage::OnDestroy()
 {
-	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
-	AppContext::getInstance()->unsuscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd,  Config::MSG_TREEVIEW_CLICK_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd,  Config::MSG_TREEVIEW_DBCLICK_ID);
 
 	bool ret = QPage::OnDestroy();
 	if (sqlEditor.IsWindow()) sqlEditor.DestroyWindow();

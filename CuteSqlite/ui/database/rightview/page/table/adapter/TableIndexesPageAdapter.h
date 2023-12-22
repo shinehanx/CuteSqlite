@@ -42,7 +42,7 @@ public:
 	void invalidateSubItem(int iItem, int iSubItem);
 
 	// create a new index row operation
-	void createNewIndex();
+	void createNewIndex(const std::wstring & name = std::wstring(), const Columns &columns = Columns(), const std::wstring & type = std::wstring());
 	// delete a index row operation
 	bool deleteSelIndexes(bool confirm=true);
 	std::wstring getSubItemString(int iItem, int iSubItem);

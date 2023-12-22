@@ -128,7 +128,7 @@ void AppContext::subscribe(HWND hwnd, UINT msgId)
  * @param hwnd ´°¿Ú¾ä±ú
  * @param msgId ÏûÏ¢ID
  */
-void AppContext::unsuscribe(HWND hwnd, UINT msgId)
+void AppContext::unsubscribe(HWND hwnd, UINT msgId)
 {
 	msgDispatcher.unsuscribe(hwnd, msgId);
 }

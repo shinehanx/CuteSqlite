@@ -41,6 +41,7 @@ private:
 
 	void doConvertByteCodeForWhereColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 	void doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
+	void doMergeColumnsToResults(uint64_t userDbId, ByteCodeResults & results);
 
 	bool parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
 	void parseOrderOrIndexColumnFromIdxInsertAndSort(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
@@ -80,4 +81,6 @@ private:
 	bool isMatchIndexColumnSortNo(PragmaIndexColumns & idxColumns, const std::wstring orderExpColumn, int sortNo);
 	void mergeByteCodeResults(ByteCodeResults &results, ByteCodeResults & subResults);
 	
+	// match the specified columns in all indexes of specified table
+	std::wstring matchColumnsInAllIndexesOfTable(const Columns & columns, uint64_t userDbId, const std::wstring & tblName);
 };

@@ -11,29 +11,20 @@
 
  * limitations under the License.
 
- * @file   SqlParser.h
+ * @file   ColumnsUtil.h
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-12-19
+ * @date   2023-12-22
  *********************************************************************/
 #pragma once
-#include <string>
+
 #include <vector>
-#include "SQLParserResult.h"
+#include <string>
+#include "core/entity/Entity.h"
 
-class SQLParser {
+class ColumnsUtil
+{
 public:
-	// Parses a given constant character SQL string into the result object.
-    // This does NOT mean that the SQL string was valid SQL. To check that
-    // you need to check result->isValid();
-    static bool parse(const std::wstring & sql, SQLParserResult * result);
-
-	// Run tokenization on the given string and store the tokens in the output vector.
-    static bool tokenize(const std::wstring& sql, std::vector<std::wstring>* tokens);
-
-	
-private:
-	static std::wstring tokenFromSql(const std::wstring &sql, size_t & offset);
-	static void parseSelect(SQLParserResult * result, const std::vector<std::wstring> & tokens);
+	static Columns mergeColumns(const Columns & columns1, const Columns & columns2);
 };

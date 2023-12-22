@@ -22,11 +22,33 @@
 #include "core/common/Lang.h"
 #include "ui/common/QWinCreater.h"
 #include "utils/StringUtil.h"
+#include "ui/common/message/QPopAnimate.h"
+#include "common/AppContext.h"
 
 WhereOrderClauseAnalysisElem::WhereOrderClauseAnalysisElem(SqlClauseType _clauseType, const ByteCodeResult & _byteCodeResult)
 	: clauseType(_clauseType), byteCodeResult(_byteCodeResult)
 {
 	
+}
+
+
+const Columns WhereOrderClauseAnalysisElem::getSelectedColumns()
+{
+	Columns selectedColumns;
+	for (auto & ptr : tableColumnCheckBoxPtrs) {
+		if (!ptr->GetCheck()) {
+			continue;
+		}
+		CString str;
+		ptr->GetWindowText(str);
+		if (str.IsEmpty()) {
+			continue;
+		}
+
+		selectedColumns.push_back(str.GetString());
+	}
+
+	return selectedColumns;
 }
 
 int WhereOrderClauseAnalysisElem::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -45,8 +67,7 @@ void WhereOrderClauseAnalysisElem::OnDestroy()
 	if (useColsLabel.IsWindow()) useColsLabel.DestroyWindow();
 	if (useIdxLabel.IsWindow()) useIdxLabel.DestroyWindow();
 	if (createIdxForPerfLabel.IsWindow()) createIdxForPerfLabel.DestroyWindow();
-	if (createIdxTogetherButton.IsWindow()) createIdxTogetherButton.DestroyWindow();
-	if (createIdxIndividButton.IsWindow()) createIdxIndividButton.DestroyWindow();
+	if (createIdxButton.IsWindow()) createIdxButton.DestroyWindow();
 
 	clearTableColumnCheckBoxPtrs();
 }
@@ -93,6 +114,26 @@ HBRUSH WhereOrderClauseAnalysisElem::OnCtlBtnColor(HDC hdc, HWND hwnd)
 }
 
 
+LRESULT WhereOrderClauseAnalysisElem::OnClickCreateIdxButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	Columns selColumns = getSelectedColumns();
+	if (selColumns.empty()) {
+		QPopAnimate::error(E(L"300001"));
+		return 0;
+	}
+	
+	// show index
+	GetParent().PostMessage(Config::MSG_ANALYSIS_CREATE_INDEX_ID, WPARAM(this), LPARAM(&selColumns));
+	return 0;
+}
+
+
+void WhereOrderClauseAnalysisElem::OnClickTableColumnCheckBox(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	int checked = ((CButton)wndCtl).GetCheck();
+	((CButton)wndCtl).SetCheck(!checked);
+}
+
 bool WhereOrderClauseAnalysisElem::isEqualColumns(std::vector<std::wstring> cluaseColumns, std::vector<std::pair<int, std::wstring>> indexColumns)
 {
 	if (cluaseColumns.size() != indexColumns.size()) {
@@ -124,9 +165,11 @@ void WhereOrderClauseAnalysisElem::createOrShowUI()
 void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 {
 	std::wstring text1 = S(L"in-table");
-	std::wstring text2 = clauseType == WHERE_CLAUSE ? S(L"where-use-column") : S(L"order-use-column");
-	std::wstring text3 = clauseType == WHERE_CLAUSE ? S(L"where-use-index") :  S(L"order-use-index");
-	std::wstring text4 = S(L"create-index-for-performance");
+	std::wstring text2 = clauseType == WHERE_CLAUSE ? S(L"where-use-column") : 
+		(clauseType == ORDER_CLAUSE ? S(L"order-use-column") : S(L"covering-index-column"));
+	std::wstring text3 = clauseType == WHERE_CLAUSE ? S(L"where-use-index") :
+		(clauseType == ORDER_CLAUSE ? S(L"order-use-index") : S(L"use-covering-index"));
+	std::wstring text4 = clauseType == COVERING_INDEXES ? S(L"create-covering-index-for-performance") : S(L"create-index-for-performance");
 
 	int x = 5, y = 0, w = clientRect.Width() - 10, h = 20;
 	CRect rect(x, y, x + w, y + h);
@@ -136,7 +179,8 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 
 	rect.OffsetRect(0, h + 5);
 	std::wstring columns = L"NONE";
-	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : byteCodeResult.orderColumns;
+	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns :
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
 	if (!clauseColumns.empty()) {
 		columns = StringUtil::implode(clauseColumns, L",");
 		columns = StringUtil::addSymbolToWords(columns, L",", L"\"");
@@ -149,7 +193,8 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 		std::wstring idxText;
 		int i = 0,j = 0;
 		for (auto & item : byteCodeResult.useIndexes) {
-			auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+			auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns :
+				(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
 			if (indexColumns.empty()) {
 				continue;
 			}
@@ -173,7 +218,8 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 	rect.OffsetRect(0, h + 5);
 	QWinCreater::createOrShowLabel(m_hWnd, useIdxLabel, text3, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
-	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns :
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
 	if (!isEqualColumns(clauseColumns, indexColumns)) {
 		rect.OffsetRect(0, h + 5);
 		QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
@@ -182,14 +228,18 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 
 void WhereOrderClauseAnalysisElem::createOrShowCheckBoxes(CRect & clientRect)
 {
-	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : byteCodeResult.orderColumns;
-	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : 
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : 
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
+
 	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;
 	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(createIdxForPerfLabel.m_hWnd);
 	int x = 10, y = rcLast.bottom + 5, w = 150, h = 20;
 	CRect rect(x, y, x + w, y + h);
+	int i = 0;
 	for (auto & column : clauseColumns) {
 		auto iter = std::find_if(tableColumnCheckBoxPtrs.begin(), tableColumnCheckBoxPtrs.end(), [&column](const auto & ptr) {
 			if (!ptr || !ptr->IsWindow()) {
@@ -201,12 +251,12 @@ void WhereOrderClauseAnalysisElem::createOrShowCheckBoxes(CRect & clientRect)
 		});
 
 		if (iter != tableColumnCheckBoxPtrs.end()) {
-			QWinCreater::createOrShowCheckBox(m_hWnd, **iter, 0, column, rect, clientRect);
+			QWinCreater::createOrShowCheckBox(m_hWnd, **iter, Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_START + (i++), column, rect, clientRect);
 			rect.OffsetRect(w + 10, 0);
 			continue;
 		}
 		CButton * columnCheckBoxPtr = new CButton();
-		QWinCreater::createOrShowCheckBox(m_hWnd, *columnCheckBoxPtr, 0, column, rect, clientRect);
+		QWinCreater::createOrShowCheckBox(m_hWnd, *columnCheckBoxPtr,  Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_START + (i++), column, rect, clientRect);
 		tableColumnCheckBoxPtrs.push_back(columnCheckBoxPtr);
 		rect.OffsetRect(w + 10, 0);
 	}
@@ -219,18 +269,20 @@ void WhereOrderClauseAnalysisElem::createOrShowButtons(CRect & clientRect)
 	if (tableColumnCheckBoxPtrs.empty()) {
 		return;
 	}
-	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : byteCodeResult.orderColumns;
-	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : byteCodeResult.orderIndexColumns;
+	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : 
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
+	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : 
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
+
 	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;
 	}
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(tableColumnCheckBoxPtrs.back()->m_hWnd);
 	int x = clientRect.Width() - 20 - 180, y = rcLast.bottom + 5, w = 180, h = 30;
 	CRect rect(x, y, x + w, y + h);
-	createOrShowButton(m_hWnd, createIdxIndividButton, Config::ANALYSIS_CREATE_INDEX_INDIVID_BUTTON_ID, S(L"create-index-individ"), rect, clientRect);
-	
-	rect.OffsetRect(- w - 10, 0);
-	createOrShowButton(m_hWnd, createIdxTogetherButton, Config::ANALYSIS_CREATE_INDEX_TOGETHER_BUTTON_ID, S(L"create-index-togeger"), rect, clientRect);
+
+	std::wstring text = clauseType == COVERING_INDEXES ? S(L"create-covering-index") : S(L"create-index-togeger");
+	createOrShowButton(m_hWnd, createIdxButton, Config::ANALYSIS_CREATE_INDEX_BUTTON_ID, text, rect, clientRect);
 }
 
 void WhereOrderClauseAnalysisElem::createOrShowButton(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle)

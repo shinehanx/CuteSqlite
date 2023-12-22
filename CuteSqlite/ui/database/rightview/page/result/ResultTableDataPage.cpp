@@ -325,7 +325,7 @@ int ResultTableDataPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 int ResultTableDataPage::OnDestroy()
 {
 	bool ret = ResultListPage::OnDestroy();
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DATA_HAS_CHANGED_ID);
 
 	if (splitImage.IsWindow()) splitImage.DestroyWindow();
 	if (splitImage2.IsWindow()) splitImage2.DestroyWindow();

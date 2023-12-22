@@ -207,15 +207,19 @@ typedef std::vector<ExplainQueryPlan> ExplainQueryPlans;
 // Explain sql to this struct
 typedef struct {
 	int no; // OpenRead/OpenWrite p1
+	uint64_t userDbId;
 	std::wstring addr;
 	std::wstring name;
 	std::wstring type; // index, table, view, trigger
 	uint64_t rootPage;
 	std::vector<std::pair<int, std::wstring>> useIndexes; // useing index in this table, pair item params: first(int) - index no, second(std::wstring) - index name
-	std::vector<std::wstring> whereColumns; // where clause used columns in this table
-	std::vector<std::wstring> orderColumns; // order clause used columns in this table
+	Columns whereColumns; // where clause used columns in this table
+	Columns orderColumns; // order clause used columns in this table
 	std::vector<std::pair<int, std::wstring>> whereIndexColumns; // using index columns of where clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 	std::vector<std::pair<int, std::wstring>> orderIndexColumns; // using index columns of order clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+
+	Columns mergeColumns; // merge whereColumns  and orderColumns
+	std::wstring coveringIndexName; // covering index name
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 
@@ -270,6 +274,8 @@ typedef enum {
 	GROUP_CLAUSE,
 	HAVING_CLAUSE,
 	LIMIT_CLAUSE,
+
+	COVERING_INDEXES
 } SqlClauseType;
 
 // Explain sql statement column idx

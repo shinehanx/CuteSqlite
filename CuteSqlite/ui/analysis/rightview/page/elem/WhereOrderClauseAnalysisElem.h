@@ -21,6 +21,7 @@
 #include <atlwin.h>
 #include <atlcrack.h>
 #include <atltypes.h>
+#include "common/Config.h"
 #include "core/entity/Entity.h"
 
 class WhereOrderClauseAnalysisElem : public CWindowImpl<WhereOrderClauseAnalysisElem>
@@ -33,12 +34,15 @@ public:
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		COMMAND_HANDLER_EX(Config::ANALYSIS_CREATE_INDEX_BUTTON_ID, BN_CLICKED, OnClickCreateIdxButton)
+		COMMAND_RANGE_HANDLER_EX(Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_START, Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_END, OnClickTableColumnCheckBox)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 	WhereOrderClauseAnalysisElem(SqlClauseType _clauseType, const ByteCodeResult & _byteCodeResult);
 	const ByteCodeResult & getByteCodeResult() const { return byteCodeResult; }
+	const Columns getSelectedColumns();
 private:
 	bool isNeedReload = true;
 	SqlClauseType clauseType = WHERE_CLAUSE;
@@ -57,8 +61,7 @@ private:
 	CStatic useIdxLabel;
 	CStatic createIdxForPerfLabel;
 	std::vector<CButton *> tableColumnCheckBoxPtrs;
-	CButton createIdxTogetherButton;
-	CButton createIdxIndividButton;
+	CButton createIdxButton;
 
 	void createOrShowUI();
 	void createOrShowLabels(CRect & clientRect);
@@ -76,6 +79,9 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlBtnColor(HDC hdc, HWND hwnd);
+	LRESULT OnClickCreateIdxButton(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickTableColumnCheckBox(UINT uNotifyCode, int nID, CWindow wndCtl);
 	
 	bool isEqualColumns(std::vector<std::wstring> cluaseColumns, std::vector<std::pair<int, std::wstring>> indexColumns);
+	
 };

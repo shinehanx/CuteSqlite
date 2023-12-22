@@ -114,6 +114,7 @@ public:
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID, OnImportTableFromSql)
 		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID, OnImportTableFromCsv)
 		MESSAGE_HANDLER_EX(Config::MSG_DROP_FILES_ID, OnDropFiles)
+		MESSAGE_HANDLER_EX(Config::MSG_LEFTVIEW_SELECT_TABLE_ID, OnSelectTable)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 private:
@@ -242,6 +243,7 @@ private:
 	LRESULT OnImportTableFromCsv(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	LRESULT OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnSelectTable(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void doRefreshDatabase();
 	void doDeleteDatabase();

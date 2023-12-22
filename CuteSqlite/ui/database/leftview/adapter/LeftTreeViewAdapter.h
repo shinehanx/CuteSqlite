@@ -40,6 +40,7 @@ public:
 	uint64_t getSeletedItemData();
 	void removeSeletedDbTreeItem();
 	void selectDbTreeItem(uint64_t userDbId);
+	void selectTableTreeItem(uint64_t userDbId, const std::wstring tableName);
 
 	uint64_t getSeletedUserDbId();
 

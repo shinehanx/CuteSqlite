@@ -28,6 +28,8 @@ class PerfAnalysisPageAdapter : public QAdapter<PerfAnalysisPageAdapter, CWindow
 public:
 	PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier = nullptr);
 	~PerfAnalysisPageAdapter();
+
+	
 private:
 	PerfAnalysisSupplier * supplier = nullptr;
 	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();

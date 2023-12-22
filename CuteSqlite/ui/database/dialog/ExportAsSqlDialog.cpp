@@ -527,7 +527,7 @@ LRESULT ExportAsSqlDialog::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 		delete objectsTreeViewAdapter;
 		objectsTreeViewAdapter = nullptr;
 	}
-	AppContext::getInstance()->unsuscribe(m_hWnd, Config::MSG_EXPORT_DB_AS_SQL_PROCESS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_EXPORT_DB_AS_SQL_PROCESS_ID);
 	return 0;
 }
 

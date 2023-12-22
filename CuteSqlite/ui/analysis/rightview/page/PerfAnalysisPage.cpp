@@ -24,6 +24,7 @@
 #include "ui/common/QWinCreater.h"
 #include "utils/StringUtil.h"
 #include "common/AppContext.h"
+#include "utils/ColumnsUtil.h"
 
 
 BOOL PerfAnalysisPage::PreTranslateMessage(MSG* pMsg)
@@ -55,7 +56,7 @@ void PerfAnalysisPage::createOrShowUI()
 	createOrShowExpQueryPlanElems(clientRect);
 	createOrShowWhereAnalysisElems(clientRect);
 	createOrShowOrderAnalysisElems(clientRect);
-
+	createOrShowCoveringIndexesElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -286,6 +287,84 @@ void PerfAnalysisPage::createOrShowOrderAnalysisItemsForTable(CRect &clientRect)
 	}
 }
 
+
+void PerfAnalysisPage::createOrShowCoveringIndexesElems(CRect &clientRect)
+{
+	const auto & byteCodeResults = supplier.getByteCodeResults();
+	size_t n = byteCodeResults.size();
+	if (!n) {
+		return;
+	}
+
+	bool found = false;
+	
+	for (auto & item : byteCodeResults) {
+		if (item.type != L"table") {
+			continue;
+		}
+		if (!item.whereColumns.empty() && !item.orderColumns.empty()) {
+			found = true;
+		}		
+
+	}
+	if (!found) {
+		return;
+	}
+
+	CRect rectLast;
+	if (!orderAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(orderAnalysisElemPtrs.back()->m_hWnd);
+	}else if (!whereAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!expQueryPlanPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(expQueryPlanPtrs.back()->m_hWnd);
+	} else {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	}
+	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, coveringIndexLabel, S(L"covering-index-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	nHeightSum = rect.bottom;
+
+	createOrShowCoveringIndexItemsForTable(clientRect);
+}
+
+
+void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
+{
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(coveringIndexLabel.m_hWnd);
+	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 180;
+	CRect rect(x, y, x + w, y + h);
+
+	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
+	for (auto & item : byteCodeResults) {
+		if (item.type != L"table") {
+			continue;
+		}
+
+		if (item.mergeColumns.empty()) {
+			continue;
+		}
+
+		auto iter = std::find_if(coveringIndexElemPtrs.begin(), coveringIndexElemPtrs.end(), [&item](auto ptr) {
+			return ptr->getByteCodeResult().no == item.no;
+		});
+		
+		if (iter != coveringIndexElemPtrs.end()) {
+			createOrShowClauseAnalysisElem(*(*iter), rect, clientRect);
+			nHeightSum = rect.bottom;
+			rect.OffsetRect(0, h + 10);
+			continue;
+		}
+		WhereOrderClauseAnalysisElem * ptr = new WhereOrderClauseAnalysisElem(COVERING_INDEXES, item);
+		createOrShowClauseAnalysisElem(*ptr, rect, clientRect);
+		coveringIndexElemPtrs.push_back(ptr);
+		nHeightSum = rect.bottom;
+
+		rect.OffsetRect(0, h + 10);
+	}
+}
+
 void PerfAnalysisPage::createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
@@ -362,6 +441,20 @@ void PerfAnalysisPage::clearWhereAnalysisElemPtrs()
 	whereAnalysisElemPtrs.clear();
 }
 
+void PerfAnalysisPage::clearCoveringIndexElemPtrs()
+{
+	for (auto ptr : coveringIndexElemPtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+		}
+		if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+	coveringIndexElemPtrs.clear();
+}
+
 void PerfAnalysisPage::clearOrderAnalysisElemPtrs()
 {
 	for (auto ptr : orderAnalysisElemPtrs) {
@@ -430,6 +523,8 @@ int PerfAnalysisPage::OnDestroy()
 	clearWhereAnalysisElemPtrs();
 	if (orderAnalysisLabel.IsWindow()) orderAnalysisLabel.DestroyWindow();
 	clearWhereAnalysisElemPtrs();
+	if (coveringIndexLabel.IsWindow()) coveringIndexLabel.DestroyWindow();
+	clearCoveringIndexElemPtrs();
 
 	if (adapter) delete adapter;	
 	return ret;
@@ -552,6 +647,27 @@ LRESULT PerfAnalysisPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND h
 	return 0;
 }
 
+
+LRESULT PerfAnalysisPage::OnClickCreateIdxButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	WhereOrderClauseAnalysisElem * analysisElemPtr = (WhereOrderClauseAnalysisElem *)wParam;
+	const ByteCodeResult & byteCodeResult = analysisElemPtr->getByteCodeResult();
+	Columns newIndexColumns = analysisElemPtr->getSelectedColumns();
+
+	// 1.change to DatabasePanel
+	AppContext::getInstance()->dispatch(Config::MSG_ACTIVE_PANEL_ID, Config::DATABASE_PANEL);
+	// 2.Select the table tree item in the DatabasePanel::leftTreeView
+	AppContext::getInstance()->dispatchForResponse(Config::MSG_LEFTVIEW_SELECT_TABLE_ID, WPARAM(byteCodeResult.userDbId), LPARAM(&(byteCodeResult.name)));
+
+	// 3.active the Indexes tab page in  DatabasePanel->TableStructurePage, wParam == TABLE_INDEXS_PAGE, 
+	AppContext::getInstance()->dispatchForResponse(Config::MSG_ALTER_TABLE_ID, TABLE_INDEXS_PAGE, NULL);
+
+	// 4.create a new index with columns(wParam), type=index(lParam)
+	std::wstring type = L"Index";
+	AppContext::getInstance()->dispatchForResponse(Config::MSG_TABLE_INDEX_CREATE_ID, WPARAM(&newIndexColumns), LPARAM(&type));
+	return 0;
+}
+
 HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);
@@ -561,6 +677,7 @@ HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 	}else if ((explainQueryPlanLabel.IsWindow() && hwnd == explainQueryPlanLabel.m_hWnd)
 		|| (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd)
 		|| (orderAnalysisLabel.IsWindow() && hwnd == orderAnalysisLabel.m_hWnd)
+		|| (coveringIndexLabel.IsWindow() && hwnd == coveringIndexLabel.m_hWnd)
 		) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);

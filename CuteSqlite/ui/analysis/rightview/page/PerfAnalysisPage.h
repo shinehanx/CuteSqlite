@@ -42,6 +42,7 @@ public:
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
 		COMMAND_HANDLER_EX(Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_CREATE_INDEX_ID, OnClickCreateIdxButton)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
 		CHAIN_MSG_MAP(QPage)
@@ -87,6 +88,10 @@ private:
 	// ORDER clause analysis
 	CStatic orderAnalysisLabel;
 	std::vector<WhereOrderClauseAnalysisElem *> orderAnalysisElemPtrs;
+
+	// Covering Indexes
+	CStatic coveringIndexLabel;
+	std::vector<WhereOrderClauseAnalysisElem *> coveringIndexElemPtrs;
 	
 	PerfAnalysisSupplier supplier;
 	PerfAnalysisPageAdapter * adapter = nullptr;
@@ -108,13 +113,16 @@ private:
 	void createOrShowWhereAnalysisItemsForTable(CRect &clientRect);
 	void createOrShowOrderAnalysisElems(CRect &clientRect);
 	void createOrShowOrderAnalysisItemsForTable(CRect &clientRect);
+	void createOrShowCoveringIndexesElems(CRect &clientRect);
+	void createOrShowCoveringIndexItemsForTable(CRect &clientRect);
 	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 
 	void clearExpQueryPlanPtrs();
-	void clearWhereAnalysisElemPtrs();
+	void clearWhereAnalysisElemPtrs();	
 	void clearOrderAnalysisElemPtrs();
+	void clearCoveringIndexElemPtrs();
 
 	virtual void loadWindow();
 	void laodOrigSqlEditor();
@@ -127,6 +135,7 @@ private:
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickCreateIdxButton(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlBtnColor(HDC hdc, HWND hwnd);

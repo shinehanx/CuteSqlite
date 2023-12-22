@@ -162,8 +162,7 @@ typedef enum {
 
 	// ANALYSIS PANEL
 	ANALYSIS_SQL_LOG_BUTTON_ID,
-	ANALYSIS_CREATE_INDEX_TOGETHER_BUTTON_ID,
-	ANALYSIS_CREATE_INDEX_INDIVID_BUTTON_ID,
+	ANALYSIS_CREATE_INDEX_BUTTON_ID,
 } ButtonId;
 
 // TabView id
@@ -444,6 +443,7 @@ typedef enum {
 	MSG_TABLE_COLUMNS_CHANGE_PRIMARY_KEY_ID, // Send this msg when changing table columns index from the TableColumnsPage to TableIndexesPage, wParam=NULL, lParam=NULL
 	MSG_TABLE_COLUMNS_CHANGE_COLUMN_NAME_ID, // Send this msg when changing column from the TableColumnsPage to TableIndexesPage, wParam=oldColumnName, lParam=newColumnName
 	MSG_TABLE_COLUMNS_DELETE_COLUMN_NAME_ID, // Send this msg when deleting column from the TableColumnsPage to TableIndexesPage, wParam=iItem, lParam=iSubItem
+	MSG_TABLE_INDEX_CREATE_ID, // Send this msg when need create a new index use columns in the TableIndexesPage, wParam=Columns, lParam=indexType(index, primary key, unique)
 	MSG_TABLE_PREVIEW_SQL_ID, // Send this msg when changing table columns/index from the TableColumnsPage/TableIndexesPage to TableStructurePage, wParam=NULL, lParam=NULL
 	MSG_QTABVIEW_CHANGE_PAGE_TITLE, // Send this msg when changing tab view title caption, wParam=(page index), lParam=NULL
 	MSG_LEFTVIEW_REFRESH_DATABASE_ID, // Send this msg when creating a table or altering a table , wParam = NULL, lParam=NULL
@@ -456,6 +456,7 @@ typedef enum {
 	MSG_LEFTVIEW_EXPORT_TABLE_ID, // Send this msg when export a table, wParam = NULL, lParam=NULL
 	MSG_LEFTVIEW_IMPORT_TABLE_SQL_ID, // Send this msg when import a table from sql file, wParam = NULL, lParam=NULL
 	MSG_LEFTVIEW_IMPORT_TABLE_CSV_ID, // Send this msg when import a table from csv file, wParam = NULL, lParam=NULL
+	MSG_LEFTVIEW_SELECT_TABLE_ID, // Send this msg when need select table, wParam = userDbId, lParam=tableName string pointer
 	MSG_SHOW_TABLE_DATA_ID, // Send this msg when clicking the table open menu , wParam = NULL, lParam=NULL
 	MSG_ALTER_TABLE_ID, // Send this msg when clicking "Alter table" menu or toolbar button , wParam=TABLE_COLUMNS_PAGE/TABLE_INDEX_PAGE/TABLE_FOREIGN_KEYS_PAGE, lParam=NULL
 	MSG_RENAME_TABLE_ID, // Send this msg when clicking "Rename table" menu or toolbar button , wParam=NULL, lParam=NULL
@@ -489,6 +490,7 @@ typedef enum {
 	MSG_SHOW_SQL_LOG_PAGE_ID, // Send the msg to show SqlLogPage in the RightAnalysisView::tabView, wParam=NULL , lParam=NULL
 	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
 	MSG_HOME_REFRESH_DATABASE_ID, // Send this msg when created a table or altering a table , wParam = NULL, lParam=NULL
+	MSG_ANALYSIS_CREATE_INDEX_ID, // Send this msg to parent when clicking WhereOrderClauseAnalysisElem::createIdxButton , wParam = WhereOrderClauseAnalysisElem::this, lParam =NULL
 }MessageId;
 
 typedef enum {
@@ -522,4 +524,10 @@ typedef enum {
 	DB_LIST_ITEM_ID_START = WM_USER + 1901,
 	DB_LIST_ITEM_ID_END = WM_USER + 2900,
 } DbListItemIdRank;
+
+typedef enum {
+	ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_START = WM_USER + 2901,
+	ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_END = WM_USER + 3900,
+} AnalysisIndexColumnCheckboxIdRank;
+
 };
