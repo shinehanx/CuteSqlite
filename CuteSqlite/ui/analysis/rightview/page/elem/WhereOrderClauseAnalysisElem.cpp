@@ -99,9 +99,12 @@ BOOL WhereOrderClauseAnalysisElem::OnEraseBkgnd(CDCHandle dc)
 HBRUSH WhereOrderClauseAnalysisElem::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
 	::SetBkColor(hdc, bkgColor);	
-	::SetTextColor(hdc, textColor); 
 	::SelectObject(hdc, textFont);
-	
+	if (hwnd == createIdxForPerfLabel.m_hWnd) {
+		::SetTextColor(hdc, hintColor);
+	} else {
+		::SetTextColor(hdc,textColor);
+	}	
 	return bkgBrush.m_hBrush;
 }
 
@@ -182,36 +185,61 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns :
 		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
 	if (!clauseColumns.empty()) {
-		columns = StringUtil::implode(clauseColumns, L",");
-		columns = StringUtil::addSymbolToWords(columns, L",", L"\"");
+		columns = StringUtil::implode(clauseColumns, L", ");
+		columns = StringUtil::addSymbolToWords(columns, L", ", L"\"");
 	}
 	text2.append(L": ").append(columns);
 	QWinCreater::createOrShowLabel(m_hWnd, useColsLabel, text2, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	text3.append(L":");
-	if (!byteCodeResult.useIndexes.empty()) {		
+	std::wstring hintIndexName;
+	std::wstring hintIndexColumns;
+	if (clauseType != COVERING_INDEXES && !byteCodeResult.useIndexes.empty()) {
 		std::wstring idxText;
 		int i = 0,j = 0;
 		for (auto & item : byteCodeResult.useIndexes) {
 			auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns :
-				(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
+				(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : byteCodeResult.coveringIndexColumns);
 			if (indexColumns.empty()) {
 				continue;
 			}
 
-			if (i++)  idxText.append(L","); 
+			hintIndexName.append(L"\"").append(item.second).append(L"\"");
+
+			if (i++)  idxText.append(L", "); 
 			idxText.append(L"\"").append(item.second).append(L"\" (using: ");
 			j = 0;
 			
 			for (auto &col : indexColumns) {
 				if (col.first != item.first)  continue;
-				if (j++)  idxText.append(L",");			
-				idxText.append(L"\"").append(col.second).append(L"\"");				
+				if (j++) {
+					idxText.append(L", ");
+					hintIndexColumns.append(L", ");
+				}
+				idxText.append(L"\"").append(col.second).append(L"\"");	
+				hintIndexColumns.append(L"\"").append(col.second).append(L"\"");	
 			}
 			idxText.append(L")");
 		}
 		
 		text3.append(idxText.empty() ? L"NONE" : idxText);
+	} else if (clauseType == COVERING_INDEXES && !byteCodeResult.coveringIndexName.empty()) {
+		hintIndexName.append(L"\"").append(byteCodeResult.coveringIndexName).append(L"\"");
+		std::wstring idxText;
+		int j = 0;
+		idxText.append(L"\"").append(byteCodeResult.coveringIndexName).append(L"\" (using: ");
+
+		j = 0;			
+		for (auto &col : byteCodeResult.coveringIndexColumns) {			
+			if (j++) {
+				idxText.append(L", ");
+				hintIndexColumns.append(L", ");
+			}
+			idxText.append(L"\"").append(col.second).append(L"\"");
+			hintIndexColumns.append(L"\"").append(col.second).append(L"\"");
+		}
+		idxText.append(L")");
+		text3.append(idxText);
 	} else {
 		text3.append(L"NONE");
 	}
@@ -219,19 +247,76 @@ void WhereOrderClauseAnalysisElem::createOrShowLabels(CRect & clientRect)
 	QWinCreater::createOrShowLabel(m_hWnd, useIdxLabel, text3, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns :
-		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
-	if (!isEqualColumns(clauseColumns, indexColumns)) {
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : byteCodeResult.coveringIndexColumns);
+
+	if (!isEqualColumns(clauseColumns, indexColumns)) { // ClauseColumns Not hint any use index
+
+		UserIndexList userIndexList = tableService->getUserIndexes(byteCodeResult.userDbId, byteCodeResult.name);
+		size_t clauseColumnsSize = clauseColumns.size();
+		foundInOtherIndex = false;
+		for (auto userIndex : userIndexList) {
+			auto idxColumns = tableService->getPragmaIndexColumns(byteCodeResult.userDbId, userIndex.name);
+		
+			auto idxColumnsSize = idxColumns.size();
+			if (clauseColumnsSize != idxColumnsSize) {
+				continue;
+			}
+			bool bMatched = true;
+			for (size_t i = 0; i < clauseColumnsSize; i++) {
+				if (clauseColumns.at(i) != idxColumns.at(i).name) {
+					bMatched = false;
+					break;
+				}
+			}
+			// match in the other index
+			if (bMatched) {
+				hintIndexName.clear();
+				hintIndexName.append(L"\"").append(userIndex.name).append(L"\""); 
+				foundInOtherIndex = true; //hint in the other index
+				hintIndexColumns.clear();
+				int j = 0;
+				for (auto columnName : clauseColumns) {
+					if (j++) {
+						hintIndexColumns.append(L", ");
+					}
+					hintIndexColumns.append(L"\"").append(columnName).append(L"\"");
+				}
+
+				break;
+			}
+		}
+
+		if (!foundInOtherIndex) {  // not hint any index
+			rect.OffsetRect(0, h + 5);
+			QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+			hintColor = RGB(71, 109, 208);
+		} else { // hint in the other index
+			rect.OffsetRect(0, h + 5);
+			text4 = S(L"hint-index-for-performance");
+			text4 = StringUtil::replace(text4, L"{hintIndexName}", hintIndexName);
+			text4 = StringUtil::replace(text4, L"{hintIndexColumns}", hintIndexColumns);
+			QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+			hintColor = RGB(8, 92, 14);
+		}		
+	} else if (!hintIndexName.empty() && !hintIndexColumns.empty()){ // hint one used index
 		rect.OffsetRect(0, h + 5);
+		text4 = S(L"hint-index-for-performance");
+		text4 = StringUtil::replace(text4, L"{hintIndexName}", hintIndexName);
+		text4 = StringUtil::replace(text4, L"{hintIndexColumns}", hintIndexColumns);
 		QWinCreater::createOrShowLabel(m_hWnd, createIdxForPerfLabel, text4, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+		hintColor = RGB(8, 92, 14);
 	}
 }
 
 void WhereOrderClauseAnalysisElem::createOrShowCheckBoxes(CRect & clientRect)
 {
+	if (foundInOtherIndex) { // found clause columns in other index
+		return;
+	}
 	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : 
 		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
 	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : 
-		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : byteCodeResult.coveringIndexColumns);
 
 	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;
@@ -266,13 +351,17 @@ void WhereOrderClauseAnalysisElem::createOrShowCheckBoxes(CRect & clientRect)
 
 void WhereOrderClauseAnalysisElem::createOrShowButtons(CRect & clientRect)
 {
+	if (foundInOtherIndex) { // found clause columns in other index
+		return;
+	}
+
 	if (tableColumnCheckBoxPtrs.empty()) {
 		return;
 	}
 	auto & clauseColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereColumns : 
 		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderColumns : byteCodeResult.mergeColumns);
 	auto & indexColumns = clauseType == WHERE_CLAUSE ? byteCodeResult.whereIndexColumns : 
-		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : std::vector<std::pair<int, std::wstring>>());
+		(clauseType == ORDER_CLAUSE ? byteCodeResult.orderIndexColumns : byteCodeResult.coveringIndexColumns);
 
 	if (isEqualColumns(clauseColumns, indexColumns)) {
 		return ;

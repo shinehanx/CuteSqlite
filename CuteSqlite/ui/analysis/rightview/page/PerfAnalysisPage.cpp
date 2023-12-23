@@ -180,7 +180,7 @@ void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
 void PerfAnalysisPage::createOrShowWhereAnalysisItemsForTable(CRect &clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisLabel.m_hWnd);
-	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 180;
+	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
 	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
@@ -255,7 +255,7 @@ void PerfAnalysisPage::createOrShowOrderAnalysisElems(CRect &clientRect)
 void PerfAnalysisPage::createOrShowOrderAnalysisItemsForTable(CRect &clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(orderAnalysisLabel.m_hWnd);
-	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 180;
+	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
 	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
@@ -333,7 +333,7 @@ void PerfAnalysisPage::createOrShowCoveringIndexesElems(CRect &clientRect)
 void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(coveringIndexLabel.m_hWnd);
-	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 180;
+	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
 	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
@@ -540,9 +540,7 @@ void PerfAnalysisPage::paintItem(CDC & dc, CRect & paintRect)
 	HPEN oldPen = dc.SelectPen(linePen);
 	dc.MoveTo(x, y);
 	dc.LineTo(x + w, y);
-	dc.SelectPen(oldPen);
-
-	
+	dc.SelectPen(oldPen);	
 }
 
 void PerfAnalysisPage::initScrollBar(CSize & clientSize)

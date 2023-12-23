@@ -217,9 +217,11 @@ typedef struct {
 	Columns orderColumns; // order clause used columns in this table
 	std::vector<std::pair<int, std::wstring>> whereIndexColumns; // using index columns of where clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 	std::vector<std::pair<int, std::wstring>> orderIndexColumns; // using index columns of order clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+	
 
 	Columns mergeColumns; // merge whereColumns  and orderColumns
 	std::wstring coveringIndexName; // covering index name
+	std::vector<std::pair<int, std::wstring>> coveringIndexColumns; // covering index columns of wherer and orde clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 

@@ -367,23 +367,31 @@ LRESULT TableIndexesPage::OnHandleTableIndexCreate(UINT uMsg, WPARAM wParam, LPA
 	if (!colums || !type) {
 		return 1;
 	}
-	adapter->createNewIndex(L"New_Index", *colums, *type);
+	std::wstring newIdxName = adapter->generateNewIdxName(L"New_Index");
+	databaseSupplier->selectedIndexName = newIdxName;
+	adapter->createNewIndex(newIdxName, *colums, *type);
+
 	
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	enableDataDirty();
+	adapter->selectListViewItemForManage();
 	return 1;
 }
 
 LRESULT TableIndexesPage::OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl)
 {
-	adapter->createNewIndex(L"New_Index");
+	std::wstring newIdxName = adapter->generateNewIdxName(L"New_Index");
+	databaseSupplier->selectedIndexName = newIdxName;
+
+	adapter->createNewIndex(newIdxName);
 	
 	// send msg to TableStructurePage, class chain : TableIndexesPage($this)->QTabView($tabView)->TableTabView->TableStructurePage
 	HWND pHwnd = GetParent().GetParent().GetParent().m_hWnd;
 	::PostMessage(pHwnd, Config::MSG_TABLE_PREVIEW_SQL_ID, NULL, NULL);
 	enableDataDirty();
+	adapter->selectListViewItemForManage();
 	return 0;
 }
 

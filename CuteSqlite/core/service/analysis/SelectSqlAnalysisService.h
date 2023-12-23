@@ -57,7 +57,7 @@ private:
 		const std::wstring & sql, 
 		ByteCodeResults & results);
 
-	void parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseTableAndIndexFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseWhereIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseWhereOrIndexColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 
@@ -82,5 +82,6 @@ private:
 	void mergeByteCodeResults(ByteCodeResults &results, ByteCodeResults & subResults);
 	
 	// match the specified columns in all indexes of specified table
-	std::wstring matchColumnsInAllIndexesOfTable(const Columns & columns, uint64_t userDbId, const std::wstring & tblName);
+	std::wstring matchColumnsInAllIndexesOfTable(const Columns & columns, const std::vector<std::pair<int, std::wstring>> & useIndexes, uint64_t userDbId, const std::wstring & tblName);
+	std::vector<std::pair<int, std::wstring>> getIndexColumnsByCoveringIndexName(uint64_t userDbId, int no, const std::wstring & coveringIndexName);
 };

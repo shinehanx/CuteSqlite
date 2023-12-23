@@ -614,3 +614,28 @@ bool TableIndexesPageAdapter::isDirty()
 	return hasChangeSubItem || !supplier->compareIdxDatas();
 }
 
+std::wstring TableIndexesPageAdapter::generateNewIdxName(std::wstring prefix)
+{
+	std::wstring newIdxName;
+	const auto & userIndexList = databaseService->getUserIndexes(supplier->getRuntimeUserDbId());
+	const auto & idxRuntimeDatas = supplier->getIdxRuntimeDatas();
+	for (int i = 1; i <= 1000; i++) {
+		newIdxName = prefix;
+		newIdxName.append(L"_").append(std::to_wstring(i)); 
+		auto iter = std::find_if(idxRuntimeDatas.begin(), idxRuntimeDatas.end(), [&newIdxName](auto & item) {
+			return item.name == newIdxName;
+		});
+		if (iter == idxRuntimeDatas.end()) {
+			
+			auto iter2 = std::find_if(userIndexList.begin(), userIndexList.end(), [&newIdxName](auto & item) {
+				return item.name == newIdxName;
+			});
+
+			if (iter2 == userIndexList.end()) {
+				break;
+			}			
+		}
+	}
+	return newIdxName;
+}
+

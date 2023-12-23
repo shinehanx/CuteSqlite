@@ -23,6 +23,7 @@
 #include <atltypes.h>
 #include "common/Config.h"
 #include "core/entity/Entity.h"
+#include "core/service/db/TableService.h"
 
 class WhereOrderClauseAnalysisElem : public CWindowImpl<WhereOrderClauseAnalysisElem>
 {
@@ -51,6 +52,7 @@ private:
 	//COLORREF bkgColor = RGB(238, 238, 238);	
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF textColor = RGB(64, 64, 64);
+	COLORREF hintColor = RGB(254, 90, 88);
 	
 	COLORREF btnBkgColor = RGB(210, 210, 210);
 	CBrush bkgBrush;
@@ -62,6 +64,9 @@ private:
 	CStatic createIdxForPerfLabel;
 	std::vector<CButton *> tableColumnCheckBoxPtrs;
 	CButton createIdxButton;
+
+	bool foundInOtherIndex = false;
+	TableService * tableService = TableService::getInstance();
 
 	void createOrShowUI();
 	void createOrShowLabels(CRect & clientRect);

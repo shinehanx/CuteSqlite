@@ -121,4 +121,6 @@ private:
 	LRESULT OnHandleTableIndexCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickNewIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
 	LRESULT OnClickDelIndexButton(UINT uNotifyCode, int nID, HWND wndCtl);
+
+	
 };

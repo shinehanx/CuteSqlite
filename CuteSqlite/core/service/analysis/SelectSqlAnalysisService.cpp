@@ -72,7 +72,7 @@ void SelectSqlAnalysisService::doConvertByteCodeForWhereColumns(uint64_t userDbI
 		auto & rowItem = *iter;
 		auto & opcode = rowItem.at(EXP_OPCODE);
 		if (opcode == L"OpenRead") {
-			parseTblOrIdxFromOpenRead(userDbId, rowItem, results);
+			parseTableAndIndexFromOpenRead(userDbId, rowItem, results);
 		}
 		else if (opcode == L"SeekGT" || opcode == L"SeekGE" || opcode == L"SeekLT" || opcode == L"SeekLE") { // index column
 			parseWhereIdxColumnsFromExplainRow(userDbId, rowItem, results);
@@ -132,11 +132,11 @@ void SelectSqlAnalysisService::doMergeColumnsToResults(uint64_t userDbId, ByteCo
 		if (item.type != L"table") {
 			continue;
 		}
-		if (!item.whereColumns.empty() && !item.orderColumns.empty()) {
+		if (!item.whereColumns.empty() || !item.orderColumns.empty()) {
 			// merge the columns of where clause and columns of order clause, then match if column names and orders are extract same of all indexes in the table
 			item.mergeColumns = ColumnsUtil::mergeColumns(item.whereColumns, item.orderColumns);
-			item.coveringIndexName = matchColumnsInAllIndexesOfTable(item.mergeColumns, userDbId, item.name);
-			
+			item.coveringIndexName = matchColumnsInAllIndexesOfTable(item.mergeColumns, item.useIndexes, userDbId, item.name);
+			item.coveringIndexColumns = getIndexColumnsByCoveringIndexName(userDbId, item.no, item.coveringIndexName);
 		}		
 
 	}
@@ -647,7 +647,7 @@ void SelectSqlAnalysisService::parseOrderOrIndexColumnFromOpSorter(uint64_t user
 	}
 }
 
-void SelectSqlAnalysisService::parseTblOrIdxFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results)
+void SelectSqlAnalysisService::parseTableAndIndexFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results)
 {
 	ByteCodeResult result;
 	result.userDbId = userDbId;
@@ -657,16 +657,57 @@ void SelectSqlAnalysisService::parseTblOrIdxFromOpenRead(uint64_t userDbId, cons
 	result.name = userTable.name;
 	result.type = userTable.type;
 
-	if (userTable.type == L"index") {
+	if (userTable.type == L"index") { // add 2 records, first for index , second for the table of associated index
+		// 1.add index to results
+		std::wstring indexName = userTable.name;	
 		auto iter = std::find_if(results.begin(), results.end(), [&userTable](auto & resItem) {
-			return resItem.name == userTable.tblName;
+			return resItem.name == userTable.name && resItem.type == userTable.type;
 		});
+
 		if (iter == results.end()) {
+			results.push_back(result);
+		}
+		
+		// 2.add table to results
+		std::wstring tableName = userTable.tblName;
+		// found the associated table by table name
+		UserTable userTable2 = tableUserRepository->getTable(userDbId, tableName);
+		if (userTable2.name.empty()) {
 			return;
 		}
-		(*iter).useIndexes.push_back({result.no, userTable.name });
+		auto iter2 = std::find_if(results.begin(), results.end(), [&userTable2](auto & resItem) {
+			return resItem.name == userTable2.tblName && resItem.type == userTable2.type;
+		});
+		if (iter2 != results.end()) {
+			auto & userIndexes = (*iter2).useIndexes;
+			auto iter3 = std::find_if(userIndexes.begin(), userIndexes.end(), [&result](auto & resItem) {
+				return resItem.first == result.no && resItem.second == result.name;
+			});
+			if (iter3 == userIndexes.end()) {
+				userIndexes.push_back({result.no, userTable.name });
+			}			
+			return;
+		}
+		ByteCodeResult resultTable;
+		resultTable.userDbId = userDbId;
+		resultTable.no = 0 - result.no;
+		resultTable.rootPage = userTable2.rootpage;
+		resultTable.name = userTable2.name;
+		resultTable.type = userTable2.type;
+		resultTable.useIndexes.push_back({ result.no, result.name });
+		results.push_back(resultTable);
+	} else {
+		auto iter = std::find_if(results.begin(), results.end(), [&userTable](auto & resItem) {
+			return resItem.name == userTable.name && resItem.type == userTable.type;
+		});
+		if (iter != results.end()) {
+			(*iter).no = result.no;
+			return;
+		}
+		results.push_back(result);
 	}
-	results.push_back(result);
+	
+	
 }
 
 /**
@@ -1382,12 +1423,30 @@ void SelectSqlAnalysisService::mergeByteCodeResults(ByteCodeResults &results, By
  * @return - if matched return index name, otherwise return empty
  */
 
-std::wstring SelectSqlAnalysisService::matchColumnsInAllIndexesOfTable(const Columns & columns, uint64_t userDbId, const std::wstring & tblName)
+std::wstring SelectSqlAnalysisService::matchColumnsInAllIndexesOfTable(const Columns & columns, const std::vector<std::pair<int, std::wstring>> & useIndexes, uint64_t userDbId, const std::wstring & tblName)
 {
 	std::wstring idxName;
+	size_t columnsSize = columns.size();
+	for (auto & userIndex : useIndexes) {
+		auto idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, userIndex.second);
+		auto idxColumnsSize = idxColumns.size();
+		if (columnsSize != idxColumnsSize) {
+			continue;
+		}
+		bool bMatched = true;
+		for (size_t i = 0; i < columnsSize; i++) {
+			if (columns.at(i) != idxColumns.at(i).name) {
+				bMatched = false;
+				break;
+			}
+		}
+
+		if (bMatched) {
+			return userIndex.second;
+		}
+	}
 
 	UserIndexList userIndexList = indexUserRepository->getListByTblName(userDbId, tblName);
-	size_t columnsSize = columns.size();
 	for (auto userIndex : userIndexList) {
 		auto idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, userIndex.name);
 		auto idxColumnsSize = idxColumns.size();
@@ -1403,11 +1462,24 @@ std::wstring SelectSqlAnalysisService::matchColumnsInAllIndexesOfTable(const Col
 		}
 
 		if (bMatched) {
-			idxName = userIndex.name;
-			break;
+			return userIndex.name;
 		}
 	}
 
 	return idxName;
+}
+
+std::vector<std::pair<int, std::wstring>> SelectSqlAnalysisService::getIndexColumnsByCoveringIndexName(uint64_t userDbId, int no, const std::wstring & coveringIndexName)
+{
+	std::vector<std::pair<int, std::wstring>> result;
+	if (coveringIndexName.empty()) {
+		return result;
+	}
+
+	PragmaIndexColumns columns = indexUserRepository->getPragmaIndexColumns(userDbId, coveringIndexName);
+	for (auto & column : columns) {
+		result.push_back({ no, column.name });
+	}
+	return result;
 }
 

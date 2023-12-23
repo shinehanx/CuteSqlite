@@ -59,6 +59,8 @@ public:
 	void selectListViewItemForManage();
 
 	bool isDirty();
+
+	std::wstring generateNewIdxName(std::wstring prefix);
 private:
 	TableStructureSupplier * supplier = nullptr;
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();

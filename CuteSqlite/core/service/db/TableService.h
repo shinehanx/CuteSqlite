@@ -55,7 +55,7 @@ public:
 	UserIndexList getUserIndexes(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	UserIndex getUserIndexByRowId(uint64_t userDbId, uint64_t rowId);
 	IndexInfoList getIndexInfoList(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
-
+	PragmaIndexColumns getPragmaIndexColumns(uint64_t userDbId, const std::wstring & indexName);
 	
 	// get runtime user unique or index columns
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());

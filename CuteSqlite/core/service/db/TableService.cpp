@@ -213,6 +213,11 @@ IndexInfoList TableService::getIndexInfoList(uint64_t userDbId, const std::wstri
 	return indexInfoList;
 }
 
+PragmaIndexColumns TableService::getPragmaIndexColumns(uint64_t userDbId, const std::wstring & indexName)
+{
+	return indexUserRepository->getPragmaIndexColumns(userDbId, indexName);
+}
+
 std::wstring TableService::getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema)
 {
 	ATLASSERT(userDbId > 0 && !tblName.empty());
