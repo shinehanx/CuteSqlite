@@ -46,6 +46,18 @@ ColumnInfoList ColumnUserRepository::getListByTblName(uint64_t userDbId, const s
 	}
 }
 
+ColumnInfo ColumnUserRepository::getColumnInfo(uint64_t userDbId, const std::wstring &tblName, const std::wstring columnName, const std::wstring & schema /*= std::wstring()*/)
+{
+	ColumnInfoList columnInfoList = getListByTblName(userDbId, tblName, schema);
+	for (auto columnInfo : columnInfoList) {
+		if (columnInfo.name == columnName) {
+			return columnInfo;
+		}
+	}
+
+	return ColumnInfo();
+}
+
 ColumnInfo ColumnUserRepository::toColumnInfo(QSqlStatement &query)
 {
 	ColumnInfo item;

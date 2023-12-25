@@ -46,7 +46,7 @@ public:
 private:
 	uint64_t sqlLogId = 0;
 	SqlLog sqlLog;
-	ByteCodeResults byteCodeResults;
+	ByteCodeResults byteCodeResults; 
 	ExplainQueryPlans explainQueryPlans;
 
 	DataList explainDataList;

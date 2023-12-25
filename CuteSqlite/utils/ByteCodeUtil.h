@@ -11,24 +11,23 @@
 
  * limitations under the License.
 
- * @file   FieldUserRepository.h
- * @brief  Operations on fields in the user database
+ * @file   ByteCodeUtil.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-05-20
+ * @date   2023-12-25
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
+#include <vector>
+#include <string>
 
-class ColumnUserRepository : public BaseUserRepository<ColumnUserRepository>
-{
+class ByteCodeUtil {
 public:
-	ColumnUserRepository() {}
-	~ColumnUserRepository() {}
-
-	ColumnInfoList getListByTblName(uint64_t userDbId, const std::wstring &tblName, const std::wstring & schema = std::wstring());
-	ColumnInfo getColumnInfo(uint64_t userDbId, const std::wstring &tblName, const std::wstring columnName, const std::wstring & schema = std::wstring());
+	static bool isInSeekOpCodes(const std::wstring & opcode);
+	static bool isInIdxOpCodes(const std::wstring & opcode);
+	static bool isInCompareOpCodes(const std::wstring & opcode);
 private:
-	ColumnInfo toColumnInfo(QSqlStatement &query);
+	static const std::vector<std::wstring> seekOpCodes;
+	static const std::vector<std::wstring> idxOpCodes;
+	static const std::vector<std::wstring> compareOpCodes;
 };

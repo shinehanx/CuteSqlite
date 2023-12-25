@@ -35,6 +35,7 @@ public:
 	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring & sql);
 	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
 private:
+	
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
@@ -59,9 +60,13 @@ private:
 
 	void parseTableAndIndexFromOpenRead(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseWhereIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseWhereExpressesFromSeekOpsRow(uint64_t userDbId, DataList::const_iterator rowIter, const DataList &byteCodeList, ByteCodeResults & results);
 	void parseWhereOrIndexColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
-
+	void parseWhereExpressFromOpColumn(uint64_t userDbId, DataList::const_iterator compareRowIter, 
+		DataList::const_iterator columnRowIter, const DataList &byteCodeList, ByteCodeResults &results);
+	
 	void parseWhereOrIndexColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseWhereExpressesFromOpCompare(uint64_t userDbId, DataList::const_iterator iter, const DataList & byteCodeList, ByteCodeResults & results);
 	void parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
 
 	Columns getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
@@ -84,4 +89,11 @@ private:
 	// match the specified columns in all indexes of specified table
 	std::wstring matchColumnsInAllIndexesOfTable(const Columns & columns, const std::vector<std::pair<int, std::wstring>> & useIndexes, uint64_t userDbId, const std::wstring & tblName);
 	std::vector<std::pair<int, std::wstring>> getIndexColumnsByCoveringIndexName(uint64_t userDbId, int no, const std::wstring & coveringIndexName);
+	
+	
+	std::wstring getWhereExpressValByOpColumn(uint64_t userDbId, int regNo, DataList::const_iterator rowIter, const DataList & byteCodeList);
+	std::wstring convertByteCodeIterToWhereExpValue(DataList::const_iterator iter, int compareRegNo);
+
+	
+	std::wstring getOpcodeByByteCodeAddr(const std::wstring & compareJumpAddr, const DataList & byteCodeList);
 };

@@ -362,6 +362,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\home\LeftPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\LeftNavigationView.cpp" />
     <ClCompile Include="ui\home\list\DatabaseListItem.cpp" />
+    <ClCompile Include="utils\ByteCodeUtil.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
     <ClCompile Include="utils\ColumnsUtil.cpp" />
@@ -509,6 +510,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\home\LeftPanel.h" />
     <ClInclude Include="ui\analysis\leftview\LeftNavigationView.h" />
     <ClInclude Include="ui\home\list\DatabaseListItem.h" />
+    <ClInclude Include="utils\ByteCodeUtil.h" />
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />
     <ClInclude Include="utils\ColumnsUtil.h" />

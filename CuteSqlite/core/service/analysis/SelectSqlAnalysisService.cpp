@@ -23,6 +23,7 @@
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "utils/ColumnsUtil.h"
+#include "utils/ByteCodeUtil.h"
 
 DataList SelectSqlAnalysisService::explainSql(uint64_t userDbId, const std::wstring & sql)
 {
@@ -73,20 +74,17 @@ void SelectSqlAnalysisService::doConvertByteCodeForWhereColumns(uint64_t userDbI
 		auto & opcode = rowItem.at(EXP_OPCODE);
 		if (opcode == L"OpenRead") {
 			parseTableAndIndexFromOpenRead(userDbId, rowItem, results);
-		}
-		else if (opcode == L"SeekGT" || opcode == L"SeekGE" || opcode == L"SeekLT" || opcode == L"SeekLE") { // index column
+		} else if (ByteCodeUtil::isInSeekOpCodes(opcode)) { // seek opcodes: {L"SeekGT", L"SeekGE", L"SeekLT", L"SeekLE"};
+			parseWhereIdxColumnsFromExplainRow(userDbId, rowItem, results); // create whereColumns and whereIndexColumns
+			parseWhereExpressesFromSeekOpsRow(userDbId, iter, byteCodeList, results);// create whereExpresses
+		} else if (ByteCodeUtil::isInIdxOpCodes(opcode)) { // idx opcodes: {L"IdxGT", L"IdxGE", L"IdxLT", L"IdxLE"};
 			parseWhereIdxColumnsFromExplainRow(userDbId, rowItem, results);
-		}
-		else if (opcode == L"IdxGE" || opcode == L"IdxGT" || opcode == L"IdxLE" || opcode == L"IdxLE") { // index column
-			parseWhereIdxColumnsFromExplainRow(userDbId, rowItem, results);
-		}
-		else if (opcode == L"Eq" || opcode == L"Ne" || opcode == L"Lt" || opcode == L"Le" || opcode == L"Gt" || opcode == L"Ge") { // compare opcode
-			parseWhereOrIndexColumnFromOpCompare(userDbId, rowItem, results, iter, byteCodeList);
-		}
-		else if (opcode == L"SeekRowid" || opcode == L"NotExists") {
+		} else if (ByteCodeUtil::isInCompareOpCodes(opcode)) { // compare opcode: {L"Eq", L"Ne", L"Lt", L"Le", L"Gt", L"Ge"}
+			parseWhereOrIndexColumnFromOpCompare(userDbId, rowItem, results, iter, byteCodeList); // create whereColumns and whereIndexColumns
+			parseWhereExpressesFromOpCompare(userDbId, iter, byteCodeList, results); // create whereExpresses
+		} else if (opcode == L"SeekRowid" || opcode == L"NotExists") {
 			parseWhereOrIndexColumnFromSeekRowid(userDbId, rowItem, results, iter, byteCodeList);
-		}
-		else if (opcode == L"Column") { // where column 
+		} else if (opcode == L"Column") { // where column 
 			auto nextIter = std::next(iter);
 			auto & nextOpcode = (*nextIter).at(EXP_OPCODE);
 			if (nextOpcode == L"IfPos" || nextOpcode == L"Rewind"
@@ -95,8 +93,7 @@ void SelectSqlAnalysisService::doConvertByteCodeForWhereColumns(uint64_t userDbI
 				continue;
 			}
 			parseWhereOrIndexColumnFromOpColumn(userDbId, rowItem, results);
-		}
-		else if (opcode == L"IfNot" || opcode == L"If") {
+		} else if (opcode == L"IfNot" || opcode == L"If") {
 			parseWhereOrIndexNullColumnFromSql(userDbId, rowItem, results, sql);
 		}
 	}
@@ -760,8 +757,9 @@ void SelectSqlAnalysisService::parseWhereIdxColumnsFromExplainRow(uint64_t userD
 		auto & parentTblResult = *pTblIter;
 		auto & tblWhereColumns = parentTblResult.whereColumns;
 		auto & tblWhereIndexColumns = parentTblResult.whereIndexColumns;
+		int curP3 = std::stoi(rowItem.at(EXP_P3));
 
-		int useIdxColLen = std::stoi(rowItem.at(EXP_P4)); // P4 - use index column length with by sort
+		int useIdxColLen = std::stoi(rowItem.at(EXP_P4)); // P4 - use index column length with sorted, and P3 is the number start with the sorted list
 		for (int i = 0; i < useIdxColLen; i++) {
 			auto & idxColumn = idxColumns.at(i);
 			// Add index columns to index result
@@ -796,6 +794,126 @@ void SelectSqlAnalysisService::parseWhereIdxColumnsFromExplainRow(uint64_t userD
 		}
 	}
 	
+}
+
+
+/**
+ * Get where express from SeekXX opcode row of result list after explain sql statement.
+ * 
+ * @param userDbId
+ * @param rowIter -  byteCodeList row iterator
+ * @param byteCodeList - byteCodeList
+ * @param results - ByteCodeResults
+ */
+void SelectSqlAnalysisService::parseWhereExpressesFromSeekOpsRow(uint64_t userDbId, DataList::const_iterator rowIter, const DataList &byteCodeList, ByteCodeResults & results)
+{
+	const RowItem & rowItem = *rowIter;
+	int no = std::stoi(rowItem.at(EXP_P1)); // P1 - Table No. in the VDBE
+	
+	auto iter = std::find_if(results.begin(), results.end(), [&no](auto & result) {
+		return result.no == no;
+	});
+
+	if (iter == results.end()) {
+		return;
+	}
+
+	if ((*iter).type != L"index") {
+		return;
+	}
+
+	auto & whereExpresses = (*iter).whereExpresses;
+	PragmaIndexColumns idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, (*iter).name);	
+		
+	// parent table item in the results
+	UserIndex userIndex = indexUserRepository->getByIndexName(userDbId, (*iter).name);
+	auto pTblIter = std::find_if(results.begin(), results.end(), [&userIndex](auto & resItem) {
+		return resItem.name == userIndex.tblName;
+	});
+	if (pTblIter == results.end()) {
+		return ;
+	}
+	// FOR parent table 
+	auto & parentTblResult = *pTblIter;
+	auto & tblWhereExpresses = parentTblResult.whereExpresses;
+	auto & tblEffectRows = parentTblResult.effectRows;
+
+	int useIdxColLen = std::stoi(rowItem.at(EXP_P4)); // P4 - use index column length of table index, and P3 is the number start
+	std::wstring whereOpr; // operator for where term, e.g., if where term is "columm1 >= 2", then whereOpr is ">="
+	DataList::const_iterator nextRowIter = std::next(rowIter);
+	std::wstring curOpCode = (*rowIter).at(EXP_OPCODE);
+	std::wstring nextOpCode = (*nextRowIter).at(EXP_OPCODE);
+	// opcode params : P3 AND P4
+	int curP3 = std::stoi(rowItem.at(EXP_P3));
+	int curP4 = std::stoi(rowItem.at(EXP_P4));
+	int nextP3 = -1, nextP4 = -1;
+	if (nextOpCode == L"IdxGE" || nextOpCode == L"IdxGT" || nextOpCode == L"IdxLE" || nextOpCode == L"IdxLE") {		
+		nextP3 = rowItem.at(EXP_P3) != L"< NULL >" && ! rowItem.at(EXP_P3).empty() ? std::stoi(rowItem.at(EXP_P3)) : -1;
+		nextP4 = rowItem.at(EXP_P4) != L"< NULL >" && ! rowItem.at(EXP_P4).empty()  ? std::stoi(rowItem.at(EXP_P4)) : -1;
+	}
+	
+
+	for (int i = 0; i < useIdxColLen; i++) {
+		auto & idxColumn = idxColumns.at(i);
+		if (curOpCode  == L"SeekGE" 
+			&& !ByteCodeUtil::isInIdxOpCodes(nextOpCode) 
+			&& !ByteCodeUtil::isInCompareOpCodes(nextOpCode)) {
+			whereOpr = L">=";
+		} else if (curOpCode  == L"SeekGT"
+			&& !ByteCodeUtil::isInIdxOpCodes(nextOpCode) 
+			&& !ByteCodeUtil::isInCompareOpCodes(nextOpCode)) {
+			whereOpr = L">";
+		} else if (curOpCode  == L"SeekLE"
+			&& !ByteCodeUtil::isInIdxOpCodes(nextOpCode) 
+			&& !ByteCodeUtil::isInCompareOpCodes(nextOpCode)) {
+			whereOpr = L"<=";
+		} else if (curOpCode  == L"SeekLT"
+			&& !ByteCodeUtil::isInIdxOpCodes(nextOpCode) 
+			&& !ByteCodeUtil::isInCompareOpCodes(nextOpCode)) {
+			whereOpr = L"<";
+		} else if (curOpCode == L"SeekGE" && nextOpCode == L"IdxGT") {			
+			if (curP3 == nextP3 && curP4 == nextP4) {
+				whereOpr = L"=";
+			} else if (curP4 >= nextP4) {
+				if (i < nextP4) whereOpr = L"=";
+				else whereOpr = L">=";
+			} 
+		} else if (curOpCode == L"SeekLE" && nextOpCode == L"IdxLT") {			
+			if (curP3 == nextP3 && curP4 == nextP4) {
+				whereOpr = L"=";
+			} else if (curP4 >= nextP4) {
+				if (i < nextP4) whereOpr = L"=";
+				else whereOpr = L"<=";
+			} 
+		} else if (curOpCode == L"SeekLE" && nextOpCode == L"IdxLT") {			
+			if (curP3 == nextP3 && curP4 == nextP4) {
+				whereOpr = L"=";
+			} else if (curP4 >= nextP4) {
+				if (i < nextP4) whereOpr = L"=";
+				else whereOpr = L"<=";
+			} 
+		}
+
+		auto & columnName = idxColumn.name;
+		std::wstring whereExpress = L"\"" + columnName + L"\"";
+		int compareRegNo = curP3 + i;
+		std::wstring whereVal = getWhereExpressValByOpColumn(userDbId, compareRegNo, rowIter, byteCodeList);
+		whereExpress.append(whereOpr).append(whereVal);
+
+		auto expIter1 = std::find_if(whereExpresses.begin(), whereExpresses.end(), [&whereExpress](auto & exp) {
+			return whereExpress == exp;
+		});
+		if (expIter1 == whereExpresses.end()) {
+			whereExpresses.push_back(whereExpress);
+		}
+		
+		auto expIter2 = std::find_if(tblWhereExpresses.begin(), tblWhereExpresses.end(), [&whereExpress](auto & tblExp) {
+			return whereExpress == tblExp;
+		});
+		if (expIter2 == tblWhereExpresses.end()) {
+			tblWhereExpresses.push_back(whereExpress);
+		}		
+	}
 }
 
 /**
@@ -881,6 +999,101 @@ void SelectSqlAnalysisService::parseWhereOrIndexColumnFromOpColumn(uint64_t user
 }
 
 /**
+ * From the row that row.opcode == Column, explain the row params to ByteCodeResults.whereExpresses
+ * 
+ * @param userDbId - user db
+ * @param compareOpcode - compare opcode that use this Column
+ * @param rowItem - Opcode row
+ * @param results - For ByteCodeResults
+ */
+void SelectSqlAnalysisService::parseWhereExpressFromOpColumn(uint64_t userDbId, DataList::const_iterator compareRowIter,
+	DataList::const_iterator columnRowIter, const DataList &byteCodeList, ByteCodeResults &results)
+{
+	const RowItem &columnRowItem = *columnRowIter;
+	int no = std::stoi(columnRowItem.at(EXP_P1)); // P1 - Table No. in the VDBE
+	int compareRegNo = std::stoi((*compareRowIter).at(EXP_P1));	
+	const std::wstring & compareOpcode = (*compareRowIter).at(EXP_OPCODE);
+
+	// compare opcode P2,jump to not opcode
+	std::wstring compareJumpAddr = (*compareRowIter).at(EXP_P2);
+	std::wstring compareJumpOpcode = getOpcodeByByteCodeAddr(compareJumpAddr, byteCodeList);
+	bool jumpNotOpcode = StringUtil::existsIn(compareJumpOpcode, { L"Next", L"Prev", L"Last", L"Halt" });
+
+	std::wstring whereOpr;
+	if (compareOpcode == L"Ne")  whereOpr = jumpNotOpcode ? L"=" : L"<>";		
+	else if (compareOpcode == L"Eq")  whereOpr = jumpNotOpcode ? L"<>" : L"=";
+	else if (compareOpcode == L"Le")  whereOpr = jumpNotOpcode ? L">" : L"<=";
+	else if (compareOpcode == L"Lt")  whereOpr = jumpNotOpcode ? L">=" : L"<";
+	else if (compareOpcode == L"Ge")  whereOpr = jumpNotOpcode ? L"<" : L">=";
+	else if (compareOpcode == L"Gt")  whereOpr = jumpNotOpcode ? L"<=" : L">";
+	
+	auto iter = std::find_if(results.begin(), results.end(), [&no](auto & result) {
+		return result.no == no;
+	});
+	if (iter == results.end()) {
+		return;
+	}
+	auto & whereColumns = (*iter).whereColumns;
+	auto & whereExpresses = (*iter).whereExpresses;
+
+	std::wstring whereExpress;
+	// Column
+	if ((*iter).type == L"table") {
+		int pos = std::stoi(columnRowItem.at(EXP_P2));
+		auto & tblName = (*iter).name;
+		ColumnInfoList columnInfoList = columnUserRepository->getListByTblName(userDbId, tblName);
+		auto tblColumnName = columnInfoList.at(pos).name;
+		
+		std::wstring whereVal = getWhereExpressValByOpColumn(userDbId, compareRegNo, columnRowIter, byteCodeList);
+		whereExpress.append(L"\"").append(tblColumnName).append(L"\"").append(whereOpr).append(whereVal);
+		
+
+		auto foundIter = std::find_if(whereExpresses.begin(), whereExpresses.end(), [&whereExpress](const auto & item) {
+			return whereExpress == item;
+		});
+		if (foundIter == whereExpresses.end()) {
+			whereExpresses.push_back(tblColumnName);
+		}
+	} else if ((*iter).type == L"index") {
+		PragmaIndexColumns idxColumns = indexUserRepository->getPragmaIndexColumns(userDbId, (*iter).name);		
+		int pos = std::stoi(columnRowItem.at(EXP_P2)); // P2 - index 
+		
+		auto & idxColumn = idxColumns.at(pos);
+		auto & idxColumnName = idxColumn.name;
+
+		// parent table item in the results
+		UserIndex userIndex = indexUserRepository->getByIndexName(userDbId, (*iter).name);
+		auto pTblIter = std::find_if(results.begin(), results.end(), [&userIndex](auto & resItem) {
+			return resItem.name == userIndex.tblName;
+		});
+		if (pTblIter == results.end()) {
+			return ;
+		}
+		auto & parentTblResult = *pTblIter;
+		auto & tblWhereExpresses = parentTblResult.whereExpresses;
+
+		std::wstring whereVal = getWhereExpressValByOpColumn(userDbId, compareRegNo, columnRowIter, byteCodeList);
+		whereExpress.append(L"\"").append(idxColumnName).append(L"\"").append(whereOpr).append(whereVal);
+
+		// Add index columns to index result
+		auto foundIter = std::find_if(whereExpresses.begin(), whereExpresses.end(), [&idxColumn](const auto & colName) {
+			return idxColumn.name == colName;
+		});
+		if (foundIter == whereExpresses.end()) {
+			whereExpresses.push_back(whereExpress);
+		}
+
+		// Add index columns to parent table result
+		auto foundIter3 = std::find_if(tblWhereExpresses.begin(), tblWhereExpresses.end(), [&whereExpress](const auto & item) {
+			return whereExpress == item;
+		});
+		if (foundIter3 == tblWhereExpresses.end()) {
+			tblWhereExpresses.push_back(whereExpress);
+		}
+	}
+}
+
+/**
  * Compare opcode.
  * 
  * @param userDbId
@@ -897,8 +1110,23 @@ void SelectSqlAnalysisService::parseWhereOrIndexColumnFromOpCompare(uint64_t use
 
 	for (auto prevIter = std::prev(iter); prevIter != byteCodeList.begin(); prevIter = std::prev(prevIter)) {
 		if ((*prevIter).at(EXP_OPCODE) == L"Column" && 
-			((*prevIter).at(EXP_P3) == r1 || (*prevIter).at(EXP_P3) == r3)) { // Column row : p3 - register
+			((*prevIter).at(EXP_P3) == r1 || (*prevIter).at(EXP_P3) == r3)) { // Column row : p3 - register no
 			parseWhereOrIndexColumnFromOpColumn(userDbId, (*prevIter), results);
+		}
+	}
+}
+
+
+void SelectSqlAnalysisService::parseWhereExpressesFromOpCompare(uint64_t userDbId, DataList::const_iterator iter, const DataList & byteCodeList, ByteCodeResults & results)
+{
+	auto & rowItem = (*iter);
+	std::wstring r1 = rowItem.at(EXP_P1); // Compare opcode: P1 - register
+	std::wstring r3 = rowItem.at(EXP_P3); // Compare opcode: P3 - register
+
+	for (auto prevIter = std::prev(iter); prevIter != byteCodeList.begin(); prevIter = std::prev(prevIter)) {
+		if ((*prevIter).at(EXP_OPCODE) == L"Column" && 
+			((*prevIter).at(EXP_P3) == r1 || (*prevIter).at(EXP_P3) == r3)) { // Column row : p3 - register no
+			parseWhereExpressFromOpColumn(userDbId, iter, prevIter, byteCodeList, results);
 		}
 	}
 }
@@ -1482,4 +1710,104 @@ std::vector<std::pair<int, std::wstring>> SelectSqlAnalysisService::getIndexColu
 	}
 	return result;
 }
+
+/**
+ * Get where express value by index column.
+ * e.g., where term "where a.gender = 'male' ", return "male"
+ * 
+ * @param regNo - register number of current row : (*rowIter).at(EXP_P2)
+ * @param tblName - table name
+ * @param rowIter - current row iterator
+ * @param byteCodeList - byteCode list from explain result
+ * @return 
+ */
+std::wstring SelectSqlAnalysisService::getWhereExpressValByOpColumn(uint64_t userDbId, int compareRegNo, DataList::const_iterator rowIter, const DataList & byteCodeList)
+{
+	std::wstring result;
+	auto & beginIter = byteCodeList.begin();
+	
+	
+	// 1.Found direction: up, From current row iterator(rowIter) to first row iterator(beginIter)
+	for (auto & prevIter = std::prev(rowIter);prevIter != beginIter; prevIter = std::prev(prevIter)) {
+		result = convertByteCodeIterToWhereExpValue(prevIter, compareRegNo);
+		if (!result.empty()) {
+			return result;
+		}
+	}
+
+	// 2.Found direction: down, From initRow.p2 point to nextRow.addr
+	auto startIterAddr = (*beginIter).at(EXP_P2);
+	auto initBeginIter = std::find_if(byteCodeList.begin(), byteCodeList.end(), [&startIterAddr](auto & rowItem) {
+		return startIterAddr == rowItem.at(EXP_ADDR);
+	});
+
+	if (initBeginIter == byteCodeList.end()) {
+		return result;
+	}
+	for (auto nextIter = initBeginIter; nextIter != byteCodeList.end(); nextIter = std::next(nextIter)) {
+		result = convertByteCodeIterToWhereExpValue(nextIter, compareRegNo);
+		if (!result.empty()) {
+			return result;
+		}
+	}
+
+	return result;
+}
+
+std::wstring SelectSqlAnalysisService::convertByteCodeIterToWhereExpValue(DataList::const_iterator iter, int compareRegNo)
+{
+	std::wstring result;
+	auto & rowItem = (*iter);
+	auto & opcode = rowItem.at(EXP_OPCODE);
+	if (opcode == L"Integer") { // P1 - VAL, P2 - register no
+		auto rowP1 = rowItem.at(EXP_P1); // value
+		auto rowP2 = std::stoi(rowItem.at(EXP_P2)); // register no;
+		if (rowP2 == compareRegNo) { // curent row register no == prev row P2 
+			result = rowP1; // P1 - value
+			return result;
+		}
+	} else if (opcode == L"String8" || opcode == L"Real" || opcode == L"Blob") {
+		auto rowP2 = std::stoi(rowItem.at(EXP_P2)); // register no;
+		auto rowP4 = rowItem.at(EXP_P4); // value
+		if (rowP2 == compareRegNo) { // curent row register no == prev row P2 
+			result =  L"\'" + StringUtil::escapeSql(rowP4) + L"\'"; // P4 - String8 value, P4 points to a nul terminated UTF-8 string.
+			return result;
+		}
+	} else if (opcode == L"String") {
+		auto rowP1 = rowItem.at(EXP_P1); // string length
+		auto rowP2 = std::stoi(rowItem.at(EXP_P2)); // register no;
+		auto rowP3 = rowItem.at(EXP_P3); // P3 if is zero, then if it is equal to P5
+		auto rowP4 = rowItem.at(EXP_P4); // P4 string buffer
+		auto rowP5 = std::stoi(rowItem.at(EXP_P5)); // P5 if it is equal to P3
+
+		if (rowP2 == compareRegNo) {
+			std::wstring p4Content = L"\'" + StringUtil::escapeSql(rowP4) + L"\'";
+		
+			// If P3 is not zero and the content of register P3 is equal to P5, then the datatype of the register P2 is converted to BLOB. 
+			// The content is the same sequence of bytes, it is merely interpreted as a BLOB instead of a string, as if it had been CAST. In other words:
+			// if( P3!=0 and reg[P3]==P5 ) reg[P2] := CAST(reg[P2] as BLOB)
+			if (rowP3 == L"5" || rowP3 == L"P5") result = L"CAST(" + p4Content + L" AS BLOB)";
+			else result = p4Content;
+		}		
+	}
+
+	return result;
+}
+
+std::wstring SelectSqlAnalysisService::getOpcodeByByteCodeAddr(const std::wstring & addr, const DataList & byteCodeList)
+{
+	if (addr.empty()) {
+		return L"";
+	}
+
+	auto iter = std::find_if(byteCodeList.begin(), byteCodeList.end(), [&addr](auto & rowItem) {
+		return rowItem.at(EXP_ADDR) == addr;
+	});
+	if (iter == byteCodeList.end()) {
+		return L"";
+	}
+
+	return (*iter).at(EXP_OPCODE);
+}
+
 

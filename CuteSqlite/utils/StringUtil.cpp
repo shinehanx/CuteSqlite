@@ -913,3 +913,12 @@ std::vector<std::string> StringUtil::wstringsToStrings(const std::vector<std::ws
 	}
 	return result;
 }
+
+bool StringUtil::existsIn(const std::wstring & str, const std::vector<std::wstring> & strVector)
+{
+	auto iter = std::find(strVector.begin(), strVector.end(), str);
+	if (iter != strVector.end()) {
+		return true;
+	}
+	return false;
+}

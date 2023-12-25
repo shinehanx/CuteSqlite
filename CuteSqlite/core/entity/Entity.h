@@ -145,7 +145,7 @@ typedef struct {
 typedef std::vector<std::wstring> ExportSelectedColumns;
 
 // the data structure for show in list view or export
-typedef std::vector<std::wstring> RowItem, Columns, Functions, UserTableStrings;
+typedef std::vector<std::wstring> RowItem, Columns, Functions, UserTableStrings, WhereExpresses;
 // data items list
 typedef std::list<RowItem> DataList;
 
@@ -206,24 +206,32 @@ typedef std::vector<ExplainQueryPlan> ExplainQueryPlans;
 
 // Explain sql to this struct
 typedef struct {
+	//BASIC INFORMATION
 	int no; // OpenRead/OpenWrite p1
 	uint64_t userDbId;
 	std::wstring addr;
 	std::wstring name;
 	std::wstring type; // index, table, view, trigger
 	uint64_t rootPage;
+
+	// FOR INDEX ANALYSIS
 	std::vector<std::pair<int, std::wstring>> useIndexes; // useing index in this table, pair item params: first(int) - index no, second(std::wstring) - index name
 	Columns whereColumns; // where clause used columns in this table
 	Columns orderColumns; // order clause used columns in this table
 	std::vector<std::pair<int, std::wstring>> whereIndexColumns; // using index columns of where clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 	std::vector<std::pair<int, std::wstring>> orderIndexColumns; // using index columns of order clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
 	
-
 	Columns mergeColumns; // merge whereColumns  and orderColumns
 	std::wstring coveringIndexName; // covering index name
 	std::vector<std::pair<int, std::wstring>> coveringIndexColumns; // covering index columns of wherer and orde clause in this table, pair item params: first(int) - index no, second(std::wstring) - column name
+
+	// FOR JOIN ANALYSIS
+	WhereExpresses whereExpresses;
+	uint64_t effectRows;
+
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
+
 
 typedef struct {
 	int tblNo; // OpenRead/OpenWrite p1

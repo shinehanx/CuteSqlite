@@ -278,6 +278,8 @@ public:
 	 * @return 
 	 */
 	static std::vector<std::string> wstringsToStrings(const std::vector<std::wstring> & wstrs);
+
+	static bool existsIn(const std::wstring & str, const std::vector<std::wstring> & strVector);
 };
 
 
