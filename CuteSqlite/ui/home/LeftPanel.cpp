@@ -142,20 +142,20 @@ LRESULT LeftPanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	createCustomerButton();
 
 	//analysis°´Å¥
-	createAnalysisButton();
+	// createAnalysisButton();
 
 	//view°´Å¥
 	// createViewButton();
 
 	//setting°´Å¥
-	//createSettingButton();
+	createSettingButton();
 
 	
 	buttonMap[Config::HOME_BUTTON_ID] = &homeButton;		
 	buttonMap[Config::DATABASE_BUTTON_ID] = &databaseButton;
-	buttonMap[Config::ANALYSIS_BUTTON_ID] = &analysisButton;
+	//buttonMap[Config::ANALYSIS_BUTTON_ID] = &analysisButton;
 	//buttonMap[Config::VIEW_BUTTON_ID] = &viewButton;
-	//buttonMap[Config::SETTING_BUTTON_ID] = &settingButton;
+	buttonMap[Config::SETTING_BUTTON_ID] = &settingButton;
 
 	return 0;
 }

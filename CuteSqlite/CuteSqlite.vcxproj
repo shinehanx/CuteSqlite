@@ -280,6 +280,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\FirstPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp" />
@@ -296,6 +297,8 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\image\QImage.cpp" />
     <ClCompile Include="ui\common\image\QImageList.cpp" />
     <ClCompile Include="ui\common\image\QStaticImage.cpp" />
+    <ClCompile Include="ui\common\listbox\QListMenu.cpp" />
+    <ClCompile Include="ui\common\listbox\QListMenuItem.cpp" />
     <ClCompile Include="ui\common\listview\QListViewCtrl.cpp" />
     <ClCompile Include="ui\common\message\QMessageBox.cpp" />
     <ClCompile Include="ui\common\message\QPopAnimate.cpp" />
@@ -304,6 +307,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\process\QProcessBar.cpp" />
     <ClCompile Include="ui\common\tabview\QTabView.cpp" />
     <ClCompile Include="ui\common\treeview\QTreeViewCtrl.cpp" />
+    <ClCompile Include="ui\common\view\QSettingView.cpp" />
     <ClCompile Include="ui\database\rightview\adapter\RightWorkViewAdapter.cpp" />
     <ClCompile Include="ui\database\DatabasePanel.cpp" />
     <ClCompile Include="ui\database\dialog\adapter\ExportDatabaseAdapter.cpp" />
@@ -362,6 +366,10 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\home\LeftPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\LeftNavigationView.cpp" />
     <ClCompile Include="ui\home\list\DatabaseListItem.cpp" />
+    <ClCompile Include="ui\setting\SettingMenuBar.cpp" />
+    <ClCompile Include="ui\setting\SettingPanel.cpp" />
+    <ClCompile Include="ui\setting\view\AboutView.cpp" />
+    <ClCompile Include="ui\setting\view\GeneralSettingsView.cpp" />
     <ClCompile Include="utils\ByteCodeUtil.cpp" />
     <ClCompile Include="utils\ClipboardUtil.cpp" />
     <ClCompile Include="utils\ColorUtil.cpp" />
@@ -423,6 +431,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\FirstPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h" />
@@ -442,6 +451,8 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\image\QImage.h" />
     <ClInclude Include="ui\common\image\QImageList.h" />
     <ClInclude Include="ui\common\image\QStaticImage.h" />
+    <ClInclude Include="ui\common\listbox\QListMenu.h" />
+    <ClInclude Include="ui\common\listbox\QListMenuItem.h" />
     <ClInclude Include="ui\common\message\QMessageBox.h" />
     <ClInclude Include="ui\common\message\QPopAnimate.h" />
     <ClInclude Include="ui\common\page\QHelpPage.h" />
@@ -451,6 +462,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\QWinCreater.h" />
     <ClInclude Include="ui\common\tabview\QTabView.h" />
     <ClInclude Include="ui\common\treeview\QTreeViewCtrl.h" />
+    <ClInclude Include="ui\common\view\QSettingView.h" />
     <ClInclude Include="ui\database\rightview\adapter\RightWorkViewAdapter.h" />
     <ClInclude Include="ui\database\DatabasePanel.h" />
     <ClInclude Include="ui\database\dialog\adapter\ExportDatabaseAdapter.h" />
@@ -510,6 +522,10 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\home\LeftPanel.h" />
     <ClInclude Include="ui\analysis\leftview\LeftNavigationView.h" />
     <ClInclude Include="ui\home\list\DatabaseListItem.h" />
+    <ClInclude Include="ui\setting\SettingMenuBar.h" />
+    <ClInclude Include="ui\setting\SettingPanel.h" />
+    <ClInclude Include="ui\setting\view\AboutView.h" />
+    <ClInclude Include="ui\setting\view\GeneralSettingsView.h" />
     <ClInclude Include="utils\ByteCodeUtil.h" />
     <ClInclude Include="utils\ClipboardUtil.h" />
     <ClInclude Include="utils\ColorUtil.h" />

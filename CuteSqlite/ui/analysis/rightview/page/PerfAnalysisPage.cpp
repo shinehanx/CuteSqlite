@@ -25,6 +25,7 @@
 #include "utils/StringUtil.h"
 #include "common/AppContext.h"
 #include "utils/ColumnsUtil.h"
+#include "utils/SqlUtil.h"
 
 
 BOOL PerfAnalysisPage::PreTranslateMessage(MSG* pMsg)
@@ -57,6 +58,7 @@ void PerfAnalysisPage::createOrShowUI()
 	createOrShowWhereAnalysisElems(clientRect);
 	createOrShowOrderAnalysisElems(clientRect);
 	createOrShowCoveringIndexesElems(clientRect);
+	createOrShowTableJoinAnalysisElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -413,6 +415,64 @@ void PerfAnalysisPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring 
 }
 
 
+void PerfAnalysisPage::createOrShowTableJoinAnalysisElems(CRect &clientRect)
+{
+	int tableCount = 0;
+	auto & byteCodeResults = supplier.getByteCodeResults();
+	for (auto & byteCodeResult : byteCodeResults) {
+		if (byteCodeResult.type != L"table") {
+			continue;
+		}
+		tableCount++;
+	}
+	if (!tableCount) {
+		return;
+	}
+
+	CRect rectLast;
+	if (!coveringIndexElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(coveringIndexElemPtrs.back()->m_hWnd);
+	} else if (!orderAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(orderAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!whereAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!expQueryPlanPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(expQueryPlanPtrs.back()->m_hWnd);
+	} else {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	}
+	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, tableJoinAnalysisLabel, S(L"table-join-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	rect.OffsetRect(0, h + 5);
+	rect.bottom = rect.top + 170;
+	if (!tableJoinAnalysisElem) {
+		std::vector<std::wstring> selectColumns = SqlUtil::getSelectColumnsClause(StringUtil::toupper(supplier.getSqlLog().sql));
+		std::wstring selectColumnsStr = StringUtil::implode(selectColumns,L", ");
+		tableJoinAnalysisElem = new TableJoinAnalysisElem(selectColumnsStr, byteCodeResults);
+	}
+	
+	TableJoinAnalysisElem & win = *tableJoinAnalysisElem;
+	createOrShowTableJoinAnalysisElem(win, rect, clientRect);
+	nHeightSum = rect.bottom;
+	return;
+}
+
+
+void PerfAnalysisPage::createOrShowTableJoinAnalysisElem(TableJoinAnalysisElem & win, CRect & rect, CRect & clientRect)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+		win.Create(m_hWnd, rect);
+		return;
+	}
+	else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
+}
+
 void PerfAnalysisPage::clearExpQueryPlanPtrs()
 {
 	for (auto ptr : expQueryPlanPtrs) {
@@ -516,6 +576,12 @@ int PerfAnalysisPage::OnDestroy()
 	if (origSqlLabel.IsWindow()) origSqlLabel.DestroyWindow();
 	if (origSqlEditor.IsWindow()) origSqlEditor.DestroyWindow();
 	if (newSqlEditor.IsWindow()) newSqlEditor.DestroyWindow();
+
+	if (tableJoinAnalysisElem && tableJoinAnalysisElem->IsWindow()) {
+		tableJoinAnalysisElem->DestroyWindow();
+		delete tableJoinAnalysisElem;
+		tableJoinAnalysisElem = nullptr;
+	}
 
 	if (explainQueryPlanLabel.IsWindow()) explainQueryPlanLabel.DestroyWindow();
 	clearExpQueryPlanPtrs();
@@ -672,14 +738,15 @@ HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 	if (hwnd == origSqlLabel.m_hWnd) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
-	}else if ((explainQueryPlanLabel.IsWindow() && hwnd == explainQueryPlanLabel.m_hWnd)
+	} else if ((explainQueryPlanLabel.IsWindow() && hwnd == explainQueryPlanLabel.m_hWnd)
 		|| (whereAnalysisLabel.IsWindow() && hwnd == whereAnalysisLabel.m_hWnd)
 		|| (orderAnalysisLabel.IsWindow() && hwnd == orderAnalysisLabel.m_hWnd)
 		|| (coveringIndexLabel.IsWindow() && hwnd == coveringIndexLabel.m_hWnd)
+		|| (tableJoinAnalysisLabel.IsWindow() && hwnd == tableJoinAnalysisLabel.m_hWnd)
 		) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);
-	}  else {
+	} else {
 		::SetTextColor(hdc, textColor); 
 		::SelectObject(hdc, textFont);
 	}

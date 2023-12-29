@@ -26,7 +26,8 @@ void HomeView::createOrShowUI()
 	
 	createOrShowPanel(Config::HOME_PANEL, (CWindowImpl &)homePanel, clientRect);
 	createOrShowPanel(Config::DATABASE_PANEL, (CWindowImpl &)databasePanel, clientRect);
-	createOrShowPanel(Config::ANALYSIS_PANEL, (CWindowImpl &)analysisPanel, clientRect);	
+	//createOrShowPanel(Config::ANALYSIS_PANEL, (CWindowImpl &)analysisPanel, clientRect);	
+	createOrShowPanel(Config::SETTING_PANEL, (CWindowImpl &)settingPanel, clientRect);	
 	std::wstring initPanel = SettingService::getInstance()->getSysInit(L"init-panel");
 	int nPanel = initPanel.empty() ? Config::HOME_PANEL : std::stoi(initPanel);
 	
@@ -145,7 +146,8 @@ LRESULT HomeView::OnCreate(UINT, WPARAM, LPARAM, BOOL &)
 	//左边的按钮ID和panel的id对应关系
 	buttonPanelRelations[Config::HOME_BUTTON_ID] = Config::HOME_PANEL;
 	buttonPanelRelations[Config::DATABASE_BUTTON_ID] = Config::DATABASE_PANEL;
-	buttonPanelRelations[Config::ANALYSIS_BUTTON_ID] = Config::ANALYSIS_PANEL;
+	//buttonPanelRelations[Config::ANALYSIS_BUTTON_ID] = Config::ANALYSIS_PANEL;
+	buttonPanelRelations[Config::SETTING_BUTTON_ID] = Config::SETTING_PANEL;
 	return 0;
 }
 
@@ -156,6 +158,8 @@ LRESULT HomeView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (leftPanel.IsWindow()) leftPanel.DestroyWindow();
 	if (homePanel.IsWindow()) homePanel.DestroyWindow();
 	if (databasePanel.IsWindow()) databasePanel.DestroyWindow();
+	if (analysisPanel.IsWindow()) analysisPanel.DestroyWindow();
+	if (settingPanel.IsWindow()) settingPanel.DestroyWindow();
 
 	panels.clear();
 	buttonPanelRelations.clear();

@@ -28,6 +28,7 @@
 #include "ui/analysis/rightview/page/supplier/PerfAnalysisSupplier.h"
 #include "ui/analysis/rightview/page/adapter/PerfAnalysisPageAdapter.h"
 #include "ui/analysis/rightview/page/elem/WhereOrderClauseAnalysisElem.h"
+#include "ui/analysis/rightview/page/elem/TableJoinAnalysisElem.h"
 #include "ui/common/image/QStaticImage.h"
 
 class PerfAnalysisPage : public QTabPage<PerfAnalysisPage>
@@ -97,6 +98,9 @@ private:
 	PerfAnalysisPageAdapter * adapter = nullptr;
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 
+	CStatic tableJoinAnalysisLabel;
+	TableJoinAnalysisElem * tableJoinAnalysisElem = nullptr;
+
 	// scroll bar
 	TEXTMETRIC tm;
 	SCROLLINFO si;
@@ -115,9 +119,11 @@ private:
 	void createOrShowOrderAnalysisItemsForTable(CRect &clientRect);
 	void createOrShowCoveringIndexesElems(CRect &clientRect);
 	void createOrShowCoveringIndexItemsForTable(CRect &clientRect);
-	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);
+	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);	
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
+	void createOrShowTableJoinAnalysisElems(CRect &clientRect);
+	void createOrShowTableJoinAnalysisElem(TableJoinAnalysisElem & win, CRect & rect, CRect & clientRect);
 
 	void clearExpQueryPlanPtrs();
 	void clearWhereAnalysisElemPtrs();	

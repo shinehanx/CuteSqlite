@@ -22,6 +22,7 @@
 #include "ui/home/HomePanel.h"
 #include "ui/database/DatabasePanel.h"
 #include "ui/analysis/AnalysisPanel.h"
+#include "ui/setting/SettingPanel.h"
 
 class HomeView : public CWindowImpl<HomeView>
 {
@@ -50,6 +51,7 @@ private:
 	// Home panel
 	DatabasePanel databasePanel;
 	AnalysisPanel analysisPanel;
+	SettingPanel settingPanel;
 
 	// all panel sets, use to foreach, hide or show
 	std::map<Config::PanelId, CWindowImpl *> panels;

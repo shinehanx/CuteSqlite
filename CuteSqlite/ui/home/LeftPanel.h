@@ -50,8 +50,10 @@ private:
 	void createCustomerButton();
 	void createAnalysisButton();
 	void createViewButton();
-	AppContext * appContext = AppContext::getInstance();
 	void createSettingButton();
+
+	AppContext * appContext = AppContext::getInstance();
+	
 
 	virtual LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	virtual LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

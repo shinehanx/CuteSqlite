@@ -62,12 +62,15 @@ private:
 	void parseWhereIdxColumnsFromExplainRow(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
 	void parseWhereExpressesFromSeekOpsRow(uint64_t userDbId, DataList::const_iterator rowIter, const DataList &byteCodeList, ByteCodeResults & results);
 	void parseWhereOrIndexColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
-	void parseWhereExpressFromOpColumn(uint64_t userDbId, DataList::const_iterator compareRowIter, 
+	void parseWhereOrIndexColumnFromOpRowid(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	std::wstring getWhereOrIndexColumnFromOpColumn(uint64_t userDbId, const RowItem &rowItem, ByteCodeResults &results);
+	void parseWhereExpressFromOpColumn(uint64_t userDbId, DataList::const_iterator compareRowIter,
 		DataList::const_iterator columnRowIter, const DataList &byteCodeList, ByteCodeResults &results);
 	
-	void parseWhereOrIndexColumnFromOpCompare(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults & results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseWhereOrIndexColumnFromOpCompare(uint64_t userDbId, DataList::const_iterator iter,  const DataList & byteCodeList, ByteCodeResults & results);
 	void parseWhereExpressesFromOpCompare(uint64_t userDbId, DataList::const_iterator iter, const DataList & byteCodeList, ByteCodeResults & results);
-	void parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, const RowItem& rowItem, ByteCodeResults &results, DataList::const_iterator iter, const DataList & byteCodeList);
+	void parseWhereOrIndexColumnFromSeekRowid(uint64_t userDbId, DataList::const_iterator iter, ByteCodeResults &results, const DataList & byteCodeList);
+	void parseWhereExpressesFromSeekRowid(uint64_t userDbId, DataList::const_iterator iter, ByteCodeResults &results, const DataList & byteCodeList);
 
 	Columns getUserColumnStrings(uint64_t userDbId, const std::wstring & tblName, const std::wstring & schema = std::wstring());
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
@@ -94,6 +97,5 @@ private:
 	std::wstring getWhereExpressValByOpColumn(uint64_t userDbId, int regNo, DataList::const_iterator rowIter, const DataList & byteCodeList);
 	std::wstring convertByteCodeIterToWhereExpValue(DataList::const_iterator iter, int compareRegNo);
 
-	
 	std::wstring getOpcodeByByteCodeAddr(const std::wstring & compareJumpAddr, const DataList & byteCodeList);
 };

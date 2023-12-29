@@ -163,6 +163,9 @@ typedef enum {
 	// ANALYSIS PANEL
 	ANALYSIS_SQL_LOG_BUTTON_ID,
 	ANALYSIS_CREATE_INDEX_BUTTON_ID,
+
+	// SETTING PANEL
+	SETTING_FEEDBACK_SUBMIT_BUTTON_ID,
 } ButtonId;
 
 // TabView id
@@ -196,6 +199,9 @@ typedef enum {
 	CSV_LINE_TERMINAATED_BY_COMBOBOX_ID,
 	CSV_NULL_AS_KEYWORD_COMBOBOX_ID,
 	CSV_CHARSET_COMBOBOX_ID,
+
+	// SETTING PANEL
+	SETTING_LANGUAGE_COMBOBOX_ID,
 } ComboBoxId;
 
 
@@ -255,6 +261,10 @@ typedef enum {
 
 	// HOMEPANEL - DB LIST ITEM
 	DBLIST_ITEM_PATH_EDIT_ID,
+
+	//SETTINGPANEL 
+	FEEDBACK_CONTENT_EDIT_ID,
+	FEEDBACK_EMAIL_EDIT_ID
 } EditorId;
 
 typedef enum {
@@ -339,6 +349,9 @@ typedef enum {
 
 	// SQL LOG DIALOG
 	DIALOG_SQL_LOG_LIST_ID,
+
+	// SETTING PANEL
+	SETTING_MENU_LIST_ID,
 } ListBoxId;
 
 typedef enum {
@@ -433,6 +446,7 @@ typedef enum {
 	MSG_EXEC_SQL_RESULT_MESSAGE_ID, // 执行SQL语句后，返回的消息，wParam- NULL，lParam - point of adapter.runtimeResultInfo
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
+	MSG_MENU_ITEM_CLICK_ID, //菜单栏下某个菜单项被点击的消息ID，用来通知父窗口，指定ID的菜单项被点击了
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_VIEW_ID, // Send this msg when clicking "New view" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_OPEN_VIEW_ID, // Send this msg when clicking "Open view" menu or toolbar button , wParam=NULL, lParam=NULL
@@ -491,7 +505,21 @@ typedef enum {
 	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
 	MSG_HOME_REFRESH_DATABASE_ID, // Send this msg when created a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_ANALYSIS_CREATE_INDEX_ID, // Send this msg to parent when clicking WhereOrderClauseAnalysisElem::createIdxButton , wParam = WhereOrderClauseAnalysisElem::this, lParam =NULL
+	MSG_CHANGE_LANGUAGE_ID, // Send this msg when select item in SettingPanel.GeneralSettingView.changeLanguageComboBox,
 }MessageId;
+
+typedef enum {	
+	// SETTING
+	SETTING_GENERAL_SETTINGS_MENU_ID = WM_USER + 600,
+	SETTING_ABOUT_MENU_ID
+} ListMenuItemId;
+
+typedef enum 
+{
+	// SETTING VIEW ID
+	SETTING_GENERAL_SETTINGS_VIEW_ID = WM_USER + 630,
+	SETTING_ABOUT_VIEW_ID,
+} ViewId;
 
 typedef enum {
 	RESULT_STATUSBAR_SQL_PANE_ID = WM_USER + 660,
