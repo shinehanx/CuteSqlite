@@ -37,7 +37,7 @@ CopyTableDialog::CopyTableDialog(HWND parentHwnd, bool isSharding)
 
 void CopyTableDialog::createOrShowUI()
 {
-	QDialog::createOrShowUI();
+	QDialog::createOrShowUI(); 
 
 	CRect clientRect;
 	GetClientRect(clientRect);
@@ -53,7 +53,7 @@ void CopyTableDialog::createOrShowUI()
 	createOrShowAdvancedOptionsElems(clientRect);
 	// process bar 
 	createOrShowProcessBar(processBar, clientRect);
-	createOrShowPreviewSqlButton(clientRect);
+	//createOrShowPreviewSqlButton(clientRect);
 }
 
 

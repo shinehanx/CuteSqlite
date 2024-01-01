@@ -3,7 +3,7 @@ CuteSqlite is the graphical user interface(GUI) tool for SQLite3.
 It allows you to design,create and browse you database,work in database objects, and insert data as well as design and run SQL queries to work with stored data.
 You can also migrate database and data from other database vendors to your SQLite3 database.
 
-**Feature list of CuteSqlite-win-x64-v0.1.20-alpha**
+**Feature list of CuteSqlite-win-x64-v0.1.25-beta**
 
 **1.Database management.**
 - Create Database

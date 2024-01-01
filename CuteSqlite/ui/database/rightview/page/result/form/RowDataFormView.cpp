@@ -148,13 +148,13 @@ void RowDataFormView::showColumnsAndValues(Columns & columns, RowItem & rowItem)
 		QWinCreater::createOrShowEdit(m_hWnd, *edit, Config::FORMVIEW_EDIT_ID_START + idx, value, editRect, clientRect, textFont, ES_MULTILINE | ES_AUTOVSCROLL, readOnly);
 		edits.push_back(edit);
 
-		x = labelRect.left, y = editRect.bottom + 10, w = 80, h = pixel;
+		x = labelRect.left, y = editRect.bottom + 10, w = 80, h = pixel; 
 		labelRect = { x, y, x + w, y + h };
 
-		nHeightSum = editRect.bottom;
+		nHeightSum = editRect.bottom ;
 		idx++;
 	}
-
+	nHeightSum += 200;
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
 	initScrollBar(size);

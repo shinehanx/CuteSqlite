@@ -25,6 +25,9 @@
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/message/QMessageBox.h"
 
+#define CMD_BUFF_LEN 1024
+
+
 ImportDatabaseAdapter::ImportDatabaseAdapter(HWND parentHwnd, ATL::CWindow * view)
 {
 	this->parentHwnd = parentHwnd;
@@ -150,12 +153,33 @@ std::wstring ImportDatabaseAdapter::readFromSqlFile(const std::wstring & importP
 void ImportDatabaseAdapter::execCommandLine(const wchar_t * cmdline)
 {
 	STARTUPINFO si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory( &si, sizeof(si) );
-    si.cb = sizeof(si);
+	ZeroMemory(&si, sizeof(STARTUPINFO));
+
+	HANDLE hStdInPipeRead = NULL;
+    HANDLE hStdInPipeWrite = NULL;
+    HANDLE hStdOutPipeRead = NULL;
+    HANDLE hStdOutPipeWrite = NULL;
+
+	 BOOL ok = TRUE;
+	// Create two pipes.
+    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+	if (!CreatePipe(&hStdInPipeRead, &hStdInPipeWrite, &sa, 0)) {
+		Q_ERROR(L"CreatePipe failed, ERROR:{}. cmdline:{}", GetLastError(), cmdline);
+		return;
+	}
+	if (!CreatePipe(&hStdOutPipeRead, &hStdOutPipeWrite, &sa, 0)) {
+		Q_ERROR(L"CreatePipe failed, ERROR:{}. cmdline:{}", GetLastError(), cmdline);
+		return;
+	}
+
+    si.cb = sizeof(STARTUPINFO);
+    si.hStdError = hStdOutPipeWrite;
+    si.hStdOutput = hStdOutPipeWrite;
+    si.hStdInput = hStdInPipeRead;
 	si.wShowWindow = SW_HIDE; // 隐藏命令行窗口
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-    ZeroMemory( &pi, sizeof(pi) );	
+
+	PROCESS_INFORMATION pi = {};
 
 	// 注意1：获得system32路径，注意一定要用new/delete出来的wchar_t数组，才能让CreateProcessW完整的执行命令行，不然执行完整个函数结束后会报错
 	wchar_t * exepath = new wchar_t[_MAX_PATH];
@@ -165,12 +189,40 @@ void ImportDatabaseAdapter::execCommandLine(const wchar_t * cmdline)
 
 	// 注意2：参数1,2一定要这样用,才能保证重定向的命令行输出正确, 
 	//   例如 c:\system32\cmd.exe \c sqlite3.exe > [输出文件]，不然重定向输出不了文件，因为重定向操作符>后半截不会执行
-	if (!CreateProcessW(exepath, (LPWSTR)cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+	if (!CreateProcessW(exepath, (LPWSTR)cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
         Q_ERROR(L"CreateProcessW failed,ERROR:{}. cmdline:{}", GetLastError(), cmdline);
         return;
     }
+
+	 // Close pipes we do not need.
+    CloseHandle(hStdOutPipeWrite);
+    CloseHandle(hStdInPipeRead);
+
+	bool bStatus;
+    CHAR aBuf[CMD_BUFF_LEN + 1];
+    DWORD dwRead;
+    // GetStdHandle(STD_OUTPUT_HANDLE)
+
+	std::string outmsg;
+    while (true) {
+		ZeroMemory(aBuf, CMD_BUFF_LEN + 1);
+        bStatus = ReadFile(hStdOutPipeRead, aBuf, sizeof(aBuf), &dwRead, NULL);
+        if (!bStatus || dwRead == 0) {
+            break;
+        }
+		outmsg.append(aBuf);
+    }
+	if (!outmsg.empty()) {
+		std::wstring outstr = StringUtil::utf82Unicode(outmsg);
+        Q_ERROR(L"message from console:{}", outstr);
+	}
+
 	WaitForSingleObject( pi.hProcess, INFINITE );
 	delete[] exepath;
+
+	// Clean up and exit.
+    CloseHandle(hStdOutPipeRead);
+    CloseHandle(hStdInPipeWrite);
 
     // Close process and thread handles. 
     CloseHandle( pi.hProcess );

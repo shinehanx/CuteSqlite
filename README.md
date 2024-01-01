@@ -31,7 +31,7 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 [https://github.com/shinehanx/CuteSqlite/releases](https://github.com/shinehanx/CuteSqlite/releases)
 
-**Feature list of CuteSqlite-win-x64-v0.1.20-alpha**
+**Feature list**
 
 **1.Database management.**
 

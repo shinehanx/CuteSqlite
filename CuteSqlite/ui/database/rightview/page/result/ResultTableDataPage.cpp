@@ -222,7 +222,7 @@ void ResultTableDataPage::doCreateOrShowToolBarThirdPaneElems(CRect &rect, CRect
 
 	// show form checkbox
 	rect.OffsetRect(16 + 30, 0);
-	rect.InflateRect(0, 0, 50, 4);
+	rect.InflateRect(0, 0, 80, 4);
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
 }
 

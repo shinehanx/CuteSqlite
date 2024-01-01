@@ -150,7 +150,7 @@ void ResultListPage::doCreateOrShowToolBarSecondPaneElems(CRect &rect, CRect & c
 	readWriteComboBox.SetFont(textFont);
 
 	rect.OffsetRect(120 + 20, 0);
-	rect.InflateRect(0, 0, 20, 4);
+	rect.InflateRect(0, 0, 80, 4);
 	QWinCreater::createOrShowCheckBox(m_hWnd, formViewCheckBox, Config::LISTVIEW_FORMVIEW_CHECKBOX_ID, S(L"show-form-view"), rect, clientRect);
 }
 
