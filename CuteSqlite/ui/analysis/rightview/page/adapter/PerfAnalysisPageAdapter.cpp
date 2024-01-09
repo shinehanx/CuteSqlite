@@ -56,6 +56,10 @@ void PerfAnalysisPageAdapter::initSupplier()
 		ByteCodeResults results = selectSqlAnalysisService->explainReadByteCodeToResults(supplier->getRuntimeUserDbId(), explainDatas, supplier->getSqlLog().sql);
 		supplier->setByteCodeResults(results);
 
+		// 4.Convert explain data list to SelectColumns
+		SelectColumns selectColumns = selectSqlAnalysisService->explainReadByteCodeToSelectColumns(supplier->getRuntimeUserDbId(), explainDatas, supplier->getSqlLog().sql);
+		supplier->setSelectColumns(selectColumns);
+
 	} catch (QSqlExecuteException & ex) {
 		QPopAnimate::report(ex);
 	} catch (QRuntimeException & ex) {

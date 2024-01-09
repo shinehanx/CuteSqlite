@@ -441,6 +441,9 @@
     <ClCompile Include="ui\common\listbox\QListMenuItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -915,6 +918,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\common\listbox\QListMenuItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

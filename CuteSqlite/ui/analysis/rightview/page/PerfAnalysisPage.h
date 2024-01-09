@@ -29,6 +29,7 @@
 #include "ui/analysis/rightview/page/adapter/PerfAnalysisPageAdapter.h"
 #include "ui/analysis/rightview/page/elem/WhereOrderClauseAnalysisElem.h"
 #include "ui/analysis/rightview/page/elem/TableJoinAnalysisElem.h"
+#include "ui/analysis/rightview/page/elem/SelectColumnsAnalysisElem.h"
 #include "ui/common/image/QStaticImage.h"
 
 class PerfAnalysisPage : public QTabPage<PerfAnalysisPage>
@@ -93,6 +94,10 @@ private:
 	// Covering Indexes
 	CStatic coveringIndexLabel;
 	std::vector<WhereOrderClauseAnalysisElem *> coveringIndexElemPtrs;
+
+	// select columns analysis
+	CStatic selectColumnsAnalysisLabel;
+	SelectColumnsAnalysisElem * selectColumnsAnalysisElem = nullptr;
 	
 	PerfAnalysisSupplier supplier;
 	PerfAnalysisPageAdapter * adapter = nullptr;
@@ -118,12 +123,16 @@ private:
 	void createOrShowOrderAnalysisElems(CRect &clientRect);
 	void createOrShowOrderAnalysisItemsForTable(CRect &clientRect);
 	void createOrShowCoveringIndexesElems(CRect &clientRect);
+	
 	void createOrShowCoveringIndexItemsForTable(CRect &clientRect);
-	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);	
-	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
-	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void createOrShowTableJoinAnalysisElems(CRect &clientRect);
 	void createOrShowTableJoinAnalysisElem(TableJoinAnalysisElem & win, CRect & rect, CRect & clientRect);
+	void createOrShowClauseAnalysisElem(WhereOrderClauseAnalysisElem & win, CRect & rect, CRect & clientRect);	
+	void createOrShowSelectColumnsAnalysisElems(CRect &clientRect);
+	void createOrShowSelectColumnsAnalysisElem(SelectColumnsAnalysisElem & win, CRect & rect, CRect & clientRect);	
+	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
+	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
+	
 
 	void clearExpQueryPlanPtrs();
 	void clearWhereAnalysisElemPtrs();	
@@ -131,7 +140,7 @@ private:
 	void clearCoveringIndexElemPtrs();
 
 	virtual void loadWindow();
-	void laodOrigSqlEditor();
+	void loadOrigSqlEditor();
 	
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);

@@ -20,9 +20,12 @@
 #include "stdafx.h"
 #include "LeftNavigationView.h"
 #include "common/Config.h"
+#include "common/AppContext.h"
 #include "core/common/Lang.h"
-#include <utils/Log.h>
-#include <common/AppContext.h>
+#include "utils/Log.h"
+#include "utils/SqlUtil.h"
+#include "core/common/exception/QSqlExecuteException.h"
+#include "ui/common/message/QPopAnimate.h"
 
 #define NAVIGATION_TOPBAR_HEIGHT 30
 
@@ -51,7 +54,7 @@ void LeftNavigationView::createOrShowNavigationTreeView(QTreeViewCtrl & win, CRe
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE  | WS_CLIPSIBLINGS | TVS_FULLROWSELECT 
 			| TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASBUTTONS | TVS_INFOTIP , WS_EX_CLIENTEDGE, Config::ANALYSIS_NAVIGATION_TREEVIEW_ID);
-			//| TVS_LINESATROOT | TVS_HASBUTTONS , WS_EX_CLIENTEDGE, Config::DATABASE_TREEVIEW_ID);
+		
 		// create a singleton adapter pointer
 		adapter = new LeftNaigationViewAdapter(m_hWnd, &win);
 		
@@ -77,6 +80,8 @@ void LeftNavigationView::loadWindow()
 
 int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
 	titleFont = FTB(L"panel-list-header-size", true);
@@ -85,6 +90,8 @@ int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void LeftNavigationView::OnDestroy()
 {
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	if (!titleFont) ::DeleteObject(titleFont);
@@ -154,8 +161,38 @@ LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BO
 
 	if (nImage == 4) { // 4 - sql log
 		AppContext::getInstance()->dispatch(Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	} else if (nImage == 5) { // 5 - perf analysis report
+		uint64_t sqlLogId = static_cast<uint64_t>(treeItem.GetData());
+		try {
+			auto & sqlLog = sqlLogService->getSqlLog(sqlLogId);
+			if (!sqlLog.id) {
+				return 0;
+			}
+			AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SQL_ID, WPARAM(sqlLog.userDbId), LPARAM(sqlLogId));
+		} catch (QSqlExecuteException & ex) {
+			QPopAnimate::report(ex);
+			return 0;
+		}
 	}
 	
+	return 0;
+}
+
+/**
+ * Handle Config::MSG_ANALYSIS_SQL_ID message from SqlLogPage
+ * 
+ * @param uMsg
+ * @param wParam - userDbId
+ * @param lParam - sqlLogId
+ * @return 
+ */
+LRESULT LeftNavigationView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
+	
+	adapter->addPerfAnalysisReport(userDbId, sqlLogId);
+
 	return 0;
 }
 

@@ -232,6 +232,16 @@ typedef struct {
 } ByteCodeResult;
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 
+// Select column for select sql statement
+typedef struct {
+	int regNo = 0; // register no
+	std::wstring fullName;
+	std::wstring name;
+	std::wstring alias;
+	std::wstring tblName;
+	std::wstring tblAlias;	
+} SelectColumn;
+typedef std::vector<SelectColumn> SelectColumns;
 
 typedef struct {
 	int tblNo; // OpenRead/OpenWrite p1

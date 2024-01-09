@@ -438,6 +438,12 @@ LRESULT ResultTableDataPage::OnListViewSubItemTextChange(UINT uMsg, WPARAM wPara
 	return 0;
 }
 
+LRESULT ResultTableDataPage::OnListViewItemCheckBoxChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	enableDeleteButton();
+	return 0;
+}
+
 LRESULT ResultTableDataPage::OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	return supplier->getIsDirty() ? 0 : 1;

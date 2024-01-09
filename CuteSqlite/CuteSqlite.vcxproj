@@ -280,6 +280,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\FirstPage.cpp" />
@@ -431,6 +432,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\WhereOrderClauseAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\FirstPage.h" />

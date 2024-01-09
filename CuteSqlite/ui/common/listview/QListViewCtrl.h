@@ -58,6 +58,7 @@ public:
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_SIZE(OnSize)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		COMMAND_HANDLER_EX(Config::QLISTVIEWCTRL_SUBITEM_EDIT_ID, EN_KILLFOCUS, OnSubItemEditKillFocus)
@@ -126,6 +127,8 @@ public:
 	int CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct);
 	void DeleteItem(LPDELETEITEMSTRUCT lpDeleteItemStruct);
 	BOOL SelectItem(int nIndex);
+	BOOL UnSelectItem(int nIndex);
+	bool GetIsChecked(int nIndex);
 private:
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF borderColor = RGB(220, 220, 220);
@@ -190,6 +193,7 @@ private:
 	bool pressedUpToMoveEditor();
 	bool pressedDownToMoveEditor();
 
+	LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnSubItemEditKillFocus(UINT uNotifyCode, int nID, HWND hwnd);

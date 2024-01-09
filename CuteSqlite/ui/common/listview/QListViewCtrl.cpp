@@ -663,6 +663,46 @@ bool QListViewCtrl::pressedDownToMoveEditor()
 	return true;
 }
 
+LRESULT QListViewCtrl::OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	if(!hasCheckBox){
+		bHandled=FALSE;
+		return 1;
+	}
+	
+	POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+	UINT uflag=0;
+	int nItem = HitTest(pt, &uflag);
+	if (nItem != -1 && (uflag & LVHT_ONITEM ))
+	{
+		CRect rcItem;
+		int columnWidth = GetColumnWidth(0);
+		GetSubItemRect(nItem, 0, LVIR_SELECTBOUNDS, rcItem);
+		rcItem.right = rcItem.left + columnWidth;
+		if (PtInRect(rcItem,pt)){
+			//BOOL bCheckState = ListView_GetCheckState(m_hWnd, nItem) ;
+			//ListView_SetCheckState( m_hWnd, nItem, !bCheckState );
+			BOOL bCheckState = GetIsChecked(nItem);
+
+			if (!bCheckState) {
+				SelectItem(nItem);
+			} else {
+				UnSelectItem(nItem);
+			}
+			InvalidateRect(rcItem);
+			changeAllItemsCheckState();
+			::SendMessage(GetParent(),Config::MSG_QLISTVIEW_ITEM_CHECKBOX_CHANGE_ID, NULL, NULL);
+		} else {
+			bHandled=FALSE;
+			return 1;
+		}
+	} else {
+		bHandled=FALSE;
+		return 1;
+	}
+	return 0;
+}
+
 LRESULT QListViewCtrl::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {	 
 	changeSubItemText();	
@@ -1712,6 +1752,66 @@ BOOL QListViewCtrl::SelectItem(int nIndex)
 {
 	if(nIndex > -1)
 		SetCheckState(nIndex,TRUE);
-	return CListViewCtrl::SelectItem(nIndex);
+	
+	BOOL bRet = FALSE;
+	if(nIndex != -1)
+	{
+		bRet = SetItemState(nIndex, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+		if(bRet) {
+			SetSelectionMark(nIndex);
+			bRet = EnsureVisible(nIndex, FALSE);
+		}
+	} else {  // no item specified, just de-select	
+		bRet = SetItemState(-1, 0, LVIS_SELECTED);
+	}
+
+	return bRet;
 }
 
+/**
+ * de-select specified item
+ * 
+ * @param nIndex - if equal -1 ,then all item is de-select
+ * @return 
+ */
+BOOL QListViewCtrl::UnSelectItem(int nIndex)
+{
+	if(nIndex > -1)
+		SetCheckState(nIndex,FALSE);
+	
+	BOOL bRet = FALSE;
+	if(nIndex != -1) {
+		bRet = SetItemState(nIndex, 0 , LVIS_SELECTED );
+		if(bRet) {
+			SetSelectionMark(nIndex);
+			bRet = EnsureVisible(nIndex, FALSE);
+		}
+	} else {   // no item specified, just de-select
+		bRet = SetItemState(-1, 0, LVIS_SELECTED);
+	}
+
+	return bRet;
+}
+
+/**
+ * if the row of index=iItem is selected.
+ * 
+ * @param iItem the row index
+ * @return 
+ */
+bool QListViewCtrl::GetIsChecked(int nIndex)
+{
+	if (GetSelectedCount() == 0) {
+		return false;
+	}
+	int nSelItem = GetNextItem(-1, LVNI_ALL | LVNI_SELECTED); // 向下搜索选中的项 -1表示先找出第一个
+	
+	while (nSelItem != -1) {
+		if (nSelItem == nIndex) {
+			return true;
+		}
+		nSelItem = GetNextItem(nSelItem, LVNI_ALL | LVNI_SELECTED); // 继续往下搜索选中项
+	}
+
+	return false;
+}

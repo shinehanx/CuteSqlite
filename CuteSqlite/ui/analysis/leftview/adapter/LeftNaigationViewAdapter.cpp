@@ -19,8 +19,12 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "LeftNaigationViewAdapter.h"
-#include "utils/ResourceUtil.h"
 #include "core/common/Lang.h"
+#include "utils/ResourceUtil.h"
+#include "utils/Log.h"
+#include "utils/SqlUtil.h"
+#include "core/common/exception/QSqlExecuteException.h"
+#include "ui/common/message/QPopAnimate.h"
 
 LeftNaigationViewAdapter::LeftNaigationViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
@@ -65,7 +69,7 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(dbParamsIcon); // 2- database params 
 	imageList.AddIcon(folderIcon); // 3  - folder	
 	imageList.AddIcon(sqlLogIcon); // 4- sql log
-	imageList.AddIcon(analysisReportIcon); // 5- analysis report
+	imageList.AddIcon(analysisReportIcon); // 5- perf analysis report
 	
 	
 }
@@ -73,19 +77,63 @@ void LeftNaigationViewAdapter::createImageList()
 void LeftNaigationViewAdapter::loadTreeView()
 {
 	dataView->DeleteAllItems();
-	HTREEITEM hPerfAnalysisItem = dataView->InsertItem(S(L"perf-analysis").c_str(), 0, 0, NULL, TVI_LAST);
-	HTREEITEM hStoreAnalysisItem = dataView->InsertItem(S(L"store-analysis").c_str(), 1, 1, NULL, TVI_LAST);
-	HTREEITEM hDbParamsItem = dataView->InsertItem(S(L"db-params").c_str(), 2, 2, NULL, TVI_LAST);
+	hPerfAnalysisItem = dataView->InsertItem(S(L"perf-analysis").c_str(), 0, 0, NULL, TVI_LAST);
+	hStoreAnalysisItem = dataView->InsertItem(S(L"store-analysis").c_str(), 1, 1, NULL, TVI_LAST);
+	hDbParamsItem = dataView->InsertItem(S(L"db-params").c_str(), 2, 2, NULL, TVI_LAST);
 
 	// Performance Analysis
-	HTREEITEM hSqlLogItem = dataView->InsertItem(S(L"sql-log").c_str(), 4, 4, hPerfAnalysisItem, TVI_LAST);
-	HTREEITEM hAnalysisReportItem = dataView->InsertItem(S(L"perf-analysis-reports").c_str(), 3, 3, hPerfAnalysisItem, TVI_LAST);
-	HTREEITEM hReportItem = dataView->InsertItem(L"report-1", 5, 5, hAnalysisReportItem, TVI_LAST);
-
-	// Store Analysis
+	hSqlLogItem = dataView->InsertItem(S(L"sql-log").c_str(), 4, 4, hPerfAnalysisItem, TVI_LAST);
+	hPerfReportsFolderItem = dataView->InsertItem(S(L"perf-analysis-reports").c_str(), 3, 3, hPerfAnalysisItem, TVI_LAST);
 	
+	// Store Analysis	
 	dataView->Expand(hPerfAnalysisItem);
-	dataView->Expand(hAnalysisReportItem);
+	dataView->Expand(hPerfReportsFolderItem);
+
+}
+
+void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId)
+{
+	if (!sqlLogId) {
+		Q_ERROR(L"analysis failed, sqlLogId is empty");
+		return ;
+	}
+	SqlLog sqlLog;
+	try {
+		sqlLog = sqlLogService->getSqlLog(sqlLogId);
+		if (sqlLog.sql.empty()) {
+			Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
+			return ;
+		}
+	} catch (QSqlExecuteException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+	
+
+	if (!SqlUtil::isSelectSql(sqlLog.sql)) {
+		return ;
+	}
+
+	std::wstring title = S(L"sql-perf-report-prefix");
+	title.append(std::to_wstring(sqlLogId));
+
+	CTreeItem childItem = hPerfReportsFolderItem.GetChild();
+	bool isFound = false;
+	while (!childItem.IsNull()) {
+		uint64_t itemData = static_cast<uint64_t>(childItem.GetData());
+		if (itemData == sqlLogId) {
+			isFound = true;
+			break;
+		}
+		childItem = childItem.GetNextSibling();
+	}
+	if (isFound) {
+		childItem.Select();
+		return;
+	}
+	CTreeItem reportTreeItem = dataView->InsertItem(title.c_str(), 5, 5, hPerfReportsFolderItem, TVI_LAST);
+	reportTreeItem.SetData(sqlLogId);
+	reportTreeItem.Select();
 }
 
 

@@ -65,6 +65,8 @@ public:
 	void setText(const std::wstring & text);
 	void addText(const std::wstring & text);
 	void clearText();
+	void setReadOnly(bool readOnly);
+	bool getReadOnly();
 
 	// SCI_AUTOSHOW
 	void autoShow(const std::vector<std::wstring> & tags);

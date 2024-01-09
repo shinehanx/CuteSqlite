@@ -450,6 +450,17 @@ void QSqlEdit::clearText()
 	SendMessage(SCI_CLEARALL, NULL, NULL);
 }
 
+void QSqlEdit::setReadOnly(bool readOnly)
+{
+	SendMessage(SCI_SETREADONLY, WPARAM(readOnly), NULL);
+}
+
+bool QSqlEdit::getReadOnly()
+{
+	bool readOnly = static_cast<bool>(SendMessage(SCI_GETREADONLY, NULL, NULL));
+	return readOnly;
+}
+
 void QSqlEdit::autoShow(const std::vector<std::wstring> & tags)
 {
 	if (tags.empty()) {

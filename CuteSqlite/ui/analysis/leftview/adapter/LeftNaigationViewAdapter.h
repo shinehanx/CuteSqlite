@@ -20,6 +20,7 @@
 #pragma once
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
+#include "core/service/sqllog/SqlLogService.h"
 
 class LeftNaigationViewAdapter : public QAdapter<LeftNaigationViewAdapter, CTreeViewCtrlEx>
 {
@@ -27,6 +28,7 @@ public:
 	LeftNaigationViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view);
 	~LeftNaigationViewAdapter();
 	void loadTreeView();
+	void addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId);
 private:
 	HICON perfAnalysisIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
@@ -34,8 +36,17 @@ private:
 	HICON folderIcon = nullptr;
 	HICON sqlLogIcon = nullptr;
 	HICON analysisReportIcon = nullptr;
+
+	CTreeItem hPerfAnalysisItem;
+	CTreeItem hStoreAnalysisItem;
+	CTreeItem hDbParamsItem;
+
+	CTreeItem hSqlLogItem;
+	CTreeItem hPerfReportsFolderItem;
 	
 	CImageList imageList;
 
 	void createImageList();
+
+	SqlLogService * sqlLogService = SqlLogService::getInstance();
 };

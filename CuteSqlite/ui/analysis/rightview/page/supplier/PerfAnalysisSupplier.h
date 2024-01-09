@@ -43,12 +43,17 @@ public:
 
 	const ExplainQueryPlans & getExplainQueryPlans()  { return explainQueryPlans; }
 	void setExplainQueryPlans(const ExplainQueryPlans & val) { explainQueryPlans = val; }
+
+	const SelectColumns & getSelectColumns() { return selectColumns; }
+	void setSelectColumns(SelectColumns & val) { selectColumns = val; }
 private:
 	uint64_t sqlLogId = 0;
 	SqlLog sqlLog;
-	ByteCodeResults byteCodeResults; 
 	ExplainQueryPlans explainQueryPlans;
-
+	ByteCodeResults byteCodeResults; 
+	SelectColumns selectColumns;
+	
 	DataList explainDataList;
+	
 };
 

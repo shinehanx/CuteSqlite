@@ -34,6 +34,7 @@ public:
 	DataList explainSql(uint64_t userDbId, const std::wstring & sql);
 	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring & sql);
 	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
+	SelectColumns explainReadByteCodeToSelectColumns(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
 private:
 	
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
@@ -43,6 +44,7 @@ private:
 	void doConvertByteCodeForWhereColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 	void doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 	void doMergeColumnsToResults(uint64_t userDbId, ByteCodeResults & results);
+	void doConvertByteCodeForSelectColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, SelectColumns & selectColumns);
 
 	bool parseOrderOrIndexColumnFromLastAndPrev(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
 	void parseOrderOrIndexColumnFromIdxInsertAndSort(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults &results);
@@ -76,6 +78,8 @@ private:
 	std::wstring getPrimaryKeyColumn(uint64_t userDbId, const std::wstring & tblName, Columns & columns, const std::wstring & schema = std::wstring());
 
 	void parseWhereOrIndexNullColumnFromSql(uint64_t userDbId, const RowItem & rowItem, ByteCodeResults & results, const std::wstring & sql);
+
+	void parseSelectColumnsPrevFromResultRow(uint64_t userDbId, DataList::const_iterator resultRowIter, const DataList & byteCodeList, SelectColumns & selectColumns);
 	
 	UserTableStrings getUserTableStrings(uint64_t userDbId, const std::wstring & schema = std::wstring());
 	std::vector<std::tuple<std::wstring, std::wstring, std::wstring>> parseWhereNullColumnsFromSelectSqlUpWords(

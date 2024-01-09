@@ -31,6 +31,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_SUBITEM_TEXT_CHANGE_ID, OnListViewSubItemTextChange)
+		MESSAGE_HANDLER(Config::MSG_QLISTVIEW_ITEM_CHECKBOX_CHANGE_ID, OnListViewItemCheckBoxChange)
 		MESSAGE_HANDLER(Config::MSG_DATA_HAS_CHANGED_ID, OnHandleDataHasChanged)
 		NOTIFY_HANDLER(Config::DATABASE_QUERY_LISTVIEW_ID, NM_DBLCLK, OnDbClickListView)
 		COMMAND_ID_HANDLER_EX(Config::LISTVIEW_NEW_ROW_BUTTON_ID, OnClickNewRowButton)
@@ -89,6 +90,7 @@ protected:
 
 	LRESULT OnDbClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnListViewSubItemTextChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnListViewItemCheckBoxChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnHandleDataHasChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
 	LRESULT OnClickNewRowButton(UINT uNotifyCode, int nID, HWND wndCtl);

@@ -74,6 +74,16 @@ void QHelpEdit::clearText()
 	editor.clearText();
 }
 
+void QHelpEdit::setReadOnly(bool readOnly)
+{
+	editor.setReadOnly(readOnly);
+}
+
+bool QHelpEdit::getReadOnly()
+{
+	return editor.getReadOnly();
+}
+
 void QHelpEdit::createOrShowUI()
 {
 	QHelpPage::createOrShowUI();

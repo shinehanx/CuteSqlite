@@ -54,6 +54,15 @@ ByteCodeResults SelectSqlAnalysisService::explainReadByteCodeToResults(uint64_t 
 	return results;
 }
 
+
+SelectColumns SelectSqlAnalysisService::explainReadByteCodeToSelectColumns(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql)
+{
+	SelectColumns results;
+	// For selectColumns
+	doConvertByteCodeForSelectColumns(userDbId, byteCodeList, sql, results);
+	return results;
+}
+
 /**
  * Parse the explain byteCodeList to results.
  * includes : 
@@ -137,6 +146,22 @@ void SelectSqlAnalysisService::doMergeColumnsToResults(uint64_t userDbId, ByteCo
 			item.coveringIndexColumns = getIndexColumnsByCoveringIndexName(userDbId, item.no, item.coveringIndexName);
 		}		
 
+	}
+}
+
+
+void SelectSqlAnalysisService::doConvertByteCodeForSelectColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, SelectColumns & selectColumns)
+{
+	for (auto iter = byteCodeList.begin(); iter != byteCodeList.end(); iter++) {
+		auto & rowItem = *iter;
+		auto & opcode = rowItem.at(EXP_OPCODE);
+		if (opcode == L"ResultRow") {
+			parseSelectColumnsPrevFromResultRow(userDbId, iter, byteCodeList, selectColumns);
+			std::sort(selectColumns.begin(), selectColumns.end(), [](auto & col1, auto & col2) {
+				return col1.regNo < col2.regNo;
+			});
+			break;
+		}		
 	}
 }
 
@@ -1586,6 +1611,76 @@ void SelectSqlAnalysisService::parseWhereOrIndexNullColumnFromSql(uint64_t userD
 			continue;
 		}
 		whereColumns.push_back(*findIter2);
+	}
+}
+
+
+void SelectSqlAnalysisService::parseSelectColumnsPrevFromResultRow(uint64_t userDbId, DataList::const_iterator resultRowIter, const DataList & byteCodeList, SelectColumns & selectColumns)
+{
+	auto & resultRowItem = *resultRowIter;
+	int registerBegin = std::stoi(resultRowItem.at(EXP_P1));
+	int registerLen = std::stoi(resultRowItem.at(EXP_P2));
+	int registerEnd = registerBegin + registerLen - 1;
+	if (registerEnd < registerBegin) {
+		return;
+	}
+
+	DataList::const_iterator iter = std::prev(resultRowIter);
+	while (iter != byteCodeList.end()) {
+		auto & rowItem = *iter;
+		std::wstring opcode = rowItem.at(EXP_OPCODE);
+		if (opcode != L"Column" && opcode != L"Rowid" && opcode != L"IdxRowid") {
+			break;
+		}
+		const std::wstring & comment = rowItem.at(EXP_COMMENT); //e.g., "r[9]=analysis_hair_inspection.inspection"
+		if (comment.empty()) {
+			iter = std::prev(iter);
+			continue;
+		}
+		if (opcode == L"Column") {
+			int registerIdx = std::stoi(rowItem.at(EXP_P3)); // P3 - register index
+			if (registerIdx < registerBegin || registerIdx > registerEnd) {
+				iter = std::prev(iter);
+				continue;
+			}
+			auto strVec = StringUtil::split(comment, L"=");
+			if (strVec.size() < 2) {
+				iter = std::prev(iter);
+				continue;
+			}
+			SelectColumn selColumn;
+			selColumn.regNo = registerIdx;
+			selColumn.fullName = strVec.at(1); // strVec.at(1) - e.g., "analysis_hair_inspection.inspection"
+			auto findIter = std::find_if(selectColumns.begin(), selectColumns.end(), [&selColumn](auto & item) {
+				return selColumn.fullName == item.fullName;
+			});
+			if (findIter == selectColumns.end()) {
+				selectColumns.push_back(selColumn); 
+			}
+			
+		} else if (opcode == L"Rowid" || opcode == L"IdxRowid") {
+			int registerIdx = std::stoi(rowItem.at(EXP_P2)); // P2 - register index
+			if (registerIdx < registerBegin || registerIdx > registerEnd) {
+				iter = std::prev(iter);
+				continue;
+			}
+			auto strVec = StringUtil::split(comment, L"=");
+			if (strVec.size() < 2) {
+				iter = std::prev(iter);
+				continue;
+			}
+			SelectColumn selColumn;
+			selColumn.regNo = registerIdx;
+			selColumn.fullName = strVec.at(1); // strVec.at(1) - e.g., "analysis_hair_inspection.id"
+
+			auto findIter = std::find_if(selectColumns.begin(), selectColumns.end(), [&selColumn](auto & item) {
+				return selColumn.fullName == item.fullName;
+			});
+			if (findIter == selectColumns.end()) {
+				selectColumns.push_back(selColumn); 
+			}
+		}
+		iter = std::prev(iter);
 	}
 }
 

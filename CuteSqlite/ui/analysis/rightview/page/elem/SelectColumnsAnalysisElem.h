@@ -11,59 +11,64 @@
 
  * limitations under the License.
 
- * @file   LeftNavigationView.h
- * @brief  Performance analysis 
+ * @file   WhereAnalysisTableIdxElem.h
+ * @brief  table index elem UI used for where clause or order by clause analysis in PerAnalysisPage
  * 
  * @author Xuehan Qin
- * @date   2023-12-01
+ * @date   2023-12-08
  *********************************************************************/
 #pragma once
 #include <atlwin.h>
 #include <atlcrack.h>
 #include <atltypes.h>
-#include "ui/common/treeview/QTreeViewCtrl.h"
-#include "ui/analysis/leftview/adapter/LeftNaigationViewAdapter.h"
 #include "common/Config.h"
+#include "core/entity/Entity.h"
+#include "core/service/system/SettingService.h"
 
-class LeftNavigationView : public CWindowImpl<LeftNavigationView>
+#define MAX_ADVICE_COLUMNS_COUNT 20
+
+class SelectColumnsAnalysisElem : public CWindowImpl<SelectColumnsAnalysisElem>
 {
 public:
-	BOOL PreTranslateMessage(MSG* pMsg);
-
-	DECLARE_WND_CLASS(NULL)
-
-	BEGIN_MSG_MAP_EX(LeftNavigationView)
+	BEGIN_MSG_MAP_EX(SelectColumnsAnalysisElem)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
-		NOTIFY_HANDLER(Config::ANALYSIS_NAVIGATION_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
-		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
+		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
+		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
+	SelectColumnsAnalysisElem(const SelectColumns & _selectColumns);
+	const SelectColumns & getSelectColumns() const { return selectColumns; }
+	const Columns getSelectedColumns();
 private:
 	bool isNeedReload = true;
+	const SelectColumns & selectColumns;
+
+	//COLORREF bkgColor = RGB(238, 238, 238);	
 	COLORREF bkgColor = RGB(255, 255, 255);
-	COLORREF topbarColor = RGB(17, 24, 39);
-	COLORREF titleColor = RGB(255, 255, 255);
+	COLORREF textColor = RGB(64, 64, 64);
+	COLORREF hintColor = RGB(71, 109, 208);
+	
+	COLORREF btnBkgColor = RGB(210, 210, 210);
 	CBrush bkgBrush;
-	CBrush topbarBrush;
-	HFONT titleFont = nullptr;
+	HFONT textFont = nullptr;
 
-	QTreeViewCtrl navigationTreeView;
+	CStatic useColsLabel;
+	std::vector<CButton *> selectColumnCheckBoxPtrs;
+	CStatic useColsCountLabel;
+	CStatic adviceLabel;
 
-	LeftNaigationViewAdapter * adapter = nullptr;
-	SqlLogService * sqlLogService = SqlLogService::getInstance();
-
-	CRect getTopRect(CRect & clientRect);
-	CRect getTreeRect(CRect & clientRect);
-
+	SettingService * settingService = SettingService::getInstance();
 
 	void createOrShowUI();
-	void createOrShowNavigationTreeView(QTreeViewCtrl & win, CRect & clientRect);
-
-	void loadWindow();
+	void createOrShowLabels(CRect & clientRect);
+	void createOrShowCheckBoxes(CRect & clientRect);
+	void createOrShowColumnCountElems(CRect & clientRect);
+	
+	void clearSelectColumnCheckBoxPtrs();
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	void OnDestroy();
@@ -71,7 +76,6 @@ private:
 	void OnShowWindow(BOOL bShow, UINT nStatus);
 	void OnPaint(CDCHandle dc);
 	BOOL OnEraseBkgnd(CDCHandle dc);
-	// double click treeview item .
-	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
-	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
+	
 };

@@ -163,6 +163,7 @@ void RightAnalysisView::loadTabViewPages()
 int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -173,6 +174,7 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void RightAnalysisView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -302,7 +304,7 @@ LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM 
 	PerfAnalysisPage * newPage = new PerfAnalysisPage(sqlLogId);
 	createOrShowPerfAnalysisPage(*newPage, clientRect, true);
 	perfAnalysisPagePtrs.push_back(newPage);
-	std::wstring title = L"perf-report-";
+	std::wstring title = S(L"sql-perf-report-prefix");
 	title.append(std::to_wstring(sqlLogId));
 	tabView.AddPage(newPage->m_hWnd, title.c_str(), 2, newPage->m_hWnd);
 	

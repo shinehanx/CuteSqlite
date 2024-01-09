@@ -52,6 +52,8 @@ public:
 	void focus();
 	void replaceSelText(std::wstring & text);
 	void clearText();
+	void setReadOnly(bool readOnly);
+	bool getReadOnly();
 protected:
 	QSqlEdit editor;
 	std::wstring content;

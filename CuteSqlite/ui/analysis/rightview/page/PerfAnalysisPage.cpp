@@ -58,7 +58,8 @@ void PerfAnalysisPage::createOrShowUI()
 	createOrShowWhereAnalysisElems(clientRect);
 	createOrShowOrderAnalysisElems(clientRect);
 	createOrShowCoveringIndexesElems(clientRect);
-	createOrShowTableJoinAnalysisElems(clientRect);
+	createOrShowSelectColumnsAnalysisElems(clientRect);
+	//createOrShowTableJoinAnalysisElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -88,7 +89,9 @@ void PerfAnalysisPage::createOrShowOrigSqlEditor(CRect &clientRect)
 	CRect rcTop = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
 	int x = 20, y = rcTop.bottom + 30, w = 200, h = 24;
 	CRect rect(x, y, x + w, y + h);
-	QWinCreater::createOrShowLabel(m_hWnd, origSqlLabel, S(L"original-sql").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	std::wstring text = L"#";
+	text.append(std::to_wstring(supplier.getSqlLogId())).append(L" - ").append(S(L"original-sql")).append(L":");
+	QWinCreater::createOrShowLabel(m_hWnd, origSqlLabel, text , rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	rect.OffsetRect(0, h + 5);
 	rect.right = rect.left + clientRect.Width() - 40;
@@ -331,7 +334,6 @@ void PerfAnalysisPage::createOrShowCoveringIndexesElems(CRect &clientRect)
 	createOrShowCoveringIndexItemsForTable(clientRect);
 }
 
-
 void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(coveringIndexLabel.m_hWnd);
@@ -364,6 +366,58 @@ void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
 		nHeightSum = rect.bottom;
 
 		rect.OffsetRect(0, h + 10);
+	}
+}
+
+void PerfAnalysisPage::createOrShowSelectColumnsAnalysisElems(CRect &clientRect)
+{
+	const auto & selectColumns = supplier.getSelectColumns();
+	if (selectColumns.empty()) {
+		return;
+	}
+
+	CRect rectLast;
+	if (tableJoinAnalysisElem && tableJoinAnalysisElem->IsWindow()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(tableJoinAnalysisElem->m_hWnd);
+	} else if (!coveringIndexElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(coveringIndexElemPtrs.back()->m_hWnd);
+	} else if (!orderAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(orderAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!whereAnalysisElemPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(whereAnalysisElemPtrs.back()->m_hWnd);
+	} else if (!expQueryPlanPtrs.empty()) {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(expQueryPlanPtrs.back()->m_hWnd);
+	} else {
+		rectLast = GdiPlusUtil::GetWindowRelativeRect(origSqlEditor.m_hWnd);
+	}
+
+	int x = 20, y = rectLast.bottom + 20, w = clientRect.Width() - 40, h = 24;
+	CRect rect(x, y, x + w, y + h);
+	QWinCreater::createOrShowLabel(m_hWnd, selectColumnsAnalysisLabel, S(L"select-columns-analysis").append(L":"), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+
+	rect.OffsetRect(0, h + 5);
+	rect.bottom = rect.top + 370;
+	if (!selectColumnsAnalysisElem) {
+		selectColumnsAnalysisElem = new SelectColumnsAnalysisElem(selectColumns);
+	}
+	
+	SelectColumnsAnalysisElem & win = *selectColumnsAnalysisElem;
+	createOrShowSelectColumnsAnalysisElem(win, rect, clientRect);
+	nHeightSum = rect.bottom;
+	return;
+}
+
+
+void PerfAnalysisPage::createOrShowSelectColumnsAnalysisElem(SelectColumnsAnalysisElem & win, CRect & rect, CRect & clientRect)
+{
+	
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+		win.Create(m_hWnd, rect);
+		return;
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
 	}
 }
 
@@ -466,8 +520,7 @@ void PerfAnalysisPage::createOrShowTableJoinAnalysisElem(TableJoinAnalysisElem &
 		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 		win.Create(m_hWnd, rect);
 		return;
-	}
-	else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
 		win.ShowWindow(SW_SHOW);
 	}
@@ -535,12 +588,13 @@ void PerfAnalysisPage::loadWindow()
 		return;
 	}
 	isNeedReload = false;
-	laodOrigSqlEditor();
+	loadOrigSqlEditor();
 }
 
-void PerfAnalysisPage::laodOrigSqlEditor()
+void PerfAnalysisPage::loadOrigSqlEditor()
 {
 	origSqlEditor.addText(supplier.getSqlLog().sql);
+	origSqlEditor.setReadOnly(true);
 }
 
 int PerfAnalysisPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -591,6 +645,13 @@ int PerfAnalysisPage::OnDestroy()
 	clearWhereAnalysisElemPtrs();
 	if (coveringIndexLabel.IsWindow()) coveringIndexLabel.DestroyWindow();
 	clearCoveringIndexElemPtrs();
+
+	if (selectColumnsAnalysisLabel.IsWindow()) selectColumnsAnalysisLabel.DestroyWindow();
+	if (selectColumnsAnalysisElem && selectColumnsAnalysisElem->IsWindow()) {
+		selectColumnsAnalysisElem->DestroyWindow();
+		delete selectColumnsAnalysisElem;
+		selectColumnsAnalysisElem = nullptr;
+	}
 
 	if (adapter) delete adapter;	
 	return ret;
@@ -743,6 +804,7 @@ HBRUSH PerfAnalysisPage::OnCtlStaticColor(HDC hdc, HWND hwnd)
 		|| (orderAnalysisLabel.IsWindow() && hwnd == orderAnalysisLabel.m_hWnd)
 		|| (coveringIndexLabel.IsWindow() && hwnd == coveringIndexLabel.m_hWnd)
 		|| (tableJoinAnalysisLabel.IsWindow() && hwnd == tableJoinAnalysisLabel.m_hWnd)
+		|| (selectColumnsAnalysisLabel.IsWindow() && hwnd == selectColumnsAnalysisLabel.m_hWnd)
 		) {
 		::SetTextColor(hdc, sectionColor); 
 		::SelectObject(hdc, sectionFont);

@@ -19,13 +19,13 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "SqlLogPage.h"
+#include "common/Config.h"
+#include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/QWinCreater.h"
-#include <utils/PerformUtil.h>
-#include "common/Config.h"
-#include <ui/common/message/QMessageBox.h>
-
+#include "utils/PerformUtil.h"
+#include "ui/common/message/QMessageBox.h"
 
 BOOL SqlLogPage::PreTranslateMessage(MSG* pMsg)
 {
@@ -283,9 +283,11 @@ LRESULT SqlLogPage::OnClickLastPageButton(UINT uNotifyCode, int nID, HWND hwnd)
 LRESULT SqlLogPage::OnClickAnalysisButton(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	// class chain : SqlLogPage(this)->QTabView->RightAnalysisView(Here)
-	HWND ppHwnd = GetParent().GetParent().m_hWnd; // RightAnalysisView
-	// wParam - userDbId, lParam = sql.c_str()
-	::PostMessage(ppHwnd, Config::MSG_ANALYSIS_SQL_ID, wParam, lParam);
+	// HWND ppHwnd = GetParent().GetParent().m_hWnd; // RightAnalysisView
+	//::PostMessage(ppHwnd, Config::MSG_ANALYSIS_SQL_ID, wParam, lParam);
+	// wParam - userDbId, lParam = sqlLogId
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SQL_ID, wParam, lParam);
+	
 	return 0;
 }
 
