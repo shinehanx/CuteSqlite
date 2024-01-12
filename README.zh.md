@@ -36,4 +36,4 @@ Release下载: [https://github.com/shinehanx/CuteSqlite/releases](https://github
 ![CuteSqlite Snapshot 6](https://img-blog.csdnimg.cn/84f044745ce240898a48c1736ce041ca.png#pic_center)
 
 **七、英文介绍:**
-[英文介绍](README.MD)
+[英文介绍](README.md)

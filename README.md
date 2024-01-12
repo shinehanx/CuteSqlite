@@ -81,5 +81,5 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 ![CuteSqlite Snapshot 6](https://img-blog.csdnimg.cn/84f044745ce240898a48c1736ce041ca.png#pic_center)
 
 **中文介绍:**
-[中文介绍](README.ZH.MD)
+[中文介绍](README.zh.md)
 ​
