@@ -54,6 +54,5 @@ private:
 	SelectColumns selectColumns;
 	
 	DataList explainDataList;
-	
 };
 

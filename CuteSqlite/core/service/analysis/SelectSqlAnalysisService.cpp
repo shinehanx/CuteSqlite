@@ -63,6 +63,30 @@ SelectColumns SelectSqlAnalysisService::explainReadByteCodeToSelectColumns(uint6
 	return results;
 }
 
+
+uint64_t SelectSqlAnalysisService::savePerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId)
+{
+	PerfAnalysisReport item;
+	item.userDbId = userDbId;
+	item.sqlLogId = sqlLogId;
+	item.createdAt = DateUtil::getCurrentDateTime();
+	return perfAnalysisReportRepository->create(item);
+}
+
+
+PerfAnalysisReport SelectSqlAnalysisService::getPerfAnalysisReport(uint64_t sqlLogId)
+{
+	PerfAnalysisReport item;
+
+	return perfAnalysisReportRepository->getBySqlLogId(sqlLogId);
+}
+
+
+PerfAnalysisReportList SelectSqlAnalysisService::getPerfAnalysisReportList()
+{
+	return perfAnalysisReportRepository->getAll();
+}
+
 /**
  * Parse the explain byteCodeList to results.
  * includes : 

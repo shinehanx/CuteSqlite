@@ -12,11 +12,13 @@
  * limitations under the License.
 
  * @file   RightAnalysisView.cpp
- * @Class Tree  RightAnalysisView
+  * @Class Tree  RightAnalysisView
  *                 |->QTabView(tabView)
  *                         |-> SqlLogPage
- *                               |-> SqlLogListBox
- *                                        |-> SqlLogListItem
+ *                         |      |-> SqlLogListBox
+ *                         |               |-> SqlLogListItem
+ *                         |-> PerfAnalysisPage
+ * 
  * 
  * 
  * @author Xuehan Qin
@@ -28,8 +30,9 @@
 #include "common/AppContext.h"
 #include "core/common/Lang.h"
 #include "utils/SqlUtil.h"
-#include <ui/common/message/QPopAnimate.h>
-#include <ui/common/QWinCreater.h>
+#include "ui/common/message/QPopAnimate.h"
+#include "ui/common/QWinCreater.h"
+#include "ui/analysis/rightview/dialog/AddSqlDialog.h"
 
 #define RIGHT_ANALYSIS_VIEW_TOPBAR_HEIGHT 30
 #define RIGHT_ANALYSIS_VIEW_BUTTON_WIDTH 16
@@ -51,11 +54,13 @@ void RightAnalysisView::createImageList()
 	firstIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tab\\first.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	sqlLogIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\sql-log.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	perfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	perfReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(firstIcon); // 0 - first
 	imageList.AddIcon(sqlLogIcon); // 1 - sql log
 	imageList.AddIcon(perfReportIcon); // 2 - perf report
+	imageList.AddIcon(perfReportDirtyIcon); // 3 - perf report not saved
 }
 
 CRect RightAnalysisView::getTopRect(CRect & clientRect)
@@ -81,6 +86,8 @@ void RightAnalysisView::createOrShowUI()
 	CRect clientRect;
 	GetClientRect(clientRect);
 	CRect tabRect = getTabRect(clientRect);
+
+	createOrShowToolButtons(clientRect);
 
 	createOrShowTabView(tabView, clientRect);	
 	createOrShowFirstPage(firstPage, clientRect, !isInitedPages);
@@ -143,6 +150,72 @@ void RightAnalysisView::createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRec
 	}
 }
 
+
+void RightAnalysisView::createOrShowToolButtons(CRect & clientRect)
+{
+	createOrShowAnalysisButtons(clientRect);
+	createOrShowSaveButtons(clientRect);
+}
+
+
+void RightAnalysisView::createOrShowAnalysisButtons(CRect & clientRect)
+{
+	CRect topRect = getTopRect(clientRect);
+
+	int x = 10, y = 7, w = RIGHT_ANALYSIS_VIEW_BUTTON_WIDTH, h = RIGHT_ANALYSIS_VIEW_BUTTON_WIDTH;
+
+	// Exec sql buttons
+	CRect rect(x, y, x + w, y + h);
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	std::wstring normalImagePath, pressedImagePath;
+	if (!addSqlAnalysisButton.IsWindow()) {
+		normalImagePath = imgDir + L"analysis\\toolbar\\add-sql-analysis-button-normal.png";
+		pressedImagePath = imgDir + L"analysis\\toolbar\\add-sql-analysis-button-pressed.png";
+		addSqlAnalysisButton.SetIconPath(normalImagePath, pressedImagePath);
+		addSqlAnalysisButton.SetBkgColors(topbarColor, topbarHoverColor, topbarColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, addSqlAnalysisButton, Config::ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID, L"", rect, clientRect);
+	addSqlAnalysisButton.SetToolTip(S(L"add-sql-analysis"));
+
+	rect.OffsetRect(w + 5, 0);
+	if (!sqlLogButton.IsWindow()) {
+		normalImagePath = imgDir + L"analysis\\toolbar\\sql-log-button-normal.png";
+		pressedImagePath = imgDir + L"analysis\\toolbar\\sql-log-button-pressed.png";
+		sqlLogButton.SetIconPath(normalImagePath, pressedImagePath);
+		sqlLogButton.SetBkgColors(bkgColor, bkgColor, bkgColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, sqlLogButton, Config::ANALYSIS_SQL_LOG_BUTTON_ID, L"", rect, clientRect, BS_OWNERDRAW);
+	sqlLogButton.SetToolTip(S(L"open-sql-log"));
+}
+
+void RightAnalysisView::createOrShowSaveButtons(CRect & clientRect)
+{
+	CRect rect = GdiPlusUtil::GetWindowRelativeRect(sqlLogButton.m_hWnd);
+	int w = rect.Width();
+	std::wstring imgDir = ResourceUtil::getProductImagesDir();
+	std::wstring normalImagePath,pressedImagePath;
+
+	rect.OffsetRect(w + 40, 0); 
+	if (!saveButton.IsWindow()) {
+		normalImagePath = imgDir + L"analysis\\toolbar\\save-button-normal.png";
+		pressedImagePath = imgDir + L"analysis\\toolbar\\save-button-pressed.png";
+		saveButton.SetIconPath(normalImagePath, pressedImagePath);
+		saveButton.SetBkgColors(topbarColor ,topbarHoverColor, topbarColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, saveButton, Config::ANALYSIS_SAVE_BUTTON_ID, L"", rect, clientRect);
+	saveButton.SetToolTip(S(L"save-current"));
+
+	rect.OffsetRect(w + 10, 0); 
+	if (!saveAllButton.IsWindow()) {
+		normalImagePath = imgDir + L"analysis\\toolbar\\save-all-button-normal.png";
+		pressedImagePath = imgDir + L"analysis\\toolbar\\save-all-button-pressed.png";
+		saveAllButton.SetIconPath(normalImagePath, pressedImagePath);
+		saveAllButton.SetBkgColors(topbarColor ,topbarHoverColor, topbarColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, saveAllButton, Config::ANALYSIS_SAVE_ALL_BUTTON_ID, L"", rect, clientRect);
+	saveAllButton.SetToolTip(S(L"save-all"));
+}
+
 void RightAnalysisView::loadWindow()
 {
 	if (!isNeedReload) {
@@ -164,6 +237,8 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -175,12 +250,15 @@ void RightAnalysisView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
 	if (!firstIcon) ::DeleteObject(firstIcon);
 	if (!sqlLogIcon) ::DeleteObject(sqlLogIcon);
 	if (!perfReportIcon) ::DeleteObject(perfReportIcon);
+	if (!perfReportDirtyIcon) ::DeleteObject(perfReportDirtyIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	if (firstPage.IsWindow()) firstPage.DestroyWindow();
@@ -255,6 +333,7 @@ void RightAnalysisView::clearPerfAnalysisPagePtrs()
 	perfAnalysisPagePtrs.clear();
 }
 
+
 BOOL RightAnalysisView::OnEraseBkgnd(CDCHandle dc)
 {
 	return TRUE;
@@ -264,6 +343,7 @@ HBRUSH RightAnalysisView::OnCtlColorStatic(HDC hdc, HWND hwnd)
 {
 	return bkgBrush.m_hBrush;
 }
+
 
 LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -305,13 +385,102 @@ LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM 
 	createOrShowPerfAnalysisPage(*newPage, clientRect, true);
 	perfAnalysisPagePtrs.push_back(newPage);
 	std::wstring title = S(L"sql-perf-report-prefix");
-	title.append(std::to_wstring(sqlLogId));
-	tabView.AddPage(newPage->m_hWnd, title.c_str(), 2, newPage->m_hWnd);
+	title.append(std::to_wstring(sqlLogId)); 
+	int nImage = 3;
+	if (newPage->isSaved()) {
+		nImage = 2;
+	}
+	tabView.AddPage(newPage->m_hWnd, StringUtil::blkToTail(title).c_str(), nImage, newPage->m_hWnd);
 	
 	return 0;
 }
 
 LRESULT RightAnalysisView::OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	doShowSqlLogPage();
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	std::wstring sql;
+	addSqlToAnalysis(sql);
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	doShowSqlLogPage();
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	int activePage = tabView.GetActivePage();
+	HWND activePageHwnd = tabView.GetPageHWND(activePage);
+	for (auto ptr : perfAnalysisPagePtrs) {
+		if (ptr && ptr->IsWindow() && ptr->m_hWnd == activePageHwnd) {
+			ptr->save();
+			return 0;
+		}
+	}
+
+	
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	for (auto ptr : perfAnalysisPagePtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->save();
+		}
+	}
+	return 0;
+}
+
+LRESULT RightAnalysisView::OnHandleAddSqlToAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	std::wstring sql;
+	if (wParam) {
+		sql = *(std::wstring *)wParam;
+	}
+	addSqlToAnalysis(sql);
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	HWND hwnd = (HWND)wParam;
+	bool sqlLogId = static_cast<uint64_t>(lParam);
+	if (!hwnd || !sqlLogId) {
+		return 0;
+	}
+
+	int pageCount = tabView.GetPageCount();
+	for (int i = 0; i < pageCount; ++i) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		if (pageHwnd == hwnd) {
+			tabView.SetPageImage(i, 2);
+			break;
+		}
+	}
+	size_t n = perfAnalysisPagePtrs.size();
+	for (int i = 0; i < n; ++i) {
+		auto ptr = perfAnalysisPagePtrs.at(i);
+		if (ptr->m_hWnd == hwnd) {
+			uint64_t sqlLogId = ptr->getSqlLogId();
+		}
+	}
+	return 0;
+}
+
+void RightAnalysisView::doShowSqlLogPage()
 {
 	CRect clientRect;
 	GetClientRect(clientRect);
@@ -329,9 +498,17 @@ LRESULT RightAnalysisView::OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPAR
 		}
 	}
 	if (!found) {
-		tabView.AddPage(sqlLogPage.m_hWnd, S(L"sql-log").c_str(), 1, sqlLogPage.m_hWnd);
+		std::wstring title = StringUtil::blkToTail(S(L"sql-log"));
+		tabView.AddPage(sqlLogPage.m_hWnd, title.c_str(), 1, sqlLogPage.m_hWnd);
 	}
-	return 0;
 }
 
+void RightAnalysisView::addSqlToAnalysis(const std::wstring & sql)
+{
+	AddSqlDialog dialog(m_hWnd, sql);
+
+	if (dialog.DoModal(m_hWnd) == Config::QDIALOG_YES_BUTTON_ID) {
+	
+	}
+}
 

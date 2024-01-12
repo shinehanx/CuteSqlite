@@ -669,13 +669,13 @@ LRESULT RightWorkView::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 LRESULT RightWorkView::OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	for (auto ptr : queryPagePtrs) {
+	for (auto & ptr : queryPagePtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->save();
 		}
 	}
 
-	for (auto ptr : tablePagePtrs) {
+	for (auto & ptr : tablePagePtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->save();
 		}

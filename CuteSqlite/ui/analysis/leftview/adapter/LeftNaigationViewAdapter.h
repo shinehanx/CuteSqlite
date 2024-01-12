@@ -21,6 +21,7 @@
 #include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
 #include "core/service/sqllog/SqlLogService.h"
+#include "core/service/analysis/SelectSqlAnalysisService.h"
 
 class LeftNaigationViewAdapter : public QAdapter<LeftNaigationViewAdapter, CTreeViewCtrlEx>
 {
@@ -28,7 +29,8 @@ public:
 	LeftNaigationViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view);
 	~LeftNaigationViewAdapter();
 	void loadTreeView();
-	void addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId);
+	void addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId, bool isSaved = false);
+	void savePerfAnalysisReport(uint64_t sqlLogId);
 private:
 	HICON perfAnalysisIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
@@ -36,6 +38,7 @@ private:
 	HICON folderIcon = nullptr;
 	HICON sqlLogIcon = nullptr;
 	HICON analysisReportIcon = nullptr;
+	HICON analysisReportDirtyIcon = nullptr;
 
 	CTreeItem hPerfAnalysisItem;
 	CTreeItem hStoreAnalysisItem;
@@ -46,7 +49,10 @@ private:
 	
 	CImageList imageList;
 
-	void createImageList();
-
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
+	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();
+
+	void createImageList();
+	void loadReportsForPerfReportsFolder();
+	
 };

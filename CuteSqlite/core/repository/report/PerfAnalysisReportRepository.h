@@ -11,30 +11,32 @@
 
  * limitations under the License.
 
- * @file   PerfAnalysisPageAdapter.h
- * @brief  
+ * @file   PerfAnalysisReportRepository.h
+ * @brief  Store the sql log 
  * 
  * @author Xuehan Qin
- * @date   2023-12-01
+ * @date   2023-11-15
  *********************************************************************/
 #pragma once
-#include "ui/common/adapter/QAdapter.h"
+#include <string>
 #include "core/entity/Entity.h"
-#include "ui/analysis/rightview/page/supplier/PerfAnalysisSupplier.h"
-#include "core/service/analysis/SelectSqlAnalysisService.h"
+#include "core/common/repository/BaseRepository.h"
 
-class PerfAnalysisPageAdapter : public QAdapter<PerfAnalysisPageAdapter, CWindow>
-{
+#define LIMIT_MAX 5000
+class PerfAnalysisReportRepository : public BaseRepository<PerfAnalysisReportRepository> {
 public:
-	PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier = nullptr);
-	~PerfAnalysisPageAdapter();
+	PerfAnalysisReportRepository() {};
+	~PerfAnalysisReportRepository() {};
 
-	void save();
-	void enableReportSaved();
-private:
+	uint64_t create(PerfAnalysisReport & item);
+	int remove(uint64_t id);
+	PerfAnalysisReport getById(uint64_t id);
+	PerfAnalysisReport getBySqlLogId(uint64_t sqlLogId);
+	PerfAnalysisReportList getAll(uint64_t limit = LIMIT_MAX);
+	uint64_t  getCount();
 	
-	PerfAnalysisSupplier * supplier = nullptr;
-	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();
+private:
+	void queryBind(QSqlStatement &query, PerfAnalysisReport &item, bool isUpdate = false);
+	PerfAnalysisReport toPerfAnalysisReport(QSqlStatement &query);
 
-	void initSupplier();	
 };

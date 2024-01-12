@@ -36,6 +36,7 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SQL_LOG_BUTTON_ID, OnClickSqlLogButton)
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID, OnClickAddSqlButton)
 		CHAIN_MSG_MAP(QPage)
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -51,6 +52,7 @@ private:
 	HFONT sectionFont = nullptr;
 	
 	CRect perfAnalysisSectionRect;
+	QImageButton addSqlAnalysisButton;
 	QImageButton sqlLogButton;
 
 	void createOrShowUI();
@@ -64,6 +66,7 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 
 	LRESULT OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	void drawAnalysisText(CMemoryDC &mdc, CRect &clientRect);
 	void drawPerfAnalysisSection(CMemoryDC &mdc, CRect &clientRect);
 

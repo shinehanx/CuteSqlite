@@ -37,13 +37,25 @@ PerfAnalysisPage::PerfAnalysisPage(uint64_t sqlLogId)
 {
 	supplier.setSqlLogId(sqlLogId);
 	supplier.setSqlLog(sqlLogService->getSqlLog(sqlLogId));
-
 }
 
 
 uint64_t PerfAnalysisPage::getSqlLogId()
 {
 	return supplier.getSqlLogId();
+}
+
+
+void PerfAnalysisPage::save()
+{
+	adapter->save();
+	adapter->enableReportSaved();
+}
+
+
+bool PerfAnalysisPage::isSaved()
+{
+	return !supplier.getIsDirty();
 }
 
 void PerfAnalysisPage::createOrShowUI()

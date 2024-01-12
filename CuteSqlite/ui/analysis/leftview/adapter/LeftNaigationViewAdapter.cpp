@@ -45,6 +45,7 @@ LeftNaigationViewAdapter::~LeftNaigationViewAdapter()
 	if (folderIcon) ::DeleteObject(folderIcon);
 	if (sqlLogIcon) ::DeleteObject(sqlLogIcon);
 	if (analysisReportIcon) ::DeleteObject(analysisReportIcon);
+	if (analysisReportDirtyIcon) ::DeleteObject(analysisReportDirtyIcon);
 
 	if (!imageList.IsNull()) imageList.Destroy();
 }
@@ -62,6 +63,7 @@ void LeftNaigationViewAdapter::createImageList()
 	folderIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\folder.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	sqlLogIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\sql-log.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	analysisReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	analysisReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(perfAnalysisIcon); // 0 - performance analysis	
@@ -70,9 +72,12 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(folderIcon); // 3  - folder	
 	imageList.AddIcon(sqlLogIcon); // 4- sql log
 	imageList.AddIcon(analysisReportIcon); // 5- perf analysis report
+	imageList.AddIcon(analysisReportDirtyIcon); // 6- dirty perf analysis report 
 	
 	
 }
+
+
 
 void LeftNaigationViewAdapter::loadTreeView()
 {
@@ -84,6 +89,7 @@ void LeftNaigationViewAdapter::loadTreeView()
 	// Performance Analysis
 	hSqlLogItem = dataView->InsertItem(S(L"sql-log").c_str(), 4, 4, hPerfAnalysisItem, TVI_LAST);
 	hPerfReportsFolderItem = dataView->InsertItem(S(L"perf-analysis-reports").c_str(), 3, 3, hPerfAnalysisItem, TVI_LAST);
+	loadReportsForPerfReportsFolder();
 	
 	// Store Analysis	
 	dataView->Expand(hPerfAnalysisItem);
@@ -91,7 +97,16 @@ void LeftNaigationViewAdapter::loadTreeView()
 
 }
 
-void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId)
+void LeftNaigationViewAdapter::loadReportsForPerfReportsFolder()
+{
+	auto reportList = selectSqlAnalysisService->getPerfAnalysisReportList();
+	for (auto & report : reportList) {
+		addPerfAnalysisReport(report.userDbId, report.sqlLogId, true);
+	}
+}
+
+
+void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId, bool isSaved)
 {
 	if (!sqlLogId) {
 		Q_ERROR(L"analysis failed, sqlLogId is empty");
@@ -104,7 +119,7 @@ void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t
 			Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
 			return ;
 		}
-	} catch (QSqlExecuteException & ex) {
+	} catch (QRuntimeException & ex) {
 		QPopAnimate::report(ex);
 		return;
 	}
@@ -131,9 +146,45 @@ void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t
 		childItem.Select();
 		return;
 	}
-	CTreeItem reportTreeItem = dataView->InsertItem(title.c_str(), 5, 5, hPerfReportsFolderItem, TVI_LAST);
+	int iImage = isSaved ? 5 : 6; // 5 - 
+	CTreeItem reportTreeItem = dataView->InsertItem(title.c_str(), iImage, iImage, hPerfReportsFolderItem, TVI_LAST);
 	reportTreeItem.SetData(sqlLogId);
 	reportTreeItem.Select();
+}
+
+void LeftNaigationViewAdapter::savePerfAnalysisReport(uint64_t sqlLogId)
+{
+	if (!sqlLogId) {
+		Q_ERROR(L"analysis failed, sqlLogId is empty");
+		return ;
+	}
+	SqlLog sqlLog;
+	try {
+		sqlLog = sqlLogService->getSqlLog(sqlLogId);
+		if (sqlLog.sql.empty()) {
+			Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
+			return ;
+		}
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+
+	CTreeItem childItem = hPerfReportsFolderItem.GetChild();
+	bool isFound = false;
+	while (!childItem.IsNull()) {
+		uint64_t itemData = static_cast<uint64_t>(childItem.GetData());
+		if (itemData == sqlLogId) {
+			isFound = true;
+			break;
+		}
+		childItem = childItem.GetNextSibling();
+	}
+
+	if (isFound) {
+		childItem.SetImage(5, 5);
+		return;
+	}
 }
 
 

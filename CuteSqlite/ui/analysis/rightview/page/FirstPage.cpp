@@ -45,6 +45,17 @@ void FirstPage::createOrShowPerfAnalysisButton(CRect & clientRect)
 	CRect rect(x, y, x + w, y + h);
 	std::wstring imgDir = ResourceUtil::getProductImagesDir();
 	std::wstring normalImagePath, pressedImagePath;
+
+	if (!addSqlAnalysisButton.IsWindow()) {
+		normalImagePath = imgDir + L"analysis\\button\\add-sql-analysis-button-normal.png";
+		pressedImagePath = imgDir + L"analysis\\button\\add-sql-analysis-button-pressed.png"; 
+		addSqlAnalysisButton.SetIconPath(normalImagePath, pressedImagePath); 
+		addSqlAnalysisButton.SetBkgColors(bkgColor, bkgColor, bkgColor);
+	}
+	QWinCreater::createOrShowButton(m_hWnd, addSqlAnalysisButton, Config::ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID, L"", rect, clientRect, BS_OWNERDRAW);
+	addSqlAnalysisButton.SetToolTip(S(L"add-sql-analysis"));
+
+	rect.OffsetRect(w + 5, 0);
 	if (!sqlLogButton.IsWindow()) {
 		normalImagePath = imgDir + L"analysis\\button\\sql-log-button-normal.png";
 		pressedImagePath = imgDir + L"analysis\\button\\sql-log-button-pressed.png";
@@ -150,8 +161,12 @@ BOOL FirstPage::OnEraseBkgnd(CDCHandle dc)
 
 LRESULT FirstPage::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	CRect clientRect;
-	GetClientRect(clientRect);
 	AppContext::getInstance()->dispatch(Config::MSG_SHOW_SQL_LOG_PAGE_ID);
+	return 0;
+}
+
+LRESULT FirstPage::OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
 	return 0;
 }

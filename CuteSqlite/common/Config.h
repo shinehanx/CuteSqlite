@@ -163,9 +163,13 @@ typedef enum {
 	// ANALYSIS PANEL
 	ANALYSIS_SQL_LOG_BUTTON_ID,
 	ANALYSIS_CREATE_INDEX_BUTTON_ID,
+	ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID,
+	ANALYSIS_SAVE_BUTTON_ID,
+	ANALYSIS_SAVE_ALL_BUTTON_ID,
 
 	// SETTING PANEL
 	SETTING_FEEDBACK_SUBMIT_BUTTON_ID,
+	
 } ButtonId;
 
 // TabView id
@@ -503,10 +507,12 @@ typedef enum {
 	MSG_SAVE_ALL_ID,// Send the msg to all the pages need saved, wParam=NULL, lParam = NULL
 	MSG_DROP_FILES_ID, // When user drag files to MainFrm window, send the message to LeftTreeView for opening databases by drag file paths, wParam=NULL , lParam=NULL
 	MSG_SHOW_SQL_LOG_PAGE_ID, // Send the msg to show SqlLogPage in the RightAnalysisView::tabView, wParam=NULL , lParam=NULL
+	MSG_ADD_SQL_TO_ANALYSIS_ID, // Send the msg to show AddSqlDialog in the RightAnalysisView, wParam=NULL , lParam=NULL
 	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
 	MSG_HOME_REFRESH_DATABASE_ID, // Send this msg when created a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_ANALYSIS_CREATE_INDEX_ID, // Send this msg to parent when clicking WhereOrderClauseAnalysisElem::createIdxButton , wParam = WhereOrderClauseAnalysisElem::this, lParam =NULL
 	MSG_CHANGE_LANGUAGE_ID, // Send this msg when select item in SettingPanel.GeneralSettingView.changeLanguageComboBox,
+	MSG_ANALYSIS_SAVE_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
 }MessageId;
 
 typedef enum {	

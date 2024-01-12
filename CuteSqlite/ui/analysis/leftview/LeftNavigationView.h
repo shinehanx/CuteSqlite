@@ -41,6 +41,7 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		NOTIFY_HANDLER(Config::ANALYSIS_NAVIGATION_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_REPORT_ID, OnHandleAnalysisSaveReport)
 	END_MSG_MAP()
 private:
 	bool isNeedReload = true;
@@ -74,4 +75,5 @@ private:
 	// double click treeview item .
 	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

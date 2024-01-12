@@ -444,6 +444,12 @@
     <ClCompile Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\dialog\AddSqlDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\repository\report\PerfAnalysisReportRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -921,6 +927,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\dialog\AddSqlDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\repository\report\PerfAnalysisReportRepository.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -52,6 +52,8 @@ public:
 	END_MSG_MAP()
 	PerfAnalysisPage(uint64_t sqlLogId);
 	uint64_t getSqlLogId();
+	void save();
+	bool isSaved();
 private:
 	bool isNeedReload = true;
 	

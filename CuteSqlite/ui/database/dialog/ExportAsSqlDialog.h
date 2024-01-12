@@ -120,7 +120,7 @@ private:
 
 	// load data when showing the window visible
 	void loadWindow();
-	void loadSelectDbComboBox();		
+	void loadSelectDbComboBox();
 	void loadExportPathEdit();
 	void loadObjectsTreeView();
 	void loadStructureAndDataSettingsElems();

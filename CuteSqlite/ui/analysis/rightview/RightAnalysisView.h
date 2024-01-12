@@ -16,8 +16,9 @@
  * @Class Tree  RightAnalysisView
  *                 |->QTabView(tabView)
  *                         |-> SqlLogPage
- *                               |-> SqlLogListBox
- *                                        |-> SqlLogListItem
+ *                         |      |-> SqlLogListBox
+ *                         |               |-> SqlLogListItem
+ *                         |-> PerfAnalysisPage
  * 
  * @author Xuehan Qin
  * @date   2023-12-01
@@ -46,10 +47,19 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID, OnClickAddSqlButton)
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SQL_LOG_BUTTON_ID, OnClickSqlLogButton)
+
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
 		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
+		MESSAGE_HANDLER_EX(Config::MSG_ADD_SQL_TO_ANALYSIS_ID, OnHandleAddSqlToAnalysis)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_REPORT_ID, OnHandleAnalysisSaveReport)
 
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
+
+		// save
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SAVE_BUTTON_ID, OnClickSaveButton)
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SAVE_ALL_BUTTON_ID, OnClickSaveAllButton)
 
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -59,8 +69,15 @@ private:
 
 	COLORREF bkgColor = RGB(171, 171, 171);	
 	COLORREF topbarColor = RGB(17, 24, 39);
+	COLORREF topbarHoverColor = RGB(102, 102, 104);
 	CBrush bkgBrush;	
 	CBrush topbarBrush ;
+	// add sql to analysis button
+	QImageButton addSqlAnalysisButton;
+	// sql log button
+	QImageButton sqlLogButton;
+	QImageButton saveButton;
+	QImageButton saveAllButton;
 
 	QTabView tabView;
 	FirstPage firstPage;
@@ -72,6 +89,7 @@ private:
 	HICON firstIcon = nullptr;
 	HICON sqlLogIcon = nullptr;
 	HICON perfReportIcon = nullptr;
+	HICON perfReportDirtyIcon = nullptr;
 	CImageList imageList;
 	void createImageList();
 
@@ -80,11 +98,16 @@ private:
 	CRect getTabRect();
 
 	void createOrShowUI();
+	
+	void createOrShowToolButtons(CRect & clientRect);
+	void createOrShowAnalysisButtons(CRect & clientRect);
+	void createOrShowSaveButtons(CRect & clientRect);
+
 	void createOrShowTabView(QTabView &win, CRect & clientRect);
 	void createOrShowFirstPage(FirstPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowSqlLogPage(SqlLogPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
-
+		
 	void loadWindow();
 	void loadTabViewPages();
 
@@ -96,9 +119,19 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 
+	LRESULT OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd);
+
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAddSqlToAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT closeTabViewPage(int nPage);
 	void clearPerfAnalysisPagePtrs();
+
+	void doShowSqlLogPage();
+	void addSqlToAnalysis(const std::wstring & sql);
 };

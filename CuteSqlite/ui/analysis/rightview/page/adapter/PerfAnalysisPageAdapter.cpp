@@ -23,6 +23,7 @@
 #include "core/common/Lang.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "common/AppContext.h"
 
 PerfAnalysisPageAdapter::PerfAnalysisPageAdapter(HWND parentHwnd, CWindow * view, PerfAnalysisSupplier * supplier)
 {
@@ -60,6 +61,9 @@ void PerfAnalysisPageAdapter::initSupplier()
 		SelectColumns selectColumns = selectSqlAnalysisService->explainReadByteCodeToSelectColumns(supplier->getRuntimeUserDbId(), explainDatas, supplier->getSqlLog().sql);
 		supplier->setSelectColumns(selectColumns);
 
+		// 5.Check the report has exists in the perf_analysis_report table, if exists then assign to supplier::isDirty = false, otherwise supplier::isDirty = true
+		auto report = selectSqlAnalysisService->getPerfAnalysisReport(supplier->getSqlLog().id);
+		supplier->setIsDirty(!report.id); // if exists then assign to supplier::isDirty = false, otherwise supplier::isDirty = true
 	} catch (QSqlExecuteException & ex) {
 		QPopAnimate::report(ex);
 	} catch (QRuntimeException & ex) {
@@ -68,5 +72,28 @@ void PerfAnalysisPageAdapter::initSupplier()
 	
 }
 
+void PerfAnalysisPageAdapter::save()
+{
+	try {
+		PerfAnalysisReport report = selectSqlAnalysisService->getPerfAnalysisReport(supplier->getSqlLog().id);
+		if (report.id) {
+			return;
+		}
+		uint64_t reportId = selectSqlAnalysisService->savePerfAnalysisReport(supplier->getSqlLog().userDbId, supplier->getSqlLog().id);
 
+		supplier->setIsDirty(false);
+
+		QPopAnimate::success(S(L"save-success-text"));
+	} catch (QSqlExecuteException & ex) {
+		QPopAnimate::report(ex);
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+	}
+}
+
+void PerfAnalysisPageAdapter::enableReportSaved()
+{
+	// RightAnalysisView, LeftNavigationView will be accept this msg
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SAVE_REPORT_ID, WPARAM(parentHwnd), LPARAM(supplier->getSqlLogId()));
+}
 

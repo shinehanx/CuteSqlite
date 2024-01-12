@@ -134,7 +134,7 @@ std::vector<std::wstring> SqlUtil::getTablesFromSelectSql(const std::wstring & s
 		auto iterator = std::find_if(vec.begin(), vec.end(), [&tbl](std::wstring & str) {
 			std::wstring lowtbl = StringUtil::tolower(tbl);
 			std::wstring lowstr = StringUtil::tolower(str);
-			return lowtbl == str;
+			return lowtbl == lowstr;
 		});
 
 		if (iterator != vec.end()) {

@@ -195,6 +195,18 @@ typedef struct {
 // Store the sql log list for execute result
 typedef std::list<SqlLog> SqlLogList;
 
+// performance analysis report
+typedef struct {
+	uint64_t id = 0;
+	uint64_t userDbId = 0;
+	uint64_t sqlLogId = 0;
+
+	std::wstring createdAt;
+	std::wstring updatedAt;
+} PerfAnalysisReport;
+// Store the perf analysis report list for execute result
+typedef std::list<PerfAnalysisReport> PerfAnalysisReportList;
+
 // Explain query plan
 typedef struct {
 	int id = 0;

@@ -23,6 +23,7 @@
 #include "core/repository/user/TableUserRepository.h"
 #include "core/repository/user/IndexUserRepository.h"
 #include "core/repository/user/ColumnUserRepository.h"
+#include "core/repository/report/PerfAnalysisReportRepository.h"
 #include "core/common/repository/QSqlStatement.h"
 
 class SelectSqlAnalysisService : public BaseService<SelectSqlAnalysisService, SqlExecutorUserRepository>
@@ -35,11 +36,17 @@ public:
 	ExplainQueryPlans explainQueryPlanSql(uint64_t userDbId, const std::wstring & sql);
 	ByteCodeResults explainReadByteCodeToResults(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
 	SelectColumns explainReadByteCodeToSelectColumns(uint64_t userDbId, const DataList & byteCodeList, const std::wstring &sql);
+
+	
+	uint64_t savePerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId);
+	PerfAnalysisReport getPerfAnalysisReport(uint64_t sqlLogId);
+	PerfAnalysisReportList getPerfAnalysisReportList();
 private:
 	
 	TableUserRepository * tableUserRepository = TableUserRepository::getInstance();
 	IndexUserRepository * indexUserRepository = IndexUserRepository::getInstance();
 	ColumnUserRepository * columnUserRepository = ColumnUserRepository::getInstance();
+	PerfAnalysisReportRepository * perfAnalysisReportRepository = PerfAnalysisReportRepository::getInstance();
 
 	void doConvertByteCodeForWhereColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);
 	void doConvertByteCodeForOrderColumns(uint64_t userDbId, const DataList &byteCodeList, const std::wstring & sql, ByteCodeResults & results);

@@ -251,6 +251,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="core\common\repository\QSqlStatement.cpp" />
     <ClCompile Include="core\common\supplier\QSupplier.cpp" />
     <ClCompile Include="core\repository\db\UserDbRepository.cpp" />
+    <ClCompile Include="core\repository\report\PerfAnalysisReportRepository.cpp" />
     <ClCompile Include="core\repository\sqllog\SqlLogRepository.cpp" />
     <ClCompile Include="core\repository\system\SysInitRepository.cpp" />
     <ClCompile Include="core\repository\user\DatabaseUserRepository.cpp" />
@@ -279,6 +280,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="HomeView.cpp" />
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\dialog\AddSqlDialog.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.cpp" />
@@ -408,6 +410,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="core\common\supplier\QSupplier.h" />
     <ClInclude Include="core\entity\Entity.h" />
     <ClInclude Include="core\repository\db\UserDbRepository.h" />
+    <ClInclude Include="core\repository\report\PerfAnalysisReportRepository.h" />
     <ClInclude Include="core\repository\sqllog\SqlLogRepository.h" />
     <ClInclude Include="core\repository\system\SysInitRepository.h" />
     <ClInclude Include="core\repository\user\DatabaseUserRepository.h" />
@@ -431,6 +434,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="HomeView.h" />
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\dialog\AddSqlDialog.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.h" />

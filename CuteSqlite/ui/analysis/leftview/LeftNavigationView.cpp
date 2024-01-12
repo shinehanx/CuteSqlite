@@ -81,6 +81,7 @@ void LeftNavigationView::loadWindow()
 int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -91,6 +92,7 @@ int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void LeftNavigationView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -192,6 +194,14 @@ LRESULT LeftNavigationView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM
 	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
 	
 	adapter->addPerfAnalysisReport(userDbId, sqlLogId);
+
+	return 0;
+}
+
+LRESULT LeftNavigationView::OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
+	adapter->savePerfAnalysisReport(sqlLogId);
 
 	return 0;
 }
