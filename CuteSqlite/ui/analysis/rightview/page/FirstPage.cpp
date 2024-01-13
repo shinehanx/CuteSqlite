@@ -167,6 +167,6 @@ LRESULT FirstPage::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
 
 LRESULT FirstPage::OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
-	AppContext::getInstance()->dispatch(Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	return 0;
 }

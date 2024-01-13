@@ -49,17 +49,17 @@ public:
 
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID, OnClickAddSqlButton)
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SQL_LOG_BUTTON_ID, OnClickSqlLogButton)
-
-		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
-		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
-		MESSAGE_HANDLER_EX(Config::MSG_ADD_SQL_TO_ANALYSIS_ID, OnHandleAddSqlToAnalysis)
-		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_REPORT_ID, OnHandleAnalysisSaveReport)
-
-		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
-
 		// save
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SAVE_BUTTON_ID, OnClickSaveButton)
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SAVE_ALL_BUTTON_ID, OnClickSaveAllButton)
+
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
+		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID, OnHandleAnalysisAddPerfReport)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID, OnHandleAnalysisDropPerfReport)
+
+		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
@@ -78,6 +78,8 @@ private:
 	QImageButton sqlLogButton;
 	QImageButton saveButton;
 	QImageButton saveAllButton;
+
+	HACCEL m_hAccel = nullptr;
 
 	QTabView tabView;
 	FirstPage firstPage;
@@ -126,12 +128,13 @@ private:
 
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	LRESULT OnHandleAddSqlToAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	LRESULT OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisAddPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT closeTabViewPage(int nPage);
 	void clearPerfAnalysisPagePtrs();
 
 	void doShowSqlLogPage();
-	void addSqlToAnalysis(const std::wstring & sql);
+	void addSqlToAnalysisPerfReport(const std::wstring & sql);
 };

@@ -31,6 +31,8 @@ class AnalysisPanel :public CWindowImpl<AnalysisPanel>
 public:
 	const Config::PanelId panelId = Config::ANALYSIS_PANEL;
 
+	BOOL PreTranslateMessage(MSG* pMsg);
+
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(AnalysisPanel)

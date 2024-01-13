@@ -195,6 +195,8 @@ int SqlLogPage::OnDestroy()
 	if (prevPageButton.IsWindow()) prevPageButton.DestroyWindow();
 	if (nextPageButton.IsWindow()) nextPageButton.DestroyWindow();
 	if (lastPageButton.IsWindow()) lastPageButton.DestroyWindow();
+
+	isNeedReload = true;
 	return 0;
 }
 

@@ -76,9 +76,13 @@ uint64_t SelectSqlAnalysisService::savePerfAnalysisReport(uint64_t userDbId, uin
 
 PerfAnalysisReport SelectSqlAnalysisService::getPerfAnalysisReport(uint64_t sqlLogId)
 {
-	PerfAnalysisReport item;
-
 	return perfAnalysisReportRepository->getBySqlLogId(sqlLogId);
+}
+
+
+void SelectSqlAnalysisService::dropPerfAnalysisReport(uint64_t sqlLogId)
+{
+	perfAnalysisReportRepository->removeBySqlLogId(sqlLogId);
 }
 
 
@@ -2153,5 +2157,6 @@ std::wstring SelectSqlAnalysisService::getOpcodeByByteCodeAddr(const std::wstrin
 
 	return (*iter).at(EXP_OPCODE);
 }
+
 
 

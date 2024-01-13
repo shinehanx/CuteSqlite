@@ -319,8 +319,7 @@ typedef enum  {
 	EXP_P3,	// p3
 	EXP_P4,	// p4
 	EXP_P5,	// p5
-	EXP_COMMENT, //comment	
-
+	EXP_COMMENT, //comment
 } ExplainColumn;
 
 // use for select statement such as "tbl1 as m1 left join tbl2 as m2"

@@ -25,6 +25,8 @@
 #include "utils/SqlUtil.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "ui/common/message/QPopAnimate.h"
+#include "utils/MenuUtil.h"
+#include "common/AppContext.h"
 
 LeftNaigationViewAdapter::LeftNaigationViewAdapter(HWND parentHwnd, CTreeViewCtrlEx * view)
 {
@@ -33,6 +35,8 @@ LeftNaigationViewAdapter::LeftNaigationViewAdapter(HWND parentHwnd, CTreeViewCtr
 
 	createImageList();
 	this->dataView->SetImageList(imageList);
+
+	createPerfReportMenu();
 }
 
 
@@ -74,7 +78,8 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(analysisReportIcon); // 5- perf analysis report
 	imageList.AddIcon(analysisReportDirtyIcon); // 6- dirty perf analysis report 
 	
-	
+	openPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\open-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dropPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\drop-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 }
 
 
@@ -104,7 +109,6 @@ void LeftNaigationViewAdapter::loadReportsForPerfReportsFolder()
 		addPerfAnalysisReport(report.userDbId, report.sqlLogId, true);
 	}
 }
-
 
 void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId, bool isSaved)
 {
@@ -186,5 +190,67 @@ void LeftNaigationViewAdapter::savePerfAnalysisReport(uint64_t sqlLogId)
 		return;
 	}
 }
+
+void LeftNaigationViewAdapter::createPerfReportMenu()
+{
+	perfReportMenu.CreatePopupMenu();
+	perfReportMenu.AppendMenu(MF_STRING, Config::ANALYSIS_OPEN_PERF_REPORT_MENU_ID, S(L"open-perf-report").c_str());
+	perfReportMenu.AppendMenu(MF_STRING, Config::ANALYSIS_DROP_PERF_REPORT_MENU_ID, S(L"drop-perf-report").c_str());
+	
+
+	initMenuInfo(perfReportMenu.m_hMenu);
+
+	MenuUtil::addIconToMenuItem(perfReportMenu.m_hMenu, Config::ANALYSIS_OPEN_PERF_REPORT_MENU_ID, MF_BYCOMMAND, openPerfReportIcon);
+	MenuUtil::addIconToMenuItem(perfReportMenu.m_hMenu, Config::ANALYSIS_DROP_PERF_REPORT_MENU_ID, MF_BYCOMMAND, dropPerfReportIcon);
+	
+}
+
+void LeftNaigationViewAdapter::popupPerfReportMenu(CPoint pt)
+{
+	perfReportMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
+}
+
+void LeftNaigationViewAdapter::openPerfAnalysisReport(uint64_t sqlLogId)
+{
+	if (!sqlLogId) {
+		Q_ERROR(L"analysis failed, sqlLogId is empty");
+		return ;
+	}
+	SqlLog sqlLog;
+	try {
+		sqlLog = sqlLogService->getSqlLog(sqlLogId);
+		if (sqlLog.sql.empty()) {
+			Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
+			return ;
+		}
+		AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SQL_ID, WPARAM(sqlLog.userDbId), LPARAM(sqlLogId));
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}	
+}
+
+void LeftNaigationViewAdapter::dropPerfAnalysisReport(uint64_t sqlLogId)
+{
+	if (!sqlLogId) {
+		Q_ERROR(L"analysis failed, sqlLogId is empty");
+		return ;
+	}
+	SqlLog sqlLog;
+	try {
+		sqlLog = sqlLogService->getSqlLog(sqlLogId);
+		if (sqlLog.sql.empty()) {
+			Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
+			return ;
+		}
+
+		selectSqlAnalysisService->dropPerfAnalysisReport(sqlLogId);
+		AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID, WPARAM(sqlLog.userDbId), LPARAM(sqlLogId));
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+}
+
 
 

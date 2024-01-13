@@ -9,7 +9,11 @@
 
 BOOL HomeView::PreTranslateMessage(MSG* pMsg)
 {
-	if (databasePanel.IsWindow() && databasePanel.PreTranslateMessage(pMsg)) {
+	if (selectedPannelId == Config::DATABASE_PANEL && databasePanel.IsWindow() && databasePanel.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
+	if (selectedPannelId == Config::ANALYSIS_PANEL && analysisPanel.IsWindow() && analysisPanel.PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
 	return FALSE;

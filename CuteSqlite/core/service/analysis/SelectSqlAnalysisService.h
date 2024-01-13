@@ -40,6 +40,7 @@ public:
 	
 	uint64_t savePerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId);
 	PerfAnalysisReport getPerfAnalysisReport(uint64_t sqlLogId);
+	void dropPerfAnalysisReport(uint64_t sqlLogId);
 	PerfAnalysisReportList getPerfAnalysisReportList();
 private:
 	

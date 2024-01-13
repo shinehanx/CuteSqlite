@@ -161,11 +161,11 @@ typedef enum {
 	HOME_MOD_DB_BUTTON_ID,
 
 	// ANALYSIS PANEL
-	ANALYSIS_SQL_LOG_BUTTON_ID,
-	ANALYSIS_CREATE_INDEX_BUTTON_ID,
+	ANALYSIS_SQL_LOG_BUTTON_ID = WM_USER + 150,
 	ANALYSIS_ADD_SQL_TO_ANALYSIS_BUTTON_ID,
 	ANALYSIS_SAVE_BUTTON_ID,
 	ANALYSIS_SAVE_ALL_BUTTON_ID,
+	ANALYSIS_CREATE_INDEX_BUTTON_ID,
 
 	// SETTING PANEL
 	SETTING_FEEDBACK_SUBMIT_BUTTON_ID,
@@ -174,14 +174,14 @@ typedef enum {
 
 // TabView id
 typedef enum {
-	DATABASE_WORK_TAB_VIEW_ID = WM_USER + 100,
+	DATABASE_WORK_TAB_VIEW_ID = WM_USER + 170,
 	DATABASE_RESULT_TAB_VIEW_ID ,
 	DATABASE_TABLE_TAB_VIEW_ID,
 } TabViewId;
 
 typedef enum {
 	// TREE VIEW
-	TREEVIEW_SELECTED_DB_COMBOBOX_ID = WM_USER + 110,
+	TREEVIEW_SELECTED_DB_COMBOBOX_ID = WM_USER + 180,
 	//LIST VIEW TOOLBAR
 	LISTVIEW_READ_WRITE_COMBOBOX_ID,
 
@@ -210,14 +210,14 @@ typedef enum {
 
 
 typedef enum {
-	DATABASE_TREEVIEW_ID = WM_USER + 120,
+	DATABASE_TREEVIEW_ID = WM_USER + 220,
 	DATABASE_OBJECTS_TREEVIEW_ID,
 	ANALYSIS_NAVIGATION_TREEVIEW_ID,
 } TreeViewId;
 
 
 typedef enum {
-	DATABASE_QUERY_EDITOR_ID = WM_USER + 130,
+	DATABASE_QUERY_EDITOR_ID = WM_USER + 230,
 	// LIST VIEW 
 	LISTVIEW_OFFSET_EDIT_ID,
 	LISTVIEW_LIMIT_EDIT_ID,
@@ -273,7 +273,7 @@ typedef enum {
 
 typedef enum {
 	// QUERY RESULT
-	DATABASE_QUERY_LISTVIEW_ID = WM_USER + 140,
+	DATABASE_QUERY_LISTVIEW_ID = WM_USER + 260,
 	// NEW TABLE/MODIFY TABLE
 	DATABASE_TABLE_COLUMNS_LISTVIEW_ID,
 	DATABASE_TABLE_INDEXES_LISTVIEW_ID,
@@ -286,7 +286,7 @@ typedef enum {
 
 typedef enum {
 	//LIST VIEW TOOLBAR
-	LISTVIEW_FORMVIEW_CHECKBOX_ID = WM_USER + 150,
+	LISTVIEW_FORMVIEW_CHECKBOX_ID = WM_USER + 270,
 	LISTVIEW_LIMIT_CHECKBOX_ID,
 	//EXPORT - CSV OPTIONS
 	EXPORT_CSV_COLUMN_NAME_CHECKBOX_ID,
@@ -307,7 +307,7 @@ typedef enum {
 
 typedef enum {
 	//LIST VIEW TOOLBAR
-	EXPORT_TO_CSV_RADIO_ID = WM_USER + 160,
+	EXPORT_TO_CSV_RADIO_ID = WM_USER + 290,
 	EXPORT_TO_JSON_RADIO_ID,
 	EXPORT_TO_XML_RADIO_ID,
 	EXPORT_TO_HTML_RADIO_ID,
@@ -325,7 +325,7 @@ typedef enum {
 
 typedef enum {
 	//LIST VIEW TOOLBAR
-	EXPORT_TO_CSV_GROUPBOX_ID = WM_USER + 180,
+	EXPORT_TO_CSV_GROUPBOX_ID = WM_USER + 300,
 	EXPORT_TO_CSV_FEILD_SET_GROUPBOX_ID,
 	EXPORT_TO_CSV_LINE_SET_GROUPBOX_ID,
 	EXPORT_TO_CSV_CHARSET_SET_GROUPBOX_ID,
@@ -341,7 +341,7 @@ typedef enum {
 } GroupBoxId;
 
 typedef enum {
-	EXPORT_SELECT_FIELDS_LISTBOX_ID = WM_USER + 200,
+	EXPORT_SELECT_FIELDS_LISTBOX_ID = WM_USER + 320,
 
 	//TABLE INDEX SEL COLUMNS
 	TABLE_INDEX_TO_BE_SELECTED_COLUMNS_LISTBOX_ID,
@@ -360,12 +360,12 @@ typedef enum {
 
 typedef enum {
 	// list view copy menu
-	COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID = WM_USER + 220,
+	COPY_ALL_ROWS_TO_CLIPBOARD_MEMU_ID = WM_USER + 340,
 	COPY_SEL_ROWS_TO_CLIPBOARD_MEMU_ID,
 	COPY_ALL_ROWS_AS_SQL_MEMU_ID,
 	COPY_SEL_ROWS_AS_SQL_MEMU_ID,
 	// treeview popup menu for database
-	DATABASE_CREATE_MENU_ID = WM_USER + 224,
+	DATABASE_CREATE_MENU_ID = WM_USER + 360,
 	DATABASE_OPEN_MENU_ID,
 	DATABASE_REFRESH_MENU_ID,
 	DATABASE_DELETE_MENU_ID,
@@ -386,7 +386,7 @@ typedef enum {
 	DATABASE_DROP_TRIGGER_MENU_ID,
 
 	// treeview popup menu for table
-	TABLE_OPEN_MENU_ID = WM_USER + 240,
+	TABLE_OPEN_MENU_ID = WM_USER + 380,
 	TABLE_CREATE_MENU_ID,
 	TABLE_ALTER_MENU_ID,
 	TABLE_RENAME_MENU_ID,
@@ -405,39 +405,42 @@ typedef enum {
 	TABLE_DROP_INDEX_MENU_ID,
 
 	// query page templates menu
-	TEMPLATES_SELECT_STMT_MEMU_ID  = WM_USER + 280,
-	TEMPLATES_INSERT_STMT_MEMU_ID = WM_USER + 281,
-	TEMPLATES_UPDATE_STMT_MEMU_ID = WM_USER + 282,
-	TEMPLATES_DELETE_STMT_MEMU_ID = WM_USER + 283,
-	TEMPLATES_REPLACE_STMT_MEMU_ID = WM_USER + 284,
+	TEMPLATES_SELECT_STMT_MEMU_ID  = WM_USER + 480,
+	TEMPLATES_INSERT_STMT_MEMU_ID = WM_USER + 481,
+	TEMPLATES_UPDATE_STMT_MEMU_ID = WM_USER + 482,
+	TEMPLATES_DELETE_STMT_MEMU_ID = WM_USER + 483,
+	TEMPLATES_REPLACE_STMT_MEMU_ID = WM_USER + 484,
 
-	TEMPLATES_CREATE_TABLE_STMT_MEMU_ID = WM_USER + 285,
-	TEMPLATES_DROP_TABLE_STMT_MEMU_ID = WM_USER + 286,
-	TEMPLATES_TRUNCATE_TABLE_STMT_MEMU_ID = WM_USER + 287,
-	TEMPLATES_ALTER_TABLE_STMT_MEMU_ID = WM_USER + 288,
-	TEMPLATES_RENAME_TABLE_STMT_MEMU_ID = WM_USER + 289,
+	TEMPLATES_CREATE_TABLE_STMT_MEMU_ID = WM_USER + 485,
+	TEMPLATES_DROP_TABLE_STMT_MEMU_ID = WM_USER + 486,
+	TEMPLATES_TRUNCATE_TABLE_STMT_MEMU_ID = WM_USER + 487,
+	TEMPLATES_ALTER_TABLE_STMT_MEMU_ID = WM_USER + 488,
+	TEMPLATES_RENAME_TABLE_STMT_MEMU_ID = WM_USER + 489,
 
-	TEMPLATES_CREATE_INDEX_STMT_MEMU_ID = WM_USER + 290,
-	TEMPLATES_DROP_INDEX_STMT_MEMU_ID = WM_USER + 291,
+	TEMPLATES_CREATE_INDEX_STMT_MEMU_ID = WM_USER + 490,
+	TEMPLATES_DROP_INDEX_STMT_MEMU_ID = WM_USER + 491,
 
-	TEMPLATES_CREATE_VIEW_STMT_MEMU_ID = WM_USER + 292,
-	TEMPLATES_DROP_VIEW_STMT_MEMU_ID = WM_USER + 293,
+	TEMPLATES_CREATE_VIEW_STMT_MEMU_ID = WM_USER + 492,
+	TEMPLATES_DROP_VIEW_STMT_MEMU_ID = WM_USER + 493,
 
-	TEMPLATES_CREATE_TRIGGER_STMT_MEMU_ID = WM_USER + 294,
-	TEMPLATES_DROP_TRIGGER_STMT_MEMU_ID = WM_USER + 295,
+	TEMPLATES_CREATE_TRIGGER_STMT_MEMU_ID = WM_USER + 494,
+	TEMPLATES_DROP_TRIGGER_STMT_MEMU_ID = WM_USER + 495,
 
-	TEMPLATES_WITH_STMT_MEMU_ID = WM_USER + 296,
+	TEMPLATES_WITH_STMT_MEMU_ID = WM_USER + 496,
 
 	TABVIEW_SAVE_THIS_MENU_ID,
 	TABVIEW_CLOSE_THIS_MENU_ID,
 	TABVIEW_CLOSE_OTHERS_MENU_ID,
 	TABVIEW_CLOSE_LEFT_MENU_ID,
 	TABVIEW_CLOSE_RIGHT_MENU_ID,
+
+	ANALYSIS_OPEN_PERF_REPORT_MENU_ID = WM_USER + 510,
+	ANALYSIS_DROP_PERF_REPORT_MENU_ID,
 } MenuId;
 
 // PostMessage messageId
 typedef enum {
-	MSG_TIMER_MOVE_ID = WM_USER + 340, // QPopAnimate 触发的移动定时器
+	MSG_TIMER_MOVE_ID = WM_USER + 540, // QPopAnimate 触发的移动定时器
 	MSG_TIMER_DELAY_ID, // QPopAnimate 触发的悬停定时器
 	MSG_QIMAGE_CLICK_ID, // 点击QStaticImage,如果命中右下角小图标，则调用上一个消息ID， 否则，给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
 	MSG_QIMAGE_CONERICON_CLICK_ID, // 点击QStaticImage图片右下角小图标（拍照等），给父窗口发送此消息 wParam带上被点击的窗口ID lParam带上窗口句柄hwnd
@@ -490,8 +493,8 @@ typedef enum {
 	MSG_TABLE_PROPERTIES_ID, // Send this msg when clicking "Properties" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_COPY_TABLE_PROCESS_ID, // Table CopyTableDialog progress message, wParam is the completion status, lParam is the percent complete
 	MSG_LOADING_SQL_PREVIEW_EDIT_ID, // When PreviewSqlDialog loading the sql editor,will be send this msg to his parent window, parent window handle this message, wParam=sqlEditorPtr, lParam=null  
-	MSG_SEARCH_BUTTON_ID, // When search edit button has clicked, send this msg to parent window, wParam=NULL, lParam = NULL
-	MSG_ANALYSIS_SQL_ID, // When analysis button has clicked in the SqlLogPage, send this msg to SqlLogPage, wParam=NULL, lParam = NULL
+	MSG_SEARCH_BUTTON_ID, // When search edit button has clicked, send this msg to parent window, wParam=NULL, lParam = NULL	
+	
 	MSG_USE_SQL_ID, // When use button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=NULL, lParam = NULL
 	MSG_TOP_SQL_LOG_ID, // When top button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=SqlLog.id, lParam = NULL
 	MSG_DEL_SQL_LOG_ID, // When DELETE button has clicked in the SqlLogDialog/SqlLogPage, send this msg to SqlLogDialog/SqlLogPage, wParam=SqlLog.id, lParam= NULL
@@ -507,29 +510,32 @@ typedef enum {
 	MSG_SAVE_ALL_ID,// Send the msg to all the pages need saved, wParam=NULL, lParam = NULL
 	MSG_DROP_FILES_ID, // When user drag files to MainFrm window, send the message to LeftTreeView for opening databases by drag file paths, wParam=NULL , lParam=NULL
 	MSG_SHOW_SQL_LOG_PAGE_ID, // Send the msg to show SqlLogPage in the RightAnalysisView::tabView, wParam=NULL , lParam=NULL
-	MSG_ADD_SQL_TO_ANALYSIS_ID, // Send the msg to show AddSqlDialog in the RightAnalysisView, wParam=NULL , lParam=NULL
+	MSG_ANALYSIS_ADD_PERF_REPORT_ID, // Send the msg to show AddSqlDialog in the RightAnalysisView, wParam=NULL , lParam=NULL
 	MSG_SHOW_PERF_ANALYSIS_PAGE_ID, // Send the msg to show PerAnalysisPage in the RightAnalysisView::tabView, wParam=userDbId , lParam=sqlLogId
 	MSG_HOME_REFRESH_DATABASE_ID, // Send this msg when created a table or altering a table , wParam = NULL, lParam=NULL
 	MSG_ANALYSIS_CREATE_INDEX_ID, // Send this msg to parent when clicking WhereOrderClauseAnalysisElem::createIdxButton , wParam = WhereOrderClauseAnalysisElem::this, lParam =NULL
 	MSG_CHANGE_LANGUAGE_ID, // Send this msg when select item in SettingPanel.GeneralSettingView.changeLanguageComboBox,
-	MSG_ANALYSIS_SAVE_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
+
+	MSG_ANALYSIS_SQL_ID, // When analysis button has clicked in the SqlLogPage, send this msg to RightAnalysisView for open PerfAnalysisPage, wParam=userDbId, lParam = sqlLogId
+	MSG_ANALYSIS_SAVE_PERF_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
+	MSG_ANALYSIS_DROP_PERF_REPORT_ID, // When drop report menu has clicked in the SqlLogPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId, lParam = sqlLogId
 }MessageId;
 
 typedef enum {	
 	// SETTING
-	SETTING_GENERAL_SETTINGS_MENU_ID = WM_USER + 600,
+	SETTING_GENERAL_SETTINGS_MENU_ID = WM_USER + 800,
 	SETTING_ABOUT_MENU_ID
 } ListMenuItemId;
 
 typedef enum 
 {
 	// SETTING VIEW ID
-	SETTING_GENERAL_SETTINGS_VIEW_ID = WM_USER + 630,
+	SETTING_GENERAL_SETTINGS_VIEW_ID = WM_USER + 830,
 	SETTING_ABOUT_VIEW_ID,
 } ViewId;
 
 typedef enum {
-	RESULT_STATUSBAR_SQL_PANE_ID = WM_USER + 660,
+	RESULT_STATUSBAR_SQL_PANE_ID = WM_USER + 860,
 	RESULT_STATUSBAR_DATABASE_PANE_ID ,
 	RESULT_STATUSBAR_ROWS_PANE_ID,
 	RESULT_STATUSBAR_EXEC_TIME_PANE_ID,

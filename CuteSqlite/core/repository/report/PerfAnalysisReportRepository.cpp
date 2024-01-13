@@ -113,7 +113,7 @@ PerfAnalysisReport PerfAnalysisReportRepository::getBySqlLogId(uint64_t sqlLogId
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
-		throw QRuntimeException(L"10043", L"sorry, system has error.");
+		throw QRuntimeException(L"10044", L"sorry, system has error.");
 	}
 }
 
@@ -133,7 +133,7 @@ PerfAnalysisReportList PerfAnalysisReportRepository::getAll(uint64_t limit)
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query perf_analysis_report has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000045", L"sorry, system has error when getting sql log.");
+		throw QRuntimeException(L"10045", L"sorry, system has error when getting sql log.");
 	}
 }
 
@@ -153,9 +153,31 @@ uint64_t PerfAnalysisReportRepository::getCount()
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"query perf_analysis_report count has error:{}, msg:{}", e.getErrorCode(), _err);
-		throw QRuntimeException(L"000046", L"sorry, system has error when getting total from sql_log");
+		throw QRuntimeException(L"10046", L"sorry, system has error when getting total from sql_log");
 	}
 }
+
+
+bool PerfAnalysisReportRepository::removeBySqlLogId(uint64_t sqlLogId)
+{
+	if (sqlLogId <= 0) {
+		return false;
+	}
+	//sql
+	std::wstring sql = L"DELETE FROM perf_analysis_report WHERE sql_log_id=:sql_log_id ";
+	try {
+		QSqlStatement query(getSysConnect(), sql.c_str());
+		query.bind(L":sql_log_id", sqlLogId);
+
+		Q_DEBUG(L"delete perf_analysis_report success.");
+		return query.exec();
+	} catch (SQLite::QSqlException &e) {
+		std::wstring _err = e.getErrorStr();
+		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
+		throw QRuntimeException(L"10047", L"sorry, system has error.");
+	}
+}
+
 
 void PerfAnalysisReportRepository::queryBind(QSqlStatement &query, PerfAnalysisReport &item, bool isUpdate /*= false*/)
 {

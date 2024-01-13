@@ -30,6 +30,7 @@ public:
 
 	uint64_t create(PerfAnalysisReport & item);
 	int remove(uint64_t id);
+	bool removeBySqlLogId(uint64_t sqlLogId);
 	PerfAnalysisReport getById(uint64_t id);
 	PerfAnalysisReport getBySqlLogId(uint64_t sqlLogId);
 	PerfAnalysisReportList getAll(uint64_t limit = LIMIT_MAX);
@@ -38,5 +39,4 @@ public:
 private:
 	void queryBind(QSqlStatement &query, PerfAnalysisReport &item, bool isUpdate = false);
 	PerfAnalysisReport toPerfAnalysisReport(QSqlStatement &query);
-
 };

@@ -20,6 +20,18 @@
 #include "stdafx.h"
 #include "AnalysisPanel.h"
 
+BOOL AnalysisPanel::PreTranslateMessage(MSG* pMsg)
+{
+	if (leftView.IsWindow() && leftView.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+
+	if (rightView.IsWindow() && rightView.PreTranslateMessage(pMsg)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void AnalysisPanel::createOrShowUI()
 {
 	CRect clientRect;

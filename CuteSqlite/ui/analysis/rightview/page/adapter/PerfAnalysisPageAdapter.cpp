@@ -94,6 +94,6 @@ void PerfAnalysisPageAdapter::save()
 void PerfAnalysisPageAdapter::enableReportSaved()
 {
 	// RightAnalysisView, LeftNavigationView will be accept this msg
-	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SAVE_REPORT_ID, WPARAM(parentHwnd), LPARAM(supplier->getSqlLogId()));
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, WPARAM(parentHwnd), LPARAM(supplier->getSqlLogId()));
 }
 

@@ -26,8 +26,19 @@
 #include "utils/SqlUtil.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "ui/common/message/QPopAnimate.h"
+#include <ui/common/message/QMessageBox.h>
 
 #define NAVIGATION_TOPBAR_HEIGHT 30
+
+BOOL LeftNavigationView::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 
 CRect LeftNavigationView::getTopRect(CRect & clientRect)
 {
@@ -80,8 +91,11 @@ void LeftNavigationView::loadWindow()
 
 int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(LEFT_NAVIGATION_VIEW_ACCEL));
+
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -92,7 +106,7 @@ int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void LeftNavigationView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
-	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -180,6 +194,29 @@ LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BO
 	return 0;
 }
 
+
+LRESULT LeftNavigationView::OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled)
+{
+	CPoint pt; 
+	::GetCursorPos(&pt);
+	CPoint pt2 = pt;
+	navigationTreeView.ScreenToClient(&pt2);
+	UINT uFlag;
+	CTreeItem selItem = navigationTreeView.HitTest(pt2, &uFlag);
+
+	if (!selItem.IsNull()) {
+		navigationTreeView.SelectItem(selItem.m_hTreeItem);
+
+		int nImage = -1, nSeletedImage = -1;
+		bool ret = selItem.GetImage(nImage, nSeletedImage);
+	
+		if (nImage == 5 || nImage == 6) { // 5
+			adapter->popupPerfReportMenu(pt);
+		}
+	}
+	return 0;
+}
+
 /**
  * Handle Config::MSG_ANALYSIS_SQL_ID message from SqlLogPage
  * 
@@ -198,11 +235,38 @@ LRESULT LeftNavigationView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM
 	return 0;
 }
 
-LRESULT LeftNavigationView::OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT LeftNavigationView::OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
 	adapter->savePerfAnalysisReport(sqlLogId);
 
 	return 0;
+}
+
+
+void LeftNavigationView::OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CTreeItem reportTreeItem = navigationTreeView.GetSelectedItem();
+	if (reportTreeItem.IsNull()) {
+		return;
+	}
+	uint64_t sqlLogId = static_cast<uint64_t>(reportTreeItem.GetData());
+	adapter->openPerfAnalysisReport(sqlLogId);
+}
+
+void LeftNavigationView::OnClickDropPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	CTreeItem reportTreeItem = navigationTreeView.GetSelectedItem();
+	if (reportTreeItem.IsNull()) {
+		return;
+	}
+	if (QMessageBox::confirm(m_hWnd, S(L"drop-perf-report-confirm-text")) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		return ;
+	}
+
+	uint64_t sqlLogId = static_cast<uint64_t>(reportTreeItem.GetData());
+	adapter->dropPerfAnalysisReport(sqlLogId);
+
+	navigationTreeView.DeleteItem(reportTreeItem);
 }
 

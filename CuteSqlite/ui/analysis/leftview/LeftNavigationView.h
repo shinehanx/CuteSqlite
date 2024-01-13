@@ -40,8 +40,13 @@ public:
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		NOTIFY_HANDLER(Config::ANALYSIS_NAVIGATION_TREEVIEW_ID, NM_DBLCLK, OnDbClickTreeViewItem)
+		NOTIFY_HANDLER(Config::ANALYSIS_NAVIGATION_TREEVIEW_ID, NM_RCLICK, OnRightClickTreeViewItem)
+
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_OPEN_PERF_REPORT_MENU_ID, OnClickOpenPerfReportMenu)
+		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_DROP_PERF_REPORT_MENU_ID, OnClickDropPerfReportMenu)
+
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
-		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_REPORT_ID, OnHandleAnalysisSaveReport)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
 	END_MSG_MAP()
 private:
 	bool isNeedReload = true;
@@ -52,6 +57,7 @@ private:
 	CBrush topbarBrush;
 	HFONT titleFont = nullptr;
 
+	HACCEL m_hAccel = nullptr;
 	QTreeViewCtrl navigationTreeView;
 
 	LeftNaigationViewAdapter * adapter = nullptr;
@@ -74,6 +80,11 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	// double click treeview item .
 	LRESULT OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+	LRESULT OnRightClickTreeViewItem(int wParam, LPNMHDR lParam, BOOL& bHandled);
+
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	LRESULT OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	void OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnClickDropPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);
 };

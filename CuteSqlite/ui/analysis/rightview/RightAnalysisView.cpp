@@ -40,6 +40,12 @@
 
 BOOL RightAnalysisView::PreTranslateMessage(MSG* pMsg)
 {
+	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
+			return TRUE;
+		}
+	}
+
 	return FALSE;
 }
 
@@ -179,7 +185,7 @@ void RightAnalysisView::createOrShowAnalysisButtons(CRect & clientRect)
 
 	rect.OffsetRect(w + 5, 0);
 	if (!sqlLogButton.IsWindow()) {
-		normalImagePath = imgDir + L"analysis\\toolbar\\sql-log-button-normal.png";
+		normalImagePath = imgDir + L"analysis\\toolbar\\sql-log-button-normal.png"; 
 		pressedImagePath = imgDir + L"analysis\\toolbar\\sql-log-button-pressed.png";
 		sqlLogButton.SetIconPath(normalImagePath, pressedImagePath);
 		sqlLogButton.SetBkgColors(bkgColor, bkgColor, bkgColor);
@@ -235,10 +241,14 @@ void RightAnalysisView::loadTabViewPages()
 
 int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	HINSTANCE ins = ModuleHelper::GetModuleInstance();
+	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(RIGHT_ANALYSIS_VIEW_ACCEL));
+
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -250,8 +260,9 @@ void RightAnalysisView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
-	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ADD_SQL_TO_ANALYSIS_ID);
-	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -313,6 +324,19 @@ LRESULT RightAnalysisView::closeTabViewPage(int nPage)
 			sqlLogPage.DestroyWindow();
 		}
 		return 0;
+	}
+
+	for (auto iter = perfAnalysisPagePtrs.begin(); iter != perfAnalysisPagePtrs.end(); iter++) {
+		auto & ptr = *iter;
+		if (ptr->m_hWnd == pageHwnd) {
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				delete ptr;
+				ptr = nullptr;
+			}
+			perfAnalysisPagePtrs.erase(iter);
+			break;
+		}
 	}
 
 	return 0;  // 0 - force close
@@ -405,7 +429,7 @@ LRESULT RightAnalysisView::OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPAR
 LRESULT RightAnalysisView::OnClickAddSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	std::wstring sql;
-	addSqlToAnalysis(sql);
+	addSqlToAnalysisPerfReport(sql);
 	return 0;
 }
 
@@ -427,8 +451,6 @@ LRESULT RightAnalysisView::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwn
 			return 0;
 		}
 	}
-
-	
 	return 0;
 }
 
@@ -443,21 +465,21 @@ LRESULT RightAnalysisView::OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND 
 	return 0;
 }
 
-LRESULT RightAnalysisView::OnHandleAddSqlToAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT RightAnalysisView::OnHandleAnalysisAddPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	std::wstring sql;
 	if (wParam) {
 		sql = *(std::wstring *)wParam;
 	}
-	addSqlToAnalysis(sql);
+	addSqlToAnalysisPerfReport(sql);
 	return 0;
 }
 
 
-LRESULT RightAnalysisView::OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT RightAnalysisView::OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HWND hwnd = (HWND)wParam;
-	bool sqlLogId = static_cast<uint64_t>(lParam);
+	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
 	if (!hwnd || !sqlLogId) {
 		return 0;
 	}
@@ -477,6 +499,44 @@ LRESULT RightAnalysisView::OnHandleAnalysisSaveReport(UINT uMsg, WPARAM wParam, 
 			uint64_t sqlLogId = ptr->getSqlLogId();
 		}
 	}
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t sqlLogId = static_cast<uint64_t>(lParam);
+	if (!sqlLogId) {
+		return 0;
+	}
+
+	size_t n = perfAnalysisPagePtrs.size();
+	int nPageCount = tabView.GetPageCount();
+	size_t nSelPage = -1;
+	for (auto & iter = perfAnalysisPagePtrs.begin(); iter != perfAnalysisPagePtrs.end(); iter++) {
+		auto ptr = *iter;
+		if (ptr->getSqlLogId() != sqlLogId) {
+			continue;
+		}
+
+		bool isFound = false;
+		for (int j = 0; j < nPageCount; ++j) {
+			if (ptr->m_hWnd == tabView.GetPageHWND(j)) {
+				tabView.RemovePage(j);
+				isFound = true;
+				break;
+			}
+		}
+
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+			delete ptr;
+			ptr = nullptr;
+		}
+		perfAnalysisPagePtrs.erase(iter);
+		break;
+	}
+	
 	return 0;
 }
 
@@ -503,7 +563,7 @@ void RightAnalysisView::doShowSqlLogPage()
 	}
 }
 
-void RightAnalysisView::addSqlToAnalysis(const std::wstring & sql)
+void RightAnalysisView::addSqlToAnalysisPerfReport(const std::wstring & sql)
 {
 	AddSqlDialog dialog(m_hWnd, sql);
 

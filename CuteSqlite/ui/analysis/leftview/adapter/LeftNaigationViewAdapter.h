@@ -31,6 +31,10 @@ public:
 	void loadTreeView();
 	void addPerfAnalysisReport(uint64_t userDbId, uint64_t sqlLogId, bool isSaved = false);
 	void savePerfAnalysisReport(uint64_t sqlLogId);
+	void openPerfAnalysisReport(uint64_t sqlLogId);
+	void dropPerfAnalysisReport(uint64_t sqlLogId);
+
+	void popupPerfReportMenu(CPoint pt);
 private:
 	HICON perfAnalysisIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
@@ -39,6 +43,9 @@ private:
 	HICON sqlLogIcon = nullptr;
 	HICON analysisReportIcon = nullptr;
 	HICON analysisReportDirtyIcon = nullptr;
+
+	HICON openPerfReportIcon = nullptr;
+	HICON dropPerfReportIcon = nullptr;
 
 	CTreeItem hPerfAnalysisItem;
 	CTreeItem hStoreAnalysisItem;
@@ -49,10 +56,12 @@ private:
 	
 	CImageList imageList;
 
+	CMenu perfReportMenu;
+
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();
 
 	void createImageList();
 	void loadReportsForPerfReportsFolder();
-	
+	void createPerfReportMenu();
 };
