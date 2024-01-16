@@ -59,6 +59,7 @@ public:
 
 	SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier, 
 		int enableBtns = SW_USE_BTN | SW_EXPLAIN_BTN | SW_COPY_BTN | SW_TOP_BTN | SW_DELELE_BTN);
+	~SqlLogListItem();
 	void select(bool state);	
 	const ResultInfo & getInfo() { return info; }
 private:

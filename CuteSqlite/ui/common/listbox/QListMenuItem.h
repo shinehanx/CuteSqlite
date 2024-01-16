@@ -47,6 +47,7 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
+	~QListMenuItem();
 	// 按钮的鼠标点击状态
 	typedef enum {
 		kStatusNormal,

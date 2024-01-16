@@ -32,6 +32,11 @@ SelectColumnsAnalysisElem::SelectColumnsAnalysisElem(const SelectColumns & _sele
 }
 
 
+SelectColumnsAnalysisElem::~SelectColumnsAnalysisElem()
+{
+	m_hWnd = nullptr;
+}
+
 const Columns SelectColumnsAnalysisElem::getSelectedColumns()
 {
 	Columns selectedColumns;
@@ -199,10 +204,11 @@ void SelectColumnsAnalysisElem::clearSelectColumnCheckBoxPtrs()
 	for (auto ptr : selectColumnCheckBoxPtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 		}
 		if (ptr) {
-			//delete ptr;
-			//ptr = nullptr;
+			delete ptr;
+			ptr = nullptr;
 		}
 	}
 	selectColumnCheckBoxPtrs.clear();

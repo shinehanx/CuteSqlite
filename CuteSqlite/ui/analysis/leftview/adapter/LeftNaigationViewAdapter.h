@@ -22,6 +22,7 @@
 #include "core/entity/Entity.h"
 #include "core/service/sqllog/SqlLogService.h"
 #include "core/service/analysis/SelectSqlAnalysisService.h"
+#include "core/service/db/DatabaseService.h"
 
 class LeftNaigationViewAdapter : public QAdapter<LeftNaigationViewAdapter, CTreeViewCtrlEx>
 {
@@ -43,6 +44,8 @@ private:
 	HICON sqlLogIcon = nullptr;
 	HICON analysisReportIcon = nullptr;
 	HICON analysisReportDirtyIcon = nullptr;
+	HICON dbStoreAnalysisIcon = nullptr;
+	HICON subDbParamsIcon = nullptr;
 
 	HICON openPerfReportIcon = nullptr;
 	HICON dropPerfReportIcon = nullptr;
@@ -60,8 +63,13 @@ private:
 
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 	SelectSqlAnalysisService * selectSqlAnalysisService = SelectSqlAnalysisService::getInstance();
+	DatabaseService * databaseService = DatabaseService::getInstance();
 
 	void createImageList();
 	void loadReportsForPerfReportsFolder();
+	void loadDatabseForStoreAnalysisItem();
+	void loadDatabseForDbParamsItem();
 	void createPerfReportMenu();
+	void addDatabaseToStoreAnalysisItem(UserDb & userDb);
+	void addDatabaseToDbParamsItem(UserDb & userDb);
 };

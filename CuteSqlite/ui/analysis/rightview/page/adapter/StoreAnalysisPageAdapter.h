@@ -11,22 +11,27 @@
 
  * limitations under the License.
 
- * @file   QTreeViewCtrl.cpp
+ * @file   StoreAnalysisPageAdapter.h
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-10-11
+ * @date   2023-12-01
  *********************************************************************/
-#include "stdafx.h"
-#include "QTreeViewCtrl.h"
+#pragma once
+#include "ui/common/adapter/QAdapter.h"
+#include "core/entity/Entity.h"
+#include "ui/analysis/rightview/page/supplier/StoreAnalysisSupplier.h"
+#include "core/service/db/DatabaseService.h"
 
-
-QTreeViewCtrl::~QTreeViewCtrl()
+class StoreAnalysisPageAdapter : public QAdapter<StoreAnalysisPageAdapter, CWindow>
 {
-	m_hWnd = nullptr;
-}
+public:
+	StoreAnalysisPageAdapter(HWND parentHwnd, CWindow * view, StoreAnalysisSupplier * supplier = nullptr);
+	~StoreAnalysisPageAdapter();
 
-BOOL QTreeViewCtrl::OnEraseBkgnd(CDCHandle dc)
-{
-	return FALSE;
-}
+private:
+	
+	StoreAnalysisSupplier * supplier = nullptr;
+	DatabaseService * databaseService = DatabaseService::getInstance();
+	
+};

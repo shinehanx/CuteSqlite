@@ -61,12 +61,14 @@ void RightAnalysisView::createImageList()
 	sqlLogIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\sql-log.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	perfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	perfReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	storeAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\store-analysis.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(firstIcon); // 0 - first
 	imageList.AddIcon(sqlLogIcon); // 1 - sql log
 	imageList.AddIcon(perfReportIcon); // 2 - perf report
 	imageList.AddIcon(perfReportDirtyIcon); // 3 - perf report not saved
+	imageList.AddIcon(storeAnalysisIcon); // 4 - database store analysis
 }
 
 CRect RightAnalysisView::getTopRect(CRect & clientRect)
@@ -157,6 +159,19 @@ void RightAnalysisView::createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRec
 }
 
 
+void RightAnalysisView::createOrShowStoreAnalysisPage(StoreAnalysisPage &win, CRect & clientRect, bool isAllowCreate /*= true*/)
+{
+	CRect tabRect = getTabRect(clientRect);
+	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (isAllowCreate && IsWindow() && !win.IsWindow()) {
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);		
+	} else if (IsWindow() && tabView.IsWindow() && win.IsWindow()) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+	}
+}
+
 void RightAnalysisView::createOrShowToolButtons(CRect & clientRect)
 {
 	createOrShowAnalysisButtons(clientRect);
@@ -246,6 +261,8 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DB_STORE_ANALYSIS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DB_PARAMS_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
@@ -260,6 +277,8 @@ void RightAnalysisView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DB_STORE_ANALYSIS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DB_PARAMS_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
@@ -270,6 +289,7 @@ void RightAnalysisView::OnDestroy()
 	if (!sqlLogIcon) ::DeleteObject(sqlLogIcon);
 	if (!perfReportIcon) ::DeleteObject(perfReportIcon);
 	if (!perfReportDirtyIcon) ::DeleteObject(perfReportDirtyIcon);
+	if (!storeAnalysisIcon) ::DeleteObject(storeAnalysisIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	if (firstPage.IsWindow()) firstPage.DestroyWindow();
@@ -331,6 +351,7 @@ LRESULT RightAnalysisView::closeTabViewPage(int nPage)
 		if (ptr->m_hWnd == pageHwnd) {
 			if (ptr && ptr->IsWindow()) {
 				ptr->DestroyWindow();
+				ptr->m_hWnd = NULL;
 				delete ptr;
 				ptr = nullptr;
 			}
@@ -348,10 +369,11 @@ void RightAnalysisView::clearPerfAnalysisPagePtrs()
 	for (auto ptr : perfAnalysisPagePtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = NULL;
 		}
 		if (ptr) {
-			//delete ptr;
-			//ptr = nullptr;
+			delete ptr;
+			ptr = nullptr;
 		}
 	}
 	perfAnalysisPagePtrs.clear();
@@ -376,8 +398,16 @@ LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM 
 	if (!sqlLogId) {
 		Q_ERROR(L"analysis failed, sqlLogId is empty");
 		QPopAnimate::error(S(L"sql-log-id-empty"));
+		return 0;
 	}
-	SqlLog sqlLog = sqlLogService->getSqlLog(sqlLogId);
+	SqlLog sqlLog;
+	try {
+		sqlLog = sqlLogService->getSqlLog(sqlLogId);
+	} catch (QRuntimeException &ex) {
+		Q_ERROR(L"analysis failed, get sql log has error, code:{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return 0;
+	}
 	if (sqlLog.sql.empty()) {
 		Q_ERROR(L"analysis failed, sql log not found in database, sqlLogId:{}", sqlLogId);
 		QPopAnimate::error(S(L"sql-log-not-found"));
@@ -416,6 +446,54 @@ LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM 
 	}
 	tabView.AddPage(newPage->m_hWnd, StringUtil::blkToTail(title).c_str(), nImage, newPage->m_hWnd);
 	
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+
+	CRect clientRect;
+	GetClientRect(clientRect);
+	CRect tabRect = getTabRect(clientRect);
+
+	UserDb userDb;
+	try {
+		userDb = databaseService->getUserDb(userDbId);
+	} catch (QRuntimeException &ex) {
+		Q_ERROR(L"analysis failed, get sql log has error, code:{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return 0;
+	}
+	
+	for (auto ptr : storeAnalysisPagePtrs) {
+		if (ptr->getUserDbId() == userDbId) {
+			int n = tabView.GetPageCount();
+			for (int i = 0; i < n; i++) {
+				if (tabView.GetPageHWND(i) != ptr->m_hWnd) {
+					continue;
+				}
+				tabView.SetActivePage(i);
+				return 0;
+			}
+		}
+	}
+	
+	StoreAnalysisPage * newPage = new StoreAnalysisPage(userDbId);
+	createOrShowStoreAnalysisPage(*newPage, clientRect, true);
+	storeAnalysisPagePtrs.push_back(newPage);
+	std::wstring title = S(L"store-analysis-prefix");
+	title.append(userDb.name); 
+	int nImage = 4;
+	tabView.AddPage(newPage->m_hWnd, StringUtil::blkToTail(title).c_str(), nImage, newPage->m_hWnd);
+	
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleDbParams(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
 	return 0;
 }
 
@@ -530,6 +608,7 @@ LRESULT RightAnalysisView::OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wPar
 
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 			delete ptr;
 			ptr = nullptr;
 		}

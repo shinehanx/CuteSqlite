@@ -41,6 +41,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	~QSearchEdit();
 	void setFont(HFONT font);
 	void setCueBanner(std::wstring &cueBanner);
 	void setSel(int nStartChar, int nEndChar, BOOL bNoScroll = FALSE);

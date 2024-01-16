@@ -50,8 +50,14 @@ LeftNaigationViewAdapter::~LeftNaigationViewAdapter()
 	if (sqlLogIcon) ::DeleteObject(sqlLogIcon);
 	if (analysisReportIcon) ::DeleteObject(analysisReportIcon);
 	if (analysisReportDirtyIcon) ::DeleteObject(analysisReportDirtyIcon);
+	if (dbStoreAnalysisIcon) ::DeleteObject(dbStoreAnalysisIcon);
+	if (subDbParamsIcon) ::DeleteObject(subDbParamsIcon);
+
+	if (openPerfReportIcon) ::DeleteObject(openPerfReportIcon);
+	if (dropPerfReportIcon) ::DeleteObject(dropPerfReportIcon);
 
 	if (!imageList.IsNull()) imageList.Destroy();
+	if (!perfReportMenu.IsNull()) perfReportMenu.DestroyMenu();
 }
 
 void LeftNaigationViewAdapter::createImageList()
@@ -68,6 +74,8 @@ void LeftNaigationViewAdapter::createImageList()
 	sqlLogIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\sql-log.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	analysisReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	analysisReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dbStoreAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	subDbParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(perfAnalysisIcon); // 0 - performance analysis	
@@ -77,6 +85,8 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(sqlLogIcon); // 4- sql log
 	imageList.AddIcon(analysisReportIcon); // 5- perf analysis report
 	imageList.AddIcon(analysisReportDirtyIcon); // 6- dirty perf analysis report 
+	imageList.AddIcon(dbStoreAnalysisIcon); // 7- database store analysis 
+	imageList.AddIcon(subDbParamsIcon); // 8- database params
 	
 	openPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\open-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dropPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\drop-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
@@ -95,16 +105,26 @@ void LeftNaigationViewAdapter::loadTreeView()
 	hSqlLogItem = dataView->InsertItem(S(L"sql-log").c_str(), 4, 4, hPerfAnalysisItem, TVI_LAST);
 	hPerfReportsFolderItem = dataView->InsertItem(S(L"perf-analysis-reports").c_str(), 3, 3, hPerfAnalysisItem, TVI_LAST);
 	loadReportsForPerfReportsFolder();
+	loadDatabseForStoreAnalysisItem();
+	loadDatabseForDbParamsItem();
 	
 	// Store Analysis	
 	dataView->Expand(hPerfAnalysisItem);
 	dataView->Expand(hPerfReportsFolderItem);
-
+	dataView->Expand(hStoreAnalysisItem);
+	dataView->Expand(hDbParamsItem);
 }
 
 void LeftNaigationViewAdapter::loadReportsForPerfReportsFolder()
 {
-	auto reportList = selectSqlAnalysisService->getPerfAnalysisReportList();
+	PerfAnalysisReportList reportList;
+	try {
+		reportList = selectSqlAnalysisService->getPerfAnalysisReportList();
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+
 	for (auto & report : reportList) {
 		addPerfAnalysisReport(report.userDbId, report.sqlLogId, true);
 	}
@@ -156,6 +176,84 @@ void LeftNaigationViewAdapter::addPerfAnalysisReport(uint64_t userDbId, uint64_t
 	reportTreeItem.Select();
 }
 
+void LeftNaigationViewAdapter::loadDatabseForStoreAnalysisItem()
+{
+	UserDbList dbs;
+	try {
+		dbs = databaseService->getAllUserDbs();
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+
+	for (auto & db : dbs) {
+		addDatabaseToStoreAnalysisItem(db);
+	}
+}
+
+
+void LeftNaigationViewAdapter::loadDatabseForDbParamsItem()
+{
+	UserDbList dbs;
+	try {
+		dbs = databaseService->getAllUserDbs();
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+
+	for (auto & db : dbs) {
+		addDatabaseToDbParamsItem(db);
+	}
+}
+
+void LeftNaigationViewAdapter::addDatabaseToStoreAnalysisItem(UserDb & userDb)
+{
+	ATLASSERT(userDb.id);
+
+	std::wstring title = userDb.name;
+	CTreeItem childItem = hStoreAnalysisItem.GetChild();
+	bool isFound = false;
+	while (!childItem.IsNull()) {
+		uint64_t itemData = static_cast<uint64_t>(childItem.GetData());
+		if (itemData == userDb.id) {
+			isFound = true;
+			break;
+		}
+		childItem = childItem.GetNextSibling();
+	}
+	if (isFound) {
+		return;
+	}
+	int iImage = 7; // 7 - database store analysis
+	CTreeItem treeItem = dataView->InsertItem(title.c_str(), iImage, iImage, hStoreAnalysisItem, TVI_LAST);
+	treeItem.SetData(userDb.id);
+}
+
+
+void LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
+{
+	ATLASSERT(userDb.id);
+
+	std::wstring title = userDb.name;
+	CTreeItem childItem = hDbParamsItem.GetChild();
+	bool isFound = false;
+	while (!childItem.IsNull()) {
+		uint64_t itemData = static_cast<uint64_t>(childItem.GetData());
+		if (itemData == userDb.id) {
+			isFound = true;
+			break;
+		}
+		childItem = childItem.GetNextSibling();
+	}
+	if (isFound) {
+		return;
+	}
+	int iImage = 8; // 8 - database params
+	CTreeItem treeItem = dataView->InsertItem(title.c_str(), iImage, iImage, hDbParamsItem, TVI_LAST);
+	treeItem.SetData(userDb.id);
+}
+
 void LeftNaigationViewAdapter::savePerfAnalysisReport(uint64_t sqlLogId)
 {
 	if (!sqlLogId) {
@@ -204,6 +302,7 @@ void LeftNaigationViewAdapter::createPerfReportMenu()
 	MenuUtil::addIconToMenuItem(perfReportMenu.m_hMenu, Config::ANALYSIS_DROP_PERF_REPORT_MENU_ID, MF_BYCOMMAND, dropPerfReportIcon);
 	
 }
+
 
 void LeftNaigationViewAdapter::popupPerfReportMenu(CPoint pt)
 {

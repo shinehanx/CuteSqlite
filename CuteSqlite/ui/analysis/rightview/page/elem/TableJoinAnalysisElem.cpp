@@ -31,6 +31,12 @@ TableJoinAnalysisElem::TableJoinAnalysisElem(const std::wstring &_selectColumnSt
 	
 }
 
+
+TableJoinAnalysisElem::~TableJoinAnalysisElem()
+{
+	m_hWnd = nullptr;
+}
+
 int TableJoinAnalysisElem::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bkgBrush.CreateSolidBrush(bkgColor);

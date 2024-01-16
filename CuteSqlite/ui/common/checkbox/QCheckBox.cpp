@@ -4,6 +4,11 @@
 #include "utils/FontUtil.h"
 
 
+QCheckBox::~QCheckBox()
+{
+	m_hWnd = nullptr;
+}
+
 void QCheckBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
 	CRect clientRect(lpDrawItemStruct->rcItem);

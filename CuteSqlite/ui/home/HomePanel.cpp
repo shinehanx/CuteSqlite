@@ -163,9 +163,11 @@ void HomePanel::clearDbListItemPtrs()
 		auto ptr = dbListItemPtrs.at(i);
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 			delete ptr;
 			ptr = nullptr;
 		}else if (ptr) {
+			ptr->m_hWnd = nullptr;
 			delete ptr;
 			ptr = nullptr;
 		}

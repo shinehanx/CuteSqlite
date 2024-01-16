@@ -122,6 +122,11 @@ BOOL QImageTextButton::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+QImageTextButton::~QImageTextButton()
+{
+	m_hWnd = nullptr;
+}
+
 void QImageTextButton::setText(std::wstring & text)
 {
 	label.SetWindowText(text.c_str());

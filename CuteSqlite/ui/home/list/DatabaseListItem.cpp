@@ -30,6 +30,11 @@ DatabaseListItem::DatabaseListItem(UserDb & _userDb)
 }
 
 
+DatabaseListItem::~DatabaseListItem()
+{
+	m_hWnd = nullptr;
+}
+
 uint64_t DatabaseListItem::getUserDbId()
 {
 	return userDb.id;

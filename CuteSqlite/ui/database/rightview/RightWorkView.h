@@ -131,6 +131,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	~RightWorkView();
 private:
 	bool isNeedReload = true;
 	bool isInitedPages = false;

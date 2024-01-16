@@ -45,7 +45,7 @@ QImage::QImage(CBitmap * _bitmap)
 
 QImage::~QImage()
 {
-	
+	m_hWnd = nullptr;
 }
 
 void QImage::load(HBITMAP _hBitmap)

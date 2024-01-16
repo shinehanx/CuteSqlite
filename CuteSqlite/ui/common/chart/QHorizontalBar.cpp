@@ -1,30 +1,47 @@
 #include "stdafx.h"
 #include <string>
-#include "QProcessBar.h"
+#include "QHorizontalBar.h"
 #include "core/common/Lang.h"
 
-QProcessBar::~QProcessBar()
+QHorizontalBar::QHorizontalBar(double val, double maxVal)
+{
+	if (maxVal == 0 || val > maxVal) {
+		percent = 0;
+		return;
+	}
+	if (val == 1) {
+		percent = 1;
+		return;
+	}
+	this->percent = int(round(val * 100.0 / maxVal));
+}
+
+QHorizontalBar::~QHorizontalBar()
 {
 	m_hWnd = nullptr;
 }
 
-void QProcessBar::run(int percent)
+void QHorizontalBar::draw(double val, double maxVal)
 {
-	this->percent = percent;
-	if (percent <= 5) {
-		this->err.clear();
+	if (maxVal == 0 || val > maxVal) {
+		percent = 0;
+		return;
 	}
-	
+	if (val == 1) {
+		percent = 1;
+		return;
+	}
+	this->percent = int(round(val * 100.0 / maxVal));	
 	Invalidate(true);
 }
 
-void QProcessBar::error(const std::wstring & err)
+void QHorizontalBar::error(const std::wstring & err)
 {
 	this->err = err;
 	Invalidate(true);
 }
 
-void QProcessBar::reset()
+void QHorizontalBar::reset()
 {
 	this->percent = 0;
 	this->err.clear();
@@ -37,7 +54,7 @@ void QProcessBar::reset()
  * @param bkgColor 背景颜色
  * @param processColor 进度颜色.
  */
-void QProcessBar::setColors(COLORREF bkgColor, COLORREF processColor)
+void QHorizontalBar::setColors(COLORREF bkgColor, COLORREF processColor)
 {
 	this->bkgColor = bkgColor;
 	this->processColor = processColor;
@@ -49,7 +66,7 @@ void QProcessBar::setColors(COLORREF bkgColor, COLORREF processColor)
 	processBrush.CreateSolidBrush(processColor);
 }
 
-LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT QHorizontalBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	bkgBrush.CreateSolidBrush(bkgColor);
 	processBrush.CreateSolidBrush(processColor);
@@ -67,7 +84,7 @@ LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 	return 0;
 }
 
-LRESULT QProcessBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT QHorizontalBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!processBrush.IsNull()) processBrush.DeleteObject();
@@ -77,7 +94,7 @@ LRESULT QProcessBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 	return 0;
 }
 
-LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	CPaintDC pdc(m_hWnd);
 	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
@@ -103,17 +120,17 @@ LRESULT QProcessBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 		return 0;
 	}
 
-	std::wstring text = std::to_wstring(percent);
+	std::wstring text = std::to_wstring(val);
 	text.append(L"%");
 
 	UINT uFormat = DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS;
 	HFONT oldFont = mdc.SelectFont(textFont);
 	HPEN oldPen = mdc.SelectPen(textPen);
-	x = (clientRect.Width() - 80) / 2, y = rect.top + 2, w = 80, h = 20;
+	x = 5, y = rect.top + 2, w = 80, h = 20;
 	CRect textRect(x, y, x + w, y + h);
 	COLORREF oldTextColor = mdc.SetTextColor(textColor);
-	COLORREF textBkColor = err.empty() ? processColor : errorColor;
-	textBkColor = percent < 60 ? bkgColor : textBkColor;
+	COLORREF textBkColor =  processColor;
+	textBkColor = bkgColor ;
 	COLORREF oldTextBkgColor = mdc.SetBkColor(textBkColor);
 	mdc.DrawText(text.c_str(), static_cast<int>(text.size()), textRect, uFormat);
 	mdc.SetTextColor(oldTextColor);

@@ -39,7 +39,7 @@ public:
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER_EX(Config::MSG_ACTIVE_PANEL_ID, OnActivePanel)
 	END_MSG_MAP()
-
+	~HomeView();
 	void createOrShowUI();
 private:
 	// left panel

@@ -47,6 +47,7 @@ public:
 		NOTIFY_CODE_HANDLER(TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+	~ResultTabView();
 
 	void setup(QueryPageSupplier * supplier);
 	HWND getActiveResultListPageHwnd();

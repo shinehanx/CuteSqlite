@@ -23,6 +23,11 @@
 #include "utils/GdiPlusUtil.h"
 #include "core/common/Lang.h"
 
+QSettingView::~QSettingView()
+{
+	m_hWnd = nullptr;
+}
+
 LRESULT QSettingView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	bkgBrush = ::CreateSolidBrush(bkgColor);

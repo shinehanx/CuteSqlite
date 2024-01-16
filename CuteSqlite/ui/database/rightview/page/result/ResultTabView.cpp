@@ -48,6 +48,11 @@ BOOL ResultTabView::PreTranslateMessage(MSG* pMsg)
 	return false;
 }
 
+ResultTabView::~ResultTabView()
+{
+	m_hWnd = nullptr;
+}
+
 HWND ResultTabView::getActiveResultListPageHwnd()
 {
 	if (resultListPagePtrs.empty()) {
@@ -128,10 +133,12 @@ void ResultTabView::clearResultListPage()
 			}
 			if (resultListPagePtr->IsWindow()) {
 				resultListPagePtr->DestroyWindow();
+				resultListPagePtr->m_hWnd = nullptr;
 			}
 			delete resultListPagePtr;
 			resultListPagePtr = nullptr;
 		} else if (resultListPagePtr) {
+			resultListPagePtr->m_hWnd = nullptr;
 			delete resultListPagePtr;
 			resultListPagePtr = nullptr;
 		}
@@ -192,10 +199,12 @@ void ResultTabView::removeResultListPageFrom(int nSelectSqlCount)
 			// Notice : tabView.RemovePage(j) has DestroyWindow
 			if (ptr->IsWindow()) {
 				ptr->DestroyWindow();
+				ptr->m_hWnd = NULL;
 			}
 			delete ptr;
 			ptr = nullptr;
 		} else if (ptr) {
+			ptr->m_hWnd = NULL;
 			delete ptr;
 			ptr = nullptr;
 		}

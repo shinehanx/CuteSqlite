@@ -72,6 +72,7 @@ public:
 		CHAIN_MSG_MAP_ALT(COwnerDraw<QListViewCtrl>, 1)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
+	~QListViewCtrl();
 	void enabledCheckBox(bool val) { hasCheckBox = val; };
 
 	// editor

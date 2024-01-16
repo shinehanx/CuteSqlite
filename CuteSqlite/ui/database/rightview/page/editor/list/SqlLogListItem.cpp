@@ -39,6 +39,11 @@ SqlLogListItem::SqlLogListItem(ResultInfo & info, QueryPageSupplier * supplier, 
 	this->enableBtns = enableBtns;
 }
 
+SqlLogListItem::~SqlLogListItem()
+{
+	m_hWnd = nullptr;
+}
+
 void SqlLogListItem::select(bool state)
 {
 	selectState = state;

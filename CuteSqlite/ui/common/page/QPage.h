@@ -46,6 +46,7 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
+	~QPage();
 protected:
 	bool isNeedReload = true;
 	COLORREF bkgColor = RGB(255, 255, 255);

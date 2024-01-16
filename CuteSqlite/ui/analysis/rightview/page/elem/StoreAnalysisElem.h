@@ -11,7 +11,7 @@
 
  * limitations under the License.
 
- * @file   WhereAnalysisTableIdxElem.h
+ * @file   TableIndexAnalysisElem.h
  * @brief  table index elem UI used for where clause or order by clause analysis in PerAnalysisPage
  * 
  * @author Xuehan Qin
@@ -24,32 +24,29 @@
 #include "common/Config.h"
 #include "core/entity/Entity.h"
 #include "core/service/db/TableService.h"
+#include "ui/common/chart/QHorizontalBar.h"
 
-class WhereOrderClauseAnalysisElem : public CWindowImpl<WhereOrderClauseAnalysisElem>
+class StoreAnalysisElem : public CWindowImpl<StoreAnalysisElem>
 {
 public:
-	BEGIN_MSG_MAP_EX(WhereOrderClauseAnalysisElem)
+	BEGIN_MSG_MAP_EX(StoreAnalysisElem)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		MSG_WM_SHOWWINDOW(OnShowWindow)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
-		COMMAND_HANDLER_EX(Config::ANALYSIS_CREATE_INDEX_BUTTON_ID, BN_CLICKED, OnClickCreateIdxButton)
-		COMMAND_RANGE_HANDLER_EX(Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_START, Config::ANALYSIS_INDEX_COLUMN_CHECKBOX_ID_END, OnClickTableColumnCheckBox)
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLORBTN(OnCtlBtnColor)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
-	WhereOrderClauseAnalysisElem(SqlClauseType _clauseType, const ByteCodeResult & _byteCodeResult);
-	~WhereOrderClauseAnalysisElem();
-	const ByteCodeResult & getByteCodeResult() const { return byteCodeResult; }
-	const Columns getSelectedColumns();
+	StoreAnalysisElem(const std::wstring & _title, const StoreAnalysisItems & _storeAnalysisItems);
+	~StoreAnalysisElem();
 private:
 	bool isNeedReload = true;
-	SqlClauseType clauseType = WHERE_CLAUSE;
-	const ByteCodeResult & byteCodeResult;
-
+	const std::wstring & title;
+	const StoreAnalysisItems & storeAnalysisItems;
+	
 	//COLORREF bkgColor = RGB(238, 238, 238);	
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF textColor = RGB(64, 64, 64);
@@ -59,23 +56,17 @@ private:
 	CBrush bkgBrush;
 	HFONT textFont = nullptr;
 
-	CStatic tableLabel;
-	CStatic useColsLabel;
-	CStatic useIdxLabel;
-	CStatic createIdxForPerfLabel;
-	std::vector<CButton *> tableColumnCheckBoxPtrs;
-	CButton createIdxButton;
-
-	bool foundInOtherIndex = false;
-	TableService * tableService = TableService::getInstance();
-
+	CStatic titleLabel;
+	std::vector<CStatic *> labelPtrs;
+	std::vector<QHorizontalBar *> valPtrs;
+	
 	void createOrShowUI();
 	void createOrShowLabels(CRect & clientRect);
-	void createOrShowCheckBoxes(CRect & clientRect);
-	void createOrShowButtons(CRect & clientRect);
-	void createOrShowButton(HWND hwnd, CButton & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
-
-	void clearTableColumnCheckBoxPtrs();
+	void createOrShowElems(CRect & clientRect);
+	void createOrShowHorizontalBar(QHorizontalBar &win, CRect & rect, CRect clientRect);
+	
+	void clearLabelPtrs();
+	void clearValPtrs();
 
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	void OnDestroy();
@@ -85,9 +76,5 @@ private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlBtnColor(HDC hdc, HWND hwnd);
-	LRESULT OnClickCreateIdxButton(UINT uNotifyCode, int nID, HWND hwnd);
-	void OnClickTableColumnCheckBox(UINT uNotifyCode, int nID, CWindow wndCtl);
-	
-	bool isEqualColumns(std::vector<std::wstring> cluaseColumns, std::vector<std::pair<int, std::wstring>> indexColumns);
-	
+
 };

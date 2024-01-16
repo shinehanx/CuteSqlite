@@ -41,6 +41,8 @@ public:
 		// REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	~QSqlEdit();
+
 	HWND Create(HWND hWndParent, const ATL::_U_RECT& rect, DWORD dwExStyle = 0, UINT nID = 0);
 
 	void initEdit(int nSize, const TCHAR* face);

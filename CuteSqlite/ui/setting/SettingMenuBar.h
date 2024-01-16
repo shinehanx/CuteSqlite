@@ -33,7 +33,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_MENU_ITEM_CLICK_ID, OnClickMenuItem) // 响应子窗口QListMenu analysisMenu发来的消息：菜单下的项被点击了
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-
+	~SettingMenuBar();
 	void setup();
 	void createOrShowUI();
 	void loadWindow();

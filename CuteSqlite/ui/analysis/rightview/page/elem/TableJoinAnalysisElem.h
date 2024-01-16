@@ -39,6 +39,7 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 	TableJoinAnalysisElem(const std::wstring &_selectColumnStr, const ByteCodeResults & _byteCodeResults);
+	~TableJoinAnalysisElem();
 	const ByteCodeResults & getByteCodeResults() const { return byteCodeResults; }
 private:
 	bool isNeedReload = true;

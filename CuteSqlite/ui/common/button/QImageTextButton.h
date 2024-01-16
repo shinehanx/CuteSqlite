@@ -37,7 +37,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
-
+	~QImageTextButton();
 	void setButtonId(Config::FrmButtonId buttonId);
 	void setup(wstring & text, CPoint point, std::vector<wstring> & imagePathVector);
 	void setText(std::wstring & text);

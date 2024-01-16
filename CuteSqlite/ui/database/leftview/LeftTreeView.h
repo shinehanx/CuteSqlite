@@ -35,6 +35,7 @@ class LeftTreeView : public CWindowImpl<LeftTreeView>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
+	~LeftTreeView();
 
 	DECLARE_WND_CLASS(NULL)
 

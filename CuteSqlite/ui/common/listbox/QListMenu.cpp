@@ -32,6 +32,11 @@ BOOL QListMenu::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+QListMenu::~QListMenu()
+{
+	m_hWnd = nullptr;
+}
+
 /**
  * Ìí¼Ó²Ëµ¥Ïî.
  * 

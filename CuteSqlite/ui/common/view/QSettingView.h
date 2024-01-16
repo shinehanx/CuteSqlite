@@ -41,6 +41,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	~QSettingView();
 	void setIsNeedReload(bool isNeed) {
 		isNeedReload = isNeed;
 	}

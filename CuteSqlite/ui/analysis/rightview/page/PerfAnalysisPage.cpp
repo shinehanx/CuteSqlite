@@ -40,6 +40,11 @@ PerfAnalysisPage::PerfAnalysisPage(uint64_t sqlLogId)
 }
 
 
+PerfAnalysisPage::~PerfAnalysisPage()
+{
+	m_hWnd = nullptr;
+}
+
 uint64_t PerfAnalysisPage::getSqlLogId()
 {
 	return supplier.getSqlLogId();
@@ -543,6 +548,7 @@ void PerfAnalysisPage::clearExpQueryPlanPtrs()
 	for (auto ptr : expQueryPlanPtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 		}
 		if (ptr) {
 			delete ptr;
@@ -571,6 +577,7 @@ void PerfAnalysisPage::clearCoveringIndexElemPtrs()
 	for (auto ptr : coveringIndexElemPtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 		}
 		if (ptr) {
 			delete ptr;
@@ -641,7 +648,6 @@ int PerfAnalysisPage::OnDestroy()
 	if (refreshButton.IsWindow()) refreshButton.DestroyWindow();
 	if (origSqlLabel.IsWindow()) origSqlLabel.DestroyWindow();
 	if (origSqlEditor.IsWindow()) origSqlEditor.DestroyWindow();
-	if (newSqlEditor.IsWindow()) newSqlEditor.DestroyWindow();
 
 	if (tableJoinAnalysisElem && tableJoinAnalysisElem->IsWindow()) {
 		tableJoinAnalysisElem->DestroyWindow();

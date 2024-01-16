@@ -204,6 +204,12 @@ LRESULT QListMenuItem::OnSetText(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return 0;
 }
 
+
+QListMenuItem::~QListMenuItem()
+{
+	m_hWnd = nullptr;
+}
+
 void QListMenuItem::setTextColor(COLORREF color)
 {
 	color_text = color;

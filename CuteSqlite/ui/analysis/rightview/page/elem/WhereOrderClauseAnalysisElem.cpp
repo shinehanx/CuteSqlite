@@ -32,6 +32,11 @@ WhereOrderClauseAnalysisElem::WhereOrderClauseAnalysisElem(SqlClauseType _clause
 }
 
 
+WhereOrderClauseAnalysisElem::~WhereOrderClauseAnalysisElem()
+{
+	m_hWnd = nullptr;
+}
+
 const Columns WhereOrderClauseAnalysisElem::getSelectedColumns()
 {
 	Columns selectedColumns;
@@ -392,10 +397,11 @@ void WhereOrderClauseAnalysisElem::clearTableColumnCheckBoxPtrs()
 	for (auto ptr : tableColumnCheckBoxPtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 		}
 		if (ptr) {
-			//delete ptr;
-			//ptr = nullptr;
+			delete ptr;
+			ptr = nullptr;
 		}
 	}
 	tableColumnCheckBoxPtrs.clear();

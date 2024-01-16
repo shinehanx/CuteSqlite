@@ -33,6 +33,11 @@ BOOL DatabasePanel::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+DatabasePanel::~DatabasePanel()
+{
+	m_hWnd = nullptr;
+}
+
 void DatabasePanel::createOrShowUI()
 {
 	CRect clientRect;

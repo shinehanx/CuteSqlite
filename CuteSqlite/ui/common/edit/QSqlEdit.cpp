@@ -95,6 +95,11 @@ BOOL QSqlEdit::PreTranslateMessage(MSG* pMsg)
 }
 
 
+QSqlEdit::~QSqlEdit()
+{
+	m_hWnd = nullptr;
+}
+
 void QSqlEdit::init()
 {
 	// clear all text styles

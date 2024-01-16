@@ -206,6 +206,9 @@ typedef enum {
 
 	// SETTING PANEL
 	SETTING_LANGUAGE_COMBOBOX_ID,
+
+	// ANALYSIS PANEL - STORE_ANALYSIS_PAGE
+	ANALYSIS_DB_STORE_TBL_COMBOBOX_ID,
 } ComboBoxId;
 
 
@@ -516,9 +519,11 @@ typedef enum {
 	MSG_ANALYSIS_CREATE_INDEX_ID, // Send this msg to parent when clicking WhereOrderClauseAnalysisElem::createIdxButton , wParam = WhereOrderClauseAnalysisElem::this, lParam =NULL
 	MSG_CHANGE_LANGUAGE_ID, // Send this msg when select item in SettingPanel.GeneralSettingView.changeLanguageComboBox,
 
-	MSG_ANALYSIS_SQL_ID, // When analysis button has clicked in the SqlLogPage, send this msg to RightAnalysisView for open PerfAnalysisPage, wParam=userDbId, lParam = sqlLogId
+	MSG_ANALYSIS_SQL_ID, // When the tree item(iImage=5/6) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open PerfAnalysisPage, wParam=userDbId, lParam = sqlLogId
 	MSG_ANALYSIS_SAVE_PERF_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
 	MSG_ANALYSIS_DROP_PERF_REPORT_ID, // When drop report menu has clicked in the SqlLogPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId, lParam = sqlLogId
+	MSG_DB_STORE_ANALYSIS_ID,  // When the tree item(iImage=7) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open StoreAnalysisPage, wParam=userDbId, lParam = NULL
+	MSG_DB_PARAMS_ID,  // When the tree item(iImage=8) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbParamsPage, wParam=userDbId, lParam = NULL
 }MessageId;
 
 typedef enum {	

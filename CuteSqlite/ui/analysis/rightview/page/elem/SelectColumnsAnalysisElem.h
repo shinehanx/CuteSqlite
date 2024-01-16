@@ -41,6 +41,7 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 	SelectColumnsAnalysisElem(const SelectColumns & _selectColumns);
+	~SelectColumnsAnalysisElem();
 	const SelectColumns & getSelectColumns() const { return selectColumns; }
 	const Columns getSelectedColumns();
 private:

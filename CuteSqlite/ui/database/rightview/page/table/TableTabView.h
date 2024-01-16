@@ -47,7 +47,8 @@ public:
 		MESSAGE_HANDLER(Config::MSG_TABLE_STRUCTURE_DIRTY_ID, OnHandleTableStructDirty);
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-
+	
+	~TableTabView();
 	TableColumnsPage & getTableColumnsPage();
 	TableIndexesPage & getTableIndexesPage();
 	TableForeignkeysPage & getTableForeignkeysPage();

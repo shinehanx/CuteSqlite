@@ -3,6 +3,11 @@
 #include "utils/Log.h"
 #include "core/common/Lang.h"
 
+SettingMenuBar::~SettingMenuBar()
+{
+	m_hWnd = nullptr;
+}
+
 void SettingMenuBar::setup()
 {
 

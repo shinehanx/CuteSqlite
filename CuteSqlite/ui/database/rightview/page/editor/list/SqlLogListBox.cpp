@@ -33,6 +33,12 @@ int SqlLogListBox::cyChar = 5; // Need initialize in OnCreate
 int SqlLogListBox::iVscrollPos = 5;
 int SqlLogListBox::vScrollPages = 5;
 
+
+SqlLogListBox::~SqlLogListBox()
+{
+	m_hWnd = nullptr;
+}
+
 void SqlLogListBox::setup(QueryPageSupplier * supplier)
 {
 	this->supplier = supplier;

@@ -177,7 +177,7 @@ LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BO
 
 	if (nImage == 4) { // 4 - sql log
 		AppContext::getInstance()->dispatch(Config::MSG_SHOW_SQL_LOG_PAGE_ID);
-	} else if (nImage == 5) { // 5 - perf analysis report
+	} else if (nImage == 5 || nImage == 6) { // 5 - perf analysis report; 6 - perf analysis not save report
 		uint64_t sqlLogId = static_cast<uint64_t>(treeItem.GetData());
 		try {
 			auto & sqlLog = sqlLogService->getSqlLog(sqlLogId);
@@ -189,6 +189,18 @@ LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BO
 			QPopAnimate::report(ex);
 			return 0;
 		}
+	} else if (nImage == 7) {
+		uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
+		if (!userDbId) {
+			return 0;
+		}
+		AppContext::getInstance()->dispatch(Config::MSG_DB_STORE_ANALYSIS_ID, WPARAM(userDbId));
+	} else if (nImage == 8) {
+		uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
+		if (!userDbId) {
+			return 0;
+		}
+		AppContext::getInstance()->dispatch(Config::MSG_DB_PARAMS_ID, WPARAM(userDbId));
 	}
 	
 	return 0;

@@ -37,6 +37,7 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
+	~SqlLogListBox();
 	void setup(QueryPageSupplier * supplier);
 
 	void addGroup(const std::wstring & group, const std::wstring & origDate = std::wstring());

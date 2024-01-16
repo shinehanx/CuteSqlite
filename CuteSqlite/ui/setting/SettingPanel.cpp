@@ -4,6 +4,11 @@
 
 #define SETTING_MENU_BAR_WIDTH 250
 
+SettingPanel::~SettingPanel()
+{
+	m_hWnd = nullptr;
+}
+
 void SettingPanel::setup()
 {
 

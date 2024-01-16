@@ -450,6 +450,21 @@
     <ClCompile Include="core\repository\report\PerfAnalysisReportRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\StoreAnalysisPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\adapter\StoreAnalysisPageAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\supplier\StoreAnalysisSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\elem\StoreAnalysisElem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\common\chart\QHorizontalBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -933,6 +948,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\repository\report\PerfAnalysisReportRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\StoreAnalysisPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\adapter\StoreAnalysisPageAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\supplier\StoreAnalysisSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\elem\StoreAnalysisElem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\common\chart\QHorizontalBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

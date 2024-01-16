@@ -33,7 +33,7 @@ class DatabasePanel :public CWindowImpl<DatabasePanel>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
-
+	~DatabasePanel();
 	DECLARE_WND_CLASS(NULL)
 
 	BEGIN_MSG_MAP_EX(DatabasePanel)
@@ -46,6 +46,7 @@ public:
 	END_MSG_MAP()
 
 	const Config::PanelId panelId = Config::DATABASE_PANEL;
+
 private:	
 	bool isNeededReload = true;
 	CSplitterWindow splitter;

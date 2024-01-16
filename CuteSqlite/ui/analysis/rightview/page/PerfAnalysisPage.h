@@ -51,6 +51,7 @@ public:
 		FORWARD_NOTIFICATIONS()
 	END_MSG_MAP()
 	PerfAnalysisPage(uint64_t sqlLogId);
+	~PerfAnalysisPage();
 	uint64_t getSqlLogId();
 	void save();
 	bool isSaved();
@@ -79,7 +80,6 @@ private:
 	// orignal sql statement
 	CStatic origSqlLabel;
 	QSqlEdit origSqlEditor;
-	QSqlEdit newSqlEditor;
 
 	// Explain query plan
 	CStatic explainQueryPlanLabel;

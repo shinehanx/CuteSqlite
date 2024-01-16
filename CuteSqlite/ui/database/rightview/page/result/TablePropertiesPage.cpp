@@ -668,9 +668,11 @@ void TablePropertiesPage::destroyPtrs(std::vector<CEdit *> & ptrs)
 	for (auto ptr : ptrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
 			delete ptr;
 			ptr = nullptr;
 		} else if (ptr) {
+			ptr->m_hWnd = nullptr;
 			delete ptr;
 			ptr = nullptr;
 		}

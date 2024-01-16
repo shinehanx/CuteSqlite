@@ -31,6 +31,7 @@
 #include "ui/analysis/rightview/page/SqlLogPage.h"
 #include "ui/analysis/rightview/page/FirstPage.h"
 #include "ui/analysis/rightview/page/PerfAnalysisPage.h"
+#include "ui/analysis/rightview/page/StoreAnalysisPage.h"
 
 class RightAnalysisView : public CWindowImpl<RightAnalysisView>
 {
@@ -54,6 +55,8 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::ANALYSIS_SAVE_ALL_BUTTON_ID, OnClickSaveAllButton)
 
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
+		MESSAGE_HANDLER_EX(Config::MSG_DB_STORE_ANALYSIS_ID, OnHandleDbStoreAnalysis)
+		MESSAGE_HANDLER_EX(Config::MSG_DB_PARAMS_ID, OnHandleDbParams)
 		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID, OnHandleAnalysisAddPerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
@@ -85,13 +88,16 @@ private:
 	FirstPage firstPage;
 	SqlLogPage sqlLogPage;
 	std::vector<PerfAnalysisPage *> perfAnalysisPagePtrs;
+	std::vector<StoreAnalysisPage *> storeAnalysisPagePtrs;
 
+	DatabaseService * databaseService = DatabaseService::getInstance();
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 
 	HICON firstIcon = nullptr;
 	HICON sqlLogIcon = nullptr;
 	HICON perfReportIcon = nullptr;
 	HICON perfReportDirtyIcon = nullptr;
+	HICON storeAnalysisIcon = nullptr;
 	CImageList imageList;
 	void createImageList();
 
@@ -109,6 +115,7 @@ private:
 	void createOrShowFirstPage(FirstPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowSqlLogPage(SqlLogPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
+	void createOrShowStoreAnalysisPage(StoreAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
 		
 	void loadWindow();
 	void loadTabViewPages();
@@ -127,6 +134,8 @@ private:
 	LRESULT OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd);
 
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDbParams(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisAddPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);

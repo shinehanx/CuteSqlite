@@ -41,7 +41,7 @@ public:
 		MESSAGE_HANDLER(Config::MSG_MENU_ITEM_CLICK_ID, OnClickMenuItem) 
 		REFLECT_NOTIFICATIONS() //这一句必须包含进来，不然子控件的事件不生效
 	END_MSG_MAP()
-
+	~SettingPanel();
 	void setup();
 	void createOrShowUI();
 	void loadWindow();

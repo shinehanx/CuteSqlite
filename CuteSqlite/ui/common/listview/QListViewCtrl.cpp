@@ -68,6 +68,11 @@ BOOL QListViewCtrl::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+QListViewCtrl::~QListViewCtrl()
+{
+	m_hWnd = nullptr;
+}
+
 void QListViewCtrl::createOrShowEditor(std::pair<int, int> subItemPos)
 {
 	if (subItemPos.first < 0 || subItemPos.second < 0) {

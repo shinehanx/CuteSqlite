@@ -327,5 +327,35 @@ typedef struct {
 	std::wstring tbl;
 	std::wstring alias;
 } TableAlias;
-
 typedef std::vector<TableAlias> TableAliasVector;
+
+typedef struct {
+	std::wstring name;				// Name of a table or index in the database file
+	std::wstring tblName;			// Name of associated table
+	uint8_t isIndex = 0;			// TRUE if it is an index, false for a table
+	uint8_t isWithoutRowid = 0;		// TRUE if WITHOUT ROWID table
+	uint64_t nentry = 0;			// Number of entries in the BTree
+	uint64_t leafEntries = 0;		// Number of leaf entries
+	uint8_t depth = 0;				// Depth of the b-tree
+	uint64_t payload = 0;			// Total amount of data stored in this table or index
+	uint64_t ovflPayload = 0;		// Total amount of data stored on overflow pages
+	uint64_t ovflCnt = 0;			// Number of entries that use overflow
+	uint64_t mxPayload = 0;			// Maximum payload size
+	uint64_t intPages = 0;			// Number of interior pages used
+	uint64_t leafPages = 0;			// Number of leaf pages used
+	uint64_t ovflPages = 0;			// Number of overflow pages used
+	uint64_t intUnused = 0;			// Number of unused bytes on interior pages
+	uint64_t leafUnused = 0;		// Number of unused bytes on primary pages
+	uint64_t ovflUnused = 0;		// Number of unused bytes on overflow pages
+	uint64_t gapCnt = 0;			// Number of gaps in the page layout
+	uint64_t compressedSize = 0;	// Total bytes stored on disk
+} SpaceUsed;
+typedef std::list<SpaceUsed> SpaceUsedList;
+
+typedef struct {
+	std::wstring name;			// item name
+	std::wstring description;	// item description
+	double val;					// item value
+	double maxVal;				// max value
+} StoreAnalysisItem;
+typedef std::vector<StoreAnalysisItem> StoreAnalysisItems;

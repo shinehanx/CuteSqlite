@@ -30,7 +30,7 @@ QImageList::QImageList(ImagePathList &imgPathList, SIZE & imgSize, TipList & tip
 
 QImageList::~QImageList()
 {
-
+	m_hWnd = nullptr;
 }
 
 void QImageList::load(ImagePathList &imgPathList, SIZE & imgSize, bool isRefresh)

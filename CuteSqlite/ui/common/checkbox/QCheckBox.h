@@ -27,6 +27,7 @@ public:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
+	~QCheckBox();
 	// 重载COwnerDraw的自定义绘制函数，绘制图像
 	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 	void setTextColor(COLORREF color); // 文字颜色，勾颜色，方框颜色

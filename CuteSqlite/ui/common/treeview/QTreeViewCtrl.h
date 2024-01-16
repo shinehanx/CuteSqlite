@@ -30,6 +30,7 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+	~QTreeViewCtrl();
 private:
 	BOOL OnEraseBkgnd(CDCHandle dc);
 };

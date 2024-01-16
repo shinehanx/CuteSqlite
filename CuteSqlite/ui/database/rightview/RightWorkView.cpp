@@ -79,6 +79,11 @@ BOOL RightWorkView::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+RightWorkView::~RightWorkView()
+{
+	m_hWnd = nullptr;
+}
+
 void RightWorkView::createImageList()
 {
 	if (!imageList.IsNull()) {
@@ -1070,9 +1075,11 @@ LRESULT RightWorkView::closeTabViewPage(int nPage)
 			if (ptr && ptr->IsWindow()) {
 				queryPagePtrs.erase(iter);
 				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
 				delete ptr;
 				ptr = nullptr;
 			} else if (ptr) {
+				ptr->m_hWnd = nullptr;
 				queryPagePtrs.erase(iter);
 				delete ptr;
 				ptr = nullptr;
@@ -1109,10 +1116,12 @@ LRESULT RightWorkView::closeTabViewPage(int nPage)
 			if (ptr && ptr->IsWindow()) {
 				tablePagePtrs.erase(iter);
 				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
 				delete ptr;
 				ptr = nullptr;
 			} else if (ptr) {
 				tablePagePtrs.erase(iter);
+				ptr->m_hWnd = nullptr;
 				delete ptr;
 				ptr = nullptr;
 			}

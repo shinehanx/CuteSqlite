@@ -1,5 +1,5 @@
 /*****************************************************************//**
- * @file   QProcessBar.h
+ * @file   QHorizontalBar.h
  * @brief  ½ø¶ÈÌõ
  * @detail    $DETAIL
  * 
@@ -11,22 +11,26 @@
 #include <atlcrack.h>
 #include <atltypes.h>
 
-class QProcessBar: public CWindowImpl<QProcessBar> {
+class QHorizontalBar: public CWindowImpl<QHorizontalBar> {
 public:
-	BEGIN_MSG_MAP_EX(QProcessBar)
+	BEGIN_MSG_MAP_EX(QHorizontalBar)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	~QProcessBar();
-	void run(int percent);
+	QHorizontalBar(double val, double maxVal);
+	~QHorizontalBar();
+	
+	void draw(double val, double maxVal);
 	void error(const std::wstring & err);
 	void reset();
 
 	void setColors(COLORREF bkgColor, COLORREF processColor);
 private:
 	int percent = 0;
+	double val = 0;
+	double maxVal = 0;
 	std::wstring err;
 
 	COLORREF bkgColor =  RGB(192, 192, 192);

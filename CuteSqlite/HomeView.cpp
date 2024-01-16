@@ -4,7 +4,6 @@
 
 #include "stdafx.h"
 #include "resource.h"
-
 #include "HomeView.h"
 
 BOOL HomeView::PreTranslateMessage(MSG* pMsg)
@@ -17,6 +16,11 @@ BOOL HomeView::PreTranslateMessage(MSG* pMsg)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+HomeView::~HomeView()
+{
+	m_hWnd = nullptr;
 }
 
 void HomeView::createOrShowUI()

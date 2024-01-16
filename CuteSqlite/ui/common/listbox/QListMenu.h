@@ -46,6 +46,7 @@ public:
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
+	~QListMenu();
 	// 清理所有的item
 	void clearItems();
 

@@ -40,6 +40,12 @@ BOOL QSearchEdit::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+
+QSearchEdit::~QSearchEdit()
+{
+	m_hWnd = nullptr;
+}
+
 void QSearchEdit::setFont(HFONT font)
 {
 	if (font == nullptr) return ;

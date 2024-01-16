@@ -11,22 +11,11 @@
 
  * limitations under the License.
 
- * @file   QTreeViewCtrl.cpp
+ * @file   PerAnalysisSupplier.cpp
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-10-11
+ * @date   2023-12-07
  *********************************************************************/
 #include "stdafx.h"
-#include "QTreeViewCtrl.h"
-
-
-QTreeViewCtrl::~QTreeViewCtrl()
-{
-	m_hWnd = nullptr;
-}
-
-BOOL QTreeViewCtrl::OnEraseBkgnd(CDCHandle dc)
-{
-	return FALSE;
-}
+#include "StoreAnalysisSupplier.h"

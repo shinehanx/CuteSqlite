@@ -11,22 +11,29 @@
 
  * limitations under the License.
 
- * @file   QTreeViewCtrl.cpp
- * @brief  
+ * @file   PerAnalysisSupplier.h
+ * @brief  Store the runtime data for PerAnalysisPage,
+ *         Every one instance of PerAnalysisPage have only one instance of PerAnalysisSupplier
  * 
  * @author Xuehan Qin
- * @date   2023-10-11
+ * @date   2023-12-07
  *********************************************************************/
-#include "stdafx.h"
-#include "QTreeViewCtrl.h"
+#pragma once
+#include "ui/database/rightview/common/QPageSupplier.h"
 
+class StoreAnalysisSupplier : public QPageSupplier {
+public:
+	StoreAnalysisSupplier() {};
+	~StoreAnalysisSupplier() {};
 
-QTreeViewCtrl::~QTreeViewCtrl()
-{
-	m_hWnd = nullptr;
-}
+	uint64_t getUserDbId() const { return userDbId; }
+	void setUserDbId(uint64_t val) { userDbId = val; }
 
-BOOL QTreeViewCtrl::OnEraseBkgnd(CDCHandle dc)
-{
-	return FALSE;
-}
+	UserDb & getUserDb() { return userDb; }
+	void setUserDb(UserDb & val) { userDb = val; }
+private:
+	uint64_t userDbId = 0;
+	UserDb userDb;
+	
+};
+

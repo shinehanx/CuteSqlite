@@ -40,6 +40,12 @@ BOOL TableTabView::PreTranslateMessage(MSG* pMsg)
 	return false;
 }
 
+
+TableTabView::~TableTabView()
+{
+	m_hWnd = nullptr;
+}
+
 TableColumnsPage & TableTabView::getTableColumnsPage()
 {
 	ATLASSERT(tableColumnsPage.IsWindow());

@@ -44,6 +44,11 @@ BOOL LeftTreeView::PreTranslateMessage(MSG* pMsg)
 	return FALSE;
 }
 
+LeftTreeView::~LeftTreeView()
+{
+	m_hWnd = nullptr;
+}
+
 CRect LeftTreeView::getTopRect(CRect & clientRect)
 {
 	return { 0, 0, clientRect.right, TREEVIEW_TOPBAR_HEIGHT };
