@@ -27,7 +27,8 @@
 #include "ui/analysis/rightview/page/adapter/StoreAnalysisPageAdapter.h"
 #include "ui/common/image/QStaticImage.h"
 #include "core/service/db/TableService.h"
-#include "elem/StoreAnalysisElem.h"
+#include "core/service/analysis/StoreAnalysisService.h"
+#include "ui/analysis/rightview/page/elem/StoreAnalysisElem.h"
 
 class StoreAnalysisPage : public QTabPage<StoreAnalysisPage>
 {
@@ -82,6 +83,7 @@ private:
 	StoreAnalysisPageAdapter * adapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
+	StoreAnalysisService * storeAnalysisService = StoreAnalysisService::getInstance();
 
 	// scroll bar
 	TEXTMETRIC tm;
@@ -92,6 +94,7 @@ private:
 
 	virtual void createOrShowUI();
 	void createOrShowTitleElems(CRect & clientRect);
+	void createOrShowStoreAnalysisElems(CRect & clientRect);
 	
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
@@ -113,4 +116,8 @@ private:
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorBtn(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorListBox(HDC hdc, HWND hwnd);
+
+	StoreAnalysisElem * getStoreAnalysisElemPtr(const std::wstring & title);
+	// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
+	void updateSubWindow();
 };

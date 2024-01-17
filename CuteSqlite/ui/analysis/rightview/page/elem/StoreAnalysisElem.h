@@ -42,19 +42,24 @@ public:
 	END_MSG_MAP()
 	StoreAnalysisElem(const std::wstring & _title, const StoreAnalysisItems & _storeAnalysisItems);
 	~StoreAnalysisElem();
+	const std::wstring & getTitle() const { return title; }
+	void refreshHorizBars();
+	const StoreAnalysisItems & getStoreAnalysisItems() const { return storeAnalysisItems; }
 private:
 	bool isNeedReload = true;
-	const std::wstring & title;
-	const StoreAnalysisItems & storeAnalysisItems;
+	std::wstring title;
+	StoreAnalysisItems storeAnalysisItems;
 	
 	//COLORREF bkgColor = RGB(238, 238, 238);	
 	COLORREF bkgColor = RGB(255, 255, 255);
 	COLORREF textColor = RGB(64, 64, 64);
 	COLORREF hintColor = RGB(254, 90, 88);
+	COLORREF sectionColor = RGB(8, 8, 8);
 	
 	COLORREF btnBkgColor = RGB(210, 210, 210);
 	CBrush bkgBrush;
 	HFONT textFont = nullptr;
+	HFONT sectionFont = nullptr;
 
 	CStatic titleLabel;
 	std::vector<CStatic *> labelPtrs;

@@ -17,21 +17,23 @@ public:
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
+		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	QHorizontalBar(double val, double maxVal);
+	QHorizontalBar(const std::wstring & val, float percent = 0, COLORREF processColor = RGB(49, 139, 202));
 	~QHorizontalBar();
 	
-	void draw(double val, double maxVal);
+	void draw(const std::wstring & val, float percent);
 	void error(const std::wstring & err);
 	void reset();
 
 	void setColors(COLORREF bkgColor, COLORREF processColor);
 private:
-	int percent = 0;
-	double val = 0;
-	double maxVal = 0;
+	float percent = 0; // such as 99.70
+	std::wstring val;
 	std::wstring err;
+
+	HRGN hRgn = nullptr;
 
 	COLORREF bkgColor =  RGB(192, 192, 192);
 	CBrush bkgBrush;
@@ -47,4 +49,5 @@ private:
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	BOOL OnEraseBkgnd(CDCHandle dc);
 };

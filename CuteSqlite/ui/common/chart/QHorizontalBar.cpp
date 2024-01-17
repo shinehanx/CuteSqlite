@@ -3,17 +3,11 @@
 #include "QHorizontalBar.h"
 #include "core/common/Lang.h"
 
-QHorizontalBar::QHorizontalBar(double val, double maxVal)
+QHorizontalBar::QHorizontalBar(const std::wstring & val, float percent /*= 0*/, COLORREF processColor/* = RGB(49, 139, 202)*/)
 {
-	if (maxVal == 0 || val > maxVal) {
-		percent = 0;
-		return;
-	}
-	if (val == 1) {
-		percent = 1;
-		return;
-	}
-	this->percent = int(round(val * 100.0 / maxVal));
+	this->val = val;
+	this->percent = percent;
+	this->processColor = processColor;
 }
 
 QHorizontalBar::~QHorizontalBar()
@@ -21,17 +15,10 @@ QHorizontalBar::~QHorizontalBar()
 	m_hWnd = nullptr;
 }
 
-void QHorizontalBar::draw(double val, double maxVal)
+void QHorizontalBar::draw(const std::wstring & val, float percent)
 {
-	if (maxVal == 0 || val > maxVal) {
-		percent = 0;
-		return;
-	}
-	if (val == 1) {
-		percent = 1;
-		return;
-	}
-	this->percent = int(round(val * 100.0 / maxVal));	
+	this->val = val;
+	this->percent = percent;	
 	Invalidate(true);
 }
 
@@ -77,9 +64,8 @@ LRESULT QHorizontalBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	CRect clientRect;
 	GetClientRect(clientRect);
 	// »­Ô²½Ç
-	// Ô²½Ç´°¿Ú
-	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
-	::SetWindowRgn(m_hWnd, hRgn, TRUE);
+	 hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 10, 10);
+	 ::SetWindowRgn(m_hWnd, hRgn, TRUE);
 
 	return 0;
 }
@@ -91,6 +77,8 @@ LRESULT QHorizontalBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 	if (!errorBrush.IsNull()) errorBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
 	if (!textPen.IsNull()) textPen.DeleteObject();
+
+	if (hRgn)  DeleteObject(hRgn);
 	return 0;
 }
 
@@ -99,11 +87,11 @@ LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	CPaintDC pdc(m_hWnd);
 	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
 
-	// »­±³¾°
+	// background
 	CRect clientRect(pdc.m_ps.rcPaint);
 	mdc.FillRect(clientRect, bkgBrush.m_hBrush);
 
-	// »­½ø¶È
+	// Draw percent
 	double perPixel = clientRect.Width() * 1.0 / 100.0;
 	int pixel = int(round(perPixel * percent));
 	int x = clientRect.left, y = clientRect.top, w = pixel, h = clientRect.Height();
@@ -115,28 +103,37 @@ LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	}
 	
 
-	// »­ÎÄ×Ö
-	if (percent == 0) {
-		return 0;
-	}
-
-	std::wstring text = std::to_wstring(val);
-	text.append(L"%");
-
-	UINT uFormat = DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS;
+	//  Draw text
+	std::wstring text = val;
+	std::wstring perText = percent > 0 && percent < 100 ? std::to_wstring(percent) + L"%" : L"";
+	UINT uFormat = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS;
 	HFONT oldFont = mdc.SelectFont(textFont);
 	HPEN oldPen = mdc.SelectPen(textPen);
 	x = 5, y = rect.top + 2, w = 80, h = 20;
 	CRect textRect(x, y, x + w, y + h);
 	COLORREF oldTextColor = mdc.SetTextColor(textColor);
 	COLORREF textBkColor =  processColor;
-	textBkColor = bkgColor ;
-	COLORREF oldTextBkgColor = mdc.SetBkColor(textBkColor);
+	//COLORREF oldTextBkgColor = mdc.SetBkColor(textBkColor);
+	int oldMode = mdc.SetBkMode(TRANSPARENT);
 	mdc.DrawText(text.c_str(), static_cast<int>(text.size()), textRect, uFormat);
+	if (!perText.empty()) {
+		x = rect.Width() - 80 - 5;
+		if (x < textRect.right) {
+			x = textRect.right + 5;
+		}
+		CRect perRect(x, y, x + w, y + h);
+		mdc.DrawText(perText.c_str(), static_cast<int>(perText.size()), perRect, DT_RIGHT | DT_VCENTER | DT_END_ELLIPSIS);
+	}
 	mdc.SetTextColor(oldTextColor);
-	mdc.SetBkColor(oldTextBkgColor);
+	//mdc.SetBkColor(oldTextBkgColor);
 	mdc.SelectPen(oldPen);
 	mdc.SelectFont(oldFont);
+	mdc.SetBkMode(oldMode);
 	return 0;
+}
+
+BOOL QHorizontalBar::OnEraseBkgnd(CDCHandle dc)
+{
+	return true;
 }
 

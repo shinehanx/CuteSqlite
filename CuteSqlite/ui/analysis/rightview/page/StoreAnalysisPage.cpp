@@ -37,14 +37,14 @@ BOOL StoreAnalysisPage::PreTranslateMessage(MSG* pMsg)
 
 StoreAnalysisPage::StoreAnalysisPage(uint64_t userDbId)
 {
-	supplier.setUserDbId(userDbId);
+	supplier.setRuntimeUserDbId(userDbId);
 	supplier.setUserDb(databaseService->getUserDb(userDbId));
 }
 
 
 uint64_t StoreAnalysisPage::getUserDbId()
 {
-	return supplier.getUserDbId();
+	return supplier.getRuntimeUserDbId();
 }
 
 
@@ -55,6 +55,7 @@ void StoreAnalysisPage::createOrShowUI()
 	nHeightSum = 0;
 
 	createOrShowTitleElems(clientRect);
+	createOrShowStoreAnalysisElems(clientRect);
 
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
@@ -96,6 +97,82 @@ void StoreAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 	nHeightSum = rect.bottom;
 }
 
+
+void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
+{
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);	
+	
+	UserDb & userDb = supplier.getUserDb();
+
+	// 1.Disk-Space Utilization Report For {dbPath}
+	std::wstring title = S(L"db-disk-used-title");
+	title = StringUtil::replace(title, L"{dbPath}", userDb.path);
+	StoreAnalysisElem * ptr = getStoreAnalysisElemPtr(title);
+	int itemsLen = 0;
+	if (!ptr) {
+		StoreAnalysisItems dbStoreAnalysisItems = adapter->getStoreAnalysisItemsOfDbDiskUsed();
+		itemsLen = static_cast<int>(dbStoreAnalysisItems.size()) + 1;
+		ptr = new StoreAnalysisElem(title, dbStoreAnalysisItems);	
+		storeAnalysisElemPtrs.push_back(ptr);
+	} else {
+		const StoreAnalysisItems & storeItems = ptr->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	int x = 20, y = rcLast.bottom + 50, w = clientRect.Width() - 20 * 2, h = (20 + 5) * itemsLen;
+	CRect rect(x, y, x + w, y + h);
+	createOrShowStoreAnalysisElem(*ptr, rect, clientRect);
+
+	// 2.Page counts for all tables with their indices
+	title = S(L"all-tbl-idx-pagecnt-title");
+	StoreAnalysisElem * ptr2 = getStoreAnalysisElemPtr(title);
+	if (!ptr2) {
+		StoreAnalysisItems tblIdxPgCntStoreAnalysisItems = adapter->getStoreAnalysisItemsOfAllTblIdxPageCnt();
+		itemsLen = static_cast<int>(tblIdxPgCntStoreAnalysisItems.size()) + 1;
+		ptr2 = new StoreAnalysisElem(title, tblIdxPgCntStoreAnalysisItems);
+		storeAnalysisElemPtrs.push_back(ptr2);
+	} else {
+		const StoreAnalysisItems & storeItems = ptr2->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, h + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr2, rect, clientRect);
+
+	// 3.Page counts for all tables and indices separately
+	title = S(L"sperate-tbl-idx-pagecnt-title");
+	StoreAnalysisElem * ptr3 = getStoreAnalysisElemPtr(title);
+	if (!ptr3) {
+		StoreAnalysisItems seperateStoreItems = adapter->getStoreAnalysisItemsOfSeperateTblIdxPageCnt();
+		itemsLen = static_cast<int>(seperateStoreItems.size()) + 1;
+		ptr3 = new StoreAnalysisElem(title, seperateStoreItems);
+		storeAnalysisElemPtrs.push_back(ptr3);
+	} else {
+		const StoreAnalysisItems & storeItems = ptr3->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, rect.Height() + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr3, rect, clientRect);
+
+	// 4.All tables and indices
+	title = S(L"all-tbl-idx-report-title");
+	StoreAnalysisElem * ptr4 = getStoreAnalysisElemPtr(title);
+	if (!ptr4) {
+		StoreAnalysisItems seperateStoreItems = adapter->getStoreAnalysisItemsOfAllTblIdxReport();
+		itemsLen = static_cast<int>(seperateStoreItems.size()) + 1;
+		ptr4 = new StoreAnalysisElem(title, seperateStoreItems);
+		storeAnalysisElemPtrs.push_back(ptr4);
+	} else {
+		const StoreAnalysisItems & storeItems = ptr4->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, rect.Height() + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr4, rect, clientRect);
+
+	nHeightSum = rect.bottom;
+}
+
 void StoreAnalysisPage::createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
@@ -133,7 +210,14 @@ void StoreAnalysisPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring
 
 void StoreAnalysisPage::createOrShowStoreAnalysisElem(StoreAnalysisElem &win, CRect & rect, CRect clientRect)
 {
-
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS ;
+		win.Create(m_hWnd, rect);
+		return;
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
 }
 
 void StoreAnalysisPage::loadWindow()
@@ -151,7 +235,7 @@ void StoreAnalysisPage::loadTableComboBox()
 	tableComboBox.ResetContent();
 	tableComboBox.AddString(L"All");
 
-	uint64_t userDbId = supplier.getUserDbId();
+	uint64_t userDbId = supplier.getRuntimeUserDbId();
 	UserTableStrings tableStrs ;
 	try {
 		tableStrs = tableService->getUserTableStrings(userDbId);
@@ -205,7 +289,7 @@ int StoreAnalysisPage::OnDestroy()
 	
 	void clearStoreAnalysisElemPtrs();
 
-	if (adapter) delete adapter;	
+	if (adapter) delete adapter;
 	return ret;
 }
 
@@ -281,6 +365,9 @@ LRESULT StoreAnalysisPage::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	if (iVscrollPos != si.nPos) {
 		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
 		Invalidate(true);
+
+		// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
+		updateSubWindow();
 	}
 	 return 0;
 }
@@ -364,4 +451,40 @@ HBRUSH StoreAnalysisPage::OnCtlColorListBox(HDC hdc, HWND hwnd)
 	::SetBkColor(hdc, bkgColor); // Text area background color
 	::SelectObject(hdc, comboFont);
 	return AtlGetStockBrush(WHITE_BRUSH);
+}
+
+/**
+ * verified title exists in storeAnalysisElemPtrs.
+ * 
+ * @param title[in] - title
+ * @param ptr[out] - output pointer of StoreAnalysisElem
+ * @return 
+ */
+StoreAnalysisElem * StoreAnalysisPage::getStoreAnalysisElemPtr(const std::wstring & title)
+{
+	if (title.empty()) {
+		return nullptr;
+	}
+
+	size_t n = storeAnalysisElemPtrs.size();	
+	for (size_t i = 0; i < n; i++) {
+		if (storeAnalysisElemPtrs.at(i)->getTitle() == title) {
+			return storeAnalysisElemPtrs.at(i);
+		}
+	}
+
+	return nullptr;
+}
+
+/**
+ * Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem.
+ * 
+ */
+void StoreAnalysisPage::updateSubWindow()
+{
+	for (auto ptr : storeAnalysisElemPtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->refreshHorizBars();
+		}		
+	}
 }

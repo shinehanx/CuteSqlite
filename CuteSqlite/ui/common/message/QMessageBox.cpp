@@ -109,7 +109,7 @@ LRESULT QMessageBox::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 	CRect clientRect;
 	GetClientRect(clientRect);
 	// Ô²½Ç´°¿Ú
-	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
+	hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
 	::SetWindowRgn(m_hWnd, hRgn, TRUE);
 
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
@@ -135,6 +135,7 @@ LRESULT QMessageBox::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 	if (textEdit.IsWindow()) textEdit.DestroyWindow();
 	if (yesButton.IsWindow()) yesButton.DestroyWindow();
 	if (noButton.IsWindow()) noButton.DestroyWindow();
+	if (hRgn) ::DeleteObject(hRgn);
 	return 0;
 }
 

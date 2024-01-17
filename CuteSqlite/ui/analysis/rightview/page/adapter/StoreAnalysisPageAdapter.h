@@ -22,6 +22,7 @@
 #include "core/entity/Entity.h"
 #include "ui/analysis/rightview/page/supplier/StoreAnalysisSupplier.h"
 #include "core/service/db/DatabaseService.h"
+#include "core/service/analysis/StoreAnalysisService.h"
 
 class StoreAnalysisPageAdapter : public QAdapter<StoreAnalysisPageAdapter, CWindow>
 {
@@ -29,9 +30,18 @@ public:
 	StoreAnalysisPageAdapter(HWND parentHwnd, CWindow * view, StoreAnalysisSupplier * supplier = nullptr);
 	~StoreAnalysisPageAdapter();
 
+	StoreAnalysisItems getStoreAnalysisItemsOfDbDiskUsed();
+	StoreAnalysisItems getStoreAnalysisItemsOfAllTblIdxPageCnt();
+	StoreAnalysisItems getStoreAnalysisItemsOfSeperateTblIdxPageCnt();
+	StoreAnalysisItems getStoreAnalysisItemsOfAllTblIdxReport(bool showFrag = false);
 private:
-	
+	const COLORREF PAGES_COLOR = RGB(49, 139, 202);
+	const COLORREF BYTES_COLOR = RGB(112, 146, 190);
+	const COLORREF TABLE_COLOR = RGB(0, 128, 0);
+	const COLORREF INDEX_COLOR = RGB(255, 128, 0);
+	const COLORREF DEPTH_COLOR = RGB(0, 0, 160);
 	StoreAnalysisSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
-	
+	StoreAnalysisService * storeAnalysisService = StoreAnalysisService::getInstance();
+	double percent(uint64_t val, uint64_t total);
 };

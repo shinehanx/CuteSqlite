@@ -349,13 +349,69 @@ typedef struct {
 	uint64_t ovflUnused = 0;		// Number of unused bytes on overflow pages
 	uint64_t gapCnt = 0;			// Number of gaps in the page layout
 	uint64_t compressedSize = 0;	// Total bytes stored on disk
-} SpaceUsed;
-typedef std::list<SpaceUsed> SpaceUsedList;
+	uint64_t cnt = 0;				// Total record count : count(*) as cnt
+} TblIdxSpaceUsed;
+typedef std::list<TblIdxSpaceUsed> TblIdxSpaceUsedList;
+
 
 typedef struct {
+	int pageSize = 0;				// Size of each page in bytes.
+	uint64_t fileBytes = 0;			// File size in bytes.
+	uint64_t filePgcnt = 0;			// Number of pages in the file.
+	uint64_t filePgcnt2 = 0;		// Number of pages in the file (calculated).
+	uint64_t avPgcnt = 0;			// Pages consumed by the auto-vacuum pointer-map.
+	double avPercent = 0.0;			// Percentage of the file consumed by auto-vacuum pointer-map.
+	uint64_t inusePgcnt = 0;		// Data pages in the file.
+	double inusePercent = 0.0;		// Percentage of pages used to store data.
+	uint64_t freePgcnt = 0;			// Free pages calculated as (<total pages> - <in-use pages>)
+	uint64_t freePgcnt2 = 0;		// Free pages in the file according to the file header.
+	double freePercent = 0.0;		// Percentage of file consumed by free pages (calculated).
+	double freePercent2 = 0.0;		// Percentage of file consumed by free pages (header).
+	int ntable = 0;					// Number of tables in the db.
+	int nindex = 0;					// Number of indices in the db.
+	int nautoindex = 0;				// Number of indices created automatically.
+	int nmanindex = 0;				// Number of indices created manually.
+	uint64_t userPayload = 0;		// Number of bytes of payload in table btrees ((not including sqlite_schema))
+	double userPercent = 0;		// $userPayload as a percentage of total file size.
+} DbSpaceUsed;
+
+typedef struct {
+	COLORREF color;
 	std::wstring name;			// item name
 	std::wstring description;	// item description
-	double val;					// item value
-	double maxVal;				// max value
+	std::wstring val;			// item value str
+	float percent;				// max value	
 } StoreAnalysisItem;
 typedef std::vector<StoreAnalysisItem> StoreAnalysisItems;
+
+typedef struct {
+	std::wstring name;
+	std::wstring path;
+	uint64_t pageno = 0;
+	std::wstring pagetype;
+	uint64_t ncell = 0;
+	uint64_t payload = 0;
+	uint64_t unused = 0;
+	uint64_t mxPayload = 0;
+	uint64_t pgoffset = 0;
+	uint16_t pgsize = 0;
+	std::wstring schema;
+	uint8_t aggregate = 0;
+} DbStat;
+typedef std::list<DbStat> DbStatList;
+
+typedef struct {
+	std::wstring type;
+	std::wstring name;
+	std::wstring tblName;
+	uint64_t rootpage = 0;
+	std::wstring sql;
+} SqliteSchema;
+typedef std::list<SqliteSchema> SqliteSchemaList;
+
+typedef struct {
+	std::wstring name;
+	uint64_t pageCnt;
+	float percent;
+}TblIdxPageCnt;
+typedef std::vector<TblIdxPageCnt> TblIdxPageCntVector;

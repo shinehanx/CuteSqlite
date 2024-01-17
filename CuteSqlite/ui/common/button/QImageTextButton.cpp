@@ -166,6 +166,11 @@ void QImageTextButton::setIsSelected(bool isSelected)
 }
 
 
+void QImageTextButton::refreshWindow()
+{
+	button.Invalidate(true);
+}
+
 /**
  * 初始化
  * @param text 按钮下方文本

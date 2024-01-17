@@ -70,6 +70,8 @@ private:
 	CRect winRect;
 	CRect destopRect;
 
+	HRGN hRgn = nullptr;
+
 	PopType popType = POP_COMMON_TEXT;
 	std::wstring code;
 	std::wstring text;

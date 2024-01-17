@@ -63,7 +63,7 @@ LRESULT QProcessBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 	// Ô²½Ç´°¿Ú
 	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
 	::SetWindowRgn(m_hWnd, hRgn, TRUE);
-
+	::DeleteObject(hRgn);
 	return 0;
 }
 

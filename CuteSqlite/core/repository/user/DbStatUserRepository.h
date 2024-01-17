@@ -11,26 +11,26 @@
 
  * limitations under the License.
 
- * @file   PerAnalysisSupplier.h
- * @brief  Store the runtime data for PerAnalysisPage,
- *         Every one instance of PerAnalysisPage have only one instance of PerAnalysisSupplier
+ * @file   DbstatUserRepository.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-12-07
+ * @date   2024-01-16
  *********************************************************************/
 #pragma once
-#include "ui/database/rightview/common/QPageSupplier.h"
+#include "core/common/repository/BaseUserRepository.h"
+#include "core/entity/Entity.h"
 
-class StoreAnalysisSupplier : public QPageSupplier {
+class DbStatUserRepository : public BaseUserRepository<DbStatUserRepository> {
 public:
-	StoreAnalysisSupplier() {};
-	~StoreAnalysisSupplier() {};
+	DbStatUserRepository() {};
+	~DbStatUserRepository() {};
 
-	UserDb & getUserDb() { return userDb; }
-	void setUserDb(UserDb & val) { userDb = val; }
+	int getPageSize(uint64_t userDbId);
+	uint64_t getPageCount(uint64_t userDbId);
+	uint64_t getAutovacuum(uint64_t userDbId);
+	uint64_t getFreePageCount(uint64_t userDbId);
+	TblIdxSpaceUsed getTblIdxSpaceUsedByName(uint64_t userDbId, const std::wstring & name);
 private:
-	uint64_t userDbId = 0;
-	UserDb userDb;
-	
+	TblIdxSpaceUsed toTblIdxSpaceUsed(QSqlStatement & query);
 };
-

@@ -206,8 +206,10 @@ LRESULT SqlLogDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	// Ô²½Ç´°¿Ú
 	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
 	::SetWindowRgn(m_hWnd, hRgn, TRUE);
-	this->textFont = FT(L"log-list-item-sql-size");
+	::DeleteObject(hRgn);
 
+	this->textFont = FT(L"log-list-item-sql-size");
+	
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
 	//SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); 
 

@@ -11,26 +11,26 @@
 
  * limitations under the License.
 
- * @file   PerAnalysisSupplier.h
- * @brief  Store the runtime data for PerAnalysisPage,
- *         Every one instance of PerAnalysisPage have only one instance of PerAnalysisSupplier
+ * @file   SqliteSchemaUserRepository.h
+ * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-12-07
+ * @date   2024-01-16
  *********************************************************************/
 #pragma once
-#include "ui/database/rightview/common/QPageSupplier.h"
 
-class StoreAnalysisSupplier : public QPageSupplier {
+#pragma once
+#include "core/common/repository/BaseUserRepository.h"
+#include "core/entity/Entity.h"
+
+class SqliteSchemaUserRepository : public BaseUserRepository<SqliteSchemaUserRepository> {
 public:
-	StoreAnalysisSupplier() {};
-	~StoreAnalysisSupplier() {};
-
-	UserDb & getUserDb() { return userDb; }
-	void setUserDb(UserDb & val) { userDb = val; }
+	SqliteSchemaUserRepository() {};
+	~SqliteSchemaUserRepository() {};
+	SqliteSchemaList getListGtRootpage(uint64_t userDbId);
+	int getTableCount(uint64_t userDbId);
+	int getIndexCount(uint64_t userDbId);
+	int getAutoIndexCount(uint64_t userDbId);
 private:
-	uint64_t userDbId = 0;
-	UserDb userDb;
-	
+	SqliteSchema toSqliteSchema(QSqlStatement & query);
 };
-

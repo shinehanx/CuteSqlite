@@ -56,6 +56,8 @@ private:
 	HFONT textFont = nullptr;
 	Gdiplus::Font * btnFont = nullptr;
 
+	HRGN hRgn = nullptr;
+
 	CEdit textEdit;
 	QImageButton yesButton;
 	QImageButton noButton;

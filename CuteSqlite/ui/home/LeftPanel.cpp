@@ -183,9 +183,8 @@ LRESULT LeftPanel::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		settingButton.GetClientRect(&rect);
 		rect.MoveToXY(6, rectParent.Height() - (48 * 2 + 25));
 		settingButton.MoveWindow(rect);
-		settingButton.ShowWindow(SW_SHOW);
-		settingButton.Invalidate(true);
-		settingButton.UpdateWindow();
+		settingButton.Invalidate(true);	
+		settingButton.refreshWindow();
 	}
 	
 	return 0;

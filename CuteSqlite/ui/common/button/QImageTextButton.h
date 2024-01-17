@@ -48,6 +48,8 @@ public:
 	 */
 	bool getIsSelected();	
 	void setIsSelected(bool isSelected);
+
+	void refreshWindow();
 private:
 	COLORREF bkgColor = RGB(0xff, 0xff, 0xff);
 	CBrush bkgBrush;
@@ -68,8 +70,6 @@ private:
 	CRect buttonRect;
 	CRect labelRect;
 	CRect rect;
-
-	
 
 	Config::FrmButtonId buttonId = Config::UNSED_BUTTON_ID;
 

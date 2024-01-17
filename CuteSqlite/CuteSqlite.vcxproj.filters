@@ -465,6 +465,15 @@
     <ClCompile Include="ui\common\chart\QHorizontalBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\service\analysis\StoreAnalysisService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\repository\user\DbStatUserRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\repository\user\SqliteSchemaUserRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -963,6 +972,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\common\chart\QHorizontalBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\analysis\StoreAnalysisService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\repository\user\DbStatUserRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\repository\user\SqliteSchemaUserRepository.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

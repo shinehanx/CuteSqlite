@@ -36,10 +36,19 @@ StoreAnalysisElem::~StoreAnalysisElem()
 	m_hWnd = nullptr;
 }
 
+
+void StoreAnalysisElem::refreshHorizBars()
+{
+	for (auto & ptr : valPtrs) {
+		ptr->Invalidate(true);
+	}
+}
+
 int StoreAnalysisElem::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	bkgBrush.CreateSolidBrush(bkgColor);
 	textFont = FT(L"form-text-size");
+	sectionFont = FTB(L"properites-section-font", true);
 	return 0;
 }
 
@@ -47,6 +56,7 @@ void StoreAnalysisElem::OnDestroy()
 {
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (textFont) ::DeleteObject(textFont);
+	if (sectionFont) ::DeleteObject(sectionFont);
 
 	if (titleLabel.IsWindow()) titleLabel.DestroyWindow();
 
@@ -70,7 +80,8 @@ void StoreAnalysisElem::OnShowWindow(BOOL bShow, UINT nStatus)
 void StoreAnalysisElem::OnPaint(CDCHandle dc)
 {
 	CPaintDC pdc(m_hWnd);
-	pdc.FillRect(&pdc.m_ps.rcPaint, bkgBrush.m_hBrush);
+	CMemoryDC mdc(pdc, pdc.m_ps.rcPaint);
+	mdc.FillRect(&pdc.m_ps.rcPaint, bkgBrush.m_hBrush);
 }
 
 BOOL StoreAnalysisElem::OnEraseBkgnd(CDCHandle dc)
@@ -80,10 +91,14 @@ BOOL StoreAnalysisElem::OnEraseBkgnd(CDCHandle dc)
 
 HBRUSH StoreAnalysisElem::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
-	::SetBkColor(hdc, bkgColor);	
-	::SelectObject(hdc, textFont);
-	
-	::SetTextColor(hdc,textColor);
+	::SetBkColor(hdc, bkgColor);
+	if (titleLabel.m_hWnd == hwnd) {
+		::SetTextColor(hdc, sectionColor); 
+		::SelectObject(hdc, sectionFont);
+	} else {
+		::SetTextColor(hdc, textColor); 
+		::SelectObject(hdc, textFont);
+	}
 	
 	return bkgBrush.m_hBrush;
 }
@@ -108,18 +123,9 @@ void StoreAnalysisElem::createOrShowUI()
 
 void StoreAnalysisElem::createOrShowLabels(CRect & clientRect)
 {
-//	std::wstring text;
-// 	if (spaceUsed.isIndex) {
-// 		text = S(L"index-store-analysis");
-// 		text = StringUtil::replace(text, L"{tblName}", spaceUsed.tblName);
-// 		text = StringUtil::replace(text, L"{idxName}", spaceUsed.name);
-// 	} else {
-// 		text = S(L"table-store-analysis");
-// 		text = StringUtil::replace(text, L"{tblName}", spaceUsed.tblName);
-// 	}
 	int x = 0, y = 0, w = 500, h = 20;
 	CRect rect(x, y, x + w, y + h);	
-	QWinCreater::createOrShowLabel(m_hWnd, titleLabel, title, rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
+	QWinCreater::createOrShowLabel(m_hWnd, titleLabel, getTitle(), rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	
 }
@@ -128,13 +134,16 @@ void StoreAnalysisElem::createOrShowElems(CRect & clientRect)
 {
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleLabel);
 	CRect rcLabel = rcLast;
-	rcLabel.left = rcLabel.left + 150;
+	rcLabel.right = rcLabel.left + 300;
 	CRect rcBar = rcLast;
-	rcBar.right = rcBar.left + 450;
+	rcBar.OffsetRect(rcLabel.Width() + 5, 0);
+	rcBar.right = rcBar.left + 500;
 
 	size_t n = storeAnalysisItems.size();
 	size_t labelLen = labelPtrs.size();
 	for (size_t i = 0; i < n; ++i) {
+		rcLabel.OffsetRect(0, rcLabel.Height() + 5);
+		rcBar.OffsetRect(0, rcBar.Height() + 5);
 		auto & item = storeAnalysisItems.at(i);
 		CStatic * labelPtr = nullptr;
 		QHorizontalBar * valPtr = nullptr;
@@ -143,7 +152,9 @@ void StoreAnalysisElem::createOrShowElems(CRect & clientRect)
 			valPtr = valPtrs.at(i);
 		} else {
 			labelPtr = new CStatic();
-			valPtr = new QHorizontalBar(item.val, item.maxVal);
+			valPtr = new QHorizontalBar(item.val, item.percent, item.color);
+			labelPtrs.push_back(labelPtr);
+			valPtrs.push_back(valPtr);
 		}
 
 		QWinCreater::createOrShowLabel(m_hWnd, *labelPtr, item.name, rcLabel, clientRect, SS_RIGHT | SS_CENTERIMAGE);

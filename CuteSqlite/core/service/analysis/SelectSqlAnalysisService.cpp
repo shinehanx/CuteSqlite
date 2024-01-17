@@ -185,6 +185,8 @@ void SelectSqlAnalysisService::doConvertByteCodeForSelectColumns(uint64_t userDb
 		auto & opcode = rowItem.at(EXP_OPCODE);
 		if (opcode == L"ResultRow") {
 			parseSelectColumnsPrevFromResultRow(userDbId, iter, byteCodeList, selectColumns);
+
+			// Note: Only std::vector can be sorted by std::sort, std::list can't be sorted
 			std::sort(selectColumns.begin(), selectColumns.end(), [](auto & col1, auto & col2) {
 				return col1.regNo < col2.regNo;
 			});

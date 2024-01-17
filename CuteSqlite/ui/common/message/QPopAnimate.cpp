@@ -262,7 +262,7 @@ LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 	CRect clientRect;
 	GetClientRect(clientRect);
 	// Ô²½Ç´°¿Ú
-	HRGN hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
+	hRgn = ::CreateRoundRectRgn(0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, 20, 20);
 	::SetWindowRgn(m_hWnd, hRgn, TRUE);
 
 	// ÖÃ¶¥Ðü¸¡´°¿Ú
@@ -282,6 +282,7 @@ LRESULT QPopAnimate::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 	if (image.IsWindow()) image.DestroyWindow();
 	if (closeButton.IsWindow()) closeButton.DestroyWindow();
 	if (textEdit.IsWindow()) textEdit.DestroyWindow();
+	if (hRgn) ::DeleteObject(hRgn);
 	return 0;
 }
 
