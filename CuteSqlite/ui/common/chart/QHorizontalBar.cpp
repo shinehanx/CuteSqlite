@@ -101,7 +101,7 @@ LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			mdc.FillRect(rect, processBrush.m_hBrush);
 		}		
 	} else {
-		mdc.FillRect(rect, errorBrush.m_hBrush);
+		mdc.FillRect(rect, errorBrush.m_hBrush); 
 	}
 	
 

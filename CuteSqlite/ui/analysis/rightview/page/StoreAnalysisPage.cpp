@@ -69,12 +69,12 @@ void StoreAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 	createOrShowImage(titleImage, rect, clientRect);
 
 	rect.OffsetRect(w + 10, 5);
-	rect.right = rect.left + 300;
+	rect.right = rect.left + 500;
 	
 	std::wstring title = S(L"store-analysis-text");
 	createOrShowEdit(titleEdit, 0, title, rect, clientRect, 0);
 
-	rect.OffsetRect(300 + 10, 0);
+	rect.OffsetRect(500 + 10, 0);
 	rect.right = rect.left + 60;
 	QWinCreater::createOrShowLabel(m_hWnd, databaseLabel, S(L"database").append(L":"), rect, clientRect, SS_RIGHT);
 
@@ -116,14 +116,10 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 	}
 	std::wstring title;
 	int itemsLen = 0;
-	CRect rect;
-	if (!storeAnalysisElemPtrs.empty()) {
-		rect = GdiPlusUtil::GetWindowRelativeRect(storeAnalysisElemPtrs.back()->m_hWnd);
-	} else {
-		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
-		int x = 20, y = rcLast.bottom + 25, w = clientRect.Width() - 20 * 2, h = (20 + 5);
-		rect = { x, y, x + w, y + h };
-	}
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
+	int x = 20, y = rcLast.bottom + 25, w = clientRect.Width() - 20 * 2, h = (20 + 5);
+	CRect rect = { x, y, x + w, y + h };
+	
 	// 7.Foreach table names to show the table report
 	auto & tblNames = storeAnalysisService->getTableNames(supplier.getRuntimeUserDbId());
 	for (auto & tblName : tblNames) {
