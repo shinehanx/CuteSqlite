@@ -20,16 +20,16 @@ public:
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	QHorizontalBar(const std::wstring & val, float percent = 0, COLORREF processColor = RGB(49, 139, 202));
+	QHorizontalBar(const std::wstring & val, double percent = 0, COLORREF processColor = RGB(49, 139, 202));
 	~QHorizontalBar();
 	
-	void draw(const std::wstring & val, float percent);
+	void draw(const std::wstring & val, double percent);
 	void error(const std::wstring & err);
 	void reset();
 
 	void setColors(COLORREF bkgColor, COLORREF processColor);
 private:
-	float percent = 0; // such as 99.70
+	double percent = 0; // such as 99.70
 	std::wstring val;
 	std::wstring err;
 

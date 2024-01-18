@@ -73,6 +73,62 @@ DbSpaceUsed & StoreAnalysisService::getDbSpaceUsed(uint64_t userDbId)
 }
 
 
+TblIdxEntryCntVector StoreAnalysisService::getSeperateTblEntryCntList(uint64_t userDbId)
+{
+	ATLASSERT(userDbId);
+	TblIdxEntryCntVector result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+
+	uint64_t totalEntryCount = 0;
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.isIndex) {
+			continue;
+		}
+		std::wstring & tblName = item.tblName;
+		totalEntryCount += (item.isWithoutRowid || item.isIndex) ? item.nentry : item.leafEntries; // The record count
+		auto & iter = std::find_if(result.begin(), result.end(), [&tblName](auto & entryItem){
+			return entryItem.name == tblName;
+		});
+		if (iter == result.end()) {
+			TblIdxEntryCnt cnt;
+			cnt.name = tblName;
+			if (item.isWithoutRowid || item.isIndex) {
+				cnt.entryCnt = item.nentry;
+			} else {
+				cnt.entryCnt = item.leafEntries;
+			}
+			cnt.percent = 0;
+			result.push_back(cnt);
+			continue;
+		}
+		TblIdxEntryCnt & cnt = *iter;
+		if (item.isWithoutRowid || item.isIndex) {
+			cnt.entryCnt += item.nentry;
+		} else {
+			cnt.entryCnt += item.leafEntries;
+		}		
+	}
+	
+	for (auto & item : result) {
+		item.percent = percent(item.entryCnt, totalEntryCount);
+	}
+	
+	// Note: Only std::vector can be sorted by std::sort, std::list can't be sorted
+	// first sort - sorted by name ASC
+	std::sort(result.begin(), result.end(), [](auto & item1, auto & item2) {
+		return item1.name < item2.name;
+	});
+	// second sort - sorted by pageCnt DESC
+	std::sort(result.begin(), result.end(), [](auto & item1, auto & item2) {
+		return item1.entryCnt > item2.entryCnt;
+	});
+
+	return result;
+}
+
 TblIdxPageCntVector StoreAnalysisService::getAllTblIdxPageCntList(uint64_t userDbId)
 {
 	ATLASSERT(userDbId);
@@ -101,7 +157,7 @@ TblIdxPageCntVector StoreAnalysisService::getAllTblIdxPageCntList(uint64_t userD
 	
 	uint64_t filePageCount = getPageCount(userDbId);
 	for (auto & item : result) {
-		item.percent = static_cast<float>(item.pageCnt * 100.0 / filePageCount);
+		item.percent = percent(item.pageCnt, filePageCount);
 	}
 	
 	// Note: Only std::vector can be sorted by std::sort, std::list can't be sorted
@@ -146,7 +202,7 @@ TblIdxPageCntVector StoreAnalysisService::getSeperateTblIdxPageCntList(uint64_t 
 	
 	uint64_t filePageCount = getPageCount(userDbId);
 	for (auto & item : result) {
-		item.percent = static_cast<float>(item.pageCnt * 100.0 / filePageCount);
+		item.percent = percent(item.pageCnt, filePageCount);
 	}
 	
 	// Note: Only std::vector can be sorted by std::sort function, std::list can't be sorted
@@ -171,29 +227,260 @@ TblIdxSpaceUsed StoreAnalysisService::getAllTblAndIdxReport(uint64_t userDbId)
 		return result;
 	}
 	for (auto & item : tblIdxSpaceUsedList) {
-		if (item.isWithoutRowid || item.isIndex) {
-			result.nentry += item.nentry;
-		} else {
-			result.nentry += item.leafEntries;
-		}
-
-		result.payload += item.payload;
-		result.ovflPayload += item.ovflPayload;
-		result.mxPayload = max(result.mxPayload, item.mxPayload);
-		result.ovflCnt += item.ovflCnt;
-		result.leafPages += item.leafPages;
-		result.intPages += item.intPages;
-		result.ovflPages += item.ovflPages;
-		result.leafUnused += item.leafUnused;
-		result.intUnused += item.intUnused;
-		result.ovflUnused += item.ovflUnused;
-		result.gapCnt += item.gapCnt;
-		result.compressedSize += item.compressedSize;
-		result.depth = max(result.depth, item.depth);
-		result.cnt += 1;
+		sumTblIdxSpaceUsed(item, result);
 	}
 
 	return result;
+}
+
+
+TblIdxSpaceUsed StoreAnalysisService::getAllTableReport(uint64_t userDbId)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.isIndex) {
+			continue;
+		}
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+
+TblIdxSpaceUsed StoreAnalysisService::getAllIndexReport(uint64_t userDbId)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (!item.isIndex) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+/**
+ * Condition:SpaceUsed.tblName == tblName.
+ * 
+ * @param userDbId
+ * @param tblName
+ * @return 
+ */
+TblIdxSpaceUsed StoreAnalysisService::getSpecifiedTblIndexReport(uint64_t userDbId, const std::wstring& tblName)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+/**
+ * Conditioin: SpaceUsed.name == tblName.
+ * 
+ * @param userDbId
+ * @param tblName
+ * @return 
+ */
+TblIdxSpaceUsed StoreAnalysisService::getSpecifiedTblOnlyReport(uint64_t userDbId, const std::wstring& tblName)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.name != tblName || item.isIndex) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+/**
+ * Conditioin: SpaceUsed.tblName == tblName and SpaceUsed.isIndex == true.
+ * 
+ * @param userDbId
+ * @param tblName
+ * @return 
+ */
+TblIdxSpaceUsed StoreAnalysisService::getSpecifiedTblThenIdxOnlyReport(uint64_t userDbId, const std::wstring & tblName)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName || !item.isIndex) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+/**
+ * Conditioin: SpaceUsed.tblName == tblName and SpaceUsed.name == idxName and SpaceUsed.isIndex == true..
+ * 
+ * @param userDbId
+ * @param tblName
+ * @param idxName
+ * @return 
+ */
+TblIdxSpaceUsed StoreAnalysisService::getSpecifiedIdxReport(uint64_t userDbId, const std::wstring & tblName, const std::wstring & idxName)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName || item.name != idxName || !item.isIndex) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+/**
+ * Conditioin: SpaceUsed.tblName == tblName.
+ * 
+ * @param userDbId
+ * @param tblName
+ * @return 
+ */
+TblIdxSpaceUsed StoreAnalysisService::getSpecifiedTblReport(uint64_t userDbId, const std::wstring & tblName)
+{
+	TblIdxSpaceUsed result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName) {
+			continue;
+		}
+
+		sumTblIdxSpaceUsed(item, result);
+	}
+
+	return result;
+}
+
+void StoreAnalysisService::sumTblIdxSpaceUsed(TblIdxSpaceUsed &item, TblIdxSpaceUsed &result)
+{
+	if (item.isWithoutRowid || item.isIndex) {
+		result.nentry += item.nentry;
+	} else {
+		result.nentry += item.leafEntries;
+	}
+
+	result.payload += item.payload;
+	result.ovflPayload += item.ovflPayload;
+	result.mxPayload = max(result.mxPayload, item.mxPayload);
+	result.ovflCnt += item.ovflCnt;
+	result.leafPages += item.leafPages;
+	result.intPages += item.intPages;
+	result.ovflPages += item.ovflPages;
+	result.leafUnused += item.leafUnused;
+	result.intUnused += item.intUnused;
+	result.ovflUnused += item.ovflUnused;
+	result.gapCnt += item.gapCnt;
+	result.compressedSize += item.compressedSize;
+	result.depth = max(result.depth, item.depth);
+	result.cnt += 1;
+}
+
+
+
+std::vector<std::wstring> StoreAnalysisService::getTableNames(uint64_t userDbId)
+{
+	std::vector<std::wstring> result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+
+	for (auto & item : tblIdxSpaceUsedList) {
+		auto & tblName = item.tblName;
+		auto & iter = std::find(result.begin(), result.end(), tblName);
+		if (iter == result.end()) {
+			result.push_back(tblName);
+		}
+	}
+
+	std::sort(result.begin(), result.end(), [](auto &item1, auto &item2) {
+		return item1 < item2;
+	});
+
+	return result;
+}
+
+
+std::vector<std::wstring> StoreAnalysisService::getIndexNamesByTblName(uint64_t userDbId, const std::wstring & tblName)
+{
+	std::vector<std::wstring> result;
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return result;
+	}
+
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName || !item.isIndex) {
+			continue;
+		}
+		auto & iter = std::find(result.begin(), result.end(), item.name);
+		if (iter == result.end()) {
+			result.push_back(item.name);
+		}
+	}
+	return result;
+}
+
+
+int StoreAnalysisService::getSpaceUsedCountByTblName(uint64_t userDbId, const std::wstring & tblName)
+{
+	TblIdxSpaceUsedList & tblIdxSpaceUsedList = getTblIdxSpaceUsedList(userDbId);
+	if (tblIdxSpaceUsedList.empty()) {
+		return 0;
+	}
+	int n = 0;
+	for (auto & item : tblIdxSpaceUsedList) {
+		if (item.tblName != tblName) {
+			continue;
+		}
+		n++;
+	}
+	return n;
 }
 
 void StoreAnalysisService::clearCache(uint64_t userDbId)
@@ -292,4 +579,14 @@ uint64_t StoreAnalysisService::getUserPayload(uint64_t userDbId)
 int StoreAnalysisService::isWithoutRowid(std::wstring name)
 {
 	return 0;
+}
+
+double StoreAnalysisService::percent(uint64_t val, uint64_t total)
+{
+	if (total == 0.0) {
+		return 0;
+	}
+	double dval = val * 100.0 / total;
+	dval = round(dval * 100) / 100;
+	return dval;
 }

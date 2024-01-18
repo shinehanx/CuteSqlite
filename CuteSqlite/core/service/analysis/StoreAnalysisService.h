@@ -32,11 +32,22 @@ public:
 	uint64_t getPageCount(uint64_t userDbId);
 	uint64_t getFreePageCount(uint64_t userDbId);
 	DbSpaceUsed & getDbSpaceUsed(uint64_t userDbId);
+	TblIdxEntryCntVector getSeperateTblEntryCntList(uint64_t userDbId);
 	TblIdxPageCntVector getAllTblIdxPageCntList(uint64_t userDbId);
 	TblIdxPageCntVector getSeperateTblIdxPageCntList(uint64_t userDbId);
 	TblIdxSpaceUsed getAllTblAndIdxReport(uint64_t userDbId);
+	TblIdxSpaceUsed getAllTableReport(uint64_t userDbId);
+	TblIdxSpaceUsed getAllIndexReport(uint64_t userDbId);
+	TblIdxSpaceUsed getSpecifiedTblIndexReport(uint64_t userDbId, const std::wstring& tblName);
+	TblIdxSpaceUsed getSpecifiedTblOnlyReport(uint64_t userDbId, const std::wstring& tblName);
+	TblIdxSpaceUsed getSpecifiedTblThenIdxOnlyReport(uint64_t userDbId, const std::wstring & tblName);
+	TblIdxSpaceUsed getSpecifiedIdxReport(uint64_t userDbId, const std::wstring & tblName, const std::wstring & idxName);
+	TblIdxSpaceUsed getSpecifiedTblReport(uint64_t userDbId, const std::wstring & tblName);
 
-	void clearCache(uint64_t userDbId);
+	std::vector<std::wstring> getTableNames(uint64_t userDbId);
+	std::vector<std::wstring> getIndexNamesByTblName(uint64_t userDbId, const std::wstring & tblName);
+	int getSpaceUsedCountByTblName(uint64_t userDbId, const std::wstring & tblName);
+	void clearCache(uint64_t userDbId);	
 private:
 	// template params: first(uint64_t) - userDbId, second(TblIdxSpaceUsedList) - table and index SpaceUsed List
 	std::unordered_map<uint64_t, TblIdxSpaceUsedList> cacheTblIdxSpaceUsedListMap; // The TblIdxSpaceUsedList cache Map of specified user db id
@@ -49,4 +60,6 @@ private:
 	TblIdxSpaceUsedList & getTblIdxSpaceUsedList(uint64_t userDbId);
 	uint64_t getUserPayload(uint64_t userDbId);
 	int isWithoutRowid(std::wstring name);
+	void sumTblIdxSpaceUsed(TblIdxSpaceUsed &item, TblIdxSpaceUsed &result);
+	double percent(uint64_t val, uint64_t total);
 };

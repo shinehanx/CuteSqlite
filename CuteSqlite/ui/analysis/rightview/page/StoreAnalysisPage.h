@@ -42,6 +42,7 @@ public:
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
 		COMMAND_HANDLER_EX(Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
+		COMMAND_HANDLER_EX(Config::ANALYSIS_DB_STORE_TBL_COMBOBOX_ID, CBN_SELENDOK, OnChangeTableComboBox)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORBTN(OnCtlColorBtn)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -95,6 +96,8 @@ private:
 	virtual void createOrShowUI();
 	void createOrShowTitleElems(CRect & clientRect);
 	void createOrShowStoreAnalysisElems(CRect & clientRect);
+	void createOrShowDatabaseStoreAnalysisElems(CRect &clientRect);
+	void createOrShowTableStoreAnalysisElems(CRect & clientRect);
 	
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
@@ -112,6 +115,7 @@ private:
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnChangeTableComboBox(UINT uNotifyCode, int nID, HWND hwnd);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorBtn(HDC hdc, HWND hwnd);
@@ -120,4 +124,5 @@ private:
 	StoreAnalysisElem * getStoreAnalysisElemPtr(const std::wstring & title);
 	// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
 	void updateSubWindow();
+	std::wstring getSelectTable();
 };

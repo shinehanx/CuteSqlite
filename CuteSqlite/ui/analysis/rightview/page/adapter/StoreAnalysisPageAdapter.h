@@ -31,17 +31,31 @@ public:
 	~StoreAnalysisPageAdapter();
 
 	StoreAnalysisItems getStoreAnalysisItemsOfDbDiskUsed();
+	StoreAnalysisItems getStoreAnalysisItemsOfAllTblEntries();
 	StoreAnalysisItems getStoreAnalysisItemsOfAllTblIdxPageCnt();
 	StoreAnalysisItems getStoreAnalysisItemsOfSeperateTblIdxPageCnt();
 	StoreAnalysisItems getStoreAnalysisItemsOfAllTblIdxReport(bool showFrag = false);
+	StoreAnalysisItems getStoreAnalysisItemsOfAllTblReport(bool showFrag = false);
+	StoreAnalysisItems getStoreAnalysisItemsOfAllIdxReport(bool showFrag = false);
+	StoreAnalysisItems getStoreAnalysisItemsOfTblIdxReport(uint64_t userDbId, std::wstring& tblName);
+	StoreAnalysisItems getStoreAnalysisItemsOfTblOnlyReport(uint64_t userDbId, std::wstring& tblName, bool showFrag = false);
+	StoreAnalysisItems getStoreAnalysisItemsOfIdxOnlyReport(uint64_t userDbId, const std::wstring & tblName);
+	StoreAnalysisItems getStoreAnalysisItemsOfIdxReport(uint64_t userDbId, const std::wstring & tblName, const std::wstring & idxName, bool showFrag = false);
+	StoreAnalysisItems getStoreAnalysisItemsOfTblReport(uint64_t userDbId, const std::wstring & tblName);
+	
 private:
 	const COLORREF PAGES_COLOR = RGB(49, 139, 202);
 	const COLORREF BYTES_COLOR = RGB(112, 146, 190);
 	const COLORREF TABLE_COLOR = RGB(0, 128, 0);
 	const COLORREF INDEX_COLOR = RGB(255, 128, 0);
 	const COLORREF DEPTH_COLOR = RGB(0, 0, 160);
+	const COLORREF ENTRY_COLOR = RGB(255, 128, 64);
 	StoreAnalysisSupplier * supplier = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	StoreAnalysisService * storeAnalysisService = StoreAnalysisService::getInstance();
+
+	StoreAnalysisItems reportStoreAnalysisItems(TblIdxSpaceUsed &tiSpaceUsed, bool showFrag);
+
 	double percent(uint64_t val, uint64_t total);
+	std::wstring formatDouble(double val);	
 };

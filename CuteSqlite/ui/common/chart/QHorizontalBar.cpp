@@ -3,7 +3,7 @@
 #include "QHorizontalBar.h"
 #include "core/common/Lang.h"
 
-QHorizontalBar::QHorizontalBar(const std::wstring & val, float percent /*= 0*/, COLORREF processColor/* = RGB(49, 139, 202)*/)
+QHorizontalBar::QHorizontalBar(const std::wstring & val, double percent /*= 0*/, COLORREF processColor/* = RGB(49, 139, 202)*/)
 {
 	this->val = val;
 	this->percent = percent;
@@ -15,7 +15,7 @@ QHorizontalBar::~QHorizontalBar()
 	m_hWnd = nullptr;
 }
 
-void QHorizontalBar::draw(const std::wstring & val, float percent)
+void QHorizontalBar::draw(const std::wstring & val, double percent)
 {
 	this->val = val;
 	this->percent = percent;	
@@ -97,7 +97,9 @@ LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	int x = clientRect.left, y = clientRect.top, w = pixel, h = clientRect.Height();
 	CRect rect(x, y, x + w, y + h);
 	if (err.empty()) {
-		mdc.FillRect(rect, processBrush.m_hBrush);
+		if (val != L"0") {
+			mdc.FillRect(rect, processBrush.m_hBrush);
+		}		
 	} else {
 		mdc.FillRect(rect, errorBrush.m_hBrush);
 	}
@@ -105,7 +107,9 @@ LRESULT QHorizontalBar::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 
 	//  Draw text
 	std::wstring text = val;
-	std::wstring perText = percent > 0 && percent < 100 ? std::to_wstring(percent) + L"%" : L"";
+	wchar_t buff[16];
+	swprintf_s(buff, 16, L"%.2f", percent); 
+	std::wstring perText = percent > 0 && percent < 100 ? std::wstring(buff) + L"%" : L"";
 	UINT uFormat = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS;
 	HFONT oldFont = mdc.SelectFont(textFont);
 	HPEN oldPen = mdc.SelectPen(textPen);

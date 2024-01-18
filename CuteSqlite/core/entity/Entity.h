@@ -380,7 +380,7 @@ typedef struct {
 	std::wstring name;			// item name
 	std::wstring description;	// item description
 	std::wstring val;			// item value str
-	float percent;				// max value	
+	double percent;				// max value
 } StoreAnalysisItem;
 typedef std::vector<StoreAnalysisItem> StoreAnalysisItems;
 
@@ -412,6 +412,14 @@ typedef std::list<SqliteSchema> SqliteSchemaList;
 typedef struct {
 	std::wstring name;
 	uint64_t pageCnt;
-	float percent;
+	double percent;
 }TblIdxPageCnt;
 typedef std::vector<TblIdxPageCnt> TblIdxPageCntVector;
+
+
+typedef struct {
+	std::wstring name;
+	uint64_t entryCnt;
+	double percent;
+}TblIdxEntryCnt;
+typedef std::vector<TblIdxEntryCnt> TblIdxEntryCntVector;

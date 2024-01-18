@@ -100,27 +100,182 @@ void StoreAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 
 void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
 {
-	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);	
+	createOrShowDatabaseStoreAnalysisElems(clientRect);
+	createOrShowTableStoreAnalysisElems(clientRect);
+
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(storeAnalysisElemPtrs.back()->m_hWnd);
+	nHeightSum = rcLast.bottom + 200;
+}
+
+
+void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
+{
+	std::wstring selTable = getSelectTable();
+	if (selTable.empty() || selTable == L"All") {
+		return;
+	}
+	std::wstring title;
+	int itemsLen = 0;
+	CRect rect;
+	if (!storeAnalysisElemPtrs.empty()) {
+		rect = GdiPlusUtil::GetWindowRelativeRect(storeAnalysisElemPtrs.back()->m_hWnd);
+	} else {
+		CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
+		int x = 20, y = rcLast.bottom + 25, w = clientRect.Width() - 20 * 2, h = (20 + 5);
+		rect = { x, y, x + w, y + h };
+	}
+	// 7.Foreach table names to show the table report
+	auto & tblNames = storeAnalysisService->getTableNames(supplier.getRuntimeUserDbId());
+	for (auto & tblName : tblNames) {
+		if (tblName != selTable) {
+			continue;
+		}
+		int n = storeAnalysisService->getSpaceUsedCountByTblName(supplier.getRuntimeUserDbId(), tblName);
+		if (n > 0) {
+			// Table {tblName} and all its indices
+			title = S(L"tbl-and-all-idx-report-title");
+			title = StringUtil::replace(title, L"{tblName}", tblName);
+			StoreAnalysisElem * ptr7 = getStoreAnalysisElemPtr(title);
+			if (!ptr7) {
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblIdxReport(supplier.getRuntimeUserDbId(), tblName);
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+				ptr7 = new StoreAnalysisElem(title, storeItems);
+				storeAnalysisElemPtrs.push_back(ptr7);
+			}
+			else {
+				const StoreAnalysisItems & storeItems = ptr7->getStoreAnalysisItems();
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+			}
+			rect.OffsetRect(0, rect.Height() + 10);
+			rect.bottom = rect.top + (20 + 5) * itemsLen;
+			createOrShowStoreAnalysisElem(*ptr7, rect, clientRect);
+
+			// Table $name w/o any indices
+			title = S(L"tbl-only-report-title");
+			title = StringUtil::replace(title, L"{tblName}", tblName);
+			StoreAnalysisElem * ptr8 = getStoreAnalysisElemPtr(title);
+			if (!ptr8) {
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblOnlyReport(supplier.getRuntimeUserDbId(), tblName, true);
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+				ptr8 = new StoreAnalysisElem(title, storeItems);
+				storeAnalysisElemPtrs.push_back(ptr8);
+			}
+			else {
+				const StoreAnalysisItems & storeItems = ptr8->getStoreAnalysisItems();
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+			}
+			rect.OffsetRect(0, rect.Height() + 10);
+			rect.bottom = rect.top + (20 + 5) * itemsLen;
+			createOrShowStoreAnalysisElem(*ptr8, rect, clientRect);
+
+			auto idxList = storeAnalysisService->getIndexNamesByTblName(supplier.getRuntimeUserDbId(), tblName);
+			if (idxList.size() > 1) {
+				// Indices of table $name
+				title = S(L"idx-only-report-title");
+				title = StringUtil::replace(title, L"{tblName}", tblName);
+				StoreAnalysisElem * ptr9 = getStoreAnalysisElemPtr(title);
+				if (!ptr9) {
+					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxOnlyReport(supplier.getRuntimeUserDbId(), tblName);
+					itemsLen = static_cast<int>(storeItems.size()) + 1;
+					ptr9 = new StoreAnalysisElem(title, storeItems);
+					storeAnalysisElemPtrs.push_back(ptr9);
+				}
+				else {
+					const StoreAnalysisItems & storeItems = ptr9->getStoreAnalysisItems();
+					itemsLen = static_cast<int>(storeItems.size()) + 1;
+				}
+				rect.OffsetRect(0, rect.Height() + 10);
+				rect.bottom = rect.top + (20 + 5) * itemsLen;
+				createOrShowStoreAnalysisElem(*ptr9, rect, clientRect);
+			}
+
+			for (auto & idxName : idxList) {
+				// Index {idxName} of table {tblName}
+				title = S(L"idx-report-title");
+				title = StringUtil::replace(title, L"{idxName}", idxName);
+				title = StringUtil::replace(title, L"{tblName}", tblName);
+				StoreAnalysisElem * ptr10 = getStoreAnalysisElemPtr(title);
+				if (!ptr10) {
+					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxReport(supplier.getRuntimeUserDbId(), tblName, idxName);
+					itemsLen = static_cast<int>(storeItems.size()) + 1;
+					ptr10 = new StoreAnalysisElem(title, storeItems);
+					storeAnalysisElemPtrs.push_back(ptr10);
+				}
+				else {
+					const StoreAnalysisItems & storeItems = ptr10->getStoreAnalysisItems();
+					itemsLen = static_cast<int>(storeItems.size()) + 1;
+				}
+				rect.OffsetRect(0, rect.Height() + 10);
+				rect.bottom = rect.top + (20 + 5) * itemsLen;
+				createOrShowStoreAnalysisElem(*ptr10, rect, clientRect);
+			}
+		} else {
+			// 
+			title = S(L"tbl-report-title");
+			title = StringUtil::replace(title, L"{tblName}", tblName);
+			StoreAnalysisElem * ptr11 = getStoreAnalysisElemPtr(title);
+			if (!ptr11) {
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblReport(supplier.getRuntimeUserDbId(), tblName);
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+				ptr11 = new StoreAnalysisElem(title, storeItems);
+				storeAnalysisElemPtrs.push_back(ptr11);
+			}
+			else {
+				const StoreAnalysisItems & storeItems = ptr11->getStoreAnalysisItems();
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+			}
+			rect.OffsetRect(0, rect.Height() + 10);
+			rect.bottom = rect.top + (20 + 5) * itemsLen;
+			createOrShowStoreAnalysisElem(*ptr11, rect, clientRect);
+		}
+	}
+}
+
+void StoreAnalysisPage::createOrShowDatabaseStoreAnalysisElems(CRect &clientRect)
+{
+	std::wstring selTable = getSelectTable();
+	if (!selTable.empty() && selTable != L"All") {
+		return;
+	}
 	
 	UserDb & userDb = supplier.getUserDb();
 
 	// 1.Disk-Space Utilization Report For {dbPath}
 	std::wstring title = S(L"db-disk-used-title");
 	title = StringUtil::replace(title, L"{dbPath}", userDb.path);
-	StoreAnalysisElem * ptr = getStoreAnalysisElemPtr(title);
+	StoreAnalysisElem * ptr0 = getStoreAnalysisElemPtr(title);
 	int itemsLen = 0;
-	if (!ptr) {
+	if (!ptr0) {
 		StoreAnalysisItems dbStoreAnalysisItems = adapter->getStoreAnalysisItemsOfDbDiskUsed();
 		itemsLen = static_cast<int>(dbStoreAnalysisItems.size()) + 1;
-		ptr = new StoreAnalysisElem(title, dbStoreAnalysisItems);	
-		storeAnalysisElemPtrs.push_back(ptr);
-	} else {
-		const StoreAnalysisItems & storeItems = ptr->getStoreAnalysisItems();
+		ptr0 = new StoreAnalysisElem(title, dbStoreAnalysisItems);
+		storeAnalysisElemPtrs.push_back(ptr0);
+	}
+	else {
+		const StoreAnalysisItems & storeItems = ptr0->getStoreAnalysisItems();
 		itemsLen = static_cast<int>(storeItems.size()) + 1;
 	}
+
+	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
 	int x = 20, y = rcLast.bottom + 50, w = clientRect.Width() - 20 * 2, h = (20 + 5) * itemsLen;
 	CRect rect(x, y, x + w, y + h);
-	createOrShowStoreAnalysisElem(*ptr, rect, clientRect);
+	createOrShowStoreAnalysisElem(*ptr0, rect, clientRect);
+
+	// 2.Page counts for all tables with their indices
+	title = S(L"all-tbl-entrycnt-title");
+	StoreAnalysisElem * ptr1 = getStoreAnalysisElemPtr(title);
+	if (!ptr1) {
+		StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfAllTblEntries();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+		ptr1 = new StoreAnalysisElem(title, storeItems);
+		storeAnalysisElemPtrs.push_back(ptr1);
+	} else {
+		const StoreAnalysisItems & storeItems = ptr1->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, rect.Height() + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr1, rect, clientRect);
 
 	// 2.Page counts for all tables with their indices
 	title = S(L"all-tbl-idx-pagecnt-title");
@@ -130,11 +285,12 @@ void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
 		itemsLen = static_cast<int>(tblIdxPgCntStoreAnalysisItems.size()) + 1;
 		ptr2 = new StoreAnalysisElem(title, tblIdxPgCntStoreAnalysisItems);
 		storeAnalysisElemPtrs.push_back(ptr2);
-	} else {
+	}
+	else {
 		const StoreAnalysisItems & storeItems = ptr2->getStoreAnalysisItems();
 		itemsLen = static_cast<int>(storeItems.size()) + 1;
 	}
-	rect.OffsetRect(0, h + 10);
+	rect.OffsetRect(0, rect.Height() + 10);
 	rect.bottom = rect.top + (20 + 5) * itemsLen;
 	createOrShowStoreAnalysisElem(*ptr2, rect, clientRect);
 
@@ -146,7 +302,8 @@ void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
 		itemsLen = static_cast<int>(seperateStoreItems.size()) + 1;
 		ptr3 = new StoreAnalysisElem(title, seperateStoreItems);
 		storeAnalysisElemPtrs.push_back(ptr3);
-	} else {
+	}
+	else {
 		const StoreAnalysisItems & storeItems = ptr3->getStoreAnalysisItems();
 		itemsLen = static_cast<int>(storeItems.size()) + 1;
 	}
@@ -158,11 +315,12 @@ void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
 	title = S(L"all-tbl-idx-report-title");
 	StoreAnalysisElem * ptr4 = getStoreAnalysisElemPtr(title);
 	if (!ptr4) {
-		StoreAnalysisItems seperateStoreItems = adapter->getStoreAnalysisItemsOfAllTblIdxReport();
-		itemsLen = static_cast<int>(seperateStoreItems.size()) + 1;
-		ptr4 = new StoreAnalysisElem(title, seperateStoreItems);
+		StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfAllTblIdxReport();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+		ptr4 = new StoreAnalysisElem(title, storeItems);
 		storeAnalysisElemPtrs.push_back(ptr4);
-	} else {
+	}
+	else {
 		const StoreAnalysisItems & storeItems = ptr4->getStoreAnalysisItems();
 		itemsLen = static_cast<int>(storeItems.size()) + 1;
 	}
@@ -170,7 +328,39 @@ void StoreAnalysisPage::createOrShowStoreAnalysisElems(CRect & clientRect)
 	rect.bottom = rect.top + (20 + 5) * itemsLen;
 	createOrShowStoreAnalysisElem(*ptr4, rect, clientRect);
 
-	nHeightSum = rect.bottom;
+	// 5.All tables report
+	title = S(L"all-table-report-title");
+	StoreAnalysisElem * ptr5 = getStoreAnalysisElemPtr(title);
+	if (!ptr5) {
+		StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfAllTblReport();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+		ptr5 = new StoreAnalysisElem(title, storeItems);
+		storeAnalysisElemPtrs.push_back(ptr5);
+	}
+	else {
+		const StoreAnalysisItems & storeItems = ptr5->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, rect.Height() + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr5, rect, clientRect);
+
+	// 6.All indices report
+	title = S(L"all-indices-report-title");
+	StoreAnalysisElem * ptr6 = getStoreAnalysisElemPtr(title);
+	if (!ptr6) {
+		StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfAllIdxReport();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+		ptr6 = new StoreAnalysisElem(title, storeItems);
+		storeAnalysisElemPtrs.push_back(ptr6);
+	}
+	else {
+		const StoreAnalysisItems & storeItems = ptr6->getStoreAnalysisItems();
+		itemsLen = static_cast<int>(storeItems.size()) + 1;
+	}
+	rect.OffsetRect(0, rect.Height() + 10);
+	rect.bottom = rect.top + (20 + 5) * itemsLen;
+	createOrShowStoreAnalysisElem(*ptr6, rect, clientRect);
 }
 
 void StoreAnalysisPage::createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect)
@@ -412,6 +602,14 @@ LRESULT StoreAnalysisPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWND 
 	return 0;
 }
 
+
+LRESULT StoreAnalysisPage::OnChangeTableComboBox(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	clearStoreAnalysisElemPtrs();
+	createOrShowUI();
+	return 0;
+}
+
 void StoreAnalysisPage::clearStoreAnalysisElemPtrs()
 {
 	for (auto ptr : storeAnalysisElemPtrs) {
@@ -487,4 +685,16 @@ void StoreAnalysisPage::updateSubWindow()
 			ptr->refreshHorizBars();
 		}		
 	}
+}
+
+std::wstring StoreAnalysisPage::getSelectTable()
+{
+	int nSelItem = tableComboBox.GetCurSel();
+	if (nSelItem == -1) {
+		return L"All";
+	}
+	wchar_t cch[1024] = { 0 };
+	tableComboBox.GetLBText(nSelItem, cch);
+	std::wstring text(cch);
+	return text;
 }
