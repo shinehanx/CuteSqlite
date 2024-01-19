@@ -31,6 +31,8 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 [https://github.com/shinehanx/CuteSqlite/releases](https://github.com/shinehanx/CuteSqlite/releases)
 
+![en-sql-query](https://user-images.githubusercontent.com/39614544/297959939-91fdca5e-1456-4706-84a9-a3fd886d8288.png)
+
 **Advantages:**
 **1. Complete functionality:** The goal is to make the best SQLite client.
 **2. Small size:** The application compressed package is only 6MB.
@@ -80,7 +82,7 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 **Snapshot:**
 
-![Performance Analysis](https://user-images.githubusercontent.com/39614544/297732809-4c79a129-64a3-43ff-92d6-a7a0e127a063.png 'Performance Analysis')
+![Alter Table](https://user-images.githubusercontent.com/39614544/297957458-d4b0619d-f8c9-4da3-a609-2ccba8c155de.png 'Alter Table')
 
 ![Performance Analysis](https://user-images.githubusercontent.com/39614544/297732809-4c79a129-64a3-43ff-92d6-a7a0e127a063.png 'Performance Analysis')
 
