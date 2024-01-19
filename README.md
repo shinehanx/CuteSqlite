@@ -31,6 +31,13 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 [https://github.com/shinehanx/CuteSqlite/releases](https://github.com/shinehanx/CuteSqlite/releases)
 
+**Advantages:**
+**1. Complete functionality:** The goal is to make the best SQLite client.
+**2. Small size:** The application compressed package is only 6MB.
+**3. Excellent performance:** Developed with C++11/WTL, it is infinitely close to the performance of the Win32 API.
+**4. Small memory footprint:** Only 5-8MB of memory is required.
+**5. Advanced features:** SQL analysis and optimization, storage analysis.
+
 **Feature list**
 
 **1.Database management.**
@@ -73,12 +80,11 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 
 **Snapshot:**
 
-![CuteSqlite Snapshot 1](https://img-blog.csdnimg.cn/direct/aada3b7672e54eef871c25ab081fa8ba.jpeg)
-![CuteSqlite Snapshot 2](https://img-blog.csdnimg.cn/direct/a6aeada2ca9a478da2ada72c337be5cd.jpeg#pic_center)
-![CuteSqlite Snapshot 3](https://img-blog.csdnimg.cn/direct/cdad9e003c8e4efdaa394ded35637fa8.jpeg#pic_center)
-![CuteSqlite Snapshot 4](https://img-blog.csdnimg.cn/direct/0874158219134d479018b61b8ffff2f1.jpeg#pic_center)
-![CuteSqlite Snapshot 5](https://img-blog.csdnimg.cn/direct/816ebdc71f8544608bf36559828310e6.jpeg#pic_center)
-![CuteSqlite Snapshot 6](https://img-blog.csdnimg.cn/84f044745ce240898a48c1736ce041ca.png#pic_center)
+![Performance Analysis](https://user-images.githubusercontent.com/39614544/297732809-4c79a129-64a3-43ff-92d6-a7a0e127a063.png 'Performance Analysis')
+
+![Performance Analysis](https://user-images.githubusercontent.com/39614544/297732809-4c79a129-64a3-43ff-92d6-a7a0e127a063.png 'Performance Analysis')
+
+![Store Analysis](https://user-images.githubusercontent.com/39614544/297731335-37795f55-83f7-47cf-b700-4bbf73f00257.png 'Store Analysis')
 
 **中文介绍:**
 [中文介绍](README.zh.md)
