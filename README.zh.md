@@ -4,7 +4,7 @@
 
 开源项目CuteSqlite，是轻量级数据库Sqlite的图形化管理客户端，使用C++/WTL实现，支持Windows操作系统。
 
-![SQL查询编辑器](https://cdn-img.gitcode.com/ca/bd/ca3b6d6849c92a0c20ff23046c0a1c6db9afb5912b1d803bf185bf3201321346.png 'SQL查询编辑器')
+![CuteSqlite](https://img-blog.csdnimg.cn/direct/6ebf21db2f4f48db9fda0e1463127d1e.png 'CuteSqlite')
 
 **二、项目目标**
 
@@ -46,12 +46,13 @@ Release下载: [https://github.com/shinehanx/CuteSqlite/releases](https://github
 
 **六、项目预览**
 
-![基本功能](https://cdn-img.gitcode.com/db/be/684742546d557b04befbd61958bfe63a4cb5e3ad21684ac641ee7ca42a6936b2.png '基本功能')
-![SQL查询编辑器](https://cdn-img.gitcode.com/ca/bd/ca3b6d6849c92a0c20ff23046c0a1c6db9afb5912b1d803bf185bf3201321346.png 'SQL查询编辑器')
-![速度](https://cdn-img.gitcode.com/ef/bc/96e642fb9c51f32d041f87168e957e154c3b5067796381f0a551dd4be75edaa8.png '查询速度')
+![首页](https://img-blog.csdnimg.cn/direct/aada3b7672e54eef871c25ab081fa8ba.jpeg '首页')
+![基本功能](https://img-blog.csdnimg.cn/direct/5ebcba761958443c97811a7e5fd2e9a4.png '基本功能')
+![建表](https://img-blog.csdnimg.cn/direct/9f8263e757cd4023bdbee1da558c05db.png '建表')
+![表复制，支持数据分片](https://img-blog.csdnimg.cn/direct/f828bd57429642c6bafc668726cba140.png '表复制，支持数据分片')
 
-![性能分析](https://cdn-img.gitcode.com/ba/cc/0157b813a161c698cd1c7f8478e980a153f0e1b8b494ca7a801839b2751f05ff.png '性能分析')
-![存储分析](https://cdn-img.gitcode.com/be/cf/b7e6cf6b2f0c64ed249edc237e2c2b372630cfa1460bb8b16c3cc6799b20bd1d.png '存储分析')
+![性能分析](https://img-blog.csdnimg.cn/direct/7c03515e08854e2d918bb03cfacf85cf.png '性能分析')
+![存储分析](https://img-blog.csdnimg.cn/direct/a57c8347739a4ab2b4972f745d50aa16.png '存储分析')
 
 **七、英文介绍:**
 [英文介绍](README.md)
