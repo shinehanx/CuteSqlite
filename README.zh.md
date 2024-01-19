@@ -29,7 +29,7 @@
 GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shinehanx/CuteSqlite.git)
 Release下载: [https://github.com/shinehanx/CuteSqlite/releases](https://github.com/shinehanx/CuteSqlite/releases)
 
-**五、功能特点：**
+**六、功能特点：**
 
 1. **数据库浏览**：CuteSqlite允许用户浏览数据库中的所有对象，如表、视图、触发器等。用户可以轻松查看数据库结构，对数据库进行全面了解。
 2. **查询执行**：CuteSqlite内置了一个强大的查询编辑器，用户可以在其中编写和执行SQL查询。此外，它还支持参数化查询，有助于提高安全性并减少SQL注入的风险。
@@ -44,15 +44,19 @@ Release下载: [https://github.com/shinehanx/CuteSqlite/releases](https://github
 
 这些高级功能使得CuteSqlite成为一个功能完备的SQLite图形化管理客户端，适用于各种不同的应用场景，无论是个人使用还是企业级应用。
 
-**六、项目预览**
+**七、项目预览**
 
 ![首页](https://img-blog.csdnimg.cn/direct/aada3b7672e54eef871c25ab081fa8ba.jpeg '首页')
+
 ![基本功能](https://img-blog.csdnimg.cn/direct/5ebcba761958443c97811a7e5fd2e9a4.png '基本功能')
+
 ![建表](https://img-blog.csdnimg.cn/direct/9f8263e757cd4023bdbee1da558c05db.png '建表')
+
 ![表复制，支持数据分片](https://img-blog.csdnimg.cn/direct/f828bd57429642c6bafc668726cba140.png '表复制，支持数据分片')
 
 ![性能分析](https://img-blog.csdnimg.cn/direct/7c03515e08854e2d918bb03cfacf85cf.png '性能分析')
+
 ![存储分析](https://img-blog.csdnimg.cn/direct/a57c8347739a4ab2b4972f745d50aa16.png '存储分析')
 
-**七、英文介绍:**
+**八、英文介绍:**
 [英文介绍](README.md)
