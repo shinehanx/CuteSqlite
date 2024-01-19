@@ -34,11 +34,17 @@ GitHub: [https://github.com/shinehanx/CuteSqlite.git](https://github.com/shineha
 ![en-sql-query](https://user-images.githubusercontent.com/39614544/297959939-91fdca5e-1456-4706-84a9-a3fd886d8288.png)
 
 **Advantages:**
+
 **1. Complete functionality:** The goal is to make the best SQLite client.
+
 **2. Small size:** The application compressed package is only 6MB.
+
 **3. Excellent performance:** Developed with C++11/WTL, it is infinitely close to the performance of the Win32 API.
+
 **4. Small memory footprint:** Only 5-8MB of memory is required.
+
 **5. Advanced features:** SQL analysis and optimization, storage analysis.
+
 
 **Feature list**
 
