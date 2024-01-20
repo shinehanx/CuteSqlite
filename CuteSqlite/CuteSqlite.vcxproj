@@ -258,6 +258,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="core\repository\user\ColumnUserRepository.cpp" />
     <ClCompile Include="core\repository\user\DbStatUserRepository.cpp" />
     <ClCompile Include="core\repository\user\IndexUserRepository.cpp" />
+    <ClCompile Include="core\repository\user\PragmaUserRepository.cpp" />
     <ClCompile Include="core\repository\user\SqlExecutorUserRepository.cpp" />
     <ClCompile Include="core\repository\user\SqliteSchemaUserRepository.cpp" />
     <ClCompile Include="core\repository\user\TableUserRepository.cpp" />
@@ -270,6 +271,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="core\service\db\TableService.cpp" />
     <ClCompile Include="core\service\export\ExportDatabaseObjectsService.cpp" />
     <ClCompile Include="core\service\export\ExportResultService.cpp" />
+    <ClCompile Include="core\service\pragma\PragmaService.cpp" />
     <ClCompile Include="core\service\sqllog\SqlLogService.cpp" />
     <ClCompile Include="core\service\system\SettingService.cpp" />
     <ClCompile Include="CuteSqlite.cpp" />
@@ -284,8 +286,10 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\dialog\AddSqlDialog.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\adapter\DbPragmaParamPageAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\adapter\StoreAnalysisPageAdapter.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\DbPragmaParamsPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\StoreAnalysisElem.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.cpp" />
@@ -294,6 +298,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\analysis\rightview\page\PerfAnalysisPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\SqlLogPage.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\StoreAnalysisPage.cpp" />
+    <ClCompile Include="ui\analysis\rightview\page\supplier\DbPragmaParamSupplier.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.cpp" />
     <ClCompile Include="ui\analysis\rightview\page\supplier\StoreAnalysisSupplier.cpp" />
     <ClCompile Include="ui\analysis\rightview\RightAnalysisView.cpp" />
@@ -315,6 +320,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClCompile Include="ui\common\page\QHelpPage.cpp" />
     <ClCompile Include="ui\common\page\QPage.cpp" />
     <ClCompile Include="ui\common\chart\QHorizontalBar.cpp" />
+    <ClCompile Include="ui\common\param\QParamElem.cpp" />
     <ClCompile Include="ui\common\process\QProcessBar.cpp" />
     <ClCompile Include="ui\common\tabview\QTabView.cpp" />
     <ClCompile Include="ui\common\treeview\QTreeViewCtrl.cpp" />
@@ -425,6 +431,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="core\repository\user\ColumnUserRepository.h" />
     <ClInclude Include="core\repository\user\DbStatUserRepository.h" />
     <ClInclude Include="core\repository\user\IndexUserRepository.h" />
+    <ClInclude Include="core\repository\user\PragmaUserRepository.h" />
     <ClInclude Include="core\repository\user\SqlExecutorUserRepository.h" />
     <ClInclude Include="core\repository\user\SqliteSchemaUserRepository.h" />
     <ClInclude Include="core\repository\user\TableUserRepository.h" />
@@ -437,6 +444,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="core\service\db\TableService.h" />
     <ClInclude Include="core\service\export\ExportDatabaseObjectsService.h" />
     <ClInclude Include="core\service\export\ExportResultService.h" />
+    <ClInclude Include="core\service\pragma\PragmaService.h" />
     <ClInclude Include="core\service\system\SettingService.h" />
     <ClInclude Include="core\service\sqllog\SqlLogService.h" />
     <ClInclude Include="MainFrm.h" />
@@ -446,8 +454,10 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="ui\analysis\leftview\adapter\LeftNaigationViewAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\dialog\AddSqlDialog.h" />
+    <ClInclude Include="ui\analysis\rightview\page\adapter\DbPragmaParamPageAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\PerfAnalysisPageAdapter.h" />
     <ClInclude Include="ui\analysis\rightview\page\adapter\StoreAnalysisPageAdapter.h" />
+    <ClInclude Include="ui\analysis\rightview\page\DbPragmaParamsPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\SelectColumnsAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\StoreAnalysisElem.h" />
     <ClInclude Include="ui\analysis\rightview\page\elem\TableJoinAnalysisElem.h" />
@@ -456,6 +466,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\analysis\rightview\page\PerfAnalysisPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\SqlLogPage.h" />
     <ClInclude Include="ui\analysis\rightview\page\StoreAnalysisPage.h" />
+    <ClInclude Include="ui\analysis\rightview\page\supplier\DbPragmaParamSupplier.h" />
     <ClInclude Include="ui\analysis\rightview\page\supplier\PerfAnalysisSupplier.h" />
     <ClInclude Include="ui\analysis\rightview\page\supplier\StoreAnalysisSupplier.h" />
     <ClInclude Include="ui\analysis\rightview\RightAnalysisView.h" />
@@ -480,6 +491,7 @@ xcopy ..\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y</Command>
     <ClInclude Include="ui\common\page\QPage.h" />
     <ClInclude Include="ui\common\listview\QListViewCtrl.h" />
     <ClInclude Include="ui\common\chart\QHorizontalBar.h" />
+    <ClInclude Include="ui\common\param\QParamElem.h" />
     <ClInclude Include="ui\common\process\QProcessBar.h" />
     <ClInclude Include="ui\common\QWinCreater.h" />
     <ClInclude Include="ui\common\tabview\QTabView.h" />

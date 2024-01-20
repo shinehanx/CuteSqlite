@@ -11,23 +11,21 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
- * @brief  
+ * @file   PragmaService.cpp
+ * @brief  Execute sql service class
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2024-01-20
  *********************************************************************/
-#pragma once
-#include "core/entity/Entity.h"
+#include "stdafx.h"
+#include "PragmaService.h"
 
-class EntityUtil {
-public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
-	static UserDb copy(const UserDb & item);
-	static ParamElemData copy(const ParamElemData & item);
+QSqlStatement PragmaService::tryExecPragma(uint64_t userDbId, const std::wstring &pragmaSql)
+{
+	return getRepository()->tryExec(userDbId, pragmaSql);
+}
 
-	static bool compare(const ColumnInfo & item1, const ColumnInfo & item2);
-	static bool compare(const IndexInfo & item1, const IndexInfo & item2);
-	static bool compare(const ForeignKey & item1, const ForeignKey & item2);
-};
+std::wstring PragmaService::execOnePragma(uint64_t userDbId, const std::wstring &pragmaSql)
+{
+	return getRepository()->execForOne(userDbId, pragmaSql);
+}

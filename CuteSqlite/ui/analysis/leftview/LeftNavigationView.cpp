@@ -195,12 +195,18 @@ LRESULT LeftNavigationView::OnDbClickTreeViewItem(int wParam, LPNMHDR lParam, BO
 			return 0;
 		}
 		AppContext::getInstance()->dispatch(Config::MSG_DB_STORE_ANALYSIS_ID, WPARAM(userDbId));
-	} else if (nImage == 8) {
+	} else if (nImage == 9) {
 		uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
 		if (!userDbId) {
 			return 0;
 		}
-		AppContext::getInstance()->dispatch(Config::MSG_DB_PARAMS_ID, WPARAM(userDbId));
+		AppContext::getInstance()->dispatch(Config::MSG_DB_PRAGMA_PARAMS_ID, WPARAM(userDbId));
+	} else if (nImage == 10) {
+		uint64_t userDbId = static_cast<uint64_t>(treeItem.GetData());
+		if (!userDbId) {
+			return 0;
+		}
+		AppContext::getInstance()->dispatch(Config::MSG_DB_QUICK_CONFIG_PARAMS_ID, WPARAM(userDbId));
 	}
 	
 	return 0;

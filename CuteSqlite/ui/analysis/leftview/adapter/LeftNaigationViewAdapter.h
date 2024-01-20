@@ -46,6 +46,8 @@ private:
 	HICON analysisReportDirtyIcon = nullptr;
 	HICON dbStoreAnalysisIcon = nullptr;
 	HICON subDbParamsIcon = nullptr;
+	HICON subPragmaParamsIcon = nullptr;
+	HICON subQuickConfigParamsIcon = nullptr;
 
 	HICON openPerfReportIcon = nullptr;
 	HICON dropPerfReportIcon = nullptr;
@@ -71,5 +73,5 @@ private:
 	void loadDatabseForDbParamsItem();
 	void createPerfReportMenu();
 	void addDatabaseToStoreAnalysisItem(UserDb & userDb);
-	void addDatabaseToDbParamsItem(UserDb & userDb);
+	CTreeItem addDatabaseToDbParamsItem(UserDb & userDb);
 };

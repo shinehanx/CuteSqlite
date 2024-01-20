@@ -67,6 +67,18 @@ UserDb EntityUtil::copy(const UserDb & item)
 	return result;
 }
 
+
+ParamElemData EntityUtil::copy(const ParamElemData & item)
+{
+	ParamElemData result;
+	result.type = item.type;
+	result.labelText = item.labelText;
+	result.val = item.val;
+	result.options = item.options;
+	result.description = item.description;
+	return result;
+}
+
 bool EntityUtil::compare(const ColumnInfo & item1, const ColumnInfo & item2)
 {
 	if (item1.ai != item2.ai

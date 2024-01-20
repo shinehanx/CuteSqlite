@@ -52,6 +52,8 @@ LeftNaigationViewAdapter::~LeftNaigationViewAdapter()
 	if (analysisReportDirtyIcon) ::DeleteObject(analysisReportDirtyIcon);
 	if (dbStoreAnalysisIcon) ::DeleteObject(dbStoreAnalysisIcon);
 	if (subDbParamsIcon) ::DeleteObject(subDbParamsIcon);
+	if (subPragmaParamsIcon) ::DeleteObject(subPragmaParamsIcon);
+	if (subQuickConfigParamsIcon) ::DeleteObject(subQuickConfigParamsIcon);
 
 	if (openPerfReportIcon) ::DeleteObject(openPerfReportIcon);
 	if (dropPerfReportIcon) ::DeleteObject(dropPerfReportIcon);
@@ -76,6 +78,8 @@ void LeftNaigationViewAdapter::createImageList()
 	analysisReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dbStoreAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 	subDbParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	subPragmaParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	subQuickConfigParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(perfAnalysisIcon); // 0 - performance analysis	
@@ -87,6 +91,8 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(analysisReportDirtyIcon); // 6- dirty perf analysis report 
 	imageList.AddIcon(dbStoreAnalysisIcon); // 7- database store analysis 
 	imageList.AddIcon(subDbParamsIcon); // 8- database params
+	imageList.AddIcon(subPragmaParamsIcon); // 9 - database pragma params
+	imageList.AddIcon(subQuickConfigParamsIcon); // 10 - database quick config params
 	
 	openPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\open-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dropPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\drop-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
@@ -202,8 +208,20 @@ void LeftNaigationViewAdapter::loadDatabseForDbParamsItem()
 		return;
 	}
 
+	int iImage;
 	for (auto & db : dbs) {
-		addDatabaseToDbParamsItem(db);
+		CTreeItem dbTreeItem = addDatabaseToDbParamsItem(db);
+
+		iImage = 9; // 9 - subPragmaParamsIcon: database pragma params
+		CTreeItem dbPragmaParamsItem = dataView->InsertItem(S(L"db-pragma-params").c_str(), iImage, iImage, dbTreeItem, TVI_LAST);
+		dbPragmaParamsItem.SetData(db.id); // set the userDbId to the CTreeItem.data 
+
+		iImage = 10; // 10 - subQuickConfigParamsIcon : database quick config params		
+		CTreeItem dbQuickConfigItem = dataView->InsertItem(S(L"db-quick-config-params").c_str(), iImage, iImage, dbTreeItem, TVI_LAST);
+		dbQuickConfigItem.SetData(db.id); // set the userDbId to the CTreeItem.data
+
+		dataView->Expand(dbTreeItem);
+		
 	}
 }
 
@@ -231,7 +249,7 @@ void LeftNaigationViewAdapter::addDatabaseToStoreAnalysisItem(UserDb & userDb)
 }
 
 
-void LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
+CTreeItem LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
 {
 	ATLASSERT(userDb.id);
 
@@ -247,11 +265,12 @@ void LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
 		childItem = childItem.GetNextSibling();
 	}
 	if (isFound) {
-		return;
+		return childItem;
 	}
 	int iImage = 8; // 8 - database params
 	CTreeItem treeItem = dataView->InsertItem(title.c_str(), iImage, iImage, hDbParamsItem, TVI_LAST);
 	treeItem.SetData(userDb.id);
+	return treeItem;
 }
 
 void LeftNaigationViewAdapter::savePerfAnalysisReport(uint64_t sqlLogId)

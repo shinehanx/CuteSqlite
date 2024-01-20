@@ -62,6 +62,8 @@ void RightAnalysisView::createImageList()
 	perfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	perfReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	storeAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\store-analysis.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dbPragmaParamIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dbQuikConfigIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(firstIcon); // 0 - first
@@ -69,6 +71,8 @@ void RightAnalysisView::createImageList()
 	imageList.AddIcon(perfReportIcon); // 2 - perf report
 	imageList.AddIcon(perfReportDirtyIcon); // 3 - perf report not saved
 	imageList.AddIcon(storeAnalysisIcon); // 4 - database store analysis
+	imageList.AddIcon(dbPragmaParamIcon); // 5 - database PRAGMA params
+	imageList.AddIcon(dbQuikConfigIcon); // 6 - database quick config params
 }
 
 CRect RightAnalysisView::getTopRect(CRect & clientRect)
@@ -172,6 +176,20 @@ void RightAnalysisView::createOrShowStoreAnalysisPage(StoreAnalysisPage &win, CR
 	}
 }
 
+
+void RightAnalysisView::createOrShowDbPragmaParamsPage(DbPragmaParamsPage &win, CRect & clientRect, bool isAllowCreate /*= true*/)
+{
+	CRect tabRect = getTabRect(clientRect);
+	int x = 1, y = tabView.m_cyTabHeight + 1, w = tabRect.Width() - 2, h = tabRect.Height() - tabView.m_cyTabHeight - 2;
+	CRect rect(x, y, x + w, y + h);
+	if (isAllowCreate && IsWindow() && !win.IsWindow()) {
+		win.Create(tabView.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 0);		
+	} else if (IsWindow() && tabView.IsWindow() && win.IsWindow()) {
+		win.MoveWindow(rect);
+		win.ShowWindow(true);
+	}
+}
+
 void RightAnalysisView::createOrShowToolButtons(CRect & clientRect)
 {
 	createOrShowAnalysisButtons(clientRect);
@@ -262,7 +280,7 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DB_STORE_ANALYSIS_ID);
-	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DB_PARAMS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DB_PRAGMA_PARAMS_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
@@ -278,25 +296,28 @@ void RightAnalysisView::OnDestroy()
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_SHOW_SQL_LOG_PAGE_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DB_STORE_ANALYSIS_ID);
-	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DB_PARAMS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DB_PRAGMA_PARAMS_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
-	if (!firstIcon) ::DeleteObject(firstIcon);
-	if (!sqlLogIcon) ::DeleteObject(sqlLogIcon);
-	if (!perfReportIcon) ::DeleteObject(perfReportIcon);
-	if (!perfReportDirtyIcon) ::DeleteObject(perfReportDirtyIcon);
-	if (!storeAnalysisIcon) ::DeleteObject(storeAnalysisIcon);
+	if (firstIcon) ::DeleteObject(firstIcon);
+	if (sqlLogIcon) ::DeleteObject(sqlLogIcon);
+	if (perfReportIcon) ::DeleteObject(perfReportIcon);
+	if (perfReportDirtyIcon) ::DeleteObject(perfReportDirtyIcon);
+	if (storeAnalysisIcon) ::DeleteObject(storeAnalysisIcon);
+	if (dbPragmaParamIcon) ::DeleteObject(dbPragmaParamIcon);
+	if (dbQuikConfigIcon) ::DeleteObject(dbQuikConfigIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	if (firstPage.IsWindow()) firstPage.DestroyWindow();
 	if (sqlLogPage.IsWindow()) sqlLogPage.DestroyWindow();
 	clearPerfAnalysisPagePtrs();
 
-	if (tabView.IsWindow()) tabView.DestroyWindow();	
+	if (tabView.IsWindow()) tabView.DestroyWindow();
+	clearDbPragmaParamsPagePtrs();
 }
 
 void RightAnalysisView::OnSize(UINT nType, CSize size)
@@ -360,6 +381,34 @@ LRESULT RightAnalysisView::closeTabViewPage(int nPage)
 		}
 	}
 
+	for (auto iter = storeAnalysisPagePtrs.begin(); iter != storeAnalysisPagePtrs.end(); iter++) {
+		auto & ptr = *iter;
+		if (ptr->m_hWnd == pageHwnd) {
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = NULL;
+				delete ptr;
+				ptr = nullptr;
+			}
+			storeAnalysisPagePtrs.erase(iter);
+			break;
+		}
+	}
+
+	for (auto iter = dbPragmaParamsPagePtrs.begin(); iter != dbPragmaParamsPagePtrs.end(); iter++) {
+		auto & ptr = *iter;
+		if (ptr->m_hWnd == pageHwnd) {
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = NULL;
+				delete ptr;
+				ptr = nullptr;
+			}
+			dbPragmaParamsPagePtrs.erase(iter);
+			break;
+		}
+	}
+
 	return 0;  // 0 - force close
 }
 
@@ -379,6 +428,21 @@ void RightAnalysisView::clearPerfAnalysisPagePtrs()
 	perfAnalysisPagePtrs.clear();
 }
 
+
+void RightAnalysisView::clearDbPragmaParamsPagePtrs()
+{
+	for (auto ptr : dbPragmaParamsPagePtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+			ptr->m_hWnd = NULL;
+		}
+		if (ptr) {
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+	dbPragmaParamsPagePtrs.clear();
+}
 
 BOOL RightAnalysisView::OnEraseBkgnd(CDCHandle dc)
 {
@@ -453,7 +517,52 @@ LRESULT RightAnalysisView::OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM 
 LRESULT RightAnalysisView::OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	doAddDbStoreAnalysisPage(userDbId);
+	return 0;
+}
 
+
+void RightAnalysisView::doAddDbStoreAnalysisPage(uint64_t userDbId)
+{
+	CRect clientRect;
+	GetClientRect(clientRect);
+	CRect tabRect = getTabRect(clientRect);
+
+	UserDb userDb;
+	try {
+		userDb = databaseService->getUserDb(userDbId);
+	}
+	catch (QRuntimeException &ex) {
+		Q_ERROR(L"analysis failed, get sql log has error, code:{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return ;
+	}
+
+	for (auto ptr : storeAnalysisPagePtrs) {
+		if (ptr->getUserDbId() == userDbId) {
+			int n = tabView.GetPageCount();
+			for (int i = 0; i < n; i++) {
+				if (tabView.GetPageHWND(i) != ptr->m_hWnd) {
+					continue;
+				}
+				tabView.SetActivePage(i);
+				return ;
+			}
+		}
+	}
+
+	StoreAnalysisPage * newPage = new StoreAnalysisPage(userDbId);
+	createOrShowStoreAnalysisPage(*newPage, clientRect, true);
+	storeAnalysisPagePtrs.push_back(newPage);
+	std::wstring title = S(L"store-analysis-prefix");
+	title.append(userDb.name);
+	int nImage = 4;
+	tabView.AddPage(newPage->m_hWnd, StringUtil::blkToTail(title).c_str(), nImage, newPage->m_hWnd);
+}
+
+
+void RightAnalysisView::doAddDbPragmaParamsPage(uint64_t userDbId)
+{
 	CRect clientRect;
 	GetClientRect(clientRect);
 	CRect tabRect = getTabRect(clientRect);
@@ -464,10 +573,10 @@ LRESULT RightAnalysisView::OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPA
 	} catch (QRuntimeException &ex) {
 		Q_ERROR(L"analysis failed, get sql log has error, code:{}, msg:{}", ex.getCode(), ex.getMsg());
 		QPopAnimate::report(ex);
-		return 0;
+		return ;
 	}
-	
-	for (auto ptr : storeAnalysisPagePtrs) {
+
+	for (auto ptr : dbPragmaParamsPagePtrs) {
 		if (ptr->getUserDbId() == userDbId) {
 			int n = tabView.GetPageCount();
 			for (int i = 0; i < n; i++) {
@@ -475,25 +584,24 @@ LRESULT RightAnalysisView::OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPA
 					continue;
 				}
 				tabView.SetActivePage(i);
-				return 0;
+				return ;
 			}
 		}
 	}
-	
-	StoreAnalysisPage * newPage = new StoreAnalysisPage(userDbId);
-	createOrShowStoreAnalysisPage(*newPage, clientRect, true);
-	storeAnalysisPagePtrs.push_back(newPage);
-	std::wstring title = S(L"store-analysis-prefix");
-	title.append(userDb.name); 
-	int nImage = 4;
+
+	DbPragmaParamsPage * newPage = new DbPragmaParamsPage(userDbId);
+	createOrShowDbPragmaParamsPage(*newPage, clientRect, true);
+	dbPragmaParamsPagePtrs.push_back(newPage);
+	std::wstring title = userDb.name;
+	title.append(L" : ").append(S(L"db-pragma-params"));
+	int nImage = 5;
 	tabView.AddPage(newPage->m_hWnd, StringUtil::blkToTail(title).c_str(), nImage, newPage->m_hWnd);
-	
-	return 0;
 }
 
-
-LRESULT RightAnalysisView::OnHandleDbParams(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT RightAnalysisView::OnHandleDbPragmaParams(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	doAddDbPragmaParamsPage(userDbId);
 	return 0;
 }
 

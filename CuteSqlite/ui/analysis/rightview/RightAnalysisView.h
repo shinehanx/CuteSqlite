@@ -32,6 +32,7 @@
 #include "ui/analysis/rightview/page/FirstPage.h"
 #include "ui/analysis/rightview/page/PerfAnalysisPage.h"
 #include "ui/analysis/rightview/page/StoreAnalysisPage.h"
+#include "ui/analysis/rightview/page/DbPragmaParamsPage.h"
 
 class RightAnalysisView : public CWindowImpl<RightAnalysisView>
 {
@@ -56,7 +57,7 @@ public:
 
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
 		MESSAGE_HANDLER_EX(Config::MSG_DB_STORE_ANALYSIS_ID, OnHandleDbStoreAnalysis)
-		MESSAGE_HANDLER_EX(Config::MSG_DB_PARAMS_ID, OnHandleDbParams)
+		MESSAGE_HANDLER_EX(Config::MSG_DB_PRAGMA_PARAMS_ID, OnHandleDbPragmaParams)
 		MESSAGE_HANDLER_EX(Config::MSG_SHOW_SQL_LOG_PAGE_ID, OnHandleShowSqlLogPage)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID, OnHandleAnalysisAddPerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
@@ -89,6 +90,7 @@ private:
 	SqlLogPage sqlLogPage;
 	std::vector<PerfAnalysisPage *> perfAnalysisPagePtrs;
 	std::vector<StoreAnalysisPage *> storeAnalysisPagePtrs;
+	std::vector<DbPragmaParamsPage *> dbPragmaParamsPagePtrs;
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
@@ -98,6 +100,8 @@ private:
 	HICON perfReportIcon = nullptr;
 	HICON perfReportDirtyIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
+	HICON dbPragmaParamIcon = nullptr;
+	HICON dbQuikConfigIcon = nullptr;
 	CImageList imageList;
 	void createImageList();
 
@@ -116,6 +120,7 @@ private:
 	void createOrShowSqlLogPage(SqlLogPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowPerfAnalysisPage(PerfAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
 	void createOrShowStoreAnalysisPage(StoreAnalysisPage &win, CRect & clientRect, bool isAllowCreate = true);
+	void createOrShowDbPragmaParamsPage(DbPragmaParamsPage &win, CRect & clientRect, bool isAllowCreate = true);
 		
 	void loadWindow();
 	void loadTabViewPages();
@@ -135,7 +140,8 @@ private:
 
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleDbStoreAnalysis(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	LRESULT OnHandleDbParams(UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	LRESULT OnHandleDbPragmaParams(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleShowSqlLogPage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisAddPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -143,7 +149,10 @@ private:
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT closeTabViewPage(int nPage);
 	void clearPerfAnalysisPagePtrs();
+	void clearDbPragmaParamsPagePtrs();
 
 	void doShowSqlLogPage();
 	void addSqlToAnalysisPerfReport(const std::wstring & sql);
+	void doAddDbStoreAnalysisPage(uint64_t userDbId);
+	void doAddDbPragmaParamsPage(uint64_t userDbId);
 };

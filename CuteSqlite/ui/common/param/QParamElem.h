@@ -11,54 +11,75 @@
 
  * limitations under the License.
 
- * @file   QHorizontalBar.h
+ * @file   QParamElem.h
  * @brief  
  * 
  * @author Xuehan Qin
  * @date   2024-01-19
  *********************************************************************/
 #pragma once
+#include <string>
+#include <vector>
 #include <atlwin.h>
 #include <atlcrack.h>
 #include <atltypes.h>
+#include <atlgdi.h>
+#include "core/entity/Entity.h"
 
-class QHorizontalBar: public CWindowImpl<QHorizontalBar> {
+
+class QParamElem: public CWindowImpl<QParamElem> {
 public:
-	BEGIN_MSG_MAP_EX(QHorizontalBar)
+	BEGIN_MSG_MAP_EX(QParamElem)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
+		MESSAGE_HANDLER(WM_SIZE, OnSize)
+		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
+		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
+		MSG_WM_CTLCOLORLISTBOX(OnCtlListBoxColor)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
-	QHorizontalBar(const std::wstring & val, double percent = 0, COLORREF processColor = RGB(49, 139, 202));
-	~QHorizontalBar();
+	QParamElem(const ParamElemData & data);
+	~QParamElem();
 	
-	void draw(const std::wstring & val, double percent);
-	void error(const std::wstring & err);
-	void reset();
-
-	void setColors(COLORREF bkgColor, COLORREF processColor);
+	
+	const ParamElemData & getData() { return data; }
+	void setBkgColor(COLORREF val) { bkgColor = val; }
 private:
-	double percent = 0; // such as 99.70
-	std::wstring val;
-	std::wstring err;
+	bool isNeedReload = true;
+	ParamElemData data;
 
-	HRGN hRgn = nullptr;
-
-	COLORREF bkgColor =  RGB(192, 192, 192);
+	COLORREF bkgColor =  RGB(225, 225, 225);
+	COLORREF readColor =  RGB(225, 225, 225);
 	CBrush bkgBrush;
-	COLORREF processColor = RGB(49, 139, 202);
-	COLORREF errorColor = RGB(255, 127, 39);
-	CBrush processBrush;
-	CBrush errorBrush;
+	CBrush readBrush;
 
-	COLORREF textColor = RGB(255, 255, 255);
+	COLORREF textColor = RGB(64, 64, 64);
 	HFONT textFont = nullptr;
 	CPen textPen;
+	HFONT comboFont = nullptr;
+	
+	CStatic label;
+	CEdit valEdit;
+	CComboBox valComboBox;
+	CStatic desLabel;
+
+	void createOrShowUI();
+	void createOrShowElems(CRect & clientRect);
+	void createOrShowComboBox(HWND hwnd, CComboBox &win, UINT id, CRect & rect, CRect &clientRect, bool allowEdit);
+
+	void loadWindow();
+	void loadValElem();
 
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	BOOL OnEraseBkgnd(CDCHandle dc);
+	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
+	HBRUSH OnCtlListBoxColor(HDC hdc, HWND hwnd);
 };

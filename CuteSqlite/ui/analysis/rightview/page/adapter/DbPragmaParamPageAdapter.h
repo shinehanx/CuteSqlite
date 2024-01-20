@@ -11,23 +11,30 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
+ * @file   DbPragmaParamPageAdapter.h
  * @brief  
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2024-01-19
  *********************************************************************/
 #pragma once
+#include "ui/common/adapter/QAdapter.h"
 #include "core/entity/Entity.h"
+#include "ui/analysis/rightview/page/supplier/DbPragmaParamSupplier.h"
+#include "core/service/pragma/PragmaService.h"
 
-class EntityUtil {
+class DbPragmaParamPageAdapter : public QAdapter<DbPragmaParamPageAdapter, CWindow>
+{
 public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
-	static UserDb copy(const UserDb & item);
-	static ParamElemData copy(const ParamElemData & item);
+	DbPragmaParamPageAdapter(HWND parentHwnd, CWindow * view, DbPragmaParamSupplier * supplier = nullptr);
+	~DbPragmaParamPageAdapter();
 
-	static bool compare(const ColumnInfo & item1, const ColumnInfo & item2);
-	static bool compare(const IndexInfo & item1, const IndexInfo & item2);
-	static bool compare(const ForeignKey & item1, const ForeignKey & item2);
+	void save();
+	void enableReportSaved();
+	ParamElemDataList getDbPragmaParams(uint64_t userDbId);
+private:	
+	DbPragmaParamSupplier * supplier = nullptr;
+	PragmaService * pragmaService = PragmaService::getInstance();
+
+	void initSupplier();	
 };

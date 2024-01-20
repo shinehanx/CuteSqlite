@@ -209,6 +209,8 @@ typedef enum {
 
 	// ANALYSIS PANEL - STORE_ANALYSIS_PAGE
 	ANALYSIS_DB_STORE_TBL_COMBOBOX_ID,
+	// ANALYSIS PANEL - DB_PRAGMA_PARAMS_PAGE
+	ANALYSIS_DB_PRAGMAS_COMBOBOX_ID,
 } ComboBoxId;
 
 
@@ -523,7 +525,8 @@ typedef enum {
 	MSG_ANALYSIS_SAVE_PERF_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
 	MSG_ANALYSIS_DROP_PERF_REPORT_ID, // When drop report menu has clicked in the SqlLogPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId, lParam = sqlLogId
 	MSG_DB_STORE_ANALYSIS_ID,  // When the tree item(iImage=7) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open StoreAnalysisPage, wParam=userDbId, lParam = NULL
-	MSG_DB_PARAMS_ID,  // When the tree item(iImage=8) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbParamsPage, wParam=userDbId, lParam = NULL
+	MSG_DB_PRAGMA_PARAMS_ID,  // When the tree item(iImage=9) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbPragmaParamsPage, wParam=userDbId, lParam = NULL
+	MSG_DB_QUICK_CONFIG_PARAMS_ID,  // When the tree item(iImage=10) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbQuickConfigParamsPage, wParam=userDbId, lParam = NULL
 }MessageId;
 
 typedef enum {	

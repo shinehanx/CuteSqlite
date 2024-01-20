@@ -11,23 +11,25 @@
 
  * limitations under the License.
 
- * @file   EntityUtil.h
- * @brief  
+ * @file   PerAnalysisSupplier.h
+ * @brief  Store the runtime data for PerAnalysisPage,
+ *         Every one instance of PerAnalysisPage have only one instance of PerAnalysisSupplier
  * 
  * @author Xuehan Qin
- * @date   2023-10-28
+ * @date   2023-12-07
  *********************************************************************/
 #pragma once
-#include "core/entity/Entity.h"
+#include "ui/database/rightview/common/QPageSupplier.h"
 
-class EntityUtil {
+class DbPragmaParamSupplier : public QPageSupplier {
 public:
-	static IndexInfo copy(const IndexInfo & item);
-	static ResultInfo copy(const ResultInfo & item);
-	static UserDb copy(const UserDb & item);
-	static ParamElemData copy(const ParamElemData & item);
-
-	static bool compare(const ColumnInfo & item1, const ColumnInfo & item2);
-	static bool compare(const IndexInfo & item1, const IndexInfo & item2);
-	static bool compare(const ForeignKey & item1, const ForeignKey & item2);
+	DbPragmaParamSupplier() {};
+	~DbPragmaParamSupplier() {};
+	const UserDb & getUserDb() { return userDb; }
+	void setUserDb(UserDb & val) { userDb = val; }
+	const ParamElemDataList & getPragmas() const { return pragmas; }
+private:
+	UserDb userDb;
+	const static ParamElemDataList pragmas;
 };
+

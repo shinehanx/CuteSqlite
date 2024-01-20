@@ -423,3 +423,36 @@ typedef struct {
 	double percent;
 }TblIdxEntryCnt;
 typedef std::vector<TblIdxEntryCnt> TblIdxEntryCntVector;
+
+typedef enum {
+	READ_ELEM,
+	EDIT_ELEM,
+	COMBO_READ_ELEM,
+	COMBO_EDIT_ELEM
+} ParamElemType;
+
+typedef enum {
+	READ_ONLY,
+	WRITE_ONLY,
+	READ_WRITE
+} ParamValReadWriteType;
+
+typedef enum {
+	IGNORE_VAL, // ignore the value
+	ASSIGN_VAL, // VALUE for assign express, such as PRAGMA wal_autocheckpoint=N;
+	ASSIGN_STR, // STRING for assign express, such as PRAGMA give_me_five='5';
+	PARAM_VAL, // VALUE for function params, such as PRAGMA optimize(VAL);
+	PARAM_STR, // VALUE for function params, such as PRAGMA table_list('table-name');
+} ParamValBackType;
+
+typedef struct {
+	ParamElemType type;
+	std::wstring labelText;
+	std::wstring val;
+	std::vector<std::wstring> options;
+	std::wstring description;
+	ParamValReadWriteType valRwType;
+	ParamValBackType valBackType;
+} ParamElemData;
+
+typedef std::list<ParamElemData> ParamElemDataList;

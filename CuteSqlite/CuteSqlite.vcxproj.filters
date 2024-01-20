@@ -474,6 +474,24 @@
     <ClCompile Include="core\repository\user\SqliteSchemaUserRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\DbPragmaParamsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\adapter\DbPragmaParamPageAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\common\param\QParamElem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\analysis\rightview\page\supplier\DbPragmaParamSupplier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\repository\user\PragmaUserRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\service\pragma\PragmaService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -981,6 +999,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\repository\user\SqliteSchemaUserRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\DbPragmaParamsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\adapter\DbPragmaParamPageAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\common\param\QParamElem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\analysis\rightview\page\supplier\DbPragmaParamSupplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\repository\user\PragmaUserRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\service\pragma\PragmaService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

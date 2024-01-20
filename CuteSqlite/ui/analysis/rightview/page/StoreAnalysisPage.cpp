@@ -79,11 +79,11 @@ void StoreAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 	QWinCreater::createOrShowLabel(m_hWnd, databaseLabel, S(L"database").append(L":"), rect, clientRect, SS_RIGHT);
 
 	rect.OffsetRect(60 + 5, 0);
-	rect.right = rect.left + 120;
+	rect.right = rect.left + 80;
 	title = supplier.getUserDb().name;
 	createOrShowEdit(databaseEdit, 0, title, rect, clientRect, 0);
 
-	rect.OffsetRect(120 + 5, 0);
+	rect.OffsetRect(80 + 5, 0);
 	rect.right = rect.left + 60;
 	QWinCreater::createOrShowLabel(m_hWnd, tableLabel, S(L"table").append(L":"), rect, clientRect, SS_RIGHT);
 
