@@ -47,6 +47,7 @@ public:
 
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
+		MESSAGE_HANDLER_EX(Config::MSG_DELETE_DATABASE_ID, OnHandleDeleteDatabase)
 	END_MSG_MAP()
 private:
 	bool isNeedReload = true;
@@ -65,8 +66,7 @@ private:
 
 	CRect getTopRect(CRect & clientRect);
 	CRect getTreeRect(CRect & clientRect);
-
-
+	
 	void createOrShowUI();
 	void createOrShowNavigationTreeView(QTreeViewCtrl & win, CRect & clientRect);
 
@@ -84,6 +84,7 @@ private:
 
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDropPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);

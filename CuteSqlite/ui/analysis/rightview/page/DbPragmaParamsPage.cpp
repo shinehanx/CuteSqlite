@@ -37,14 +37,15 @@ BOOL DbPragmaParamsPage::PreTranslateMessage(MSG* pMsg)
 
 DbPragmaParamsPage::DbPragmaParamsPage(uint64_t userDbId)
 {
-	supplier.setRuntimeUserDbId(userDbId);
-	supplier.setUserDb(databaseService->getUserDb(userDbId));
+	supplier = new DbPragmaParamSupplier();
+	supplier->setRuntimeUserDbId(userDbId);
+	supplier->setUserDb(databaseService->getUserDb(userDbId));
 }
 
 
 uint64_t DbPragmaParamsPage::getUserDbId()
 {
-	return supplier.getRuntimeUserDbId();
+	return supplier->getRuntimeUserDbId();
 }
 
 
@@ -80,7 +81,7 @@ void DbPragmaParamsPage::createOrShowTitleElems(CRect & clientRect)
 
 	rect.OffsetRect(60 + 5, 0);
 	rect.right = rect.left + 80;
-	title = supplier.getUserDb().name;
+	title = supplier->getUserDb().name;
 	createOrShowEdit(databaseEdit, 0, title, rect, clientRect, 0);
 
 	rect.OffsetRect(80 + 5, 0);
@@ -103,7 +104,7 @@ void DbPragmaParamsPage::createOrShowPragmaParamElems(CRect & clientRect)
 	CRect rcLast = GdiPlusUtil::GetWindowRelativeRect(titleEdit);
 	int x = 20, y = rcLast.bottom + 50, w = clientRect.Width() - 40 < 800 ? 800 : clientRect.Width() - 40, h = 25;
 	CRect rect(x, y, x + w, y + h);
-	auto dbPragmaParams = adapter->getDbPragmaParams(supplier.getRuntimeUserDbId());
+	auto dbPragmaParams = adapter->getDbPragmaParams(supplier->getRuntimeUserDbId());
 	for (auto & param : dbPragmaParams) {
 		auto iter = std::find_if(paramElemPtrs.begin(), paramElemPtrs.end(), [&param](auto & ptr) {
 			return ptr->getData().labelText == param.labelText;
@@ -186,7 +187,7 @@ void DbPragmaParamsPage::loadPragmaComboBox()
 	pragmaComboBox.ResetContent();
 	pragmaComboBox.AddString(L"All");
 
-	uint64_t userDbId = supplier.getRuntimeUserDbId();
+	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	
 	std::vector<std::wstring> strs;
 
@@ -207,7 +208,7 @@ int DbPragmaParamsPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	linePen.CreatePen(PS_SOLID, 1, lineColor);
 	headerBrush.CreateSolidBrush(headerBkgColor);
 
-	adapter = new DbPragmaParamPageAdapter(m_hWnd, this, &supplier);
+	adapter = new DbPragmaParamPageAdapter(m_hWnd, this, supplier);
 
 	
 	return ret;

@@ -460,6 +460,7 @@ typedef enum {
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_MENU_ITEM_CLICK_ID, //菜单栏下某个菜单项被点击的消息ID，用来通知父窗口，指定ID的菜单项被点击了
+	MSG_DELETE_DATABASE_ID, // Send this msg when clicking "Delete Database" menu or toolbar button , wParam=userDbId, lParam=NULL
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_VIEW_ID, // Send this msg when clicking "New view" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_OPEN_VIEW_ID, // Send this msg when clicking "Open view" menu or toolbar button , wParam=NULL, lParam=NULL

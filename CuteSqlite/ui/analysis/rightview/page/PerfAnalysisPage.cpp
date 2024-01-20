@@ -35,8 +35,9 @@ BOOL PerfAnalysisPage::PreTranslateMessage(MSG* pMsg)
 
 PerfAnalysisPage::PerfAnalysisPage(uint64_t sqlLogId)
 {
-	supplier.setSqlLogId(sqlLogId);
-	supplier.setSqlLog(sqlLogService->getSqlLog(sqlLogId));
+	supplier = new PerfAnalysisSupplier();
+	supplier->setSqlLogId(sqlLogId);
+	supplier->setSqlLog(sqlLogService->getSqlLog(sqlLogId));
 }
 
 
@@ -47,7 +48,7 @@ PerfAnalysisPage::~PerfAnalysisPage()
 
 uint64_t PerfAnalysisPage::getSqlLogId()
 {
-	return supplier.getSqlLogId();
+	return supplier->getSqlLogId();
 }
 
 
@@ -60,7 +61,7 @@ void PerfAnalysisPage::save()
 
 bool PerfAnalysisPage::isSaved()
 {
-	return !supplier.getIsDirty();
+	return !supplier->getIsDirty();
 }
 
 void PerfAnalysisPage::createOrShowUI()
@@ -107,7 +108,7 @@ void PerfAnalysisPage::createOrShowOrigSqlEditor(CRect &clientRect)
 	int x = 20, y = rcTop.bottom + 30, w = 200, h = 24;
 	CRect rect(x, y, x + w, y + h);
 	std::wstring text = L"#";
-	text.append(std::to_wstring(supplier.getSqlLogId())).append(L" - ").append(S(L"original-sql")).append(L":");
+	text.append(std::to_wstring(supplier->getSqlLogId())).append(L" - ").append(S(L"original-sql")).append(L":");
 	QWinCreater::createOrShowLabel(m_hWnd, origSqlLabel, text , rect, clientRect, SS_LEFT | SS_CENTERIMAGE);
 
 	rect.OffsetRect(0, h + 5);
@@ -132,7 +133,7 @@ void PerfAnalysisPage::crateOrShowEditor(QSqlEdit &win, CRect &rect, CRect &clie
 
 void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 {
-	ExplainQueryPlans queryPlans = supplier.getExplainQueryPlans();
+	ExplainQueryPlans queryPlans = supplier->getExplainQueryPlans();
 	if (queryPlans.empty()) {
 		return;
 	}
@@ -165,7 +166,7 @@ void PerfAnalysisPage::createOrShowExpQueryPlanElems(CRect &clientRect)
 
 void PerfAnalysisPage::createOrShowWhereAnalysisElems(CRect &clientRect)
 {
-	const auto & byteCodeResults = supplier.getByteCodeResults();
+	const auto & byteCodeResults = supplier->getByteCodeResults();
 	size_t n = byteCodeResults.size();
 	if (!n) {
 		return;
@@ -205,7 +206,7 @@ void PerfAnalysisPage::createOrShowWhereAnalysisItemsForTable(CRect &clientRect)
 	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
-	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
+	const ByteCodeResults & byteCodeResults = supplier->getByteCodeResults();
 	for (auto & item : byteCodeResults) {
 		if (item.type != L"table") {
 			continue;
@@ -238,7 +239,7 @@ void PerfAnalysisPage::createOrShowWhereAnalysisItemsForTable(CRect &clientRect)
 
 void PerfAnalysisPage::createOrShowOrderAnalysisElems(CRect &clientRect)
 {
-	const auto & byteCodeResults = supplier.getByteCodeResults();
+	const auto & byteCodeResults = supplier->getByteCodeResults();
 	size_t n = byteCodeResults.size();
 	if (!n) {
 		return;
@@ -280,7 +281,7 @@ void PerfAnalysisPage::createOrShowOrderAnalysisItemsForTable(CRect &clientRect)
 	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
-	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
+	const ByteCodeResults & byteCodeResults = supplier->getByteCodeResults();
 	for (auto & item : byteCodeResults) {
 		if (item.type != L"table") {
 			continue;
@@ -312,7 +313,7 @@ void PerfAnalysisPage::createOrShowOrderAnalysisItemsForTable(CRect &clientRect)
 
 void PerfAnalysisPage::createOrShowCoveringIndexesElems(CRect &clientRect)
 {
-	const auto & byteCodeResults = supplier.getByteCodeResults();
+	const auto & byteCodeResults = supplier->getByteCodeResults();
 	size_t n = byteCodeResults.size();
 	if (!n) {
 		return;
@@ -357,7 +358,7 @@ void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
 	int x = 20, y = rcLast.bottom + 10, w = clientRect.Width() - 40, h = 155;
 	CRect rect(x, y, x + w, y + h);
 
-	const ByteCodeResults & byteCodeResults = supplier.getByteCodeResults();
+	const ByteCodeResults & byteCodeResults = supplier->getByteCodeResults();
 	for (auto & item : byteCodeResults) {
 		if (item.type != L"table") {
 			continue;
@@ -388,7 +389,7 @@ void PerfAnalysisPage::createOrShowCoveringIndexItemsForTable(CRect &clientRect)
 
 void PerfAnalysisPage::createOrShowSelectColumnsAnalysisElems(CRect &clientRect)
 {
-	const auto & selectColumns = supplier.getSelectColumns();
+	const auto & selectColumns = supplier->getSelectColumns();
 	if (selectColumns.empty()) {
 		return;
 	}
@@ -489,7 +490,7 @@ void PerfAnalysisPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring 
 void PerfAnalysisPage::createOrShowTableJoinAnalysisElems(CRect &clientRect)
 {
 	int tableCount = 0;
-	auto & byteCodeResults = supplier.getByteCodeResults();
+	auto & byteCodeResults = supplier->getByteCodeResults();
 	for (auto & byteCodeResult : byteCodeResults) {
 		if (byteCodeResult.type != L"table") {
 			continue;
@@ -519,7 +520,7 @@ void PerfAnalysisPage::createOrShowTableJoinAnalysisElems(CRect &clientRect)
 	rect.OffsetRect(0, h + 5);
 	rect.bottom = rect.top + 170;
 	if (!tableJoinAnalysisElem) {
-		std::vector<std::wstring> selectColumns = SqlUtil::getSelectColumnsClause(StringUtil::toupper(supplier.getSqlLog().sql));
+		std::vector<std::wstring> selectColumns = SqlUtil::getSelectColumnsClause(StringUtil::toupper(supplier->getSqlLog().sql));
 		std::wstring selectColumnsStr = StringUtil::implode(selectColumns,L", ");
 		tableJoinAnalysisElem = new TableJoinAnalysisElem(selectColumnsStr, byteCodeResults);
 	}
@@ -612,7 +613,7 @@ void PerfAnalysisPage::loadWindow()
 
 void PerfAnalysisPage::loadOrigSqlEditor()
 {
-	origSqlEditor.addText(supplier.getSqlLog().sql);
+	origSqlEditor.addText(supplier->getSqlLog().sql);
 	origSqlEditor.setReadOnly(true);
 }
 
@@ -626,7 +627,7 @@ int PerfAnalysisPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	linePen.CreatePen(PS_SOLID, 1, lineColor);
 	headerBrush.CreateSolidBrush(headerBkgColor);
 
-	adapter = new PerfAnalysisPageAdapter(m_hWnd, this, &supplier);
+	adapter = new PerfAnalysisPageAdapter(m_hWnd, this, supplier);
 
 	
 	return ret;
@@ -671,7 +672,8 @@ int PerfAnalysisPage::OnDestroy()
 		selectColumnsAnalysisElem = nullptr;
 	}
 
-	if (adapter) delete adapter;	
+	if (adapter) delete adapter;
+	if (supplier) delete supplier;
 	return ret;
 }
 

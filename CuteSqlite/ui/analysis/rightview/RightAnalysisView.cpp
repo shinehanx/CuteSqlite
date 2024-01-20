@@ -284,6 +284,7 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -300,6 +301,7 @@ void RightAnalysisView::OnDestroy()
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -725,6 +727,116 @@ LRESULT RightAnalysisView::OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wPar
 	}
 	
 	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	if (!userDbId) {
+		return 1;
+	}
+
+	int n = tabView.GetPageCount();
+	std::vector<int> erasePages;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring title = tabView.GetPageTitle(i);
+		// Close the QueryPage if page belong to userDbId WHEN delete database 
+		bool found = false;
+		for (auto iter = perfAnalysisPagePtrs.begin(); iter != perfAnalysisPagePtrs.end(); iter++) {
+			auto & ptr = *iter;
+			if (ptr->m_hWnd != pageHwnd) {
+				continue;
+			}
+			
+			if (ptr->getSupplier()->getRuntimeUserDbId() != userDbId) {
+				continue;
+			}
+
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
+			}
+			if (ptr) {
+				delete ptr;
+				ptr = nullptr;
+			}
+			perfAnalysisPagePtrs.erase(iter);
+			erasePages.push_back(i);
+			found = true;
+			break;
+		}
+		if (found) {
+			continue;
+		}
+
+		// Close the StoreAnalysisPage if page belong to userDbId WHEN delete database 
+		for (auto iter = storeAnalysisPagePtrs.begin(); iter != storeAnalysisPagePtrs.end(); iter++) {
+			auto & ptr = *iter;
+			if (ptr->m_hWnd != pageHwnd) {
+				continue;
+			}
+			
+			if (ptr->getSupplier()->getRuntimeUserDbId() != userDbId) {
+				continue;
+			}
+		
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
+			}
+			if (ptr) {
+				delete ptr;
+				ptr = nullptr;
+			}
+			storeAnalysisPagePtrs.erase(iter);
+			erasePages.push_back(i);
+			found = true;
+			break;
+		}
+
+		if (found) {
+			continue;
+		}
+
+		// Close the StoreAnalysisPage if page belong to userDbId WHEN delete database 
+		for (auto iter = dbPragmaParamsPagePtrs.begin(); iter != dbPragmaParamsPagePtrs.end(); iter++) {
+			auto & ptr = *iter;
+			if (ptr->m_hWnd != pageHwnd) {
+				continue;
+			}
+			
+			if (ptr->getSupplier()->getRuntimeUserDbId() != userDbId) {
+				continue;
+			}
+		
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
+			}
+			if (ptr) {
+				delete ptr;
+				ptr = nullptr;
+			}
+			dbPragmaParamsPagePtrs.erase(iter);
+			erasePages.push_back(i);
+			found = true;
+			break;
+		}
+
+		if (found) {
+			continue;
+		}
+	}
+
+	n = static_cast<int>(erasePages.size());
+	for (int i = n - 1; i >= 0; i--) {
+		auto nPage = erasePages.at(i);
+		tabView.RemovePage(nPage);
+	}
+	
+	return 1;
 }
 
 void RightAnalysisView::doShowSqlLogPage()

@@ -149,34 +149,56 @@ uint64_t LeftTreeViewAdapter::getSeletedItemData()
 
 void LeftTreeViewAdapter::removeSeletedDbTreeItem()
 {
-	CTreeItem treeItem = getSeletedItem();
-	int nImage = -1, nSeletedImage = -1;
-	bool ret = treeItem.GetImage(nImage, nSeletedImage);
-	if (!ret) {
+	uint64_t userDbId = databaseSupplier->getSelectedUserDbId();
+	if (!userDbId) {
 		return ;
 	}
+	UserDb userDb;
+	try {
+		userDb = databaseService->getUserDb(userDbId);
+		if (!userDb.id) {
+			return;
+		}
+	} catch (QRuntimeException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
+		return;
+	}
+
 	// if nImage == 0, seleted item is a item of user database
-	if ((nImage == 0 || nImage == 1) && QMessageBox::confirm(parentHwnd, S(L"delete-user-db")) == Config::CUSTOMER_FORM_YES_BUTTON_ID) {
-		uint64_t userDbId = getSeletedItemData();
-		userDbId = userDbId ? userDbId : databaseSupplier->getSelectedUserDbId();
-		if (!userDbId) {
-			return ;
-		}
-		
-		try {
-			// check user db is exists, then remove it.
-			bool isHas = databaseService->hasUserDb(userDbId);
-			if (!isHas) {
-				return ;
+	std::wstring msg = S(L"delete-user-db");
+	msg = StringUtil::replace(msg, L"{dbName}", userDb.name);
+	if (QMessageBox::confirm(parentHwnd, msg) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		return;
+	}
+
+	AppContext::getInstance()->dispatchForResponse(Config::MSG_DELETE_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
+
+	try {
+		databaseService->removeUserDb(userDbId); 
+		CTreeItem treeItem =  dataView->GetFirstVisibleItem();
+		bool found = false;
+		int iImage = -1, iSelImage = -1;
+		while (!treeItem.IsNull()) {
+			treeItem.GetImage(iImage, iSelImage); 
+			uint64_t selectUserDbId = static_cast<uint64_t>(treeItem.GetData());
+			if (selectUserDbId == userDbId && iImage == 0) { // 0 - database
+				found = true;
+				break;
 			}
-			databaseService->removeUserDb(userDbId); 
-			QPopAnimate::success(parentHwnd, S(L"delete-db-success-text"));
-			dataView->DeleteItem(HTREEITEM(treeItem));
-			loadDbs(); // reload dblist
-		} catch (QSqlExecuteException &ex) {
-			Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
-			QPopAnimate::report(ex);
+			treeItem = dataView->GetNextSiblingItem(treeItem);
 		}
+
+		if (found) {
+			databaseSupplier->clearSelectedData(); // clear the selected runtime data
+			dataView->DeleteItem(HTREEITEM(treeItem));
+		}
+		QPopAnimate::success(parentHwnd, S(L"delete-db-success-text"));
+			
+		loadDbs(); // reload dblist
+	} catch (QRuntimeException &ex) {
+		Q_ERROR(L"error{}, msg:{}", ex.getCode(), ex.getMsg());
+		QPopAnimate::report(ex);
 	}
 }
 

@@ -36,3 +36,14 @@ DatabaseSupplier * DatabaseSupplier::getInstance()
 	return DatabaseSupplier::theInstance;
 }
 
+void DatabaseSupplier::clearSelectedData()
+{
+	selectedUserDbId = 0;
+	selectedSchema.clear();
+	selectedTable.clear();
+	selectedColumn.clear();
+	selectedIndexName.clear();
+	selectedTriggerName.clear();
+	selectedViewName.clear();
+}
+

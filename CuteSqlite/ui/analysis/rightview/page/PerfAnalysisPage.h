@@ -32,7 +32,7 @@
 #include "ui/analysis/rightview/page/elem/SelectColumnsAnalysisElem.h"
 #include "ui/common/image/QStaticImage.h"
 
-class PerfAnalysisPage : public QTabPage<PerfAnalysisPage>
+class PerfAnalysisPage : public QTabPage<PerfAnalysisSupplier>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
@@ -101,7 +101,6 @@ private:
 	CStatic selectColumnsAnalysisLabel;
 	SelectColumnsAnalysisElem * selectColumnsAnalysisElem = nullptr;
 	
-	PerfAnalysisSupplier supplier;
 	PerfAnalysisPageAdapter * adapter = nullptr;
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 

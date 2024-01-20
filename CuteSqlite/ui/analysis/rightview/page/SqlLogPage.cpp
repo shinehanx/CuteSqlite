@@ -69,7 +69,7 @@ void SqlLogPage::createOrShowSqlLogListBox(SqlLogListBox & win, CRect & clientRe
 	int x = 2, y = rcLast.bottom + 10, w = clientRect.Width() - 4, h = clientRect.Height() - y - 33;
 	CRect rect = { x, y, x + w, y + h }; 
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
-		win.setup(&queryPageSupplier);
+		win.setup(supplier);
 		win.Create(m_hWnd, rect, L"", WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL | WS_BORDER, 0, Config::DIALOG_SQL_LOG_LIST_ID);
 	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
 		win.MoveWindow(&rect);
@@ -177,6 +177,7 @@ void SqlLogPage::loadSqlLogListBox(int page)
 
 int SqlLogPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	supplier = new QueryPageSupplier();
 	this->textFont = FT(L"log-list-item-sql-size");
 	bkgBrush.CreateSolidBrush(bkgColor);
 	return 0;

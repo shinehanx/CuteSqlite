@@ -61,6 +61,8 @@ public:
 	// // --------------------------------
 	std::vector<std::wstring> dragFilePaths;
 
+	void clearSelectedData();
+
 	void setSeletedUserDbId(uint64_t userDbId) { selectedUserDbId = userDbId; }
 	uint64_t getSelectedUserDbId() { return selectedUserDbId; }
 	bool isActivePage(HWND hwnd) { return activeTabPageHwnd == hwnd; }

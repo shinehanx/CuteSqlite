@@ -30,7 +30,7 @@
 #include "core/service/analysis/StoreAnalysisService.h"
 #include "ui/analysis/rightview/page/elem/StoreAnalysisElem.h"
 
-class StoreAnalysisPage : public QTabPage<StoreAnalysisPage>
+class StoreAnalysisPage : public QTabPage<StoreAnalysisSupplier>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
@@ -80,7 +80,6 @@ private:
 
 	std::vector<StoreAnalysisElem *> storeAnalysisElemPtrs;
 
-	StoreAnalysisSupplier supplier;
 	StoreAnalysisPageAdapter * adapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();

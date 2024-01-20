@@ -30,7 +30,7 @@
 #include "supplier/DbPragmaParamSupplier.h"
 
 
-class DbPragmaParamsPage : public QTabPage<DbPragmaParamsPage>
+class DbPragmaParamsPage : public QTabPage<DbPragmaParamSupplier>
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
@@ -82,7 +82,6 @@ private:
 
 	DbPragmaParamPageAdapter * adapter = nullptr;
 	DatabaseService * databaseService = DatabaseService::getInstance();
-	DbPragmaParamSupplier supplier;
 
 	// scroll bar
 	TEXTMETRIC tm;

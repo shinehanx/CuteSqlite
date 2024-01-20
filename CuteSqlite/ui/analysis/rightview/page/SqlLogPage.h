@@ -25,7 +25,7 @@
 #include "core/service/sqllog/SqlLogService.h"
 #include "core/service/db/DatabaseService.h"
 
-class SqlLogPage : public QTabPage<SqlLogPage> {
+class SqlLogPage : public QTabPage<QueryPageSupplier> {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 
@@ -75,7 +75,6 @@ private:
 	int perPage = 10;
 	std::wstring keyword;
 
-	QueryPageSupplier queryPageSupplier;
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	SqlLogService * sqlLogService = SqlLogService::getInstance();
 

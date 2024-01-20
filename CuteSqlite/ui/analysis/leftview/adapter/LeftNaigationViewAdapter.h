@@ -36,6 +36,8 @@ public:
 	void dropPerfAnalysisReport(uint64_t sqlLogId);
 
 	void popupPerfReportMenu(CPoint pt);
+
+	void removeDbTreeItem(uint64_t userDbId);
 private:
 	HICON perfAnalysisIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;

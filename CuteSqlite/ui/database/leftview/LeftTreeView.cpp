@@ -37,6 +37,9 @@
 BOOL LeftTreeView::PreTranslateMessage(MSG* pMsg)
 {
 	if (WM_KEYFIRST <= pMsg->message && pMsg->message <= WM_KEYLAST) {
+		if (pMsg->wParam == VK_DELETE && ::GetFocus() != treeView.m_hWnd) {
+			return FALSE;
+		}
 		if (m_hAccel && ::TranslateAccelerator(m_hWnd, m_hAccel, pMsg)) {
 			return TRUE;
 		}
@@ -879,6 +882,7 @@ void LeftTreeView::doRefreshDatabase()
 void LeftTreeView::doDeleteDatabase()
 {
 	treeViewAdapter->removeSeletedDbTreeItem();
+
 	loadComboBox();
 	AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
 }

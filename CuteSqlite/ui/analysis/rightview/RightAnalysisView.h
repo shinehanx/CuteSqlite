@@ -62,6 +62,7 @@ public:
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_ADD_PERF_REPORT_ID, OnHandleAnalysisAddPerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID, OnHandleAnalysisDropPerfReport)
+		MESSAGE_HANDLER_EX(Config::MSG_DELETE_DATABASE_ID, OnHandleDeleteDatabase)
 
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 
@@ -146,6 +147,7 @@ private:
 	LRESULT OnHandleAnalysisAddPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT closeTabViewPage(int nPage);
 	void clearPerfAnalysisPagePtrs();

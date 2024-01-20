@@ -328,6 +328,36 @@ void LeftNaigationViewAdapter::popupPerfReportMenu(CPoint pt)
 	perfReportMenu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, parentHwnd);
 }
 
+
+void LeftNaigationViewAdapter::removeDbTreeItem(uint64_t userDbId)
+{
+	if (!userDbId) {
+		return;
+	}
+	CTreeItem dbChildItem = hStoreAnalysisItem.GetChild();
+	int iImage = -1, iSelImage = -1;
+	while (!dbChildItem.IsNull()) {
+		uint64_t data = static_cast<uint64_t>(dbChildItem.GetData());
+		dbChildItem.GetImage(iImage, iSelImage);
+		if (data == userDbId && iImage == 7) { // 7- database store analysis 
+			dataView->DeleteItem(dbChildItem.m_hTreeItem);
+			break;
+		}
+		dbChildItem = dataView->GetNextSiblingItem(dbChildItem.m_hTreeItem);
+	}
+
+	dbChildItem = hDbParamsItem.GetChild();
+	while (!dbChildItem.IsNull()) {
+		uint64_t data = static_cast<uint64_t>(dbChildItem.GetData());
+		dbChildItem.GetImage(iImage, iSelImage);
+		if (data == userDbId && iImage == 8) { // 7- database store analysis 
+			dataView->DeleteItem(dbChildItem.m_hTreeItem);
+			break;
+		}
+		dbChildItem = dataView->GetNextSiblingItem(dbChildItem.m_hTreeItem);
+	}
+}
+
 void LeftNaigationViewAdapter::openPerfAnalysisReport(uint64_t sqlLogId)
 {
 	if (!sqlLogId) {

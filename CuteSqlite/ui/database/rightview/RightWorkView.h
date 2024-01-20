@@ -118,6 +118,8 @@ public:
 		MESSAGE_HANDLER(Config::MSG_TREEVIEW_CLICK_ID, OnChangeTreeviewItem)
 		MESSAGE_HANDLER(Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID, OnExecSqlResultMessage)
 
+		MESSAGE_HANDLER(Config::MSG_DELETE_DATABASE_ID, OnDeleteDatabase)
+
 		NOTIFY_CODE_HANDLER (TBVN_PAGEACTIVATED, OnTabViewPageActivated)
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 		NOTIFY_CODE_HANDLER (TBVN_CONTEXTMENU, OnTabViewContextMenu)
@@ -279,6 +281,8 @@ private:
 
 	// After executed the SQL statement, system record the sql log£¬wParam- NULL£¬lParam - point of adapter.runtimeResultInfo
 	LRESULT OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	// 
+	LRESULT OnDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	LRESULT OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);

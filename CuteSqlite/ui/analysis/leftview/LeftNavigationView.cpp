@@ -96,6 +96,7 @@ int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -107,6 +108,7 @@ void LeftNavigationView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -261,6 +263,13 @@ LRESULT LeftNavigationView::OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wPa
 	return 0;
 }
 
+
+LRESULT LeftNavigationView::OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	adapter->removeDbTreeItem(userDbId);
+	return 1;
+}
 
 void LeftNavigationView::OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {

@@ -37,14 +37,15 @@ BOOL StoreAnalysisPage::PreTranslateMessage(MSG* pMsg)
 
 StoreAnalysisPage::StoreAnalysisPage(uint64_t userDbId)
 {
-	supplier.setRuntimeUserDbId(userDbId);
-	supplier.setUserDb(databaseService->getUserDb(userDbId));
+	supplier = new StoreAnalysisSupplier();
+	supplier->setRuntimeUserDbId(userDbId);
+	supplier->setUserDb(databaseService->getUserDb(userDbId));
 }
 
 
 uint64_t StoreAnalysisPage::getUserDbId()
 {
-	return supplier.getRuntimeUserDbId();
+	return supplier->getRuntimeUserDbId();
 }
 
 
@@ -80,7 +81,7 @@ void StoreAnalysisPage::createOrShowTitleElems(CRect & clientRect)
 
 	rect.OffsetRect(60 + 5, 0);
 	rect.right = rect.left + 80;
-	title = supplier.getUserDb().name;
+	title = supplier->getUserDb().name;
 	createOrShowEdit(databaseEdit, 0, title, rect, clientRect, 0);
 
 	rect.OffsetRect(80 + 5, 0);
@@ -121,19 +122,19 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 	CRect rect = { x, y, x + w, y + h };
 	
 	// 7.Foreach table names to show the table report
-	auto & tblNames = storeAnalysisService->getTableNames(supplier.getRuntimeUserDbId());
+	auto & tblNames = storeAnalysisService->getTableNames(supplier->getRuntimeUserDbId());
 	for (auto & tblName : tblNames) {
 		if (tblName != selTable) {
 			continue;
 		}
-		int n = storeAnalysisService->getSpaceUsedCountByTblName(supplier.getRuntimeUserDbId(), tblName);
+		int n = storeAnalysisService->getSpaceUsedCountByTblName(supplier->getRuntimeUserDbId(), tblName);
 		if (n > 0) {
 			// Table {tblName} and all its indices
 			title = S(L"tbl-and-all-idx-report-title");
 			title = StringUtil::replace(title, L"{tblName}", tblName);
 			StoreAnalysisElem * ptr7 = getStoreAnalysisElemPtr(title);
 			if (!ptr7) {
-				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblIdxReport(supplier.getRuntimeUserDbId(), tblName);
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblIdxReport(supplier->getRuntimeUserDbId(), tblName);
 				itemsLen = static_cast<int>(storeItems.size()) + 1;
 				ptr7 = new StoreAnalysisElem(title, storeItems);
 				storeAnalysisElemPtrs.push_back(ptr7);
@@ -151,7 +152,7 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 			title = StringUtil::replace(title, L"{tblName}", tblName);
 			StoreAnalysisElem * ptr8 = getStoreAnalysisElemPtr(title);
 			if (!ptr8) {
-				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblOnlyReport(supplier.getRuntimeUserDbId(), tblName, true);
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblOnlyReport(supplier->getRuntimeUserDbId(), tblName, true);
 				itemsLen = static_cast<int>(storeItems.size()) + 1;
 				ptr8 = new StoreAnalysisElem(title, storeItems);
 				storeAnalysisElemPtrs.push_back(ptr8);
@@ -164,14 +165,14 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 			rect.bottom = rect.top + (20 + 5) * itemsLen;
 			createOrShowStoreAnalysisElem(*ptr8, rect, clientRect);
 
-			auto idxList = storeAnalysisService->getIndexNamesByTblName(supplier.getRuntimeUserDbId(), tblName);
+			auto idxList = storeAnalysisService->getIndexNamesByTblName(supplier->getRuntimeUserDbId(), tblName);
 			if (idxList.size() > 1) {
 				// Indices of table $name
 				title = S(L"idx-only-report-title");
 				title = StringUtil::replace(title, L"{tblName}", tblName);
 				StoreAnalysisElem * ptr9 = getStoreAnalysisElemPtr(title);
 				if (!ptr9) {
-					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxOnlyReport(supplier.getRuntimeUserDbId(), tblName);
+					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxOnlyReport(supplier->getRuntimeUserDbId(), tblName);
 					itemsLen = static_cast<int>(storeItems.size()) + 1;
 					ptr9 = new StoreAnalysisElem(title, storeItems);
 					storeAnalysisElemPtrs.push_back(ptr9);
@@ -192,7 +193,7 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 				title = StringUtil::replace(title, L"{tblName}", tblName);
 				StoreAnalysisElem * ptr10 = getStoreAnalysisElemPtr(title);
 				if (!ptr10) {
-					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxReport(supplier.getRuntimeUserDbId(), tblName, idxName);
+					StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfIdxReport(supplier->getRuntimeUserDbId(), tblName, idxName);
 					itemsLen = static_cast<int>(storeItems.size()) + 1;
 					ptr10 = new StoreAnalysisElem(title, storeItems);
 					storeAnalysisElemPtrs.push_back(ptr10);
@@ -211,7 +212,7 @@ void StoreAnalysisPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
 			title = StringUtil::replace(title, L"{tblName}", tblName);
 			StoreAnalysisElem * ptr11 = getStoreAnalysisElemPtr(title);
 			if (!ptr11) {
-				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblReport(supplier.getRuntimeUserDbId(), tblName);
+				StoreAnalysisItems storeItems = adapter->getStoreAnalysisItemsOfTblReport(supplier->getRuntimeUserDbId(), tblName);
 				itemsLen = static_cast<int>(storeItems.size()) + 1;
 				ptr11 = new StoreAnalysisElem(title, storeItems);
 				storeAnalysisElemPtrs.push_back(ptr11);
@@ -234,7 +235,7 @@ void StoreAnalysisPage::createOrShowDatabaseStoreAnalysisElems(CRect &clientRect
 		return;
 	}
 	
-	UserDb & userDb = supplier.getUserDb();
+	UserDb & userDb = supplier->getUserDb();
 
 	// 1.Disk-Space Utilization Report For {dbPath}
 	std::wstring title = S(L"db-disk-used-title");
@@ -421,7 +422,7 @@ void StoreAnalysisPage::loadTableComboBox()
 	tableComboBox.ResetContent();
 	tableComboBox.AddString(L"All");
 
-	uint64_t userDbId = supplier.getRuntimeUserDbId();
+	uint64_t userDbId = supplier->getRuntimeUserDbId();
 	UserTableStrings tableStrs ;
 	try {
 		tableStrs = tableService->getUserTableStrings(userDbId);
@@ -447,7 +448,7 @@ int StoreAnalysisPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	linePen.CreatePen(PS_SOLID, 1, lineColor);
 	headerBrush.CreateSolidBrush(headerBkgColor);
 
-	adapter = new StoreAnalysisPageAdapter(m_hWnd, this, &supplier);
+	adapter = new StoreAnalysisPageAdapter(m_hWnd, this, supplier);
 
 	
 	return ret;
@@ -476,6 +477,7 @@ int StoreAnalysisPage::OnDestroy()
 	void clearStoreAnalysisElemPtrs();
 
 	if (adapter) delete adapter;
+	if (supplier) delete supplier;
 	return ret;
 }
 

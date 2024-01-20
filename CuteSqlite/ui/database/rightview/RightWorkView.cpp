@@ -456,6 +456,7 @@ int RightWorkView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	m_hAccel = ::LoadAccelerators(ins, MAKEINTRESOURCE(RIGHT_WORKVIEW_ACCEL));
@@ -497,6 +498,7 @@ int RightWorkView::OnDestroy()
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TABLE_PROPERTIES_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_TREEVIEW_CLICK_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
 	
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -1035,6 +1037,86 @@ LRESULT RightWorkView::OnExecSqlResultMessage(UINT uMsg, WPARAM wParam, LPARAM l
 	// save sql log to db
 	sqlLogService->createSqlLog(*runtimeResultInfo);
 	return 0;
+}
+
+LRESULT RightWorkView::OnDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	if (userDbId != databaseSupplier->getSelectedUserDbId()) {
+		return 1;
+	}
+
+	int n = tabView.GetPageCount();
+	std::vector<int> erasePages;
+	for (int i = 0; i < n; i++) {
+		HWND pageHwnd = tabView.GetPageHWND(i);
+		std::wstring title = tabView.GetPageTitle(i);
+		// Close the QueryPage if query page belong userDbId WHEN delete database 
+		bool found = false;
+		for (auto iter = queryPagePtrs.begin(); iter != queryPagePtrs.end(); iter++) {
+			auto & ptr = *iter;
+			if (ptr->m_hWnd != pageHwnd) {
+				continue;
+			}
+			if (ptr->getSupplier()->getOperateType() != TABLE_DATA) {
+				continue;
+			}
+			if (ptr->getSupplier()->getRuntimeUserDbId() != userDbId) {
+				continue;
+			}
+
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
+			}
+			if (ptr) {
+				delete ptr;
+				ptr = nullptr;
+			}
+			queryPagePtrs.erase(iter);
+			erasePages.push_back(i);
+			found = true;
+			break;
+		}
+		if (found) {
+			continue;
+		}
+
+		// Close the QueryPage if query page belong userDbId WHEN delete database 
+		for (auto iter = tablePagePtrs.begin(); iter != tablePagePtrs.end(); iter++) {
+			auto & ptr = *iter;
+			if (ptr->m_hWnd != pageHwnd) {
+				continue;
+			}
+			if (ptr->getSupplier()->getOperateType() != NEW_TABLE && ptr->getSupplier()->getOperateType() != MOD_TABLE) {
+				continue;
+			}
+			if (ptr->getSupplier()->getRuntimeUserDbId() != userDbId) {
+				continue;
+			}
+		
+			if (ptr && ptr->IsWindow()) {
+				ptr->DestroyWindow();
+				ptr->m_hWnd = nullptr;
+			}
+			if (ptr) {
+				delete ptr;
+				ptr = nullptr;
+			}
+			tablePagePtrs.erase(iter);
+			erasePages.push_back(i);
+			found = true;
+			break;
+		}
+	}
+
+	n = static_cast<int>(erasePages.size());
+	for (int i = n - 1; i >= 0; i--) {
+		auto nPage = erasePages.at(i);
+		tabView.RemovePage(nPage);
+	}
+	
+	return 1;
 }
 
 LRESULT RightWorkView::OnTabViewPageActivated(int idCtrl, LPNMHDR pnmh, BOOL &bHandled)
