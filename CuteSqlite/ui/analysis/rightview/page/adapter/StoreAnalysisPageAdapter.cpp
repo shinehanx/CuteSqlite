@@ -290,7 +290,7 @@ StoreAnalysisItems StoreAnalysisPageAdapter::reportStoreAnalysisItems(TblIdxSpac
 double StoreAnalysisPageAdapter::percent(uint64_t val, uint64_t total)
 {
 	if (total == 0.0) {
-		return 0;
+		return 0.0;
 	}
 	double dval = val * 100.0 / total;
 	return ((double)((int64_t)((dval + 0.005) * 100 ))) / 100;
@@ -299,7 +299,7 @@ double StoreAnalysisPageAdapter::percent(uint64_t val, uint64_t total)
 std::wstring StoreAnalysisPageAdapter::formatDouble(double val)
 {
 	if (val == 0.0) {
-		return 0;
+		return L"0";
 	}
 	val = round(val * 100) / 100;
 	wchar_t buff[128];

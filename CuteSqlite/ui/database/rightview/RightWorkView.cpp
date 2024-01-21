@@ -1188,7 +1188,7 @@ LRESULT RightWorkView::closeTabViewPage(int nPage)
 		}
 	}
 
-	// check the close page if it is a QueryPage
+	// check the close page if it is a TableStructurePage
 	for (auto & iter = tablePagePtrs.begin(); iter != tablePagePtrs.end(); iter++) {
 		TableStructurePage * ptr = *iter;
 		if (pageHwnd != ptr->m_hWnd) {

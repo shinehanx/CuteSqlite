@@ -43,6 +43,9 @@ public:
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
 		COMMAND_HANDLER_EX(Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
 		COMMAND_HANDLER_EX(Config::ANALYSIS_DB_PRAGMAS_COMBOBOX_ID, CBN_SELENDOK, OnChangePragmaComboBox)
+
+		MESSAGE_HANDLER_EX(Config::MSG_QPARAMELEM_VAL_CHANGE_ID, OnHandleParamElemValChange)
+
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_CTLCOLORBTN(OnCtlColorBtn)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlColorListBox)
@@ -51,6 +54,7 @@ public:
 	END_MSG_MAP()
 	DbPragmaParamsPage(uint64_t sqlLogId);
 	uint64_t getUserDbId();
+	void save();
 private:
 	bool isNeedReload = true;
 	
@@ -111,6 +115,8 @@ private:
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnChangePragmaComboBox(UINT uNotifyCode, int nID, HWND hwnd);
+
+	LRESULT OnHandleParamElemValChange(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	HBRUSH OnCtlColorStatic(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlColorBtn(HDC hdc, HWND hwnd);

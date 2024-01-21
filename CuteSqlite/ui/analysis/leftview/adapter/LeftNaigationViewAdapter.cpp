@@ -53,7 +53,9 @@ LeftNaigationViewAdapter::~LeftNaigationViewAdapter()
 	if (dbStoreAnalysisIcon) ::DeleteObject(dbStoreAnalysisIcon);
 	if (subDbParamsIcon) ::DeleteObject(subDbParamsIcon);
 	if (subPragmaParamsIcon) ::DeleteObject(subPragmaParamsIcon);
+	if (subPragmaParamsDirtyIcon) ::DeleteObject(subPragmaParamsDirtyIcon);
 	if (subQuickConfigParamsIcon) ::DeleteObject(subQuickConfigParamsIcon);
+	if (subQuickConfigParamsDirtyIcon) ::DeleteObject(subQuickConfigParamsDirtyIcon);
 
 	if (openPerfReportIcon) ::DeleteObject(openPerfReportIcon);
 	if (dropPerfReportIcon) ::DeleteObject(dropPerfReportIcon);
@@ -79,7 +81,9 @@ void LeftNaigationViewAdapter::createImageList()
 	dbStoreAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 	subDbParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\database.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 	subPragmaParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	subPragmaParamsDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 	subQuickConfigParamsIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
+	subQuickConfigParamsDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE); 
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(perfAnalysisIcon); // 0 - performance analysis	
@@ -92,7 +96,9 @@ void LeftNaigationViewAdapter::createImageList()
 	imageList.AddIcon(dbStoreAnalysisIcon); // 7- database store analysis 
 	imageList.AddIcon(subDbParamsIcon); // 8- database params
 	imageList.AddIcon(subPragmaParamsIcon); // 9 - database pragma params
-	imageList.AddIcon(subQuickConfigParamsIcon); // 10 - database quick config params
+	imageList.AddIcon(subPragmaParamsDirtyIcon); // 10 - dirty database pragma params
+	imageList.AddIcon(subQuickConfigParamsIcon); // 11 - database quick config params
+	imageList.AddIcon(subQuickConfigParamsDirtyIcon); // 12 - dirty database quick config params
 	
 	openPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\open-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dropPerfReportIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\drop-perf-report.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
@@ -208,20 +214,8 @@ void LeftNaigationViewAdapter::loadDatabseForDbParamsItem()
 		return;
 	}
 
-	int iImage;
 	for (auto & db : dbs) {
-		CTreeItem dbTreeItem = addDatabaseToDbParamsItem(db);
-
-		iImage = 9; // 9 - subPragmaParamsIcon: database pragma params
-		CTreeItem dbPragmaParamsItem = dataView->InsertItem(S(L"db-pragma-params").c_str(), iImage, iImage, dbTreeItem, TVI_LAST);
-		dbPragmaParamsItem.SetData(db.id); // set the userDbId to the CTreeItem.data 
-
-		iImage = 10; // 10 - subQuickConfigParamsIcon : database quick config params		
-		CTreeItem dbQuickConfigItem = dataView->InsertItem(S(L"db-quick-config-params").c_str(), iImage, iImage, dbTreeItem, TVI_LAST);
-		dbQuickConfigItem.SetData(db.id); // set the userDbId to the CTreeItem.data
-
-		dataView->Expand(dbTreeItem);
-		
+		addDatabaseToDbParamsItem(db);
 	}
 }
 
@@ -249,7 +243,7 @@ void LeftNaigationViewAdapter::addDatabaseToStoreAnalysisItem(UserDb & userDb)
 }
 
 
-CTreeItem LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
+void LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
 {
 	ATLASSERT(userDb.id);
 
@@ -265,12 +259,22 @@ CTreeItem LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
 		childItem = childItem.GetNextSibling();
 	}
 	if (isFound) {
-		return childItem;
+		return ;
 	}
 	int iImage = 8; // 8 - database params
 	CTreeItem treeItem = dataView->InsertItem(title.c_str(), iImage, iImage, hDbParamsItem, TVI_LAST);
 	treeItem.SetData(userDb.id);
-	return treeItem;
+
+	iImage = 9; // 9 - subPragmaParamsIcon: database pragma params
+	CTreeItem dbPragmaParamsItem = dataView->InsertItem(S(L"db-pragma-params").c_str(), iImage, iImage, treeItem, TVI_LAST);
+	dbPragmaParamsItem.SetData(userDb.id); // set the userDbId to the CTreeItem.data 
+
+	iImage = 11; // 11 - subQuickConfigParamsIcon : database quick config params		
+	CTreeItem dbQuickConfigItem = dataView->InsertItem(S(L"db-quick-config-params").c_str(), iImage, iImage, treeItem, TVI_LAST);
+	dbQuickConfigItem.SetData(userDb.id); // set the userDbId to the CTreeItem.data
+
+	dataView->Expand(treeItem);
+	return ;
 }
 
 void LeftNaigationViewAdapter::savePerfAnalysisReport(uint64_t sqlLogId)
@@ -329,6 +333,25 @@ void LeftNaigationViewAdapter::popupPerfReportMenu(CPoint pt)
 }
 
 
+void LeftNaigationViewAdapter::addDbTreeItem(uint64_t userDbId)
+{
+	if (!userDbId) {
+		return;
+	}
+	try {
+		UserDb userDb = databaseService->getUserDb(userDbId);
+		if (!userDb.id) {
+			Q_ERROR(L"Not found database by the userDbId:{}", userDbId);
+			return;
+		}
+		addDatabaseToStoreAnalysisItem(userDb);
+		addDatabaseToDbParamsItem(userDb);
+	} catch (QRuntimeException &ex) {
+		QPopAnimate::report(ex);
+		return;
+	}
+}
+
 void LeftNaigationViewAdapter::removeDbTreeItem(uint64_t userDbId)
 {
 	if (!userDbId) {
@@ -350,7 +373,7 @@ void LeftNaigationViewAdapter::removeDbTreeItem(uint64_t userDbId)
 	while (!dbChildItem.IsNull()) {
 		uint64_t data = static_cast<uint64_t>(dbChildItem.GetData());
 		dbChildItem.GetImage(iImage, iSelImage);
-		if (data == userDbId && iImage == 8) { // 7- database store analysis 
+		if (data == userDbId && iImage == 8) { // 8- database params
 			dataView->DeleteItem(dbChildItem.m_hTreeItem);
 			break;
 		}
@@ -358,10 +381,74 @@ void LeftNaigationViewAdapter::removeDbTreeItem(uint64_t userDbId)
 	}
 }
 
+
+void LeftNaigationViewAdapter::dirtyDbPragmaParamTreeItem(uint64_t userDbId, bool isDirty)
+{
+	if (!userDbId) {
+		Q_ERROR(L"userDbId is empty");
+		return ;
+	}
+	CTreeItem dbChildItem = hDbParamsItem.GetChild();
+	int iImage = -1, iSelImage = -1;
+	while (!dbChildItem.IsNull()) {
+		uint64_t data = static_cast<uint64_t>(dbChildItem.GetData());
+		dbChildItem.GetImage(iImage, iSelImage);
+		if (data != userDbId || iImage != 8) { // 8- database params
+			dbChildItem = dataView->GetNextSiblingItem(dbChildItem.m_hTreeItem);
+			continue;
+		}
+		CTreeItem subTreeItem = dbChildItem.GetChild();
+		while (!subTreeItem.IsNull()) {
+			uint64_t subData = static_cast<uint64_t>(subTreeItem.GetData());
+			subTreeItem.GetImage(iImage, iSelImage);
+			if (subData == userDbId && (iImage == 9 || iImage == 10)) { 
+				// 9 - database pragma params , 10 - dirty database pragma params
+				iImage = isDirty ? 10 : 9;
+				subTreeItem.SetImage(iImage, iImage);
+				break;
+			}
+			subTreeItem = dataView->GetNextSiblingItem(subTreeItem.m_hTreeItem);			
+		}
+		break;
+	}
+}
+
+
+void LeftNaigationViewAdapter::dirtyDbQuickConfigTreeItem(uint64_t userDbId, bool isDirty)
+{
+	if (!userDbId) {
+		Q_ERROR(L"userDbId is empty");
+		return ;
+	}
+	CTreeItem dbChildItem = hDbParamsItem.GetChild();
+	int iImage = -1, iSelImage = -1;
+	while (!dbChildItem.IsNull()) {
+		uint64_t data = static_cast<uint64_t>(dbChildItem.GetData());
+		dbChildItem.GetImage(iImage, iSelImage);
+		if (data != userDbId || iImage != 8) { // 8- database params
+			dbChildItem = dataView->GetNextSiblingItem(dbChildItem.m_hTreeItem);
+			continue;
+		}
+		CTreeItem subTreeItem = dbChildItem.GetChild();
+		while (!subTreeItem.IsNull()) {
+			uint64_t subData = static_cast<uint64_t>(subTreeItem.GetData());
+			subTreeItem.GetImage(iImage, iSelImage);
+			if (subData == userDbId && (iImage == 11 || iImage == 12)) { 
+				// 11 - database quick config params, 12 - dirty database quick config params
+				iImage = isDirty ? 12 : 11;
+				subTreeItem.SetImage(iImage, iImage);
+				break;
+			}
+			subTreeItem = dataView->GetNextSiblingItem(subTreeItem.m_hTreeItem);			
+		}
+		break;
+	}
+}
+
 void LeftNaigationViewAdapter::openPerfAnalysisReport(uint64_t sqlLogId)
 {
 	if (!sqlLogId) {
-		Q_ERROR(L"analysis failed, sqlLogId is empty");
+		Q_ERROR(L"sqlLogId is empty");
 		return ;
 	}
 	SqlLog sqlLog;

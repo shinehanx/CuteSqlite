@@ -19,12 +19,13 @@
  *********************************************************************/
 #include "stdafx.h"
 #include "DbPragmaParamPageAdapter.h"
+#include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "utils/EntityUtil.h"
 #include "core/common/Lang.h"
 #include "core/common/exception/QSqlExecuteException.h"
 #include "ui/common/message/QPopAnimate.h"
-#include "common/AppContext.h"
+#include "ui/common/message/QMessageBox.h"
 
 DbPragmaParamPageAdapter::DbPragmaParamPageAdapter(HWND parentHwnd, CWindow * view, DbPragmaParamSupplier * supplier)
 {
@@ -53,39 +54,76 @@ void DbPragmaParamPageAdapter::initSupplier()
 	
 }
 
-void DbPragmaParamPageAdapter::save()
+bool DbPragmaParamPageAdapter::save()
 {
+	std::wstring text = S(L"pragma-save-confirm");
+	auto & changedPragmas = supplier->getChangedPragams();
+	std::vector<std::wstring> sqls;
+	for (auto & pragma : changedPragmas) {
+		std::wstring sql;
+		sql.append(pragma.labelText);
+		if (pragma.valBackType == ASSIGN_VAL) {
+			sql.append(L"=").append(pragma.val).append(L";");
+		} else if (pragma.valBackType == ASSIGN_STR){
+			std::wstring val = pragma.val;
+			sql.append(L"='").append(StringUtil::escapeSql(val)).append(L"';");
+		} else if (pragma.valBackType == PARAM_VAL) {
+			sql.append(L"(").append(pragma.val).append(L");");
+		} else if (pragma.valBackType == PARAM_STR) {
+			std::wstring val = pragma.val;
+			sql.append(L"(").append(StringUtil::escapeSql(val)).append(L");");
+		} else {
+			sql.append(L";");
+		}
+		sqls.push_back(sql);
+	}
+	if (sqls.empty()) {
+		return false;
+	}
+	text.append(L"\r\n").append(StringUtil::implode(sqls, L"\r\n"));
+	if (QMessageBox::confirm(parentHwnd, text, S(L"confirm-exec-text")) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+		return false; 
+	}
 	try {
-		
-		supplier->setIsDirty(false);
-
+		for (auto & sql : sqls) {
+			pragmaService->execPragma(supplier->getRuntimeUserDbId(), sql);
+		}
 		QPopAnimate::success(S(L"save-success-text"));
+		supplier->setIsDirty(false);
+		return true;
 	} catch (QSqlExecuteException & ex) {
 		QPopAnimate::report(ex);
 	} catch (QRuntimeException & ex) {
 		QPopAnimate::report(ex);
 	}
+	return false;
 }
 
-void DbPragmaParamPageAdapter::enableReportSaved()
+void DbPragmaParamPageAdapter::enableSaved()
 {
 	// RightAnalysisView, LeftNavigationView will be accept this msg
-	// AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, WPARAM(parentHwnd), LPARAM(supplier->getSqlLogId()));
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, WPARAM(supplier->getRuntimeUserDbId()), LPARAM(false));
 }
 
 ParamElemDataList DbPragmaParamPageAdapter::getDbPragmaParams(uint64_t userDbId)
 {
 	ParamElemDataList result;
 	const ParamElemDataList & pragmas = supplier->getPragmas();
-	for (auto & pragma : pragmas) {
-		auto item = EntityUtil::copy(pragma);
-		// read pragmas data from database
-		if (item.valRwType != WRITE_ONLY) {
-			auto & pragmaSql = item.labelText;
-			item.val = pragmaService->execOnePragma(userDbId, pragmaSql);
+	try {
+		for (auto & pragma : pragmas) {
+			auto item = EntityUtil::copy(pragma);
+			// read pragmas data from database
+			if (item.valRwType != WRITE_ONLY) {
+				auto & pragmaSql = item.labelText;
+				item.val = pragmaService->execOnePragma(userDbId, pragmaSql);
+			}
+
+			result.push_back(item);
 		}
-		
-		result.push_back(item);
+	} catch (QSqlExecuteException & ex) {
+		QPopAnimate::report(ex);
+	} catch (QRuntimeException & ex) {
+		QPopAnimate::report(ex);
 	}
 	
 	return result;

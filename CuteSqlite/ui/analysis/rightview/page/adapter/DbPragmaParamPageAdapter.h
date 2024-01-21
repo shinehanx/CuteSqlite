@@ -29,8 +29,8 @@ public:
 	DbPragmaParamPageAdapter(HWND parentHwnd, CWindow * view, DbPragmaParamSupplier * supplier = nullptr);
 	~DbPragmaParamPageAdapter();
 
-	void save();
-	void enableReportSaved();
+	bool save();
+	void enableSaved();
 	ParamElemDataList getDbPragmaParams(uint64_t userDbId);
 private:	
 	DbPragmaParamSupplier * supplier = nullptr;

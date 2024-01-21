@@ -171,7 +171,7 @@ void LeftTreeViewAdapter::removeSeletedDbTreeItem()
 	if (QMessageBox::confirm(parentHwnd, msg) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
 		return;
 	}
-
+	// Send Config::MSG_DELETE_DATABASE_ID to other window (database-RightWorkView, analysis-LeftNavigation, analysis-RightAnalysisView)
 	AppContext::getInstance()->dispatchForResponse(Config::MSG_DELETE_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
 
 	try {

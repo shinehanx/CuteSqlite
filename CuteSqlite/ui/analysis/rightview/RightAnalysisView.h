@@ -19,6 +19,11 @@
  *                         |      |-> SqlLogListBox
  *                         |               |-> SqlLogListItem
  *                         |-> PerfAnalysisPage
+ *                         |      |-> WhereOrderClauseAnalysisElem       
+ *                         |      |-> SelectColumnsAnalysisElem       
+ *                         |      |-> TableJoinAnalysisElem       
+ *                         |-> DbPragmaParamsPage
+ *                         |      |-> QParamElem       
  * 
  * @author Xuehan Qin
  * @date   2023-12-01
@@ -63,6 +68,8 @@ public:
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID, OnHandleAnalysisDropPerfReport)
 		MESSAGE_HANDLER_EX(Config::MSG_DELETE_DATABASE_ID, OnHandleDeleteDatabase)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, OnHandleDirtyDbPragmas)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DIRTY_DB_QUICK_CONFIG_ID, OnHandleDirtyDbQuickConfig)
 
 		NOTIFY_CODE_HANDLER (TBVN_TABCLOSEBTN, OnTabViewCloseBtn)
 
@@ -102,7 +109,9 @@ private:
 	HICON perfReportDirtyIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
 	HICON dbPragmaParamIcon = nullptr;
+	HICON dbPragmaParamDirtyIcon = nullptr;
 	HICON dbQuikConfigIcon = nullptr;
+	HICON dbQuikConfigDirtyIcon = nullptr;
 	CImageList imageList;
 	void createImageList();
 
@@ -148,6 +157,8 @@ private:
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisDropPerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDirtyDbPragmas(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDirtyDbQuickConfig(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTabViewCloseBtn(int idCtrl, LPNMHDR pnmh, BOOL &bHandled);
 	LRESULT closeTabViewPage(int nPage);
 	void clearPerfAnalysisPagePtrs();

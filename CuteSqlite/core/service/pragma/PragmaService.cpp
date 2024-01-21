@@ -29,3 +29,8 @@ std::wstring PragmaService::execOnePragma(uint64_t userDbId, const std::wstring 
 {
 	return getRepository()->execForOne(userDbId, pragmaSql);
 }
+
+void PragmaService::execPragma(uint64_t userDbId, const std::wstring &pragmaSql)
+{
+	getRepository()->exec(userDbId, pragmaSql);
+}

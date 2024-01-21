@@ -12,12 +12,18 @@
  * limitations under the License.
 
  * @file   RightAnalysisView.cpp
-  * @Class Tree  RightAnalysisView
+ * @Class Tree  RightAnalysisView
  *                 |->QTabView(tabView)
  *                         |-> SqlLogPage
  *                         |      |-> SqlLogListBox
  *                         |               |-> SqlLogListItem
  *                         |-> PerfAnalysisPage
+ *                         |      |-> WhereOrderClauseAnalysisElem       
+ *                         |      |-> SelectColumnsAnalysisElem       
+ *                         |      |-> TableJoinAnalysisElem       
+ *                         |-> DbPragmaParamsPage
+ *                         |      |-> QParamElem       
+ * 
  * 
  * 
  * 
@@ -63,7 +69,9 @@ void RightAnalysisView::createImageList()
 	perfReportDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\analysis-report-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	storeAnalysisIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\store-analysis.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dbPragmaParamIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dbPragmaParamDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-pragma-dirty.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	dbQuikConfigIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	dbQuikConfigDirtyIcon = (HICON)::LoadImageW(ins, (imgDir + L"analysis\\tree\\db-quick-config.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	imageList.Create(16, 16, ILC_COLOR32, 8, 8);
 	imageList.AddIcon(firstIcon); // 0 - first
@@ -72,7 +80,9 @@ void RightAnalysisView::createImageList()
 	imageList.AddIcon(perfReportDirtyIcon); // 3 - perf report not saved
 	imageList.AddIcon(storeAnalysisIcon); // 4 - database store analysis
 	imageList.AddIcon(dbPragmaParamIcon); // 5 - database PRAGMA params
-	imageList.AddIcon(dbQuikConfigIcon); // 6 - database quick config params
+	imageList.AddIcon(dbPragmaParamDirtyIcon); // 6 - database PRAGMA params dirty
+	imageList.AddIcon(dbQuikConfigIcon); // 7 - database quick config params
+	imageList.AddIcon(dbQuikConfigDirtyIcon); // 8 - database quick config params
 }
 
 CRect RightAnalysisView::getTopRect(CRect & clientRect)
@@ -285,6 +295,8 @@ int RightAnalysisView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_QUICK_CONFIG_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -302,6 +314,8 @@ void RightAnalysisView::OnDestroy()
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DROP_PERF_REPORT_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_QUICK_CONFIG_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -311,7 +325,9 @@ void RightAnalysisView::OnDestroy()
 	if (perfReportDirtyIcon) ::DeleteObject(perfReportDirtyIcon);
 	if (storeAnalysisIcon) ::DeleteObject(storeAnalysisIcon);
 	if (dbPragmaParamIcon) ::DeleteObject(dbPragmaParamIcon);
+	if (dbPragmaParamDirtyIcon) ::DeleteObject(dbPragmaParamDirtyIcon);
 	if (dbQuikConfigIcon) ::DeleteObject(dbQuikConfigIcon);
+	if (dbQuikConfigDirtyIcon) ::DeleteObject(dbQuikConfigDirtyIcon);
 	if (!imageList.IsNull()) imageList.Destroy();
 
 	if (firstPage.IsWindow()) firstPage.DestroyWindow();
@@ -639,6 +655,13 @@ LRESULT RightAnalysisView::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwn
 			return 0;
 		}
 	}
+
+	for (auto ptr : dbPragmaParamsPagePtrs) {
+		if (ptr && ptr->IsWindow() && ptr->m_hWnd == activePageHwnd) {
+			ptr->save();
+			return 0;
+		}
+	}
 	return 0;
 }
 
@@ -646,6 +669,12 @@ LRESULT RightAnalysisView::OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwn
 LRESULT RightAnalysisView::OnClickSaveAllButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	for (auto ptr : perfAnalysisPagePtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->save();
+		}
+	}
+
+	for (auto ptr : dbPragmaParamsPagePtrs) {
 		if (ptr && ptr->IsWindow()) {
 			ptr->save();
 		}
@@ -837,6 +866,62 @@ LRESULT RightAnalysisView::OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPAR
 	}
 	
 	return 1;
+}
+
+
+LRESULT RightAnalysisView::OnHandleDirtyDbPragmas(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	bool isDirty = static_cast<bool>(lParam);
+	
+	HWND findHwnd = nullptr;
+	for (auto & ptr : dbPragmaParamsPagePtrs) {
+		if (ptr->getSupplier()->getRuntimeUserDbId() == userDbId) {
+			findHwnd = ptr->m_hWnd;
+			break;
+		}
+	}
+	if (!findHwnd) {
+		return 0;
+	}
+
+	int n = tabView.GetPageCount();
+	for (int i = 0; i < n; i++) {
+		if (findHwnd == tabView.GetPageHWND(i)) {
+			int iImage = isDirty ? 6 : 5;
+			tabView.SetPageImage(i, iImage);
+		}
+	}
+	
+	return 0;
+}
+
+
+LRESULT RightAnalysisView::OnHandleDirtyDbQuickConfig(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	bool isDirty = static_cast<bool>(lParam);
+		
+// 	HWND findHwnd = nullptr;
+// 	for (auto & ptr : dbQuickConfigParamsPagePtrs) {
+// 		if (ptr->getSupplier()->getRuntimeUserDbId() == userDbId) {
+// 			findHwnd = ptr->m_hWnd;
+// 			break;
+// 		}
+// 	}
+// 	if (!findHwnd) {
+// 		return 0;
+// 	}
+// 
+// 	int n = tabView.GetPageCount();
+// 	for (int i = 0; i < n; i++) {
+// 		if (findHwnd == tabView.GetPageHWND(i)) {
+// 			int iImage = isDirty ? 6 : 5;
+// 			tabView.SetPageImage(i, iImage);
+// 		}
+// 	}
+	
+	return 0;
 }
 
 void RightAnalysisView::doShowSqlLogPage()

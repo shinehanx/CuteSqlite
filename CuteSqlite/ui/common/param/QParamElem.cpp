@@ -27,12 +27,18 @@
 
 QParamElem::QParamElem(const ParamElemData & data)
 {
-	this->data = EntityUtil::copy(data);
+	setData(data);
 }
 
 QParamElem::~QParamElem()
 {
 	m_hWnd = nullptr;
+}
+
+void QParamElem::setData(const ParamElemData & data)
+{
+	this->data = EntityUtil::copy(data);
+	this->newData = EntityUtil::copy(data);
 }
 
 void QParamElem::createOrShowUI()
@@ -52,13 +58,13 @@ void QParamElem::createOrShowElems(CRect & clientRect)
 	rect.OffsetRect(w + 5, 0);
 	rect.right = rect.left + 150;
 	if (data.type == EDIT_ELEM) {
-		QWinCreater::createOrShowEdit(m_hWnd, valEdit, 0, data.val, rect, clientRect, 0, false);
+		QWinCreater::createOrShowEdit(m_hWnd, valEdit, Config::QPARAMELEM_EDIT_ELEM_ID, data.val, rect, clientRect, 0, false);
 	} else if (data.type == READ_ELEM) {
-		QWinCreater::createOrShowEdit(m_hWnd, valEdit, 0, data.val, rect, clientRect, 0, true);
+		QWinCreater::createOrShowEdit(m_hWnd, valEdit, Config::QPARAMELEM_READ_ELEM_ID, data.val, rect, clientRect, 0, true);
 	} else if (data.type == COMBO_EDIT_ELEM) {
-		QWinCreater::createOrShowComboBox(m_hWnd, valComboBox, 0,  rect, clientRect, true);
+		QWinCreater::createOrShowComboBox(m_hWnd, valComboBox, Config::QPARAMELEM_COMBO_EDIT_ID,  rect, clientRect, true);
 	} else if (data.type == COMBO_READ_ELEM) {
-		QWinCreater::createOrShowComboBox(m_hWnd, valComboBox, 0,  rect, clientRect, false);
+		QWinCreater::createOrShowComboBox(m_hWnd, valComboBox, Config::QPARAMELEM_COMBO_READ_ID,  rect, clientRect, false);
 	}
 
 	rect.OffsetRect(rect.Width() + 5, 0);
@@ -213,4 +219,32 @@ HBRUSH QParamElem::OnCtlListBoxColor(HDC hdc, HWND hwnd)
 	::SetBkColor(hdc, bkgColor); // Text area background color
 	::SelectObject(hdc, comboFont); 
 	return AtlGetStockBrush(WHITE_BRUSH);
+}
+
+void QParamElem::OnValEditElemChange(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (!valEdit.IsWindow()) {
+		return;
+	}
+	CString text;
+	valEdit.GetWindowText(text);
+	std::wstring newVal(text.GetString());
+	if (newVal != data.val) {
+		newData.val = newVal;
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QPARAMELEM_VAL_CHANGE_ID, WPARAM(m_hWnd), NULL);
+	}	
+}
+
+void QParamElem::OnValComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	if (!valComboBox.IsWindow()) {
+		return;
+	}
+	CString text;
+	valComboBox.GetWindowText(text);
+	std::wstring newVal(text.GetString());
+	if (newVal != data.val) {
+		newData.val = newVal;
+		::PostMessage(GetParent().m_hWnd, Config::MSG_QPARAMELEM_VAL_CHANGE_ID, WPARAM(m_hWnd), NULL);
+	}
 }

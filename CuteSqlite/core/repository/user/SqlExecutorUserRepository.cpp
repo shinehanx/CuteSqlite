@@ -39,8 +39,7 @@ QSqlStatement SqlExecutorUserRepository::tryExecSql(uint64_t userDbId, const std
 int SqlExecutorUserRepository::execSql(uint64_t userDbId, const std::wstring &sql)
 {
 	try {
-		QSqlStatement query(getUserConnect(userDbId), sql.c_str());
-		return query.exec();		
+		return getUserConnect(userDbId)->tryExec(sql.c_str());
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);

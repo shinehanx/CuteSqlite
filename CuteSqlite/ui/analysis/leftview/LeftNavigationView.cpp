@@ -96,7 +96,9 @@ int LeftNavigationView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ADD_DATABASE_ID);
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
+	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID);
 
 	bkgBrush.CreateSolidBrush(bkgColor);
 	topbarBrush.CreateSolidBrush(topbarColor);
@@ -108,7 +110,9 @@ void LeftNavigationView::OnDestroy()
 {
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SQL_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ADD_DATABASE_ID);
 	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_DELETE_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(m_hWnd, Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID);
 
 	if (!bkgBrush.IsNull()) bkgBrush.DeleteObject();
 	if (!topbarBrush.IsNull()) topbarBrush.DeleteObject();
@@ -264,11 +268,38 @@ LRESULT LeftNavigationView::OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wPa
 }
 
 
+LRESULT LeftNavigationView::OnHandleAddDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	adapter->addDbTreeItem(userDbId);
+	return 1;
+}
+
 LRESULT LeftNavigationView::OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uint64_t userDbId = static_cast<uint64_t>(wParam);
 	adapter->removeDbTreeItem(userDbId);
 	return 1;
+}
+
+
+LRESULT LeftNavigationView::OnHandleDirtyDbPragmas(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	bool isDirty = static_cast<bool>(lParam);
+
+	adapter->dirtyDbPragmaParamTreeItem(userDbId, isDirty);
+	return 0;
+}
+
+
+LRESULT LeftNavigationView::OnHandleDirtyDbQuickConfig(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	uint64_t userDbId = static_cast<uint64_t>(wParam);
+	bool isDirty = static_cast<bool>(lParam);
+
+	adapter->dirtyDbQuickConfigTreeItem(userDbId, isDirty);
+	return 0;
 }
 
 void LeftNavigationView::OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd)

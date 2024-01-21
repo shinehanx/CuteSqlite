@@ -20,7 +20,29 @@
 #include "stdafx.h"
 #include "DbPragmaParamSupplier.h"
 #include <vector>
+#include <algorithm>
 #include "core/common/Lang.h"
+
+
+void DbPragmaParamSupplier::addChangedPragam(const ParamElemData & data)
+{
+	setIsDirty(true);
+	auto iter = std::find_if(changedPragams.begin(), changedPragams.end(), [&data](const auto & item) {
+		return data.labelText == item.labelText;
+	});
+	if (iter == changedPragams.end()) {
+		changedPragams.push_back(data);
+		return;
+	}
+	(*iter).val = data.val;
+}
+
+
+void DbPragmaParamSupplier::clearChangedPragams()
+{
+	changedPragams.clear();
+	setIsDirty(false);
+}
 
 const ParamElemDataList DbPragmaParamSupplier::pragmas = {
 	{ EDIT_ELEM, L"PRAGMA analysis_limit", L"", {}, S(L"pragma-analysis-limit-tips"), READ_WRITE, ASSIGN_VAL },

@@ -47,7 +47,10 @@ public:
 
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SQL_ID, OnHandleAnalysisSql)
 		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_SAVE_PERF_REPORT_ID, OnHandleAnalysisSavePerfReport)
+		MESSAGE_HANDLER_EX(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
 		MESSAGE_HANDLER_EX(Config::MSG_DELETE_DATABASE_ID, OnHandleDeleteDatabase)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, OnHandleDirtyDbPragmas)
+		MESSAGE_HANDLER_EX(Config::MSG_ANALYSIS_DIRTY_DB_QUICK_CONFIG_ID, OnHandleDirtyDbQuickConfig)
 	END_MSG_MAP()
 private:
 	bool isNeedReload = true;
@@ -84,7 +87,10 @@ private:
 
 	LRESULT OnHandleAnalysisSql(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleAnalysisSavePerfReport(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleAddDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnHandleDeleteDatabase(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDirtyDbPragmas(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnHandleDirtyDbQuickConfig(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void OnClickOpenPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);
 	void OnClickDropPerfReportMenu(UINT uNotifyCode, int nID, HWND hwnd);

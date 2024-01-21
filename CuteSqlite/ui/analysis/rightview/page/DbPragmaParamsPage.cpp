@@ -49,6 +49,15 @@ uint64_t DbPragmaParamsPage::getUserDbId()
 }
 
 
+void DbPragmaParamsPage::save()
+{
+	if (supplier->getIsDirty()) {
+		if (!adapter->save()) return ;
+		adapter->enableSaved();
+	}
+	
+}
+
 void DbPragmaParamsPage::createOrShowUI()
 {
 	CRect clientRect;
@@ -361,6 +370,22 @@ LRESULT DbPragmaParamsPage::OnChangePragmaComboBox(UINT uNotifyCode, int nID, HW
 {
 	clearParamElemPtrs();
 	createOrShowUI();
+	return 0;
+}
+
+
+LRESULT DbPragmaParamsPage::OnHandleParamElemValChange(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	HWND hwnd = (HWND)wParam;
+	if (!hwnd) {
+		return 0;
+	}
+	for (auto & ptr : paramElemPtrs) {
+		if (ptr->m_hWnd == hwnd) {
+			supplier->addChangedPragam(ptr->getNewData());
+		}
+	}
+	AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, WPARAM(supplier->getRuntimeUserDbId()), LPARAM(true));
 	return 0;
 }
 

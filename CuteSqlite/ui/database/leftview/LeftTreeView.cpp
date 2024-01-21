@@ -807,6 +807,7 @@ LRESULT LeftTreeView::OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	for (auto & databasePath : databaseSupplier->dragFilePaths) {
 		treeViewAdapter->openUserDatabase(databasePath);
+		AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
 	}
 	loadComboBox();
 	AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
@@ -838,6 +839,7 @@ void LeftTreeView::doCreateDatabase()
 		treeViewAdapter->createUserDatabase(databasePath);
 		loadComboBox();
 		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
+		AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
 	}
 }
 
@@ -853,6 +855,7 @@ void LeftTreeView::doOpenDatabase()
 		treeViewAdapter->openUserDatabase(databasePath);
 		loadComboBox();
 		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
+		AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
 	}
 }
 
@@ -868,6 +871,7 @@ void LeftTreeView::doCopyDatabase()
 		treeViewAdapter->copyUserDatabase(databasePath);
 		loadComboBox();
 		AppContext::getInstance()->dispatch(Config::MSG_HOME_REFRESH_DATABASE_ID);
+		AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, WPARAM(databaseSupplier->getSelectedUserDbId()));
 	}
 }
 

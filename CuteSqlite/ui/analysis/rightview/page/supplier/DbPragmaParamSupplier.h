@@ -28,8 +28,13 @@ public:
 	const UserDb & getUserDb() { return userDb; }
 	void setUserDb(UserDb & val) { userDb = val; }
 	const ParamElemDataList & getPragmas() const { return pragmas; }
+	const ParamElemDataList & getChangedPragams() const { return changedPragams; }
+
+	void addChangedPragam(const ParamElemData & data);
+	void clearChangedPragams();
 private:
 	UserDb userDb;
 	const static ParamElemDataList pragmas;
+	ParamElemDataList changedPragams;
 };
 

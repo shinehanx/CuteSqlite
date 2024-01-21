@@ -32,4 +32,5 @@ public:
 
 	std::wstring execOnePragma(uint64_t userDbId, const std::wstring &pragmaSql);
 
+	void execPragma(uint64_t userDbId, const std::wstring &pragmaSql);
 };

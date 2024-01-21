@@ -76,6 +76,8 @@ ParamElemData EntityUtil::copy(const ParamElemData & item)
 	result.val = item.val;
 	result.options = item.options;
 	result.description = item.description;
+	result.valRwType = item.valRwType;
+	result.valBackType = item.valBackType;
 	return result;
 }
 

@@ -37,7 +37,10 @@ public:
 
 	void popupPerfReportMenu(CPoint pt);
 
+	void addDbTreeItem(uint64_t userDbId);
 	void removeDbTreeItem(uint64_t userDbId);
+	void dirtyDbPragmaParamTreeItem(uint64_t userDbId, bool isDirty);
+	void dirtyDbQuickConfigTreeItem(uint64_t userDbId, bool isDirty);
 private:
 	HICON perfAnalysisIcon = nullptr;
 	HICON storeAnalysisIcon = nullptr;
@@ -49,7 +52,9 @@ private:
 	HICON dbStoreAnalysisIcon = nullptr;
 	HICON subDbParamsIcon = nullptr;
 	HICON subPragmaParamsIcon = nullptr;
+	HICON subPragmaParamsDirtyIcon = nullptr;
 	HICON subQuickConfigParamsIcon = nullptr;
+	HICON subQuickConfigParamsDirtyIcon = nullptr;
 
 	HICON openPerfReportIcon = nullptr;
 	HICON dropPerfReportIcon = nullptr;
@@ -75,5 +80,5 @@ private:
 	void loadDatabseForDbParamsItem();
 	void createPerfReportMenu();
 	void addDatabaseToStoreAnalysisItem(UserDb & userDb);
-	CTreeItem addDatabaseToDbParamsItem(UserDb & userDb);
+	void addDatabaseToDbParamsItem(UserDb & userDb);
 };

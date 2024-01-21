@@ -39,8 +39,7 @@ QSqlStatement PragmaUserRepository::tryExec(uint64_t userDbId, const std::wstrin
 int PragmaUserRepository::exec(uint64_t userDbId, const std::wstring &pragmaSql)
 {
 	try {
-		QSqlStatement query(getUserConnect(userDbId), pragmaSql.c_str());
-		return query.exec();
+		return getUserConnect(userDbId)->tryExec(pragmaSql.c_str());
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"create table has error:{}, msg:{}", e.getErrorCode(), _err);

@@ -25,7 +25,7 @@
 #include <atltypes.h>
 #include <atlgdi.h>
 #include "core/entity/Entity.h"
-
+#include "common/Config.h"
 
 class QParamElem: public CWindowImpl<QParamElem> {
 public:
@@ -36,6 +36,11 @@ public:
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
 		MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
 		MSG_WM_ERASEBKGND(OnEraseBkgnd)
+
+		COMMAND_HANDLER_EX(Config::QPARAMELEM_EDIT_ELEM_ID, EN_CHANGE, OnValEditElemChange)
+		COMMAND_HANDLER_EX(Config::QPARAMELEM_COMBO_EDIT_ID, CBN_SELCHANGE, OnValComboBoxChange)
+		COMMAND_HANDLER_EX(Config::QPARAMELEM_COMBO_READ_ID, CBN_SELCHANGE, OnValComboBoxChange)
+
 		MSG_WM_CTLCOLORSTATIC(OnCtlStaticColor)
 		MSG_WM_CTLCOLOREDIT(OnCtlEditColor)
 		MSG_WM_CTLCOLORLISTBOX(OnCtlListBoxColor)
@@ -46,10 +51,15 @@ public:
 	
 	
 	const ParamElemData & getData() { return data; }
+	void setData(const ParamElemData & data);
+
+	const ParamElemData & getNewData() { return newData; }
 	void setBkgColor(COLORREF val) { bkgColor = val; }
+	
 private:
 	bool isNeedReload = true;
 	ParamElemData data;
+	ParamElemData newData;
 
 	COLORREF bkgColor =  RGB(225, 225, 225);
 	COLORREF readColor =  RGB(225, 225, 225);
@@ -82,4 +92,7 @@ private:
 	HBRUSH OnCtlStaticColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlEditColor(HDC hdc, HWND hwnd);
 	HBRUSH OnCtlListBoxColor(HDC hdc, HWND hwnd);
+
+	void OnValEditElemChange(UINT uNotifyCode, int nID, HWND hwnd);
+	void OnValComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd);
 };

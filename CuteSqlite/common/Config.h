@@ -460,6 +460,7 @@ typedef enum {
 	MSG_EXPORT_DB_AS_SQL_PROCESS_ID, // 导出数据库为SQL对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_IMPORT_PROCESS_ID, // SQL导入数据库对话框进度的消息,wParam是完成状态，lParam是完成百分比
 	MSG_MENU_ITEM_CLICK_ID, //菜单栏下某个菜单项被点击的消息ID，用来通知父窗口，指定ID的菜单项被点击了
+	MSG_ADD_DATABASE_ID, // Send this msg when clicking "Add Database/Open Database" menu or toolbar button , wParam=userDbId, lParam=NULL
 	MSG_DELETE_DATABASE_ID, // Send this msg when clicking "Delete Database" menu or toolbar button , wParam=userDbId, lParam=NULL
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_VIEW_ID, // Send this msg when clicking "New view" menu or toolbar button , wParam=NULL, lParam=NULL
@@ -523,11 +524,17 @@ typedef enum {
 	MSG_CHANGE_LANGUAGE_ID, // Send this msg when select item in SettingPanel.GeneralSettingView.changeLanguageComboBox,
 
 	MSG_ANALYSIS_SQL_ID, // When the tree item(iImage=5/6) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open PerfAnalysisPage, wParam=userDbId, lParam = sqlLogId
-	MSG_ANALYSIS_SAVE_PERF_REPORT_ID, // When data has be changed in PerfAnalysis, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=isDirty
-	MSG_ANALYSIS_DROP_PERF_REPORT_ID, // When drop report menu has clicked in the SqlLogPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId, lParam = sqlLogId
+	MSG_ANALYSIS_SAVE_PERF_REPORT_ID, // When data has be changed in PerfAnalysisPage, send this msg to parent tabView to display dirty icon for QueryPage title,  wParam=resultTablePage.m_hWnd, lParam=sqlLogId
+	MSG_ANALYSIS_DROP_PERF_REPORT_ID, // When drop report menu has clicked in the PerfAnalysisPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId, lParam = sqlLogId
+	MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, // When data has be changed in DbPragmaParamsPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId,lParam=isDirty
+	MSG_ANALYSIS_SAVE_DB_PRAGMAS_ID, // When data has be changed in DbPragmaParamsPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId,lParam=isDirty
+	MSG_ANALYSIS_DIRTY_DB_QUICK_CONFIG_ID, // When data has be changed in DbQuickConfigPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId,lParam=isDirty
+	MSG_ANALYSIS_SAVE_DB_QUICK_CONFIG_ID, // When data has be changed in DbQuickConfigPage, send this msg to LeftNavigationView and RightAnalysisView, wParam=userDbId,lParam=isDirty
 	MSG_DB_STORE_ANALYSIS_ID,  // When the tree item(iImage=7) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open StoreAnalysisPage, wParam=userDbId, lParam = NULL
 	MSG_DB_PRAGMA_PARAMS_ID,  // When the tree item(iImage=9) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbPragmaParamsPage, wParam=userDbId, lParam = NULL
 	MSG_DB_QUICK_CONFIG_PARAMS_ID,  // When the tree item(iImage=10) has double clicked in the LeftNavigation, send this msg to RightAnalysisView for open DbQuickConfigParamsPage, wParam=userDbId, lParam = NULL
+	MSG_QPARAMELEM_VAL_CHANGE_ID, // When the QParamElem value has change, send this msg to parent window for setting data dirty. wParam=QParamElem.m_hWnd, lParam=NULL
+	
 }MessageId;
 
 typedef enum {	
@@ -536,8 +543,7 @@ typedef enum {
 	SETTING_ABOUT_MENU_ID
 } ListMenuItemId;
 
-typedef enum 
-{
+typedef enum {
 	// SETTING VIEW ID
 	SETTING_GENERAL_SETTINGS_VIEW_ID = WM_USER + 830,
 	SETTING_ABOUT_VIEW_ID,
@@ -549,6 +555,13 @@ typedef enum {
 	RESULT_STATUSBAR_ROWS_PANE_ID,
 	RESULT_STATUSBAR_EXEC_TIME_PANE_ID,
 }StatusBarPaneId;
+
+typedef enum {
+	QPARAMELEM_EDIT_ELEM_ID = WM_USER + 865,
+	QPARAMELEM_READ_ELEM_ID ,
+	QPARAMELEM_COMBO_EDIT_ID ,
+	QPARAMELEM_COMBO_READ_ID 
+} QParamElemId;
 
 typedef enum {
 	QIMAGE_LIST_ID_START = WM_USER + 1024,
@@ -584,5 +597,6 @@ typedef enum {
 	ANALYSIS_SELECT_COLUMN_CHECKBOX_ID_START = WM_USER + 3901,
 	ANALYSIS_SELECT_COLUMN_CHECKBOX_ID_END = WM_USER + 4900,
 } AnalysissSelectColumnCheckboxIdRank;
+
 
 };
