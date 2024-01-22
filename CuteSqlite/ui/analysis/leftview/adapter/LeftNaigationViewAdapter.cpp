@@ -270,8 +270,8 @@ void LeftNaigationViewAdapter::addDatabaseToDbParamsItem(UserDb & userDb)
 	dbPragmaParamsItem.SetData(userDb.id); // set the userDbId to the CTreeItem.data 
 
 	iImage = 11; // 11 - subQuickConfigParamsIcon : database quick config params		
-	CTreeItem dbQuickConfigItem = dataView->InsertItem(S(L"db-quick-config-params").c_str(), iImage, iImage, treeItem, TVI_LAST);
-	dbQuickConfigItem.SetData(userDb.id); // set the userDbId to the CTreeItem.data
+// 	CTreeItem dbQuickConfigItem = dataView->InsertItem(S(L"db-quick-config-params").c_str(), iImage, iImage, treeItem, TVI_LAST);
+// 	dbQuickConfigItem.SetData(userDb.id); // set the userDbId to the CTreeItem.data 
 
 	dataView->Expand(treeItem);
 	return ;

@@ -52,7 +52,6 @@ const ParamElemDataList DbPragmaParamSupplier::pragmas = {
 	{ EDIT_ELEM, L"PRAGMA busy_timeout", L"", {}, S(L"pragma-busy-timeout-tips"), READ_WRITE, ASSIGN_VAL }, 
 	{ EDIT_ELEM, L"PRAGMA cache_size", L"", {}, S(L"pragma-cache-size-tips"), READ_WRITE, ASSIGN_VAL },
 	{ EDIT_ELEM, L"PRAGMA cache_spill", L"", {},  S(L"pragma-cache-spill-tips"), READ_WRITE, ASSIGN_VAL },
-	{ COMBO_READ_ELEM, L"PRAGMA case_sensitive_like", L"", {},  S(L"pragma-case-sensitive-like-tips"), WRITE_ONLY, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA cell_size_check", L"", { L"false|0", L"true|1" }, S(L"pragma-cell-size-check-tips"), READ_WRITE, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA checkpoint_fullfsync", L"", { L"false|0", L"true|1" }, S(L"pragma-checkpoint-fullfsync-tips"), READ_WRITE, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA count_changes", L"", { L"false|0", L"true|1" }, S(L"pragma-count-changes-tips"), READ_WRITE, ASSIGN_VAL },
