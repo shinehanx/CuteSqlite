@@ -285,7 +285,7 @@ void QParamElem::createAndBindToolTip()
 	tooltipCtrl.Activate(TRUE);		
 	
 	// 拦截鼠标消息.
-	m_pWndProc = (WNDPROC)::GetWindowLong(desLabel.m_hWnd, GWLP_WNDPROC); // 获取原窗口处理函数
+	m_pWndProc = (WNDPROC)::GetWindowLongPtr(desLabel.m_hWnd, GWLP_WNDPROC); // 获取原窗口处理函数
 	procWndPair.first = m_pWndProc; // 这个是用户定义的类型1,不重要
 	procWndPair.second = tooltipCtrl.m_hWnd; // 这个是用户定义的类型2,不重要
 	::SetWindowLongPtr(desLabel.m_hWnd, GWLP_USERDATA, (LONG_PTR)&procWndPair); // 设置窗口的自定义数据,用于存储原处理函数和ToolTip句柄
