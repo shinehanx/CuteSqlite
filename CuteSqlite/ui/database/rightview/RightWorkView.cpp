@@ -13,7 +13,7 @@
 
  * @file   RightWorkView.cpp
  * @brief  Right work space for splitter,include data query, sql execute and so on.
- * @Class Tree  RightWorkView
+  * @Class Tree  RightWorkView
  *                 |->QTabView(tabView)
  *                         |-> QueryPage
  *                         |      |-> CHorSplitterWindow
@@ -27,6 +27,7 @@
  *                         |                          |-> ResultListPage
  *                         |                          |-> ResultInfoPage
  *                         |                          |-> ResultTableDataPage
+ *                         |                          |-> TablePropertiesPage
  *                         |-> TableStructurePage
  *                         |       |-> TableTabView
  *                         |              |->QTabView(tabView)  

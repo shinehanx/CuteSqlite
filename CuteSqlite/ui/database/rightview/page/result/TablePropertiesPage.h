@@ -47,7 +47,11 @@ public:
 	END_MSG_MAP()
 	void setup(QueryPageSupplier * supplier);
 
+	void active();
+	bool getIsCreateOrShow() const { return isCreateOrShow; }
+	void setIsCreateOrShow(bool val) { isCreateOrShow = val; }
 protected:
+	bool isCreateOrShow = false;
 	COLORREF lineColor = RGB(127, 225, 244);
 	COLORREF headerBkgColor = RGB(81, 81, 81);
 	COLORREF headerTextColor = RGB(255, 255, 255);

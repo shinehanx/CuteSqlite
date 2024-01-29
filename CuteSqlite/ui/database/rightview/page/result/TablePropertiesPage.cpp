@@ -32,6 +32,11 @@ void TablePropertiesPage::setup(QueryPageSupplier * supplier)
 }
 
 
+void TablePropertiesPage::active()
+{
+	createOrShowUI();
+}
+
 void TablePropertiesPage::initVScrollBar(CSize & clientSize)
 {
 	if (clientSize.cx == 0 || clientSize.cy == 0 || nHeightSum == 0) {
@@ -205,6 +210,9 @@ LRESULT TablePropertiesPage::OnClickRefreshButton(UINT uNotifyCode, int nID, HWN
 
 void TablePropertiesPage::createOrShowUI()
 {
+	if (!getIsCreateOrShow()) {
+		return;
+	}
 	QPage::createOrShowUI();
 
 	nHeightSum = 0;
@@ -640,7 +648,7 @@ void TablePropertiesPage::createOrShowTableStoreAnalysisElems(CRect & clientRect
 	int itemsLen;
 	if (n > 0) {
 		// Table $name w/o any indices
-		title = S(L"tbl-only-report-title");
+		title = S(L"props-tbl-only-report-title");
 		title = StringUtil::replace(title, L"{tblName}", tblName);
 		StoreAnalysisElem * ptr8 = getStoreAnalysisElemPtr(title);
 		if (!ptr8) {

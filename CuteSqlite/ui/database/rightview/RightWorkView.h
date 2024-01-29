@@ -31,6 +31,7 @@
  *                         |                          |-> ResultListPage
  *                         |                          |-> ResultInfoPage
  *                         |                          |-> ResultTableDataPage
+ *                         |                          |-> TablePropertiesPage
  *                         |-> TableStructurePage
  *                         |       |-> TableTabView
  *                         |              |->QTabView(tabView)  

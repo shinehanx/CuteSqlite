@@ -501,6 +501,16 @@ LRESULT ResultTabView::OnTabViewPageActivated(int wParam, LPNMHDR lParam, BOOL &
 	HWND activePageHwnd = tabView.GetPageHWND(activePage);
 	supplier->setActiveResultTabPageHwnd(activePageHwnd);
 
+	if (tablePropertiesPage.m_hWnd == activePageHwnd) {
+		CRect rc;
+		tablePropertiesPage.GetWindowRect(rc);
+		if (rc.Width() > 40) {
+			tablePropertiesPage.setIsCreateOrShow(true);
+			tablePropertiesPage.active();
+		}		
+		return 0;
+	}
+
 	if (supplier->getOperateType() == TABLE_DATA) { 
 		return 0;
 	}
@@ -508,7 +518,7 @@ LRESULT ResultTabView::OnTabViewPageActivated(int wParam, LPNMHDR lParam, BOOL &
 	if (resultTableDataPage.m_hWnd != activePageHwnd) {
 		return 0;
 	}
-	
+
 	loadTableDatas(databaseSupplier->selectedTable);
 	return 0;
 }
@@ -522,6 +532,9 @@ void ResultTabView::activeTablePropertiesPage()
 		int nPage = tabView.AddPage(tablePropertiesPage.m_hWnd, StringUtil::blkToTail(S(L"table-properties")).c_str(), 3, &tablePropertiesPage);
 		tabView.SetActivePage(nPage);
 		supplier->setActiveResultTabPageHwnd(tablePropertiesPage.m_hWnd);
+
+		tablePropertiesPage.setIsCreateOrShow(true);
+		tablePropertiesPage.active();
 		return ;
 	} 
 	
@@ -532,6 +545,9 @@ void ResultTabView::activeTablePropertiesPage()
 		}
 		tabView.SetActivePage(i);
 		supplier->setActiveResultTabPageHwnd(tabView.GetPageHWND(i));
+
+		tablePropertiesPage.setIsCreateOrShow(true);
+		tablePropertiesPage.active();
 	}
 }
 
