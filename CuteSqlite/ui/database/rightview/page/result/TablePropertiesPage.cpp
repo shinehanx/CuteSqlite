@@ -11,8 +11,8 @@
 
  * limitations under the License.
 
- * @file   ResultPropertiesPage.cpp
- * @brief  Execute sql statement and show the info of query result
+ * @file   TablePropertiesPage.cpp
+ * @brief  Table Properties
  * 
  * @author Xuehan Qin
  * @date   2023-11-06
@@ -32,7 +32,7 @@ void TablePropertiesPage::setup(QueryPageSupplier * supplier)
 }
 
 
-void TablePropertiesPage::initScrollBar(CSize & clientSize)
+void TablePropertiesPage::initVScrollBar(CSize & clientSize)
 {
 	if (clientSize.cx == 0 || clientSize.cy == 0 || nHeightSum == 0) {
 		return ;
@@ -53,6 +53,29 @@ void TablePropertiesPage::initScrollBar(CSize & clientSize)
 
 	vScrollPages = si.nPage;
 	::SetScrollInfo(m_hWnd, SB_VERT, &si, TRUE);
+}
+
+void TablePropertiesPage::initHScrollBar(CSize & clientSize)
+{
+	if (clientSize.cx == 0 || clientSize.cy == 0 || nWidthSum == 0) {
+		return ;
+	}
+	int pageNums = nWidthSum % clientSize.cx ? 
+		nWidthSum / clientSize.cx + 1 : nWidthSum / clientSize.cy;
+	si.cbSize = sizeof(SCROLLINFO);   // setting the scrollbar
+
+	// change 3 values(SIF_RANGE: si.nMin, si.nMax, si.nPage; SIF_PAGE:si.nPage; SIF_POS: si.nPos)
+	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS; 
+	si.nMin = 0; // must set si.fMask = SIF_RANGE
+	si.nMax = 100; // must set si.fMask = SIF_RANGE
+	si.nPos = 0; // must set si.fMask = SIF_POS
+
+	// must set si.fMask = SIF_PAGE
+	si.nPage = si.nMax % pageNums ? 
+		si.nMax / pageNums + 1 : si.nMax / pageNums;
+
+	hScrollPages = si.nPage;
+	::SetScrollInfo(m_hWnd, SB_HORZ, &si, TRUE);
 }
 
 LRESULT TablePropertiesPage::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -91,10 +114,56 @@ LRESULT TablePropertiesPage::OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	if (iVscrollPos != si.nPos) {
 		::ScrollWindow(m_hWnd, 0, (nHeightSum / 100) * (iVscrollPos - si.nPos), nullptr, nullptr);
 		Invalidate(true);
+
+		// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
+		updateSubWindow();
 	}
 	 return 0;
 }
 
+
+LRESULT TablePropertiesPage::OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	UINT nSBCode = LOWORD(wParam);
+	int nPos = GetScrollPos(SB_HORZ);
+	si.cbSize = sizeof(si);
+	si.fMask = SIF_ALL;
+	::GetScrollInfo(m_hWnd, SB_HORZ, &si);
+	iHscrollPos = si.nPos;
+
+
+	switch (LOWORD(wParam))
+	{
+	case SB_LINERIGHT:
+		si.nPos  += 1;
+		break;
+	case SB_LINELEFT:
+		si.nPos -= 1;
+		break;
+	case SB_PAGERIGHT:
+		si.nPos += hScrollPages;
+		break;
+	case SB_PAGELEFT:
+		si.nPos -= hScrollPages;
+		break;
+	case SB_THUMBTRACK:
+		si.nPos = si.nTrackPos ;
+		break;
+	}
+	si.nPos = min(100 - hScrollPages, max(0, si.nPos));
+	si.fMask = SIF_POS;
+	::SetScrollInfo(m_hWnd, SB_HORZ, &si, TRUE);
+	::GetScrollInfo(m_hWnd, SB_HORZ, &si);
+
+	if (iVscrollPos != si.nPos) {
+		::ScrollWindow(m_hWnd, (nWidthSum / 100) * (iHscrollPos - si.nPos), 0, nullptr, nullptr);
+		Invalidate(true);
+
+		// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
+		updateSubWindow();
+	}
+	 return 0;
+}
 
 LRESULT TablePropertiesPage::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -142,15 +211,21 @@ void TablePropertiesPage::createOrShowUI()
 
 	CRect clientRect;
 	GetClientRect(clientRect);
+
+	// for table structure
 	createOrShowTitleElems(clientRect);
 	createOrShowColumnsSectionElems(clientRect);
 	createOrShowIndexesSectionElems(clientRect);
 	createOrShowForeignKeySectionElems(clientRect);
 	createOrShowDdlSectionElems(clientRect);
 
+	//for table analysis
+	createOrShowTableStoreAnalysisElems(clientRect);
+
 	// onSize will trigger init the v-scrollbar
 	CSize size(clientRect.Width(), clientRect.Height());
-	initScrollBar(size);
+	initVScrollBar(size);
+	initHScrollBar(size);
 }
 
 void TablePropertiesPage::loadWindow()
@@ -274,6 +349,29 @@ void TablePropertiesPage::drawPrimaryKey(CDC & dc, CRect & rect, int nItem)
 	int x = rect.left + (rect.Width() - 16) / 2, 
 		y = rect.top + (rect.Height() - 16) / 2;
 	dc.DrawIconEx(x, y, primaryIcon, 16, 16);
+}
+
+/**
+ * verified title exists in storeAnalysisElemPtrs.
+ * 
+ * @param title[in] - title
+ * @param ptr[out] - output pointer of StoreAnalysisElem
+ * @return 
+ */
+StoreAnalysisElem * TablePropertiesPage::getStoreAnalysisElemPtr(const std::wstring & title)
+{
+	if (title.empty()) {
+		return nullptr;
+	}
+
+	size_t n = storeAnalysisElemPtrs.size();	
+	for (size_t i = 0; i < n; i++) {
+		if (storeAnalysisElemPtrs.at(i)->getTitle() == title) {
+			return storeAnalysisElemPtrs.at(i);
+		}
+	}
+
+	return nullptr;
 }
 
 void TablePropertiesPage::createOrShowIndexesSectionElems(CRect & clientRect)
@@ -525,6 +623,98 @@ void TablePropertiesPage::createOrShowDdlSectionElems(CRect & clientRect)
 	nHeightSum = rcTail.bottom + 150;
 }
 
+/**
+ * Show the table store analysis.
+ * 
+ * @param clientRect
+ */
+void TablePropertiesPage::createOrShowTableStoreAnalysisElems(CRect & clientRect)
+{
+	CRect rcTop = GdiPlusUtil::GetWindowRelativeRect(titleEdit.m_hWnd);
+	int x = 20 + 700 + 20, y = rcTop.bottom + 30, w = 810, h = 20;
+	CRect rect(x, y, x + w, y + h);
+
+	auto & tblName = supplier->getRuntimeTblName();
+	int n = storeAnalysisService->getSpaceUsedCountByTblName(supplier->getRuntimeUserDbId(), tblName);
+	std::wstring title;
+	int itemsLen;
+	if (n > 0) {
+		// Table $name w/o any indices
+		title = S(L"tbl-only-report-title");
+		title = StringUtil::replace(title, L"{tblName}", tblName);
+		StoreAnalysisElem * ptr8 = getStoreAnalysisElemPtr(title);
+		if (!ptr8) {
+			StoreAnalysisItems storeItems = storeAnalysisAdapter->getStoreAnalysisItemsOfTblOnlyReport(supplier->getRuntimeUserDbId(), tblName, true);
+			itemsLen = static_cast<int>(storeItems.size()) + 1;
+			ptr8 = new StoreAnalysisElem(title, storeItems);
+			storeAnalysisElemPtrs.push_back(ptr8);
+		}
+		else {
+			const StoreAnalysisItems & storeItems = ptr8->getStoreAnalysisItems();
+			itemsLen = static_cast<int>(storeItems.size()) + 1;
+		}
+		// rect.OffsetRect(0, rect.Height() + 10);
+		rect.bottom = rect.top + (20 + 5) * itemsLen;
+		createOrShowStoreAnalysisElem(*ptr8, rect, clientRect);
+		nHeightSum = max(nHeightSum, rect.bottom);
+
+		auto idxList = storeAnalysisService->getIndexNamesByTblName(supplier->getRuntimeUserDbId(), tblName);
+		if (idxList.size() > 1) {
+			// Indices of table $name
+			title = S(L"idx-only-report-title");
+			title = StringUtil::replace(title, L"{tblName}", tblName);
+			StoreAnalysisElem * ptr9 = getStoreAnalysisElemPtr(title);
+			if (!ptr9) {
+				StoreAnalysisItems storeItems = storeAnalysisAdapter->getStoreAnalysisItemsOfIdxOnlyReport(supplier->getRuntimeUserDbId(), tblName);
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+				ptr9 = new StoreAnalysisElem(title, storeItems);
+				storeAnalysisElemPtrs.push_back(ptr9);
+			}
+			else {
+				const StoreAnalysisItems & storeItems = ptr9->getStoreAnalysisItems();
+				itemsLen = static_cast<int>(storeItems.size()) + 1;
+			}
+			rect.OffsetRect(0, rect.Height() + 10);
+			rect.bottom = rect.top + (20 + 5) * itemsLen;
+			createOrShowStoreAnalysisElem(*ptr9, rect, clientRect);
+			nHeightSum = max(nHeightSum, rect.bottom);
+		}
+
+		nWidthSum = rect.right;
+	} else {
+		// 
+		title = S(L"tbl-report-title");
+		title = StringUtil::replace(title, L"{tblName}", tblName);
+		StoreAnalysisElem * ptr11 = getStoreAnalysisElemPtr(title);
+		if (!ptr11) {
+			StoreAnalysisItems storeItems = storeAnalysisAdapter->getStoreAnalysisItemsOfTblReport(supplier->getRuntimeUserDbId(), tblName);
+			itemsLen = static_cast<int>(storeItems.size()) + 1;
+			ptr11 = new StoreAnalysisElem(title, storeItems);
+			storeAnalysisElemPtrs.push_back(ptr11);
+		}
+		else {
+			const StoreAnalysisItems & storeItems = ptr11->getStoreAnalysisItems();
+			itemsLen = static_cast<int>(storeItems.size()) + 1;
+		}
+		//rect.OffsetRect(0, rect.Height() + 10);
+		rect.bottom = rect.top + (20 + 5) * itemsLen;
+		createOrShowStoreAnalysisElem(*ptr11, rect, clientRect);
+		nHeightSum = max(nHeightSum, rect.bottom);
+	}
+}
+
+void TablePropertiesPage::createOrShowStoreAnalysisElem(StoreAnalysisElem &win, CRect & rect, CRect clientRect)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN  | WS_CLIPSIBLINGS ;
+		win.Create(m_hWnd, rect);
+		return;
+	} else if (::IsWindow(m_hWnd) && win.IsWindow() && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+	}
+}
+
 void TablePropertiesPage::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle)
 {
 	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
@@ -599,6 +789,12 @@ int TablePropertiesPage::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	HINSTANCE ins = ModuleHelper::GetModuleInstance();
 	primaryIcon = (HICON)::LoadImageW(ins, (imgDir + L"database\\page\\primary.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
+	// For table analysis
+	storeAnalysisSupplier.setRuntimeUserDbId(supplier->getRuntimeUserDbId());
+	storeAnalysisSupplier.setRuntimeTblName(supplier->getRuntimeTblName());
+	storeAnalysisSupplier.setRuntimeSchema(supplier->getRuntimeSchema());
+	storeAnalysisAdapter = new StoreAnalysisPageAdapter(m_hWnd, nullptr, &storeAnalysisSupplier);
+
 	AppContext::getInstance()->subscribe(m_hWnd, Config::MSG_EXEC_SQL_RESULT_MESSAGE_ID);
 	return ret;
 }
@@ -655,6 +851,9 @@ int TablePropertiesPage::OnDestroy()
 	if (ddlHeader.IsWindow()) ddlHeader.DestroyWindow();
 	if (ddlContent.IsWindow()) ddlContent.DestroyWindow();
 
+	clearStoreAnalysisElemPtrs();
+	if (storeAnalysisAdapter) delete storeAnalysisAdapter;
+
 	return ret;
 }
 
@@ -679,6 +878,38 @@ void TablePropertiesPage::destroyPtrs(std::vector<CEdit *> & ptrs)
 	}
 
 	ptrs.clear();
+}
+
+void TablePropertiesPage::clearStoreAnalysisElemPtrs()
+{
+	auto & ptrs = storeAnalysisElemPtrs;
+	if (ptrs.empty()) {
+		return;
+	}
+
+	for (auto ptr : ptrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->DestroyWindow();
+			ptr->m_hWnd = nullptr;
+			delete ptr;
+			ptr = nullptr;
+		} else if (ptr) {
+			ptr->m_hWnd = nullptr;
+			delete ptr;
+			ptr = nullptr;
+		}
+	}
+
+	ptrs.clear();
+}
+
+void TablePropertiesPage::updateSubWindow()
+{
+	for (auto ptr : storeAnalysisElemPtrs) {
+		if (ptr && ptr->IsWindow()) {
+			ptr->refreshHorizBars();
+		}		
+	}
 }
 
 HBRUSH TablePropertiesPage::OnCtlColorStatic(HDC hdc, HWND hwnd)

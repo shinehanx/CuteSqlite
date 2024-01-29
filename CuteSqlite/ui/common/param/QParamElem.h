@@ -62,6 +62,7 @@ public:
 
 	// CStaticÏûÏ¢Ìæ»»º¯Êý
 	static LRESULT funcLabelProcWnd(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+	void refreshAfterSaved();
 
 private:
 	bool isNeedReload = true;
@@ -74,6 +75,7 @@ private:
 	CBrush readBrush;
 
 	COLORREF textColor = RGB(64, 64, 64);
+	COLORREF changColor =  RGB(237, 28, 36);
 	HFONT textFont = nullptr;
 	CPen textPen;
 	HFONT comboFont = nullptr;
@@ -96,6 +98,8 @@ private:
 	void loadValElem();
 
 	void createAndBindToolTip();
+
+	std::wstring getNewVal();
 
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

@@ -81,6 +81,19 @@ ParamElemData EntityUtil::copy(const ParamElemData & item)
 	return result;
 }
 
+bool EntityUtil::compare(const ParamElemData & item1, const ParamElemData & item2)
+{
+	if (item1.val != item2.val
+		|| item1.type != item2.type
+		|| item1.labelText != item2.labelText
+		|| item1.description != item2.description
+		|| item1.valRwType != item2.valRwType
+		|| item1.valBackType != item2.valBackType) {
+		return false;
+	}
+	return true;
+}
+
 bool EntityUtil::compare(const ColumnInfo & item1, const ColumnInfo & item2)
 {
 	if (item1.ai != item2.ai

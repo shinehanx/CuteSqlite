@@ -236,7 +236,7 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 	}
 	
 	std::wstring reportText = StringUtil::replaceBreak(text);
-	DWORD dwStyle = ES_MULTILINE | ES_AUTOVSCROLL;
+	DWORD dwStyle = WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL;
 	if (popType == POP_REPORT_TEXT) {
 		reportText.append(L"\r\n\r\n").append(L"Code:").append(code);
 		if (rollBack) {
@@ -248,7 +248,26 @@ void QPopAnimate::createOrShowTextEdit(CRect & clientRect)
 		}
 	}
 	
-	QWinCreater::createOrShowEdit(m_hWnd, textEdit, 0, reportText, rect, clientRect, dwStyle, true);
+	createOrShowEdit(textEdit, 0, reportText, rect, clientRect, dwStyle);
+}
+
+void QPopAnimate::createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle /*= 0*/)
+{
+	if (::IsWindow(m_hWnd) && !win.IsWindow()) {
+		DWORD dwStyle = WS_CHILD | WS_VISIBLE |WS_TABSTOP;
+		if (exStyle) {
+			dwStyle |= exStyle;
+		}
+		win.Create(m_hWnd, rect, text.c_str(), dwStyle , 0, id);
+		win.SetReadOnly(TRUE);
+		win.SetWindowText(text.c_str());
+
+		return;
+	} else if (::IsWindow(m_hWnd) && (clientRect.bottom - clientRect.top) > 0) {
+		win.MoveWindow(&rect);
+		win.ShowWindow(SW_SHOW);
+		win.SetWindowText(text.c_str());
+	}
 }
 
 LRESULT QPopAnimate::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

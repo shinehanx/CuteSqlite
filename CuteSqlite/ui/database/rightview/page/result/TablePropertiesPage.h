@@ -11,18 +11,23 @@
 
  * limitations under the License.
 
- * @file   ResultPropertiesPage.h
- * @brief  Execute sql statement and show the info of query result
+ * @file   TablePropertiesPage.cpp
+ * @brief  Table Properties
  * 
  * @author Xuehan Qin
  * @date   2023-11-06
  *********************************************************************/
 #pragma once
+// for table structure
 #include "ui/database/rightview/common/QTabPage.h"
 #include "ui/database/rightview/page/result/adapter/ResultListPageAdapter.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/common/image/QStaticImage.h"
 #include "ui/common/button/QImageButton.h"
+// for table analysis
+#include "core/service/analysis/StoreAnalysisService.h"
+#include "ui/analysis/rightview/page/adapter/StoreAnalysisPageAdapter.h"
+#include "ui/analysis/rightview/page/elem/StoreAnalysisElem.h"
 
 class TablePropertiesPage : public QTabPage<QueryPageSupplier> {
 public:
@@ -32,6 +37,7 @@ public:
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
+		MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
 		MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
 		COMMAND_HANDLER_EX(Config::TABLE_PROPERTIES_REFRESH_BUTTON_ID, BN_CLICKED, OnClickRefreshButton)
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
@@ -82,27 +88,35 @@ protected:
 
 	 //store CEdit points of the primary key 
 	std::vector<std::pair<CEdit *, int>> primaryBitmapPtrs;
-
 	// ddl section
 	CEdit ddlSection;
 	CEdit ddlHeader;
 	CEdit ddlContent;
-
 	// scroll bar
 	TEXTMETRIC tm;
 	SCROLLINFO si;
 	int nHeightSum = 0;
-	int cxChar = 5, cyChar = 5, iVscrollPos = 5, vScrollPages = 5;
-	void initScrollBar(CSize & clientSize);
+	int nWidthSum = 0;
+	int cxChar = 5, cyChar = 5, 
+		iVscrollPos = 5, vScrollPages = 5,
+		iHscrollPos = 5, hScrollPages = 5;
 
-	
+	void initVScrollBar(CSize & clientSize);
+	void initHScrollBar(CSize & clientSize);
+
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	TableService * tableService = TableService::getInstance();
 
+	// For table analysis
+	std::vector<StoreAnalysisElem *> storeAnalysisElemPtrs;
+	StoreAnalysisService * storeAnalysisService = StoreAnalysisService::getInstance();
+	StoreAnalysisSupplier storeAnalysisSupplier;
+	StoreAnalysisPageAdapter * storeAnalysisAdapter = nullptr;
 	
 	virtual void createOrShowUI();
 	virtual void loadWindow();
 
+	// for table structure
 	void createOrShowTitleElems(CRect & clientRect);
 	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 	void createOrShowImage(QStaticImage &win, CRect & rect, CRect & clientRect);
@@ -112,14 +126,18 @@ protected:
 	void createOrShowIndexesList(CRect & clientRect);
 	void createOrShowForeignKeySectionElems(CRect & clientRect);
 	void createOrShowForeignKeyList(CRect & clientRect);
-
 	void createOrShowDdlSectionElems(CRect & clientRect);
+
+	// for table analysis
+	void createOrShowTableStoreAnalysisElems(CRect & clientRect);
+	void createOrShowStoreAnalysisElem(StoreAnalysisElem &win, CRect & rect, CRect clientRect);
 
 	virtual void paintItem(CDC & dc, CRect & paintRect);
 
 	virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual int OnDestroy();
 	LRESULT OnVScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnHScroll(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnClickRefreshButton(UINT uNotifyCode, int nID, HWND hwnd);
 
@@ -129,4 +147,10 @@ protected:
 	size_t inEditArray(HWND hwnd, const std::vector<CEdit *> & ptrs);	
 	void destroyPtrs(std::vector<CEdit *> & ptrs);
 	void drawPrimaryKey(CDC & dc, CRect & rect, int nItem);
+
+	// for table analysis
+	StoreAnalysisElem * getStoreAnalysisElemPtr(const std::wstring & title);
+	void clearStoreAnalysisElemPtrs();
+	// Invalidate the all of QHorizontalBar window in the all StoreAnalysisElem
+	void updateSubWindow();
 };

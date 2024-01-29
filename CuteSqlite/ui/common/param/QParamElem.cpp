@@ -218,8 +218,15 @@ BOOL QParamElem::OnEraseBkgnd(CDCHandle dc)
 
 HBRUSH QParamElem::OnCtlStaticColor(HDC hdc, HWND hwnd)
 {
-	::SetTextColor(hdc, textColor); 
+	
 	::SelectObject(hdc, textFont);
+	if (hwnd == label && data.val != getNewVal()) {
+		::SetTextColor(hdc, changColor); 
+	} else {
+		::SetTextColor(hdc, textColor); 
+	}
+	
+
 	if (data.type == READ_ELEM && valEdit.IsWindow() && valEdit.m_hWnd == hwnd) {
 		::SetBkColor(hdc, readColor);
 		return readBrush.m_hBrush;
@@ -257,7 +264,8 @@ void QParamElem::OnValEditElemChange(UINT uNotifyCode, int nID, HWND hwnd)
 	if (newVal != data.val) {
 		newData.val = newVal;
 		::PostMessage(GetParent().m_hWnd, Config::MSG_QPARAMELEM_VAL_CHANGE_ID, WPARAM(m_hWnd), NULL);
-	}	
+	}
+	label.Invalidate(true);
 }
 
 void QParamElem::OnValComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd)
@@ -272,6 +280,7 @@ void QParamElem::OnValComboBoxChange(UINT uNotifyCode, int nID, HWND hwnd)
 		newData.val = newVal;
 		::PostMessage(GetParent().m_hWnd, Config::MSG_QPARAMELEM_VAL_CHANGE_ID, WPARAM(m_hWnd), NULL);
 	}
+	label.Invalidate(true);
 }
 
 
@@ -293,6 +302,45 @@ void QParamElem::createAndBindToolTip()
 }
 
 
+std::wstring QParamElem::getNewVal()
+{
+	std::wstring newVal;
+	if (data.type == EDIT_ELEM || data.type == READ_ELEM) {
+		CString str;
+		valEdit.GetWindowText(str);
+		newVal = str;		
+	} else {
+		int i = valComboBox.GetCurSel();
+		if (i == -1) {
+			return L"";
+		}
+		wchar_t cch[256];
+		valComboBox.GetLBText(i, cch);
+		std::wstring newTxt(cch);
+		std::wstring text;
+		std::wstring val;
+		for(auto & item : newData.options) {			
+			if (item.find_first_of(L'|') != std::wstring::npos) {
+				auto vec = StringUtil::split(item, L"|");
+				if (vec.size() > 1) {
+					text = vec[0];
+					val = vec[1];
+				} else {
+					text = vec[0];
+					val = vec[0];
+				}
+			} else {
+				text = item;
+				val = item;
+			}
+			if (text == newTxt) {
+				return val;
+			}
+		}
+	}
+	return newVal;
+}
+
 LRESULT QParamElem::funcLabelProcWnd(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
 	auto pp = (std::pair<WNDPROC, HWND> *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
@@ -312,4 +360,14 @@ LRESULT QParamElem::funcLabelProcWnd(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM
 		tip.RelayEvent(&msg);
 	}
 	return CallWindowProc(funcOld, hWnd, nMsg, wParam, lParam);
+}
+
+/**
+ * Refresh the data after saved.
+ * 
+ */
+void QParamElem::refreshAfterSaved()
+{
+	// copy the newData to the data
+	this->data.val = newData.val;
 }

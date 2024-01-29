@@ -39,6 +39,7 @@
 #include "ui/common/message/QPopAnimate.h"
 #include "ui/common/QWinCreater.h"
 #include "ui/analysis/rightview/dialog/AddSqlDialog.h"
+#include <ui/common/message/QMessageBox.h>
 
 #define RIGHT_ANALYSIS_VIEW_TOPBAR_HEIGHT 30
 #define RIGHT_ANALYSIS_VIEW_BUTTON_WIDTH 16
@@ -416,13 +417,19 @@ LRESULT RightAnalysisView::closeTabViewPage(int nPage)
 	for (auto iter = dbPragmaParamsPagePtrs.begin(); iter != dbPragmaParamsPagePtrs.end(); iter++) {
 		auto & ptr = *iter;
 		if (ptr->m_hWnd == pageHwnd) {
-			if (ptr && ptr->IsWindow()) {
+			if (ptr->getSupplier()->getIsDirty() && 
+				QMessageBox::confirm(m_hWnd, S(L"data-has-changed")) != Config::CUSTOMER_FORM_YES_BUTTON_ID) {
+				break;
+			}
+			uint64_t userDbId = ptr->getSupplier()->getRuntimeUserDbId();
+			if (ptr->IsWindow()) {
 				ptr->DestroyWindow();
 				ptr->m_hWnd = NULL;
 				delete ptr;
 				ptr = nullptr;
 			}
 			dbPragmaParamsPagePtrs.erase(iter);
+			AppContext::getInstance()->dispatch(Config::MSG_ANALYSIS_DIRTY_DB_PRAGMAS_ID, WPARAM(userDbId), LPARAM(false));
 			break;
 		}
 	}

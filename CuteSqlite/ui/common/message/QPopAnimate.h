@@ -94,6 +94,7 @@ private:
 	void createOrShowImage(CRect & clientRect);
 	void createOrShowCloseButton(CRect & clientRect);
 	void createOrShowTextEdit(CRect & clientRect);
+	void createOrShowEdit(WTL::CEdit & win, UINT id, std::wstring text, CRect rect, CRect &clientRect, DWORD exStyle = 0);
 
 	CRect getInitRect();
 	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

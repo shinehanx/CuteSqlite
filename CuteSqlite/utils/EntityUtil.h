@@ -30,4 +30,5 @@ public:
 	static bool compare(const ColumnInfo & item1, const ColumnInfo & item2);
 	static bool compare(const IndexInfo & item1, const IndexInfo & item2);
 	static bool compare(const ForeignKey & item1, const ForeignKey & item2);
+	static bool compare(const ParamElemData & item1, const ParamElemData & item2);
 };
