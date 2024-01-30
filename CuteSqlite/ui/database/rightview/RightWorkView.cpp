@@ -198,6 +198,16 @@ void RightWorkView::createOrShowExecButtons(CRect & clientRect)
 	}
 	QWinCreater::createOrShowButton(m_hWnd, explainSqlButton, Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, L"", rect, clientRect);
 	explainSqlButton.SetToolTip(SNT(L"explain-select-sql"));
+
+	rect.OffsetRect(w + 10, 0);
+	if (!explainQueryPlanButton.IsWindow()) {
+		normalImagePath = imgDir + L"database\\button\\explain-query-plan-button-normal.png";
+		pressedImagePath = imgDir + L"database\\button\\explain-query-plan-button-pressed.png";
+		explainQueryPlanButton.SetIconPath(normalImagePath, pressedImagePath);
+		explainQueryPlanButton.SetBkgColors(topbarColor ,topbarHoverColor, topbarColor);		
+	}
+	QWinCreater::createOrShowButton(m_hWnd, explainQueryPlanButton, Config::DATABASE_EXPLAIN_QUREY_PLAN_BUTTON_ID, L"", rect, clientRect);
+	explainQueryPlanButton.SetToolTip(SNT(L"explain-query-plan-sql"));
 	
 	rect.OffsetRect(w + 40 , 0);
 	if (!queryButton.IsWindow()) {
@@ -628,6 +638,12 @@ LRESULT RightWorkView::OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd
 LRESULT RightWorkView::OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	adapter->explainSelectedSql();
+	return 0;
+}
+
+LRESULT RightWorkView::OnClickExplainQueryPlanButton(UINT uNotifyCode, int nID, HWND hwnd)
+{
+	adapter->explainQueryPlanSql();
 	return 0;
 }
 

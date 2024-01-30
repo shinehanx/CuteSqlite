@@ -47,6 +47,7 @@ public:
 	ResultTabView & getResultTabView();
 	void execAndShow(bool select = false);
 	void explainAndShow();
+	void explainQueryPlanAndShow();
 	void save();
 private:
 	std::wstring viewName;

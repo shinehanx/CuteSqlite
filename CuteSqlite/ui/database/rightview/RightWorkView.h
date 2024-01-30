@@ -79,6 +79,7 @@ public:
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_SQL_BUTTON_ID, OnClickExecSqlButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXEC_ALL_BUTTON_ID, OnClickExecAllButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPLAIN_SQL_BUTTON_ID, OnClickExplainSqlButton)
+		COMMAND_ID_HANDLER_EX(Config::DATABASE_EXPLAIN_QUREY_PLAN_BUTTON_ID, OnClickExplainQueryPlanButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_QUERY_BUTTON_ID, OnClickQueryButton)
 		COMMAND_ID_HANDLER_EX(Config::DATABASE_HISTORY_BUTTON_ID, OnClickHistoryButton)
 		// save
@@ -153,6 +154,7 @@ private:
 	QImageButton execSqlButton;
 	QImageButton execAllButton;
 	QImageButton explainSqlButton;
+	QImageButton explainQueryPlanButton;
 	QImageButton queryButton;
 	QImageButton historyButton;
 	QImageButton saveButton;
@@ -233,6 +235,7 @@ private:
 	LRESULT OnClickExecSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExecAllButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickExplainSqlButton(UINT uNotifyCode, int nID, HWND hwnd);
+	LRESULT OnClickExplainQueryPlanButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickQueryButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickHistoryButton(UINT uNotifyCode, int nID, HWND hwnd);
 	LRESULT OnClickSaveButton(UINT uNotifyCode, int nID, HWND hwnd);

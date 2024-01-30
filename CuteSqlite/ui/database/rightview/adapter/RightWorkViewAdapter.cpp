@@ -81,6 +81,20 @@ void RightWorkViewAdapter::explainSelectedSql()
 }
 
 
+void RightWorkViewAdapter::explainQueryPlanSql()
+{
+	int nPage = tabView.GetActivePage();
+	if (nPage < 0) {
+		return ;
+	}
+	HWND activeHwnd = tabView.GetPageHWND(nPage);
+	for (auto pagePtr : queryPagePtrs) {
+		if (pagePtr && pagePtr->IsWindow () && activeHwnd == pagePtr->m_hWnd) {
+			pagePtr->explainQueryPlanAndShow(); 
+		}		
+	}
+}
+
 void RightWorkViewAdapter::createFirstQueryPage(CRect & tabRect, bool isInitedPages)
 {
 	//queryPagePtrs.clear();

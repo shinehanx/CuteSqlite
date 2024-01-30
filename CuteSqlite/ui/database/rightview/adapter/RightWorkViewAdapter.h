@@ -33,6 +33,7 @@ public:
 	void execSelectedSql();
 	void execAllSql();
 	void explainSelectedSql();
+	void explainQueryPlanSql();
 	
 
 	void createFirstQueryPage(CRect & tabRect, bool isInitedPages);
