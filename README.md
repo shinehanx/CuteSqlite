@@ -14,7 +14,7 @@ The goal of this project is to develop a lightweight, high-performance, and feat
 **Development Environment:**
 
 1. Windows 10 or later with the Windows 10 SDK
-2. Visual Studio 2017 (v14.1) or later with C++ 11 support
+2. Visual Studio 2022 (v143) or later with C++ 11 support
 3. Windows Template Library (WTL) version 10.0.10320 Release (2020-11-15)
 4. Uses third-party projects: curl, rapidjson, Scintilla, spdlog, and SQLite3
 

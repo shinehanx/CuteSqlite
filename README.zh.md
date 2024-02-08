@@ -14,7 +14,7 @@
 
 1.Windows 10+ / Win10 SDK
 
-2.Visual Studio 2017 (v141) / C++ 11
+2.Visual Studio 2022 (v143) / C++ 11
 
 3.Windows Template Library - WTL 10 - version 10.0.10320 Release (2020-11-15)
 
