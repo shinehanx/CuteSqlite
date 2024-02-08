@@ -44,7 +44,7 @@ typedef std::unordered_map<std::wstring, Setting> IniSetting;
 
 
 // databases
-typedef struct {
+typedef struct _UserDb{
 	uint64_t id = 0;
 	std::wstring name;
 	std::wstring path;
@@ -56,7 +56,7 @@ typedef struct {
 typedef std::vector<UserDb> UserDbList;
 
 // tables,views,triggers,index
-typedef struct {
+typedef struct _UserTable {
 	uint64_t rowId = 0;
 	std::wstring type;
 	std::wstring name;
@@ -70,7 +70,7 @@ typedef std::vector<UserView> UserViewList;
 typedef std::vector<UserTrigger> UserTriggerList;
 typedef std::vector<UserIndex> UserIndexList;
 
-typedef struct {
+typedef struct _PragmaIndexColumn {
 	int seqno = 0;
 	int cid = 0;
 	std::wstring name;
@@ -78,7 +78,7 @@ typedef struct {
 typedef std::vector<PragmaIndexColumn> PragmaIndexColumns;
 
 // table fields
-typedef struct {
+typedef struct _ColumnInfo {
 	uint32_t cid = 0;
 	uint8_t notnull = 0; //not null
 	uint8_t pk = 0; // primary key
@@ -94,7 +94,7 @@ typedef struct {
 } ColumnInfo;
 typedef std::vector<ColumnInfo> ColumnInfoList;
 
-typedef struct {
+typedef struct _IndexInfo {
 	std::wstring name; // constrain name
 	std::wstring type; // Primary Key,Unique,Foreign Key,Checks,Index
 	uint8_t pk = 0;  // primary key
@@ -109,7 +109,7 @@ typedef struct {
 } IndexInfo;
 typedef std::vector<IndexInfo> IndexInfoList;
 
-typedef struct  {
+typedef struct _ForeignKey {
 	std::wstring name; // constrain name
 	std::wstring type = L"Foreign Key"; // must be Foreign Key
 	std::wstring columns; // columns
@@ -123,7 +123,7 @@ typedef struct  {
 typedef std::vector<ForeignKey> ForeignKeyList;
 
 //Export to CSV params
-typedef struct {
+typedef struct _ExportCsvParams {
 	std::wstring csvFieldTerminatedBy;
 	std::wstring csvFieldEnclosedBy;
 	std::wstring csvFieldEscapedBy;
@@ -132,7 +132,7 @@ typedef struct {
 } ExportCsvParams;
 
 //Export to Excel XML params
-typedef struct {
+typedef struct _ExportExcelParams {
 	int excelComlumnMaxSize = 0;
 	int excelDecimalPlaces = 0;
 } ExportExcelParams;
@@ -165,7 +165,7 @@ typedef struct {
 typedef std::vector<SubItemValue> SubItemValues;
 
 //Insert statement params for export as sql 
-typedef struct {
+typedef struct _InsertStatementParams {
 	bool retainColumn = false;
 	bool multiRows = false;
 } InsertStatementParams;
@@ -176,7 +176,7 @@ typedef struct {
 } TblStatementParams;
 
 // Execute sql result
-typedef struct {	
+typedef struct _ResultInfo {	
 	int effectRows = 0;
 	std::wstring execTime;
 	std::wstring transferTime;
@@ -196,7 +196,7 @@ typedef struct {
 typedef std::list<SqlLog> SqlLogList;
 
 // performance analysis report
-typedef struct {
+typedef struct _PerfAnalysisReport {
 	uint64_t id = 0;
 	uint64_t userDbId = 0;
 	uint64_t sqlLogId = 0;
@@ -208,7 +208,7 @@ typedef struct {
 typedef std::list<PerfAnalysisReport> PerfAnalysisReportList;
 
 // Explain query plan
-typedef struct {
+typedef struct _ExplainQueryPlan {
 	int id = 0;
 	int parent = 0;
 	int notused = 0;
@@ -217,7 +217,7 @@ typedef struct {
 typedef std::vector<ExplainQueryPlan> ExplainQueryPlans;
 
 // Explain sql to this struct
-typedef struct {
+typedef struct _ByteCodeResult {
 	//BASIC INFORMATION
 	int no; // OpenRead/OpenWrite p1
 	uint64_t userDbId;
@@ -245,7 +245,7 @@ typedef struct {
 typedef std::vector<ByteCodeResult> ByteCodeResults;
 
 // Select column for select sql statement
-typedef struct {
+typedef struct _SelectColumn {
 	int regNo = 0; // register no
 	std::wstring fullName;
 	std::wstring name;
@@ -255,7 +255,7 @@ typedef struct {
 } SelectColumn;
 typedef std::vector<SelectColumn> SelectColumns;
 
-typedef struct {
+typedef struct _ByteCodeUseColumn {
 	int tblNo; // OpenRead/OpenWrite p1
 	std::wstring tblName;
 	int idxNo;
@@ -277,7 +277,7 @@ typedef enum {
 	MOD_TABLE,
 } PageOperateType;
 
-typedef enum {
+typedef enum _StructAndDataSetting {
 	UNKOWN = 0,
 	STRUCT_ONLY = 1,
 	DATA_ONLY = 2,
@@ -290,14 +290,14 @@ typedef enum {
 	TABLE_FOREIGN_KEYS_PAGE = 2
 } TableStructurePageType;
 
-typedef enum {
+typedef enum _AnalysisPageType {
 	SQL_LOG_PAGE,
 	ANALYSIS_REPORT_PAGE,
 	STORE_ANALYSIS_PAGE,
 	DATABASE_PARAMS_PAGE
 } AnalysisPageType;
 
-typedef enum {
+typedef enum _SqlClauseType {
 	FROM_CLAUSE,
 	WHERE_CLAUSE,
 	ORDER_CLAUSE,
@@ -311,7 +311,7 @@ typedef enum {
 } SqlClauseType;
 
 // Explain sql statement column idx
-typedef enum  {
+typedef enum _ExplainColumn {
 	EXP_ADDR = 0, // addr
 	EXP_OPCODE, // opcode
 	EXP_P1,	// p1
@@ -323,13 +323,13 @@ typedef enum  {
 } ExplainColumn;
 
 // use for select statement such as "tbl1 as m1 left join tbl2 as m2"
-typedef struct {
+typedef struct _TableAlias {
 	std::wstring tbl;
 	std::wstring alias;
 } TableAlias;
 typedef std::vector<TableAlias> TableAliasVector;
 
-typedef struct {
+typedef struct _TblIdxSpaceUsed {
 	std::wstring name;				// Name of a table or index in the database file
 	std::wstring tblName;			// Name of associated table
 	uint8_t isIndex = 0;			// TRUE if it is an index, false for a table
@@ -354,7 +354,7 @@ typedef struct {
 typedef std::list<TblIdxSpaceUsed> TblIdxSpaceUsedList;
 
 
-typedef struct {
+typedef struct _DbSpaceUsed {
 	int pageSize = 0;				// Size of each page in bytes.
 	uint64_t fileBytes = 0;			// File size in bytes.
 	uint64_t filePgcnt = 0;			// Number of pages in the file.
@@ -375,7 +375,7 @@ typedef struct {
 	double userPercent = 0;		// $userPayload as a percentage of total file size.
 } DbSpaceUsed;
 
-typedef struct {
+typedef struct _StoreAnalysisItem {
 	COLORREF color;
 	std::wstring name;			// item name
 	std::wstring description;	// item description
@@ -384,7 +384,7 @@ typedef struct {
 } StoreAnalysisItem;
 typedef std::vector<StoreAnalysisItem> StoreAnalysisItems;
 
-typedef struct {
+typedef struct _DbStat {
 	std::wstring name;
 	std::wstring path;
 	uint64_t pageno = 0;
@@ -400,7 +400,7 @@ typedef struct {
 } DbStat;
 typedef std::list<DbStat> DbStatList;
 
-typedef struct {
+typedef struct _SqliteSchema {
 	std::wstring type;
 	std::wstring name;
 	std::wstring tblName;
@@ -409,7 +409,7 @@ typedef struct {
 } SqliteSchema;
 typedef std::list<SqliteSchema> SqliteSchemaList;
 
-typedef struct {
+typedef struct _TblIdxPageCnt {
 	std::wstring name;
 	uint64_t pageCnt;
 	double percent;
@@ -417,7 +417,7 @@ typedef struct {
 typedef std::vector<TblIdxPageCnt> TblIdxPageCntVector;
 
 
-typedef struct {
+typedef struct _TblIdxEntryCnt {
 	std::wstring name;
 	uint64_t entryCnt;
 	double percent;
@@ -445,7 +445,7 @@ typedef enum {
 	PARAM_STR, // VALUE for function params, such as PRAGMA table_list('table-name');
 } ParamValBackType;
 
-typedef struct {
+typedef struct _ParamElemData {
 	ParamElemType type;
 	std::wstring labelText;
 	std::wstring val;
