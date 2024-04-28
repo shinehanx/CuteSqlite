@@ -84,7 +84,7 @@ const ParamElemDataList DbPragmaParamSupplier::pragmas = {
 	{ COMBO_READ_ELEM, L"PRAGMA read_uncommitted", L"", { L"false|0", L"true|1" }, S(L"pragma-read-uncommitted-tips"), READ_WRITE, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA recursive_triggers", L"", { L"false|0", L"true|1" }, S(L"pragma-recursive-triggers-tips"), READ_WRITE, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA reverse_unordered_selects", L"", { L"false|0", L"true|1" }, S(L"pragma-reverse-unordered-selects-tips"), READ_WRITE, ASSIGN_VAL },
-	{ COMBO_READ_ELEM, L"PRAGMA schema_version", L"", { L"false|0", L"true|1" }, S(L"pragma-schema-version-tips"), READ_WRITE, ASSIGN_VAL },
+	{ EDIT_ELEM, L"PRAGMA schema_version", L"", {}, S(L"pragma-schema-version-tips"), READ_WRITE, PARAM_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA secure_delete", L"", { L"false|0", L"true|1" , L"fast|fast"}, S(L"pragma-secure-delete-tips"), READ_WRITE, ASSIGN_VAL },
 	{ COMBO_READ_ELEM, L"PRAGMA short_column_names", L"", { L"false|0", L"true|1" }, S(L"pragma-short-column-names-tips"), READ_WRITE, ASSIGN_VAL },
 	{ EDIT_ELEM, L"PRAGMA soft_heap_limit", L"", {}, S(L"pragma-soft-heap-limit-tips"), READ_WRITE, ASSIGN_VAL },
