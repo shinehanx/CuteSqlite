@@ -313,9 +313,9 @@ void ResultListPage::createOrShowFormView(RowDataFormView & win, CRect & clientR
 		DWORD dwStyle = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_BORDER;
 		win.setup(adapter);
 		win.Create(m_hWnd, rect, NULL, dwStyle);
-		win.loadFormData();
+		win.loadFormData(formViewReadOnly);
 	} else if (IsWindow() && win.IsWindow() && clientRect.Width() > 1) {
-		win.MoveWindow(rect);
+		win.MoveWindow(rect); 
 		win.ShowWindow(true);
 	}
 }

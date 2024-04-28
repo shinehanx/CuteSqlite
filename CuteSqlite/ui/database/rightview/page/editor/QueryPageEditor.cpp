@@ -173,7 +173,7 @@ void QueryPageEditor::OnClickSqlLogButton(UINT uNotifyCode, int nID, HWND hwnd)
 void QueryPageEditor::OnClickTemplatesMenu(UINT uNotifyCode, int nID, HWND hwnd)
 {
 	std::wstring binDir = ResourceUtil::getProductBinDir();
-	std::wstring templatePath = binDir + L"\\res\\tpl\\stmt-template-" + std::to_wstring(nID - WM_USER) + L".tpl";
+	std::wstring templatePath = binDir + L"res\\tpl\\stmt-template-" + std::to_wstring(nID - WM_USER) + L".tpl";
 	if (_waccess(templatePath.c_str(), 0) != 0) {
 		Q_ERROR(L"File not found:" + templatePath);
 		QPopAnimate::error(templatePath + L", File not found!");
