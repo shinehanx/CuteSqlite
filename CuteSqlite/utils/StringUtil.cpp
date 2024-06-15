@@ -513,6 +513,7 @@ std::vector<std::wstring> StringUtil::splitNotIn(std::wstring str, const std::ws
 			}
 
 			if (!s.empty()) {
+				s = convertQuotes(s);
 				result.push_back(s);
 			}			
 			i = pos + pattern.size() - 1;
@@ -921,4 +922,19 @@ bool StringUtil::existsIn(const std::wstring & str, const std::vector<std::wstri
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Convert the quotes(\'->'', \" -> "")
+ */
+std::wstring& StringUtil::convertQuotes(std::wstring& str)
+{
+	if (str.find(L"\\'") != std::wstring::npos) {
+		str = replace(str, L"\\'", L"''");
+	}
+
+	if (str.find(L"\\\"") != std::wstring::npos) {
+		str = replace(str, L"\\\"", L"\"\"");
+	}
+	return str;
 }

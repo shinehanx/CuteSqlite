@@ -280,6 +280,11 @@ public:
 	static std::vector<std::string> wstringsToStrings(const std::vector<std::wstring> & wstrs);
 
 	static bool existsIn(const std::wstring & str, const std::vector<std::wstring> & strVector);
+
+	/**
+	 * Convert the quotes(\'->'', ")
+	 */
+	static std::wstring& convertQuotes(std::wstring& str);
 };
 
 

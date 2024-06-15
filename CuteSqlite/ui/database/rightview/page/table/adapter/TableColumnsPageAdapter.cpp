@@ -622,6 +622,7 @@ bool TableColumnsPageAdapter::moveUpSelColumns()
 
 			if (nSelItem - 1 >= 0 ) {
 				dataView->SelectItem(nSelItem - 1);
+				dataView->UnSelectItem(nSelItem);
 			}
 		}
 		invalidateRow(nSelItem);
@@ -671,6 +672,7 @@ bool TableColumnsPageAdapter::moveDownSelColumns()
 
 			if (nSelItem + 1 < maxRows ) {
 				dataView->SelectItem(nSelItem + 1);
+				dataView->UnSelectItem(nSelItem);
 			}
 		}
 		invalidateRow(nSelItem);
