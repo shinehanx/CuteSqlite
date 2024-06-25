@@ -214,7 +214,8 @@ void ResultFilterDialog::createOrShowRowElems(int nIndex, FilterTuple & tuple, C
 	// value
 	CEdit * valueEdit = new CEdit();
 	rect.OffsetRect(RESULT_FILTER_ELEM_WIDTH + RESULT_FILTER_ELEM_SPLIT, 0);
-	createOrShowFormEdit(*valueEdit, 0, std::get<3>(tuple), L"", rect, clientRect, 0, false);
+	rect.bottom += 4;
+	createOrShowFormEdit(*valueEdit, 0, std::get<3>(tuple), L"", rect, clientRect, ES_AUTOHSCROLL, false);
 	valueEdits.push_back(valueEdit);
 
 	// +/- button

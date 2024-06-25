@@ -735,7 +735,6 @@ void ResultListPage::OnClickFilterButton(UINT uNotifyCode, int nID, HWND hwnd)
 			QPopAnimate::report(ex);
 		}
 		
-		
 		ResultInfo & resultInfo = adapter->getRuntimeResultInfo();
 		resultInfo.totalTime = PerformUtil::end(_bt);
 		// display status bar panels 
@@ -804,6 +803,9 @@ void ResultListPage::displayRuntimeSql()
 
 void ResultListPage::displayDatabase()
 {
+	if (!adapter->getRuntimeUserDbId()) {
+		return;
+	}
 	try {
 		UserDb userDb = databaseService->getUserDb(adapter->getRuntimeUserDbId());
 		statusBar.SetPaneText(Config::RESULT_STATUSBAR_DATABASE_PANE_ID, userDb.name.c_str());

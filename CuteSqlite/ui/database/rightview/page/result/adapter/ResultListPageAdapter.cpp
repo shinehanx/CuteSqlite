@@ -101,6 +101,9 @@ int ResultListPageAdapter::loadFilterListView()
 		return 0;
 	}
 	runtimeSql = buildRungtimeSqlWithFilters();
+	if (runtimeSql.empty()) {
+		return 0;
+	}
 	runtimeResultInfo.sql = runtimeSql;
 	runtimeResultInfo.userDbId = runtimeUserDbId;
 	auto bt = PerformUtil::begin();
@@ -346,12 +349,16 @@ bool ResultListPageAdapter::getIsChecked(int iItem)
  */
 std::wstring ResultListPageAdapter::buildRungtimeSqlWithFilters()
 {
+	if (runtimeFilters.empty() || originSql.empty()) {
+		return originSql;
+	}
 	std::wstring newSql;
 	std::wstring whereClause = SqlUtil::getWhereClause(originSql);
 	std::wstring fourthClause = SqlUtil::getFourthClause(originSql);
 
 	std::wstring condition;
 	int n = static_cast<int>(runtimeFilters.size());
+	
 	for (int i = 0; i < n; i++) {
 		auto tuple = runtimeFilters.at(i);
 		auto connect = std::get<0>(tuple);// connect such as "and/or"
