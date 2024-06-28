@@ -186,12 +186,12 @@ void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & c
 	QWinCreater::createOrShowButton(m_hWnd, refreshButton, Config::LISTVIEW_REFRESH_BUTTON_ID, L"", rect, clientRect);
 	refreshButton.SetToolTip(S(L"refresh"));
 
-	rect.OffsetRect(16 + 20, 0);
+	rect.OffsetRect(16 + 20, 2);
 	rect.InflateRect(0, 0, 50, 0);
 	QWinCreater::createOrShowCheckBox(m_hWnd, limitCheckBox, Config::LISTVIEW_LIMIT_CHECKBOX_ID, S(L"limit-rows"), rect, clientRect);
 
-	rect.OffsetRect(60 + 5, 2);
-	rect.InflateRect(0, 0, -16, 0);
+	rect.OffsetRect(60 + 5, 0);
+	rect.InflateRect(0, 0, -16, 4);
 	QWinCreater::createOrShowLabel(m_hWnd, offsetLabel, S(L"offset").append(L":"), rect, clientRect, SS_RIGHT);
 
 	rect.OffsetRect(50 + 2, -2);
