@@ -111,7 +111,7 @@ LRESULT ResultInfoPage::addResultInfo(ResultInfo * runtimeResultInfo)
 	CString text;
 	infoEdit.GetWindowText(text);
 	text.Append(str.c_str());
-	infoEdit.SetWindowText(text);
+	infoEdit.SetWindowText(text); 
 	infoEdit.UpdateWindow();
 	return 0;
 }

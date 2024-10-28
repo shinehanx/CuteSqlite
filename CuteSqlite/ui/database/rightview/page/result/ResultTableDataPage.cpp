@@ -389,7 +389,7 @@ LRESULT ResultTableDataPage::OnClickListView(int idCtrl, LPNMHDR pnmh, BOOL &bHa
 		enableDataDirty();
 	}
 	// show toolbar buttons after selected items in ListView
-	enableDeleteButton();
+	enableDeleteButton(); 
 	return ret;
 }
 
