@@ -180,7 +180,7 @@ void QueryPageSupplier::splitToSqlVector(std::wstring sql)
 	sqlVector.clear();
 	if (sql.empty()) {
 		return;
-	}
+	} 
 	
 	if (sql.find(L';') == std::wstring::npos) {
 		sqlVector.push_back(sql);
