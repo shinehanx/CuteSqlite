@@ -47,7 +47,7 @@ private:
 	Config::FrmButtonId selButtonId = Config::HOME_BUTTON_ID;
 
 	void createHomeButton();
-	void createCustomerButton();
+	void createDababaseButton();
 	void createAnalysisButton();
 	void createViewButton();
 	void createSettingButton();

@@ -26,7 +26,7 @@ void LeftPanel::createHomeButton()
 }
 
 
-void LeftPanel::createCustomerButton()
+void LeftPanel::createDababaseButton()
 {
 	CRect rect = { 0,0, 48, 48 };
 	databaseButton.setButtonId(Config::DATABASE_BUTTON_ID);
@@ -135,19 +135,19 @@ Config::FrmButtonId LeftPanel::getSelButtonId()
 LRESULT LeftPanel::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	bkgBrush.CreateSolidBrush(bkgColor);
-	//创建home图形按钮
+	//home button
 	createHomeButton();
 
-	//customer按钮
-	createCustomerButton();
+	//database button
+	createDababaseButton();
 
-	//analysis按钮
+	//analysis button
 	createAnalysisButton();
 
-	//view按钮
+	//view button
 	// createViewButton();
 
-	//setting按钮
+	//setting button
 	createSettingButton();
 
 	
