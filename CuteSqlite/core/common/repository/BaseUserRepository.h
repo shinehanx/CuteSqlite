@@ -28,7 +28,7 @@ class BaseUserRepository : public BaseRepository<T>
 {
 public:
 	QSqlDatabase * getUserConnect(uint64_t userDbId);
-	void closeUserConnect(uint64_t userDbId);
+	void closeConnect(uint64_t userDbId);
 protected:
 	
 	UserDb getUserDbById(uint64_t userDbId);
@@ -85,7 +85,7 @@ QSqlDatabase * BaseUserRepository<T>::getUserConnect(uint64_t userDbId)
 }
 
 template <typename T>
-void BaseUserRepository<T>::closeUserConnect(uint64_t userDbId)
+void BaseUserRepository<T>::closeConnect(uint64_t userDbId)
 {
 	if (QConnect::userConnectPool.empty() || QConnect::userConnectPool.find(userDbId) == QConnect::userConnectPool.end()) {
 		return;

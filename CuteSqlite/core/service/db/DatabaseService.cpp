@@ -124,7 +124,7 @@ void DatabaseService::removeUserDb(uint64_t userDbId, bool isDeleteFile)
 	getRepository()->remove(userDbId);
 
 	// 3) Close from connects.
-	databaseUserRepository->closeUserConnect(userDbId);
+	databaseUserRepository->closeConnect(userDbId);
 }
 
 
@@ -166,7 +166,7 @@ uint64_t DatabaseService::copyUserDb(uint64_t fromUserDbId, const std::wstring &
 	getRepository()->updateIsActiveByNotId(toUserDbId);
 	
 	// close the database connection first, release the FILE handler
-	databaseUserRepository->closeUserConnect(fromUserDbId);
+	databaseUserRepository->closeConnect(fromUserDbId);
 	databaseUserRepository->copy(fromUserDb.path, toDbPath);
 	return toUserDbId;
 }

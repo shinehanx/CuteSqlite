@@ -92,19 +92,15 @@ uint64_t BaseRepository<T>::getLastId(std::wstring tbl)
 	std::wstring sql = L"SELECT max(id) FROM :tbl ";
 
 	try {
-		QSqlStatement query(getSysConnect(), sql.c_str());
-		query.bind(L":uid", uid);
-		query.bind(L":analysis_type", analysisType);
-		query.bind(L":analysis_date", analysisDate);
+		QSqlStatement query(getSysConnect(), sql.c_str());;
 	
 		//执行语句
 		if (!query.executeStep()) {
-			return Analysis();			
+			return 0;			
 		}
 		
-		Q_INFO(L"Get analysis detail success");
-		Analysis item = toAnalysis(query);
-		return item;
+		uint64_t maxId = query.getColumn(0).getInt64();
+		return maxId;
 	} catch (SQLite::QSqlException &e) {
 		std::wstring _err = e.getErrorStr();
 		Q_ERROR(L"exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);

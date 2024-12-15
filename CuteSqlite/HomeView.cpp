@@ -71,6 +71,7 @@ void HomeView::createOrShowPanel(Config::PanelId panelId, CWindowImpl & panel, C
 		DWORD dwStyle;		
 		dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 		panel.Create(m_hWnd, rect, L"", dwStyle);
+		
 		//panel放置到MAP，便于控制显示/隐藏
 		panels[panelId] = (CWindowImpl *)&panel;
 		return;
