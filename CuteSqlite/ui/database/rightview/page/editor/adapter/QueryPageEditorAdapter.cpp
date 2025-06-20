@@ -274,7 +274,7 @@ Columns & QueryPageEditorAdapter::getCacheTableColumns(uint64_t userDbId, const 
 	auto & columns = supplier->getCacheTableColumns(userDbId, tblName);
 	if (columns.empty()) {
 		columns = tableService->getUserColumnStrings(userDbId, tblName);
-		// supplier->setCacheTableColumns(userDbId, tblName, tags);
+		// supplier->setCacheTableColumns(userDbId, tblName, columns);
 	}
 	return columns;
 }

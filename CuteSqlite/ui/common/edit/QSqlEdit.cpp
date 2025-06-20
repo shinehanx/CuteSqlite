@@ -186,8 +186,6 @@ void QSqlEdit::setFold(BOOL bFold /*= TRUE*/)
 		SendMessage(SCI_SETPROPERTY, (WPARAM) "fold.preprocessor", (LPARAM) "1");
 		SendMessage(SCI_SETPROPERTY, (WPARAM) "styling.within.preprocessor", (LPARAM) "1");
 
-		setMarginWidthN(2, 16); //SendMessage( SCI_SETMARGINWIDTHN, 2, 16 ); // FoldMargin
-
 		SendMessage(SCI_SETMARGINTYPEN, 2, SC_MARGIN_SYMBOL);//Ò³±ßÀàÐÍ
 		SendMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS); //Ò³±ßÑÚÂë
 		SendMessage(SCI_SETMARGINWIDTHN, 2, 16); //Ò³±ß¿í¶È

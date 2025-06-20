@@ -163,7 +163,7 @@ LRESULT QHelpEdit::OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHand
 	case SCN_FOCUSIN :// 获取焦点
 		OnHandleScnFocusIn(uMsg, wParam, lParam, bHandled);
 		break;
-	case SCN_DOUBLECLICK :// 获取焦点
+	case SCN_DOUBLECLICK :// double click
 		OnHandleScnDoubleClick(uMsg, wParam, lParam, bHandled);
 		break;
 	case SCN_KEY :// 获取焦点
