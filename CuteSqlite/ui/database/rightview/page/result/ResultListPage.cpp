@@ -192,7 +192,7 @@ void ResultListPage::doCreateOrShowToolBarRightPaneElems(CRect & rect, CRect & c
 
 	rect.OffsetRect(60 + 5, 0);
 	rect.InflateRect(0, 0, -16, 4);
-	QWinCreater::createOrShowLabel(m_hWnd, offsetLabel, S(L"offset").append(L":"), rect, clientRect, SS_RIGHT);
+	QWinCreater::createOrShowLabel(m_hWnd, offsetLabel, S(L"offset").append(L":"), rect, clientRect, SS_RIGHT); 
 
 	rect.OffsetRect(50 + 2, -2);
 	QWinCreater::createOrShowEdit(m_hWnd, offsetEdit, 0, L"0", rect, clientRect, ES_NUMBER, false);
