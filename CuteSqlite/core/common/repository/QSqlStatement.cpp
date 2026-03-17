@@ -266,11 +266,11 @@ bool QSqlStatement::isColumnNull(const wchar_t* apName) const
 }
 
 // Return the named assigned to the specified result column (potentially aliased)
-const wchar_t* QSqlStatement::getColumnName(const int aIndex) const
+const std::wstring QSqlStatement::getColumnName(const int aIndex) const
 {
     checkIndex(aIndex);
     const char * column_name = sqlite3_column_name(getPreparedStatement(), aIndex);
-	return StringUtil::utf8ToUnicode(column_name);
+	return StringUtil::utf82Unicode(std::string(column_name));
 }
 
 #ifdef SQLITE_ENABLE_COLUMN_METADATA
@@ -352,7 +352,7 @@ const wchar_t* QSqlStatement::getErrorMsg() const noexcept
 // Return a UTF-8 string containing the SQL text of prepared statement with bound parameters expanded.
 std::wstring QSqlStatement::getExpandedSQL() const {
     char * expanded = sqlite3_expanded_sql(getPreparedStatement());
-    std::wstring expandedString = StringUtil::utf8ToUnicode(expanded);
+    std::wstring expandedString = StringUtil::utf82Unicode(expanded);
     sqlite3_free(expanded);
     return expandedString;
 }

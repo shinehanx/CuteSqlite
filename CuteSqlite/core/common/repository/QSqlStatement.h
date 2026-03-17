@@ -550,7 +550,7 @@ public:
 		*
 		*  Throw an exception if the specified index is out of the [0, getColumnCount()) range.
 		*/
-	const wchar_t* getColumnName(const int aIndex) const;
+	const std::wstring getColumnName(const int aIndex) const;
 
 #ifdef SQLITE_ENABLE_COLUMN_METADATA
 	/**

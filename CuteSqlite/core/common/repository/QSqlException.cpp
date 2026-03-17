@@ -17,7 +17,7 @@ namespace SQLite
 {
 
 QSqlException::QSqlException(const wchar_t* aErrorMessage, int ret) :
-    std::runtime_error(StringUtil::unicodeToUtf8(aErrorMessage)),
+    std::runtime_error(StringUtil::unicode2Utf8(aErrorMessage).c_str()),
     mErrcode(ret),
     mExtendedErrcode(-1)
 {
